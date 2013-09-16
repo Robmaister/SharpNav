@@ -1,4 +1,11 @@
-﻿using System.Reflection;
+﻿#region License
+/**
+ * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -6,11 +13,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SharpNavTests")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Unit tests for SharpNav.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("SharpNavTests")]
-[assembly: AssemblyCopyright("Copyright ©  2013")]
+[assembly: AssemblyCopyright("Copyright © 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
