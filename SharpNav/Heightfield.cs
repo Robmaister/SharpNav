@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A Heightfield represents a "voxel" grid represented as a 2-dimensional grid of <see cref="SharpNav.Heightfield+Cell"/>s.
+	/// </summary>
 	public class Heightfield : IEnumerable<Heightfield.Cell>
 	{
 		private Vector3 min, max;
@@ -23,6 +26,14 @@ namespace SharpNav
 
 		private Cell[] cells;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SharpNav.Heightfield"/> class.
+		/// </summary>
+		/// <param name="minimum">World space minimum.</param>
+		/// <param name="maximum">World space aximum.</param>
+		/// <param name="cellCountX">Number of cells on the X axis.</param>
+		/// <param name="cellCountY">Number of cells on the Y (up) axis.</param>
+		/// <param name="cellCountZ">Number of cells on the Z axis.</param>
 		public Heightfield(Vector3 minimum, Vector3 maximum, int cellCountX, int cellCountY, int cellCountZ)
 		{
 			if (min.X > max.X || min.Y > max.Y || min.Z > max.Z)
@@ -50,6 +61,11 @@ namespace SharpNav
 				cells[i] = new Cell(height);
 		}
 
+		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
+		/// </summary>
+		/// <param name="x">The x coordinate.</param>
+		/// <param name="y">The y coordinate.</param>
 		public Cell this[int x, int y]
 		{
 			get
@@ -61,15 +77,46 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the world-space minimum.
+		/// </summary>
+		/// <value>The minimum.</value>
 		public Vector3 Minimum { get { return min; } }
+
+		/// <summary>
+		/// Gets the world-space maximum.
+		/// </summary>
+		/// <value>The maximum.</value>
 		public Vector3 Maximum { get { return max; } }
 
+		/// <summary>
+		/// Gets the number of cells in the X direction.
+		/// </summary>
+		/// <value>The width.</value>
 		public int Width { get { return width; } }
+
+		/// <summary>
+		/// Gets the number of cells in the Y (up) direction.
+		/// </summary>
+		/// <value>The height.</value>
 		public int Height { get { return height; } }
+
+		/// <summary>
+		/// Gets the number of cells in the Z direction.
+		/// </summary>
+		/// <value>The length.</value>
 		public int Length { get { return length; } }
 
+		/// <summary>
+		/// Gets the size of a cell (voxel).
+		/// </summary>
+		/// <value>The size of the cell.</value>
 		public Vector3 CellSize { get { return new Vector3(cellWidth, cellHeight, cellLength); } }
 
+		/// <summary>
+		/// Enumerates over the heightfield row-by-row.
+		/// </summary>
+		/// <returns>The enumerator.</returns>
 		public IEnumerator<Heightfield.Cell> GetEnumerator()
 		{
 			return ((IEnumerable<Cell>)cells).GetEnumerator();
@@ -80,17 +127,28 @@ namespace SharpNav
 			return cells.GetEnumerator();
 		}
 
+		/// <summary>
+		/// A cell is a column of voxels represented in <see cref="SharpNav.Heightfield+Span"/>s.
+		/// </summary>
 		public class Cell
 		{
 			private List<Span> openSpans;
 			private int maxHeight;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Cell"/> class.
+			/// </summary>
+			/// <param name="height">The number of voxels in the column.</param>
 			public Cell(int height)
 			{
 				maxHeight = height - 1;
 				openSpans = new List<Span>();
 			}
 
+			/// <summary>
+			/// Gets the <see cref="SharpNav.Heightfield+Span"/> that contains the specified voxel.
+			/// </summary>
+			/// <param name="location">The voxel to search for.</param>
 			public Span? this[int location]
 			{
 				get
@@ -112,8 +170,16 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets a readonly list of all the <see cref="SharpNav.Heightfield+Span"/>s contained in the cell.
+			/// </summary>
+			/// <value>A readonly list of spans.</value>
 			public IReadOnlyList<Span> Spans { get { return openSpans.AsReadOnly(); } }
 
+			/// <summary>
+			/// Adds a <see cref="SharpNav.Heightfield+Span"/> to the cell.
+			/// </summary>
+			/// <param name="span">A span.</param>
 			public void AddSpan(Span span)
 			{
 				//clamp the span to the cell's range of [0, maxHeight]
@@ -156,12 +222,27 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// A span is a range of integers which represents a range of voxels in a <see cref="SharpNav.Heightfield+Cell"/>.
+		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Span
 		{
+			/// <summary>
+			/// The lowest value in the span.
+			/// </summary>
 			public int Minimum;
+
+			/// <summary>
+			/// The highest value in the span.
+			/// </summary>
 			public int Maximum;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Span"/> struct.
+			/// </summary>
+			/// <param name="min">The lowest value in the span.</param>
+			/// <param name="max">The highest value in the span.</param>
 			public Span(int min, int max)
 			{
 				Minimum = min;
