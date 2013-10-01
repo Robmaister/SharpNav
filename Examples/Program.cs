@@ -10,6 +10,10 @@ namespace Examples
 	{
 		static void Main(string[] args)
 		{
+			using (ExampleWindow ex = new ExampleWindow())
+			{
+				ex.Run();
+			}
 		}
 	}
 }

@@ -11,41 +11,45 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SharpNav.Geometry;
 
 namespace SharpNav
 {
 	public class Heightfield : IEnumerable<Heightfield.Cell>
 	{
-		private Vector3 min, max;
+		private BBox3 bounds;
 
 		private int width, height, length;
-		private float cellWidth, cellHeight, cellLength;
+		private float cellSize, cellHeight;
 
 		private Cell[] cells;
 
-		public Heightfield(Vector3 minimum, Vector3 maximum, int cellCountX, int cellCountY, int cellCountZ)
+		public Heightfield(Vector3 min, Vector3 max, float cellSize, float cellHeight)
 		{
 			if (min.X > max.X || min.Y > max.Y || min.Z > max.Z)
 				throw new ArgumentException("The minimum bound of the heightfield must be less than the maximum bound of the heightfield on all axes.");
 
-			if (cellCountX < 1)
-				throw new ArgumentOutOfRangeException("cellCountX", "Cell counts must be at least 1.");
+			if (cellSize <= 0)
+				throw new ArgumentOutOfRangeException("cellSize", "Cell size must be greater than 0.");
 
-			if (cellCountZ < 1)
-				throw new ArgumentOutOfRangeException("cellCountZ", "Cell counts must be at least 1.");
+			if (cellHeight <= 0)
+				throw new ArgumentOutOfRangeException("cellHeight", "Cell height must be greater than 0.");
 
-			min = minimum;
-			max = maximum;
+			this.cellSize = cellSize;
+			this.cellHeight = cellHeight;
 
-			width = cellCountX;
-			height = cellCountY;
-			length = cellCountZ;
+			width = (int)Math.Ceiling((max.X - min.X) / cellSize);
+			height = (int)Math.Ceiling((max.Y - min.Y) / cellHeight);
+			length = (int)Math.Ceiling((max.Z - min.Z) / cellSize);
 
-			cellWidth = (max.X - min.X) / cellCountX;
-			cellLength = (max.Z - min.Z) / cellCountZ;
-			cellHeight = (max.Y - min.Y) / cellCountY;
+			bounds.Min = min;
 
-			cells = new Cell[cellCountX * cellCountZ];
+			max.X = min.X + width * cellSize;
+			max.Y = min.Y + height * cellHeight;
+			max.Z = min.Z + length * cellSize;
+			bounds.Max = max;
+
+			cells = new Cell[width * length];
 			for (int i = 0; i < cells.Length; i++)
 				cells[i] = new Cell(height);
 		}
@@ -61,14 +65,120 @@ namespace SharpNav
 			}
 		}
 
-		public Vector3 Minimum { get { return min; } }
-		public Vector3 Maximum { get { return max; } }
+		public BBox3 Bounds { get { return bounds; } }
+		public Vector3 Minimum { get { return bounds.Min; } }
+		public Vector3 Maximum { get { return bounds.Max; } }
 
 		public int Width { get { return width; } }
 		public int Height { get { return height; } }
 		public int Length { get { return length; } }
 
-		public Vector3 CellSize { get { return new Vector3(cellWidth, cellHeight, cellLength); } }
+		public Vector3 CellSize { get { return new Vector3(cellSize, cellHeight, cellSize); } }
+
+		public void RasterizeTriangles(Triangle3[] tris)
+		{
+			for (int i = 0; i < tris.Length; i++)
+				RasterizeTriangle(tris[i]);
+		}
+
+		public void RasterizeTriangle(Triangle3 tri)
+		{
+			float invCellSize = 1f / cellSize;
+			float invCellHeight = 1f / cellHeight;
+			int maxHeight = height - 1;
+
+			BBox3 bbox;
+			Triangle3.GetBoundingBox(ref tri, out bbox);
+
+			//make sure that the triangle is at least in one cell.
+			if (!BBox3.Overlapping(ref bbox, ref bounds))
+				return;
+
+			float boundHeight = bounds.Max.Y - bounds.Min.Y;
+
+			//figure out which cells the triangle touches.
+			int x0 = (int)((bbox.Min.X - bounds.Min.X) * invCellSize);
+			int z0 = (int)((bbox.Min.Z - bounds.Min.Z) * invCellSize);
+			int x1 = (int)((bbox.Max.X - bounds.Min.X) * invCellSize);
+			int z1 = (int)((bbox.Max.Z - bounds.Min.Z) * invCellSize);
+
+			//clamp to the field boundaries.
+			MathHelper.Clamp(x0, 0, width - 1);
+			MathHelper.Clamp(z0, 0, length - 1);
+			MathHelper.Clamp(x1, 0, width - 1);
+			MathHelper.Clamp(z1, 0, length - 1);
+
+			Vector3[] inVerts = new Vector3[7], outVerts = new Vector3[7], inRowVerts = new Vector3[7];
+
+			for (int z = z0; z <= z1; z++)
+			{
+				//copy the original vertices to the array.
+				inVerts[0] = tri.A;
+				inVerts[1] = tri.B;
+				inVerts[2] = tri.C;
+
+				//clip the triangle to the row
+				int nvrow = 3;
+				float cz = bounds.Min.Z + z * cellSize;
+				nvrow = ClipPolygon(inVerts, outVerts, nvrow, 0, 1, -cz);
+				if (nvrow < 3)
+					continue;
+				nvrow = ClipPolygon(outVerts, inRowVerts, nvrow, 0, -1, cz + cellSize);
+				if (nvrow < 3)
+					continue;
+
+				for (int x = x0; x <= x1; x++)
+				{
+					//clip the triangle to the column
+					int nv = nvrow;
+					float cx = bounds.Min.X + x * cellSize;
+					nv = ClipPolygon(inRowVerts, outVerts, nv, 1, 0, -cx);
+					if (nv < 3)
+						continue;
+					nv = ClipPolygon(outVerts, inVerts, nv, -1, 0, cx + cellSize);
+					if (nv < 3)
+						continue;
+
+					//calculate the min/max of the polygon
+					float sMin = inVerts[0].Y, sMax = sMin;
+					for (int i = 1; i < nv; i++)
+					{
+						float y = inVerts[i].Y;
+						sMin = Math.Min(sMin, y);
+						sMax = Math.Max(sMax, y);
+					}
+
+
+					//normalize span bounds to bottom of heightfield
+					float bMinY = bounds.Min.Y;
+					sMin -= bMinY;
+					sMax -= bMinY;
+
+					//if the spans are outside the heightfield, skip.
+					if (sMax < 0f || sMin > boundHeight)
+						continue;
+
+					//clamp the span to the heightfield.
+					if (sMin < 0)
+						sMin = 0;
+					if (sMax > boundHeight)
+						sMax = boundHeight;
+
+					//snap to grid
+					int spanMin = MathHelper.Clamp((int)(sMin * invCellHeight), 0, maxHeight);
+					int spanMax = MathHelper.Clamp((int)Math.Ceiling(sMax * invCellHeight), spanMin + 1, maxHeight);
+
+					if (spanMin == spanMax)
+					{
+						Console.WriteLine("No-thickness span");
+						continue;
+					}
+
+					//add the span
+					cells[z * width + x].AddSpan(new Span(spanMin, spanMax));
+				}
+			}
+		}
 
 		public IEnumerator<Heightfield.Cell> GetEnumerator()
 		{
@@ -78,6 +188,45 @@ namespace SharpNav
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return cells.GetEnumerator();
+		}
+
+		/// <summary>
+		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
+		/// </summary>
+		/// <param name="inVertices">The input array of vertices.</param>
+		/// <param name="outVertices">The output array of vertices.</param>
+		/// <param name="numVerts">The number of vertices to read from the arrays.</param>
+		/// <param name="planeX">The clip plane's X component.</param>
+		/// <param name="planeZ">The clip plane's Z component.</param>
+		/// <param name="planeD">The clip plane's D component.</param>
+		/// <returns>The number of vertices stored in outVertices.</returns>
+		private int ClipPolygon(Vector3[] inVertices, Vector3[] outVertices, int numVerts, float planeX, float planeZ, float planeD)
+		{
+			float[] distances = new float[12];
+			for (int i = 0; i < numVerts; i++)
+				distances[i] = planeX * inVertices[i].X + planeZ * inVertices[i].Z + planeD;
+
+			int m = 0;
+			for (int i = 0, j = numVerts - 1; i < numVerts; j = i, i++)
+			{
+				bool inj = distances[j] >= 0;
+				bool ini = distances[i] >= 0;
+				if (inj != ini)
+				{
+					float s = distances[j] / (distances[j] - distances[i]);
+					outVertices[m].X = inVertices[j].X + (inVertices[i].X - inVertices[j].X) * s;
+					outVertices[m].Y = inVertices[j].Y + (inVertices[i].Y - inVertices[j].Y) * s;
+					outVertices[m].Z = inVertices[j].Z + (inVertices[i].Z - inVertices[j].Z) * s;
+					m++;
+				}
+				if (ini)
+				{
+					outVertices[m] = inVertices[i];
+					m++;
+				}
+			}
+
+			return m;
 		}
 
 		public class Cell
