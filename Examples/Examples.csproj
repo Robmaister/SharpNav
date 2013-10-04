@@ -41,6 +41,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Camera.cs" />
     <Compile Include="ExampleWindow.cs" />
     <Compile Include="ObjModel.cs" />
     <Compile Include="Program.cs" />

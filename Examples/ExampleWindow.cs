@@ -16,24 +16,88 @@ namespace Examples
 {
 	public class ExampleWindow : GameWindow
 	{
-		private int levelVbo, levelNormVbo, heightfieldVoxelVbo;
-		private int levelNumVerts, heightfieldVoxelNumVerts;
+		private enum VoxelDrawMode
+		{
+			Lit,
+			Transparent
+		}
+
+		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo;
+		private int levelNumVerts;
+
+		private Camera cam;
 
 		private Heightfield heightfield;
 		private ObjModel model;
 
 		private bool hasVoxelized;
+		private VoxelDrawMode vDrawMode;
 
 		private OpenTK.Vector3 cameraPos;
+
+		private KeyboardState prevK;
+		private MouseState prevM;
+
+		private static readonly byte[] voxelInds =
+		{
+			0,  2,  1,  0,  3,  2,  //-Z
+			4,  6,  5,  4,  7,  6,  //+X
+			8,  10, 9,  8,  11, 10, //+Z
+			12, 14, 13, 12, 15, 14, //-X
+			16, 18, 17, 16, 19, 18, //+Y
+			20, 22, 21, 20, 23, 22  //-Y
+		};
+
+		private static readonly float[] voxelVerts =
+		{
+			//-Z face
+			-0.5f,  0.5f, -0.5f,  0,  0, -1,
+			-0.5f, -0.5f, -0.5f,  0,  0, -1,
+			 0.5f, -0.5f, -0.5f,  0,  0, -1,
+			 0.5f,  0.5f, -0.5f,  0,  0, -1,
+
+			//+X face
+			 0.5f,  0.5f, -0.5f,  1,  0,  0,
+			 0.5f, -0.5f, -0.5f,  1,  0,  0,
+			 0.5f, -0.5f,  0.5f,  1,  0,  0,
+			 0.5f,  0.5f,  0.5f,  1,  0,  0,
+
+			//+Z face
+			 0.5f,  0.5f,  0.5f,  0,  0,  1,
+			 0.5f, -0.5f,  0.5f,  0,  0,  1,
+			-0.5f, -0.5f,  0.5f,  0,  0,  1,
+			-0.5f,  0.5f,  0.5f,  0,  0,  1,
+
+			//-X face
+			-0.5f,  0.5f,  0.5f, -1,  0,  0,
+			-0.5f, -0.5f,  0.5f, -1,  0,  0,
+			-0.5f, -0.5f, -0.5f, -1,  0,  0,
+			-0.5f,  0.5f, -0.5f, -1,  0,  0,
+
+			//+Y face
+			-0.5f,  0.5f,  0.5f,  0,  1,  0,
+			-0.5f,  0.5f, -0.5f,  0,  1,  0,
+			 0.5f,  0.5f, -0.5f,  0,  1,  0,
+			 0.5f,  0.5f,  0.5f,  0,  1,  0,
+
+			//-Y face
+			-0.5f, -0.5f, -0.5f,  0, -1,  0,
+			-0.5f, -0.5f,  0.5f,  0, -1,  0,
+			 0.5f, -0.5f,  0.5f,  0, -1,  0,
+			 0.5f, -0.5f, -0.5f,  0, -1,  0
+		};
 
 		public ExampleWindow()
 			: base()
 		{
+			cam = new Camera();
 		}
 
 		protected override void OnLoad(EventArgs e)
 		{
 			base.OnLoad(e);
+
+			Keyboard.KeyDown += OnKeyboardKeyDown;
 
 			GL.Enable(EnableCap.DepthTest);
 			GL.DepthMask(true);
@@ -68,6 +132,16 @@ namespace Examples
 			var modelNorms = model.GetNormals();
 			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(modelNorms.Length * 3 * 4), modelNorms, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+			heightfieldVoxelVbo = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(voxelVerts.Length * 4), voxelVerts, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+			heightfieldVoxelIbo = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)voxelInds.Length, voxelInds, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -78,35 +152,55 @@ namespace Examples
 			MouseState m = OpenTK.Input.Mouse.GetState();
 
 			if (k[Key.W])
-				cameraPos.Z -= 0.1f;
+				cam.Move(-5f * (float)e.Time);
 			if (k[Key.A])
-				cameraPos.X -= 0.1f;
+				cam.Strafe(-5f * (float)e.Time);
 			if (k[Key.S])
-				cameraPos.Z += 0.1f;
+				cam.Move(5f * (float)e.Time);
 			if (k[Key.D])
-				cameraPos.X += 0.1f;
+				cam.Strafe(5f * (float)e.Time);
 			if (k[Key.Q])
-				cameraPos.Y += 0.1f;
+				cam.Elevate(5f * (float)e.Time);
 			if (k[Key.E])
-				cameraPos.Y -= 0.1f;
+				cam.Elevate(-5f * (float)e.Time);
 
-			if (k[Key.Escape])
+			if (m[MouseButton.Right])
+			{
+				cam.RotatePitch((m.X - prevM.X) * (float)e.Time * 2f);
+				cam.RotateHeading((prevM.Y - m.Y) * (float)e.Time * 2f);
+			}
+
+			//cam.Position = cameraPos;
+
+			GL.MatrixMode(MatrixMode.Modelview);
+			cam.LoadView();
+
+			prevK = k;
+			prevM = m;
+		}
+
+		protected void OnKeyboardKeyDown(object sender, KeyboardKeyEventArgs e)
+		{
+			if (e.Key == Key.Escape)
 				Exit();
-
-			if (k[Key.F12])
-				WindowState = OpenTK.WindowState.Fullscreen;
-			if (k[Key.F11])
+			else if (e.Key == Key.F10 && hasVoxelized)
+			{
+				if (vDrawMode == VoxelDrawMode.Lit)
+					vDrawMode = VoxelDrawMode.Transparent;
+				else if (vDrawMode == VoxelDrawMode.Transparent)
+					vDrawMode = VoxelDrawMode.Lit;
+			}
+			else if (e.Key == Key.F11)
 				WindowState = OpenTK.WindowState.Normal;
-
-			if (k[Key.P] && !hasVoxelized)
+			else if (e.Key == Key.F12)
+				WindowState = OpenTK.WindowState.Fullscreen;
+			else if (e.Key == Key.P && !hasVoxelized)
 			{
 				heightfield.RasterizeTriangles(model.GetTriangles());
 				hasVoxelized = true;
 			}
 
-			GL.MatrixMode(MatrixMode.Modelview);
-			Matrix4 view = Matrix4.CreateTranslation(-cameraPos);
-			GL.LoadMatrix(ref view);
+			base.OnKeyDown(e);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
@@ -117,6 +211,7 @@ namespace Examples
 			GL.Color4(Color4.White);
 
 			GL.Enable(EnableCap.Lighting);
+			GL.Enable(EnableCap.Light0);
 			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0.25f, 1, 0.15f, 0));
 
 			GL.EnableClientState(ArrayCap.VertexArray);
@@ -126,35 +221,54 @@ namespace Examples
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
-			GL.DisableClientState(ArrayCap.VertexArray);
-			GL.DisableClientState(ArrayCap.NormalArray);
 
-			GL.Disable(EnableCap.Lighting);
-			GL.Begin(BeginMode.Lines);
+			if (vDrawMode == VoxelDrawMode.Transparent)
+			{
+				GL.Disable(EnableCap.Light0);
+				GL.Disable(EnableCap.Lighting);
+				GL.DepthMask(false);
+				GL.Color4(1f, 0f, 0f, 0.5f);
+			}
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
+			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
+
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+			Matrix4 cellLoc, spanLoc, spanScale;
 			for (int i = 0; i < heightfield.Length; i++)
 			{
 				for (int j = 0; j < heightfield.Width; j++)
 				{
+					Matrix4.CreateTranslation(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z, out cellLoc);
 					var cell = heightfield[j, i];
 
 					foreach (var span in cell.Spans)
 					{
-						var min = new SharpNav.Vector3(j * heightfield.CellSize.X, span.Minimum * heightfield.CellSize.Y, i * heightfield.CellSize.Z);
-						var max = new SharpNav.Vector3(j * heightfield.CellSize.X, span.Maximum * heightfield.CellSize.Y, i * heightfield.CellSize.Z);
-						var halfCellSize = heightfield.CellSize * 0.5f;
-						halfCellSize.Y = 0;
+						GL.PushMatrix();
+						Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Length, cellSize.Z, out spanScale);
+						Matrix4.CreateTranslation(0, (span.Minimum + (span.Length * 0.5f)) * cellSize.Y, 0, out spanLoc);
 
-						min += heightfield.Bounds.Min + halfCellSize;
-						max += heightfield.Bounds.Min + halfCellSize;
+						
+						GL.MultMatrix(ref spanLoc);
+						GL.MultMatrix(ref cellLoc);
+						GL.MultMatrix(ref spanScale);
 
-						GL.Color4(Color4.Red);
-						GL.Vertex3(min.X, min.Y, min.Z);
-						GL.Color4(Color4.Red);
-						GL.Vertex3(max.X, max.Y, max.Z);
+						GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.PopMatrix();
 					}
 				}
 			}
-			GL.End();
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.VertexArray);
+			GL.DisableClientState(ArrayCap.NormalArray);
+
+			if (vDrawMode == VoxelDrawMode.Transparent)
+				GL.DepthMask(true);
 
 			SwapBuffers();
 		}
