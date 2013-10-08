@@ -22,21 +22,35 @@ namespace Examples
 			Transparent
 		}
 
-		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo;
+		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo, squareVbo, squareIbo;
 		private int levelNumVerts;
 
 		private Camera cam;
 
 		private Heightfield heightfield;
+		private OpenHeightfield openHeightfield;
 		private ObjModel model;
 
 		private bool hasVoxelized;
 		private VoxelDrawMode vDrawMode;
 
-		private OpenTK.Vector3 cameraPos;
+		private bool hasOpenHeightfield;
 
 		private KeyboardState prevK;
 		private MouseState prevM;
+
+		private static readonly byte[] squareInds =
+		{
+			0, 1, 2, 0, 2, 3
+		};
+
+		private static readonly float[] squareVerts =
+		{
+			 0.5f, 0,  0.5f, 0, 1, 0,
+			 0.5f, 0, -0.5f, 0, 1, 0,
+			-0.5f, 0, -0.5f, 0, 1, 0,
+			-0.5f, 0,  0.5f, 0, 1, 0
+		};
 
 		private static readonly byte[] voxelInds =
 		{
@@ -110,11 +124,7 @@ namespace Examples
 
 			GL.Enable(EnableCap.Lighting);
 			GL.Enable(EnableCap.Light0);
-			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0, 1, 0, 0));
-			//GL.Light(LightName.Light0, LightParameter.LinearAttenuation, 0.001f);
-			//GL.Light(LightName.Light0, LightParameter.QuadraticAttenuation, 0.0001f);
-			//GL.Light(LightName.Light0, LightParameter.Ambient, 0.1f);
-			//GL.Light(LightName.Light0, LightParameter.Diffuse, 0.5f);
+			GL.Light(LightName.Light0, LightParameter.Ambient, new Vector4(0.6f, 0.6f, 0.6f, 1f));
 
 			model = new ObjModel("nav_test.obj");
 			BBox3 bounds = model.GetBounds();
@@ -142,6 +152,17 @@ namespace Examples
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)voxelInds.Length, voxelInds, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+			squareVbo = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(squareVerts.Length * 4), squareVerts, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+			squareIbo = GL.GenBuffer();
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)squareInds.Length, squareInds, BufferUsageHint.StaticDraw);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -170,8 +191,6 @@ namespace Examples
 				cam.RotateHeading((prevM.Y - m.Y) * (float)e.Time * 2f);
 			}
 
-			//cam.Position = cameraPos;
-
 			GL.MatrixMode(MatrixMode.Modelview);
 			cam.LoadView();
 
@@ -194,10 +213,18 @@ namespace Examples
 				WindowState = OpenTK.WindowState.Normal;
 			else if (e.Key == Key.F12)
 				WindowState = OpenTK.WindowState.Fullscreen;
-			else if (e.Key == Key.P && !hasVoxelized)
+			else if (e.Key == Key.P)
 			{
-				heightfield.RasterizeTriangles(model.GetTriangles());
-				hasVoxelized = true;
+				if (!hasVoxelized)
+				{
+					heightfield.RasterizeTriangles(model.GetTriangles());
+					hasVoxelized = true;
+				}
+				else if (!hasOpenHeightfield)
+				{
+					openHeightfield = new OpenHeightfield(heightfield);
+					hasOpenHeightfield = true;
+				}
 			}
 
 			base.OnKeyDown(e);
@@ -212,7 +239,7 @@ namespace Examples
 
 			GL.Enable(EnableCap.Lighting);
 			GL.Enable(EnableCap.Light0);
-			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0.25f, 1, 0.15f, 0));
+			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
 
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
@@ -222,53 +249,110 @@ namespace Examples
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
 
-			if (vDrawMode == VoxelDrawMode.Transparent)
+			if (hasOpenHeightfield)
 			{
-				GL.Disable(EnableCap.Light0);
-				GL.Disable(EnableCap.Lighting);
-				GL.DepthMask(false);
-				GL.Color4(1f, 0f, 0f, 0.5f);
-			}
-
-			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
-			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
-			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
-
-			var cellSize = heightfield.CellSize;
-			var halfCellSize = cellSize * 0.5f;
-			Matrix4 cellLoc, spanLoc, spanScale;
-			for (int i = 0; i < heightfield.Length; i++)
-			{
-				for (int j = 0; j < heightfield.Width; j++)
+				if (vDrawMode == VoxelDrawMode.Transparent)
 				{
-					Matrix4.CreateTranslation(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z, out cellLoc);
-					var cell = heightfield[j, i];
+					GL.Disable(EnableCap.Light0);
+					GL.Disable(EnableCap.Lighting);
+					GL.DepthMask(false);
+					GL.Color4(1f, 0f, 0f, 0.5f);
+				}
 
-					foreach (var span in cell.Spans)
+				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 squareScale, squareTrans;
+				OpenTK.Vector3 squarePos;
+				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+				for (int i = 0; i < openHeightfield.Length; i++)
+				{
+					for (int j = 0; j < openHeightfield.Width; j++)
 					{
-						GL.PushMatrix();
-						Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Length, cellSize.Z, out spanScale);
-						Matrix4.CreateTranslation(0, (span.Minimum + (span.Length * 0.5f)) * cellSize.Y, 0, out spanLoc);
+						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
-						
-						GL.MultMatrix(ref spanLoc);
-						GL.MultMatrix(ref cellLoc);
-						GL.MultMatrix(ref spanScale);
+						var cell = openHeightfield[j, i];
 
-						GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
-						GL.PopMatrix();
+						foreach (var span in cell.Spans)
+						{
+							GL.PushMatrix();
+							var squarePosFinal = squarePos;
+							squarePosFinal.Y += span.Minimum * cellSize.Y;
+							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+
+							GL.MultMatrix(ref squareTrans);
+							GL.MultMatrix(ref squareScale);
+
+							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+							GL.PopMatrix();
+						}
 					}
 				}
+
+
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
+
+				if (vDrawMode == VoxelDrawMode.Transparent)
+					GL.DepthMask(true);
 			}
+			else if (hasVoxelized)
+			{
+				if (vDrawMode == VoxelDrawMode.Transparent)
+				{
+					GL.Disable(EnableCap.Light0);
+					GL.Disable(EnableCap.Lighting);
+					GL.DepthMask(false);
+					GL.Color4(1f, 0f, 0f, 0.5f);
+				}
 
-			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-			GL.DisableClientState(ArrayCap.VertexArray);
-			GL.DisableClientState(ArrayCap.NormalArray);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
+				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
 
-			if (vDrawMode == VoxelDrawMode.Transparent)
-				GL.DepthMask(true);
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 cellLoc, spanLoc, spanScale;
+				for (int i = 0; i < heightfield.Length; i++)
+				{
+					for (int j = 0; j < heightfield.Width; j++)
+					{
+						Matrix4.CreateTranslation(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z, out cellLoc);
+						var cell = heightfield[j, i];
+
+						foreach (var span in cell.Spans)
+						{
+							GL.PushMatrix();
+							Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Length, cellSize.Z, out spanScale);
+							Matrix4.CreateTranslation(0, (span.Minimum + (span.Length * 0.5f)) * cellSize.Y, 0, out spanLoc);
+
+
+							GL.MultMatrix(ref spanLoc);
+							GL.MultMatrix(ref cellLoc);
+							GL.MultMatrix(ref spanScale);
+
+							GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
+							GL.PopMatrix();
+						}
+					}
+				}
+
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
+
+				if (vDrawMode == VoxelDrawMode.Transparent)
+					GL.DepthMask(true);
+			}
 
 			SwapBuffers();
 		}

@@ -153,6 +153,9 @@ namespace Examples
 							}
 							break;
 					}
+
+					//for (int i = 0; i < norms.Count; i++)
+						//norms[i] = Vector3.Normalize(norms[i]);
 				}
 			}
 		}

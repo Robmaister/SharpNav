@@ -7,10 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
 using SharpNav.Geometry;
 
 namespace SharpNav
@@ -74,6 +72,18 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
+		/// </summary>
+		/// <param name="i">The index.</param>
+		public Cell this[int i]
+		{
+			get
+			{
+				return cells[i];
+			}
+		}
+
+		/// <summary>
 		/// Gets the bounding box of the heightfield.
 		/// </summary>
 		public BBox3 Bounds { get { return bounds; } }
@@ -114,6 +124,16 @@ namespace SharpNav
 		/// <value>The size of the cell.</value>
 		public Vector3 CellSize { get { return new Vector3(cellSize, cellHeight, cellSize); } }
 
+		/// <summary>
+		/// Gets the size of a cell on the X and Z axes.
+		/// </summary>
+		public float CellSizeXZ { get { return cellSize; } }
+
+		/// <summary>
+		/// Gets the size of a cell on the Y axis.
+		/// </summary>
+		public float CellHeight { get { return cellHeight; } }
+
 		public void RasterizeTriangles(Triangle3[] tris)
 		{
 			for (int i = 0; i < tris.Length; i++)
@@ -124,7 +144,6 @@ namespace SharpNav
 		{
 			float invCellSize = 1f / cellSize;
 			float invCellHeight = 1f / cellHeight;
-			int maxHeight = height - 1;
 
 			BBox3 bbox;
 			Triangle3.GetBoundingBox(ref tri, out bbox);
@@ -204,8 +223,8 @@ namespace SharpNav
 						sMax = boundHeight;
 
 					//snap to grid
-					int spanMin = MathHelper.Clamp((int)(sMin * invCellHeight), 0, maxHeight);
-					int spanMax = MathHelper.Clamp((int)Math.Ceiling(sMax * invCellHeight), spanMin + 1, maxHeight);
+					int spanMin = MathHelper.Clamp((int)(sMin * invCellHeight), 0, height);
+					int spanMax = MathHelper.Clamp((int)Math.Ceiling(sMax * invCellHeight), spanMin + 1, height);
 
 					if (spanMin == spanMax)
 					{
@@ -277,8 +296,8 @@ namespace SharpNav
 		/// </summary>
 		public class Cell
 		{
-			private List<Span> openSpans;
-			private int maxHeight;
+			private List<Span> spans;
+			private int height;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Cell"/> class.
@@ -286,8 +305,8 @@ namespace SharpNav
 			/// <param name="height">The number of voxels in the column.</param>
 			public Cell(int height)
 			{
-				maxHeight = height - 1;
-				openSpans = new List<Span>();
+				this.height = height;
+				spans = new List<Span>();
 			}
 
 			/// <summary>
@@ -298,28 +317,28 @@ namespace SharpNav
 			{
 				get
 				{
-					if (location < 0 || location > maxHeight)
-						throw new IndexOutOfRangeException("Location must be a value between 0 and " + maxHeight + ".");
+					if (location < 0 || location >= height)
+						throw new IndexOutOfRangeException("Location must be a value between 0 and " + height + ".");
 
 					//iterate the list of spans
-					foreach (Span s in openSpans)
+					foreach (Span s in spans)
 					{
 						if (s.Minimum > location)
 							break;
-						else if (s.Maximum < location)
-							continue;
-						else
+						else if (s.Maximum >= location)
 							return s;
 					}
 					return null;
 				}
 			}
 
+			//public int SpanCount { get { return spans.Count; } }
+
 			/// <summary>
 			/// Gets a readonly list of all the <see cref="SharpNav.Heightfield+Span"/>s contained in the cell.
 			/// </summary>
 			/// <value>A readonly list of spans.</value>
-			public IReadOnlyList<Span> Spans { get { return openSpans.AsReadOnly(); } }
+			public IReadOnlyList<Span> Spans { get { return spans.AsReadOnly(); } }
 
 			/// <summary>
 			/// Adds a <see cref="SharpNav.Heightfield+Span"/> to the cell.
@@ -328,23 +347,23 @@ namespace SharpNav
 			public void AddSpan(Span span)
 			{
 				//clamp the span to the cell's range of [0, maxHeight]
-				MathHelper.Clamp(ref span.Minimum, 0, maxHeight);
-				MathHelper.Clamp(ref span.Maximum, 0, maxHeight);
+				MathHelper.Clamp(ref span.Minimum, 0, height);
+				MathHelper.Clamp(ref span.Maximum, 0, height);
 
 				if (span.Minimum == span.Maximum)
 					throw new ArgumentException("Span has no thickness.");
 				else if (span.Maximum < span.Minimum)
 					throw new ArgumentException("Span is inverted. Maximum is less than minimum.");
 
-				for (int i = 0; i < openSpans.Count; i++)
+				for (int i = 0; i < spans.Count; i++)
 				{
 					//check whether the current span is below, or overlapping existing spans.
 					//if the span is completely above the current span the loop will continue.
-					Span cur = openSpans[i];
+					Span cur = spans[i];
 					if (cur.Minimum > span.Maximum)
 					{
 						//The new span is below the current one and is not intersecting.
-						openSpans.Insert(i, span);
+						spans.Insert(i, span);
 						return;
 					}
 					else if (cur.Maximum >= span.Minimum)
@@ -357,13 +376,13 @@ namespace SharpNav
 
 						//remove the current span and adjust i.
 						//we do this to avoid duplicating the current span.
-						openSpans.RemoveAt(i);
+						spans.RemoveAt(i);
 						i--;
 					}
 				}
 
 				//if the span is not inserted, it is the highest span and will be added to the end.
-				openSpans.Add(span);
+				spans.Add(span);
 			}
 		}
 
@@ -393,6 +412,8 @@ namespace SharpNav
 				Minimum = min;
 				Maximum = max;
 			}
+
+			public int Length { get { return Maximum - Minimum + 1; } }
 		}
 	}
 }
