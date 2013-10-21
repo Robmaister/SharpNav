@@ -38,6 +38,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RegionTests.cs" />
     <Compile Include="HeightfieldCellTests.cs" />
     <Compile Include="HeightfieldTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

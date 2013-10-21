@@ -71,5 +71,12 @@ namespace SharpNavTests
 
 			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[3, 3]; });
 		}
+
+        [Test]
+        public void Indexer_CellOutOfRange_Throws()
+        {
+            var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+            Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[5]; });
+        }
 	}
 }
