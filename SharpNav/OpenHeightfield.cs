@@ -19,6 +19,7 @@ namespace SharpNav
 		private float cellSize, cellHeight;
 
 		private Cell[] cells;
+		private Span[] spans;
 
 		public OpenHeightfield(Heightfield field)
 		{
@@ -43,7 +44,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="x">The x coordinate.</param>
 		/// <param name="y">The y coordinate.</param>
-		public Cell this[int x, int y]
+		public IEnumerable<Span> this[int x, int y]
 		{
 			get
 			{
@@ -58,7 +59,7 @@ namespace SharpNav
 		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
-		public Cell this[int i]
+		public IEnumerable<Span> this[int i]
 		{
 			get
 			{
