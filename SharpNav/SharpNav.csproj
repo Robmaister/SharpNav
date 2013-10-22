@@ -34,6 +34,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />
     <Compile Include="Heightfield.cs" />
