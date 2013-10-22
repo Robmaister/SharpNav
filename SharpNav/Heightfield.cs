@@ -134,6 +134,21 @@ namespace SharpNav
 		/// </summary>
 		public float CellHeight { get { return cellHeight; } }
 
+		/// <summary>
+		/// Gets the total number of spans.
+		/// </summary>
+		public int SpanCount
+		{
+			get
+			{
+				int count = 0;
+				for (int i = 0; i < cells.Length; i++)
+					count += cells[i].Spans.Count;
+
+				return count;
+			}
+		}
+
 		public void RasterizeTriangles(Triangle3[] tris)
 		{
 			for (int i = 0; i < tris.Length; i++)

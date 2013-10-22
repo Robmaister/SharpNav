@@ -30,9 +30,30 @@ namespace SharpNav
 			this.cellSize = field.CellSizeXZ;
 			this.cellHeight = field.CellHeight;
 
+
 			cells = new Cell[width * length];
+			spans = new Span[field.SpanCount];
+
+			//iterate over the Heightfield's cells
+			int spanIndex = 0;
 			for (int i = 0; i < cells.Length; i++)
-				cells[i] = new Cell(field[i]);
+			{
+				//get the spans and create a new cell here
+				var fs = field[i].Spans;
+				Cell c = new Cell(spanIndex, fs.Count);
+				cells[i] = c;
+
+				//convert the closed spans to open spans, making sure the last span has no upper bound
+				if (c.Count > 0)
+				{
+					int lastInd = c.Count - 1;
+					for (int j = 0; j < lastInd; j++, spanIndex++)
+						spans[spanIndex] = new Span(fs[j].Maximum, fs[j + 1].Minimum);
+
+					spans[spanIndex] = new Span(fs[lastInd].Maximum, int.MaxValue);
+					spanIndex++;
+				}
+			}
 		}
 
 		public int Width { get { return width; } }
@@ -51,7 +72,11 @@ namespace SharpNav
 				if (x < 0 || x >= width || y < 0 || y >= length)
 					throw new IndexOutOfRangeException();
 
-				return cells[y * width + x];
+				Cell c = cells[y * width + x];
+
+				int end = c.StartIndex + c.Count;
+				for (int i = c.StartIndex; i < end; i++)
+					yield return spans[i];
 			}
 		}
 
@@ -63,36 +88,24 @@ namespace SharpNav
 		{
 			get
 			{
-				return cells[i];
+				Cell c = cells[i];
+
+				int end = c.StartIndex + c.Count;
+				for (int j = c.StartIndex; j < end; j++)
+					yield return spans[j];
 			}
 		}
 
-		public class Cell
+		public struct Cell
 		{
-			private Span[] spans;
+			public int StartIndex;
+			public int Count;
 
-			public Cell(Heightfield.Cell cell)
+			public Cell(int start, int count)
 			{
-				var closedSpans = cell.Spans;
-				spans = new Span[closedSpans.Count];
-
-				if (spans.Length > 0)
-				{
-					int lastInd = closedSpans.Count - 1;
-					for (int i = 0; i < lastInd; i++)
-						spans[i] = new Span(closedSpans[i].Maximum, closedSpans[i + 1].Minimum);
-
-					spans[lastInd] = new Span(closedSpans[lastInd].Maximum, int.MaxValue);
-				}
+				StartIndex = start;
+				Count = count;
 			}
-
-			//HACK indexer/copy of array?
-
-			/// <summary>
-			/// Gets a readonly list of all the <see cref="SharpNav.OpenHeightfield+Span"/>s contained in the cell.
-			/// </summary>
-			/// <value>A readonly list of spans.</value>
-			public Span[] Spans { get { return spans; } }
 		}
 
 		public struct Span
@@ -106,7 +119,7 @@ namespace SharpNav
 				this.Maximum = maximum;
 			}
 
-			public bool HasUpperLimit { get { return Maximum != int.MaxValue; } }
+			public bool HasUpperBound { get { return Maximum != int.MaxValue; } }
 			public int Length { get { return Maximum - Minimum + 1; } }
 
 			public static void Overlap(ref Span a, ref Span b, out Span r)

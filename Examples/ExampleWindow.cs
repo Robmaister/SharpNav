@@ -277,7 +277,7 @@ namespace Examples
 
 						var cell = openHeightfield[j, i];
 
-						foreach (var span in cell.Spans)
+						foreach (var span in cell)
 						{
 							GL.PushMatrix();
 							var squarePosFinal = squarePos;
