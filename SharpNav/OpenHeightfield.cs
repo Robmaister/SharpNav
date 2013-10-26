@@ -22,6 +22,12 @@ namespace SharpNav
 		private Span[] spans;
 		private AreaFlags[] areas;
 
+		const int NotConnected = 0xff; //HACK figure out a better way to do this
+		
+		//variables that are part of region generation
+		private ushort maxDist;
+		private ushort [] dist;
+
 		public OpenHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
 			this.bounds = field.Bounds;
@@ -71,8 +77,6 @@ namespace SharpNav
 
 				cells[i] = c;
 			}
-
-			const int NotConnected = 0xff; //HACK figure out a better way to do this
 
 			//set neighbor connections
 			for (int y = 0; y < length; y++)
@@ -131,8 +135,6 @@ namespace SharpNav
 			//initialize distance and points
 			for (int i = 0; i < spans.Length; i++)
 				src[i] = 0xffff;
-
-			const int NotConnected = 0xff; //HACK figure out a better way to do this
 
 			//mark boundary cells
 			for (int y = 0; y < length; y++)
@@ -276,6 +278,98 @@ namespace SharpNav
 			maxDist = 0;
 			for (int i = 0; i < spans.Length; i++)
 				maxDist = Math.Max(src[i], maxDist);
+		}
+
+		/// <summary>
+		/// Part of building the distance field. It may or may not return an array equal to src.
+		/// </summary>
+		/// <param name="thr"></param>
+		/// <param name="src"></param>
+		/// <param name="dst"></param>
+		/// <returns></returns>
+		public ushort[] BoxBlur(int thr, ushort[] src, ushort[] dst)
+		{
+			thr *= 2;
+
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[y * width + x];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						Span s = spans[i];
+						ushort cd = src[i];
+						if (cd <= thr)
+						{
+							dst[i] = cd;
+							continue;
+						}
+
+						int d = cd;
+						for (int dir = 0; dir < 4; dir++)
+						{
+							if (Span.GetConnection(dir, ref s) != NotConnected)
+							{
+								int dx = x + MathHelper.GetDirOffsetX(dir);
+								int dy = y + MathHelper.GetDirOffsetY(dir);
+								int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
+								d += src[di];
+
+								Span ds = spans[di];
+								int dir2 = (dir + 1) % 4;
+								if (Span.GetConnection(dir2, ref ds) != NotConnected)
+								{
+									int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
+									int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
+									int di2 = cells[dx2 + dy2 * width].StartIndex + Span.GetConnection(dir2, ref ds);
+									d += src[di2];
+								}
+								else
+								{
+									d += cd;
+								}
+							}
+							else
+							{
+								d += cd * 2;
+							}
+						}
+						dst[i] = (ushort)((d + 5) / 9);
+					}
+				}
+			}
+
+			return dst;
+		}
+
+		/// <summary>
+		/// A required step in creating a heightfield.
+		/// </summary>
+		/// <returns></returns>
+		public bool BuildDistanceField()
+		{
+			ushort[] src = new ushort[spans.Length];
+			ushort[] dst = new ushort[spans.Length];
+			ushort maxDist = 0;
+
+			//fill up all the values in src and get maxDist
+			CalculateDistanceField(src, ref maxDist);
+			this.maxDist = maxDist;
+
+			//blur 
+			if (BoxBlur(1, src, dst) != src)
+			{
+				//swap src and dst
+				ushort[] temp = src;
+				src = dst;
+				dst = temp;
+			}
+
+			//store distances
+			dist = src;
+
+			return true;
 		}
 
 		public int Width { get { return width; } }
