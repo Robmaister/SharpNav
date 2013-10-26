@@ -128,7 +128,7 @@ namespace Examples
 
 			model = new ObjModel("nav_test.obj");
 			BBox3 bounds = model.GetBounds();
-			heightfield = new Heightfield(bounds.Min, bounds.Max, 0.5f, 0.2f);
+			heightfield = new Heightfield(bounds.Min, bounds.Max, 0.5f, 0.1f);
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
@@ -222,7 +222,7 @@ namespace Examples
 				}
 				else if (!hasOpenHeightfield)
 				{
-					openHeightfield = new OpenHeightfield(heightfield);
+					openHeightfield = new OpenHeightfield(heightfield, 40, 15);
 					hasOpenHeightfield = true;
 				}
 			}
@@ -284,6 +284,15 @@ namespace Examples
 							squarePosFinal.Y += span.Minimum * cellSize.Y;
 							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
 
+							int numCons = 0;
+							for (int dir = 0; dir < 4; dir++)
+							{
+								if (OpenHeightfield.Span.GetConnection(dir, span) != 0xff)
+									numCons++;
+							}
+
+							GL.Color4(1f, 0f, numCons / 4f, 1f);
+
 							GL.MultMatrix(ref squareTrans);
 							GL.MultMatrix(ref squareScale);
 
@@ -331,8 +340,8 @@ namespace Examples
 						foreach (var span in cell.Spans)
 						{
 							GL.PushMatrix();
-							Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Length, cellSize.Z, out spanScale);
-							Matrix4.CreateTranslation(0, (span.Minimum + (span.Length * 0.5f)) * cellSize.Y, 0, out spanLoc);
+							Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Height, cellSize.Z, out spanScale);
+							Matrix4.CreateTranslation(0, (span.Minimum + (span.Height * 0.5f)) * cellSize.Y, 0, out spanLoc);
 
 
 							GL.MultMatrix(ref spanLoc);

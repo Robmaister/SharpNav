@@ -72,66 +72,60 @@ namespace SharpNavTests
 			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[3, 3]; });
 		}
 
-        [Test]
-        public void Indexer_CellOutOfRange_Throws()
-        {
-            var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
-            Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[5]; });
-        }
+		[Test]
+		public void Indexer_CellOutOfRange_Throws()
+		{
+			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[5]; });
+		}
 
-        [Test]
-        public void Filter_LowHangingWalkable_Success()
-        {
-            var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-            var span = new Heightfield.Span(10, 15);
-            var span2 = new Heightfield.Span(16, 20);
-            
-            span.Area = Heightfield.AREA_WALKABLE;
-            span2.Area = Heightfield.AREA_NULL;
-            hf[0].AddSpan(span);
-            hf[0].AddSpan(span2);
+		[Test]
+		public void Filter_LowHangingWalkable_Success()
+		{
+			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var span = new Heightfield.Span(10, 15, AreaFlags.Walkable);
+			var span2 = new Heightfield.Span(16, 20, AreaFlags.Null);
 
-            hf.filterLowHangingWalkableObstacles(20);
+			hf[0].AddSpan(span);
+			hf[0].AddSpan(span2);
 
-            Assert.AreEqual(hf[0].Spans[0].Area, hf[0].Spans[1].Area);
-        }
+			hf.FilterLowHangingWalkableObstacles(20);
 
-        [Test]
-        public void Filter_LowHangingWalkable_Fail()
-        {
-            var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-            var span = new Heightfield.Span(1, 2);
-            var span2 = new Heightfield.Span(10, 20);
+			Assert.AreEqual(hf[0].Spans[0].Area, hf[0].Spans[1].Area);
+		}
 
-            span.Area = Heightfield.AREA_WALKABLE;
-            span2.Area = Heightfield.AREA_NULL;
-            hf[2].AddSpan(span);
-            hf[2].AddSpan(span2);
+		[Test]
+		public void Filter_LowHangingWalkable_Fail()
+		{
+			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var span = new Heightfield.Span(1, 2, AreaFlags.Walkable);
+			var span2 = new Heightfield.Span(10, 20, AreaFlags.Null);
 
-            //walkable step cannot cover the gap (difference between span2 maximum and span 1 maximum) so fail
-            hf.filterLowHangingWalkableObstacles(10);
-            Assert.AreNotEqual(hf[0, 1].Spans[0].Area, hf[0, 1].Spans[1].Area);
-        }
+			hf[2].AddSpan(span);
+			hf[2].AddSpan(span2);
 
-        [Test]
-        public void Filter_WalkableLowHeight_Success()
-        {
-            var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-            var span = new Heightfield.Span(10, 20);
-            var span2 = new Heightfield.Span(25, 30);
+			//walkable step cannot cover the gap (difference between span2 maximum and span 1 maximum) so fail
+			hf.FilterLowHangingWalkableObstacles(10);
+			Assert.AreNotEqual(hf[0, 1].Spans[0].Area, hf[0, 1].Spans[1].Area);
+		}
 
-            span.Area = Heightfield.AREA_WALKABLE;
-            span2.Area = Heightfield.AREA_WALKABLE;
-            hf[0].AddSpan(span);
-            hf[0].AddSpan(span2);
+		[Test]
+		public void Filter_WalkableLowHeight_Success()
+		{
+			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var span = new Heightfield.Span(10, 20, AreaFlags.Walkable);
+			var span2 = new Heightfield.Span(25, 30, AreaFlags.Walkable);
 
-            //too low to walk through. there is only a gap of 5 units to walk through,
-            //but at least 15 units is needed
-            hf.filterWalkableLowHeightSpans(15);
+			hf[0].AddSpan(span);
+			hf[0].AddSpan(span2);
 
-            //so one span is unwalkable and the other is fine
-            Assert.AreEqual(hf[0].Spans[0].Area, Heightfield.AREA_NULL);
-            Assert.AreEqual(hf[0].Spans[1].Area, Heightfield.AREA_WALKABLE);
-        }
+			//too low to walk through. there is only a gap of 5 units to walk through,
+			//but at least 15 units is needed
+			hf.FilterWalkableLowHeightSpans(15);
+
+			//so one span is unwalkable and the other is fine
+			Assert.AreEqual(hf[0].Spans[0].Area, AreaFlags.Null);
+			Assert.AreEqual(hf[0].Spans[1].Area, AreaFlags.Walkable);
+		}
 	}
 }

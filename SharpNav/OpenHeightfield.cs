@@ -20,8 +20,9 @@ namespace SharpNav
 
 		private Cell[] cells;
 		private Span[] spans;
+		private AreaFlags[] areas;
 
-		public OpenHeightfield(Heightfield field)
+		public OpenHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
 			this.bounds = field.Bounds;
 			this.width = field.Width;
@@ -33,25 +34,89 @@ namespace SharpNav
 
 			cells = new Cell[width * length];
 			spans = new Span[field.SpanCount];
+			areas = new AreaFlags[field.SpanCount];
 
 			//iterate over the Heightfield's cells
 			int spanIndex = 0;
 			for (int i = 0; i < cells.Length; i++)
 			{
-				//get the spans and create a new cell here
+				//get the heightfield span list, skip if empty
 				var fs = field[i].Spans;
-				Cell c = new Cell(spanIndex, fs.Count);
-				cells[i] = c;
+				if (fs.Count == 0)
+					continue;
 
-				//convert the closed spans to open spans, making sure the last span has no upper bound
-				if (c.Count > 0)
+				Cell c = new Cell(spanIndex, 0);
+
+				//convert the closed spans to open spans
+				int lastInd = fs.Count - 1;
+				for (int j = 0; j < lastInd; j++)
 				{
-					int lastInd = c.Count - 1;
-					for (int j = 0; j < lastInd; j++, spanIndex++)
-						spans[spanIndex] = new Span(fs[j].Maximum, fs[j + 1].Minimum);
+					var s = fs[j];
+					if (s.Area != AreaFlags.Null)
+					{
+						Span.FromMinMax(s.Maximum, fs[j + 1].Minimum, out spans[spanIndex]);
+						spanIndex++;
+						c.Count++;
+					}
+				}
 
+				//the last closed span that has an "infinite" height
+				var lastS = fs[lastInd];
+				if (lastS.Area != AreaFlags.Null)
+				{
 					spans[spanIndex] = new Span(fs[lastInd].Maximum, int.MaxValue);
 					spanIndex++;
+					c.Count++;
+				}
+
+				cells[i] = c;
+			}
+
+			const int NotConnected = 0xff; //HACK figure out a better way to do this
+
+			//set neighbor connections
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[y * width + x];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						Span s = spans[i];
+
+						for (int dir = 0; dir < 4; dir++)
+						{
+							Span.SetConnection(dir, NotConnected, ref spans[i]);
+
+							int dx = x + MathHelper.GetDirOffsetX(dir);
+							int dy = y + MathHelper.GetDirOffsetY(dir);
+
+							if (dx < 0 || dy < 0 || dx >= width || dy >= length)
+								continue;
+
+							Cell dc = cells[dy * width + dx];
+							for (int j = dc.StartIndex, jEnd = dc.StartIndex + dc.Count; j < jEnd; j++)
+							{
+								Span ds = spans[j];
+
+								int overlapBottom = Math.Max(s.Minimum, ds.Minimum);
+								int overlapTop = Math.Min(s.Minimum + s.Height, ds.Minimum + ds.Height);
+
+								if (!s.HasUpperBound && !ds.HasUpperBound)
+									overlapTop = int.MaxValue;
+
+								if ((overlapTop - overlapBottom) >= walkableHeight && Math.Abs(ds.Minimum - s.Minimum) <= walkableClimb)
+								{
+									int con = j - dc.StartIndex;
+									if (con < 0 || con >= 0xff)
+										throw new InvalidOperationException("The neighbor index is too high to store. Reduce the number of cells in the Y direction.");
+
+									Span.SetConnection(dir, con, ref spans[i]);
+									break;
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -111,26 +176,57 @@ namespace SharpNav
 		public struct Span
 		{
 			public int Minimum;
-			public int Maximum;
+			public int Height;
+			public int Connections;
 
-			public Span(int minimum, int maximum)
+			public Span(int minimum, int height)
 			{
 				this.Minimum = minimum;
-				this.Maximum = maximum;
+				this.Height = height;
+				this.Connections = 0;
 			}
 
-			public bool HasUpperBound { get { return Maximum != int.MaxValue; } }
-			public int Length { get { return Maximum - Minimum + 1; } }
+			public bool HasUpperBound { get { return Height != int.MaxValue; } }
+			public int Maximum { get { return Minimum + Height; } }
 
-			public static void Overlap(ref Span a, ref Span b, out Span r)
+			public static Span FromMinMax(int min, int max)
 			{
-				r = a;
-
-				if (b.Minimum > a.Minimum)
-					r.Minimum = b.Minimum;
-				if (b.Maximum < a.Maximum)
-					r.Maximum = b.Maximum;
+				Span s;
+				FromMinMax(min, max, out s);
+				return s;
 			}
+
+			public static void FromMinMax(int min, int max, out Span span)
+			{
+				span.Minimum = min;
+				span.Height = max - min;
+				span.Connections = 0;
+			}
+
+			public static void SetConnection(int dir, int i, ref Span s)
+			{
+				//split the int up into 4 parts, 8 bits each
+				int shift = dir * 8;
+				s.Connections = (s.Connections & ~(0xff << shift)) | ((i & 0xff) << shift);
+			}
+
+			public static int GetConnection(int dir, Span s)
+			{
+				return GetConnection(dir, ref s);
+			}
+
+			public static int GetConnection(int dir, ref Span s)
+			{
+				return (s.Connections >> (dir * 8)) & 0xff;
+			}
+
+			/*public static void Overlap(ref Span a, ref Span b, out Span r)
+			{
+				int max = Math.Min(a.Minimum + a.Height, b.Minimum + b.Height);
+				r.Minimum = a.Minimum > b.Minimum ? a.Minimum : b.Minimum;
+				r.Height = max - r.Minimum;
+				r.Connections = 0;
+			}*/
 		}
 	}
 }

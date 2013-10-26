@@ -20,7 +20,7 @@ namespace SharpNavTests
 		public void AddSpan_NoThickness_Throws()
 		{
 			var cell = new Heightfield.Cell(40);
-			var span = new Heightfield.Span(10,10);
+			var span = new Heightfield.Span(10, 10);
 
 			Assert.Throws<ArgumentException>(() => cell.AddSpan(span));
 		}
@@ -119,7 +119,7 @@ namespace SharpNavTests
 			Assert.AreEqual(span.Minimum, cell.Spans[0].Minimum);
 			Assert.AreEqual(span2.Maximum, cell.Spans[0].Maximum);
 		}
-       
+	   
 
 		[Test]
 		public void Indexer_NoSpans_ReturnsNull()
@@ -163,15 +163,15 @@ namespace SharpNavTests
 			Assert.IsNull(span);
 		}
 
-        [Test]
-        public void Indexer_FindSpan_Success()
-        {
-            var cell = new Heightfield.Cell(10);
-            cell.AddSpan(new Heightfield.Span(2, 5));
-            cell.AddSpan(new Heightfield.Span(7, 9));
+		[Test]
+		public void Indexer_FindSpan_Success()
+		{
+			var cell = new Heightfield.Cell(10);
+			cell.AddSpan(new Heightfield.Span(2, 5));
+			cell.AddSpan(new Heightfield.Span(7, 9));
 
-            var span = cell[6];
-            Assert.IsNull(span);
-        }
+			var span = cell[6];
+			Assert.IsNull(span);
+		}
 	}
 }
