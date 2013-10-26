@@ -121,6 +121,163 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// A distance field estimates how far each span is from its nearest border span. This data is needed for region generation.
+		/// </summary>
+		/// <param name="src">Array of values, each corresponding to an individual span</param>
+		/// <param name="maxDist">The maximum value of the src array</param>
+		public void CalculateDistanceField(ushort[] src, ref ushort maxDist)
+		{
+			//initialize distance and points
+			for (int i = 0; i < spans.Length; i++)
+				src[i] = 0xffff;
+
+			const int NotConnected = 0xff; //HACK figure out a better way to do this
+
+			//mark boundary cells
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[y * width + x];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						Span s = spans[i];
+						AreaFlags area = spans[i].Area;
+
+						int numConnections = 0;
+						for (int dir = 0; dir < 4; dir++)
+						{
+							if (Span.GetConnection(dir, ref s) != NotConnected)
+							{
+								int dx = x + MathHelper.GetDirOffsetX(dir);
+								int dy = y + MathHelper.GetDirOffsetY(dir);
+								int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
+								if (area == spans[di].Area)
+									numConnections++;
+							}
+						}
+						if (numConnections != 4)
+							src[i] = 0;
+					}
+				}
+			}
+
+			//pass 1
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[y * width + x];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						Span s = spans[i];
+
+						if (Span.GetConnection(0, ref s) != NotConnected)
+						{
+							//(-1, 0)
+							int dx = x + MathHelper.GetDirOffsetX(0);
+							int dy = y + MathHelper.GetDirOffsetY(0);
+							int di = cells[dx + dy * width].StartIndex + Span.GetConnection(0, ref s);
+							Span ds = spans[di];
+							if (src[di] + 2 < src[i])
+								src[i] = (ushort)(src[di] + 2);
+
+							//(-1, -1)
+							if (Span.GetConnection(3, ref s) != NotConnected)
+							{
+								int ddx = x + MathHelper.GetDirOffsetX(3);
+								int ddy = y + MathHelper.GetDirOffsetY(3);
+								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(3, ref s);
+								if (src[ddi] + 3 < src[i])
+									src[i] = (ushort)(src[ddi] + 3);
+							}
+						}
+
+						if (Span.GetConnection(3, ref s) != NotConnected)
+						{
+							//(0, -1)
+							int dx = x + MathHelper.GetDirOffsetX(3);
+							int dy = y + MathHelper.GetDirOffsetY(3);
+							int di = cells[dx + dy * width].StartIndex + Span.GetConnection(3, ref s);
+							Span ds = spans[di];
+							if (src[di] + 2 < src[i])
+								src[i] = (ushort)(src[di] + 2);
+
+							//(1, -1)
+							if (Span.GetConnection(2, ref s) != NotConnected)
+							{
+								int ddx = x + MathHelper.GetDirOffsetX(2);
+								int ddy = y + MathHelper.GetDirOffsetY(2);
+								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(2, ref s);
+								if (src[ddi] + 3 < src[i])
+									src[i] = (ushort)(src[ddi] + 3);
+							}
+						}
+					}
+				}
+			}
+
+			//pass 2
+			for (int y = length - 1; y >= 0; y--)
+			{
+				for (int x = width - 1; x >= 0; x--)
+				{
+					Cell c = cells[y * width + x];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						Span s = spans[i];
+
+						if (Span.GetConnection(2, ref s) != NotConnected)
+						{
+							//(1, 0)
+							int dx = x + MathHelper.GetDirOffsetX(2);
+							int dy = y + MathHelper.GetDirOffsetY(2);
+							int di = cells[dx + dy * width].StartIndex + Span.GetConnection(2, ref s);
+							Span ds = spans[di];
+							if (src[di] + 2 < src[i])
+								src[i] = (ushort)(src[di] + 2);
+
+							//(1, 1)
+							if (Span.GetConnection(1, ref s) != NotConnected)
+							{
+								int ddx = x + MathHelper.GetDirOffsetX(1);
+								int ddy = y + MathHelper.GetDirOffsetY(1);
+								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(1, ref s);
+								if (src[ddi] + 3 < src[i])
+									src[i] = (ushort)(src[ddi] + 3);
+							}
+						}
+
+						if (Span.GetConnection(1, ref s) != NotConnected)
+						{
+							//(0, 1)
+							int dx = x + MathHelper.GetDirOffsetX(1);
+							int dy = y + MathHelper.GetDirOffsetY(1);
+							int di = cells[dx + dy * width].StartIndex + Span.GetConnection(1, ref s);
+							Span ds = spans[di];
+							if (src[di] + 2 < src[i])
+								src[i] = (ushort)(src[di] + 2);
+
+							//(-1, 1)
+							if (Span.GetConnection(0, ref s) != NotConnected)
+							{
+								int ddx = x + MathHelper.GetDirOffsetX(0);
+								int ddy = y + MathHelper.GetDirOffsetY(0);
+								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(0, ref s);
+								if (src[ddi] + 3 < src[i])
+									src[i] = (ushort)(src[ddi] + 3);
+							}
+						}
+					}
+				}
+			}
+
+			maxDist = 0;
+			for (int i = 0; i < spans.Length; i++)
+				maxDist = Math.Max(src[i], maxDist);
+		}
+
 		public int Width { get { return width; } }
 		public int Height { get { return height; } }
 		public int Length { get { return length; } }
@@ -178,12 +335,14 @@ namespace SharpNav
 			public int Minimum;
 			public int Height;
 			public int Connections;
+			public AreaFlags Area;
 
 			public Span(int minimum, int height)
 			{
 				this.Minimum = minimum;
 				this.Height = height;
 				this.Connections = 0;
+				Area = AreaFlags.Null;
 			}
 
 			public bool HasUpperBound { get { return Height != int.MaxValue; } }

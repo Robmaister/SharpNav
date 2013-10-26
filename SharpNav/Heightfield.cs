@@ -256,9 +256,8 @@ namespace SharpNav
 		/// <summary>
 		/// If two neighboring spans have a small difference in maximum height (such as stairs), 
 		/// then make sure the spans are walkable.
-		///
-		/// Warning: Known to override the effect of filterLedgeSpans() function.
 		///</summary>
+		// Warning: Known to override the effect of filterLedgeSpans() function.
 		public void FilterLowHangingWalkableObstacles(int walkableClimb)
 		{
 			for (int y = 0; y < length; ++y)
@@ -348,10 +347,10 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// ---NEEDS TESTING!---
 		/// A ledge is unwalkable because the differenc between the maximum height of two spans 
 		/// is too large of a drop (i.e. greater than walkableClimb).
 		/// </summary>
+		// ---NEEDS TESTING!---
 		public void FilterLedgeSpans(int walkableHeight, int walkableClimb)
 		{
 			const int MAX_HEIGHT = int.MaxValue;
