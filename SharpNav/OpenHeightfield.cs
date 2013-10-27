@@ -37,7 +37,6 @@ namespace SharpNav
 			this.cellSize = field.CellSizeXZ;
 			this.cellHeight = field.CellHeight;
 
-
 			cells = new Cell[width * length];
 			spans = new Span[field.SpanCount];
 			areas = new AreaFlags[field.SpanCount];
@@ -130,7 +129,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="src">Array of values, each corresponding to an individual span</param>
 		/// <param name="maxDist">The maximum value of the src array</param>
-		public void CalculateDistanceField(ushort[] src, ref ushort maxDist)
+		public void CalculateDistanceField(ushort[] src)
 		{
 			//initialize distance and points
 			for (int i = 0; i < spans.Length; i++)
@@ -145,7 +144,7 @@ namespace SharpNav
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						Span s = spans[i];
-						AreaFlags area = spans[i].Area;
+						AreaFlags area = areas[i];
 
 						int numConnections = 0;
 						for (int dir = 0; dir < 4; dir++)
@@ -155,7 +154,7 @@ namespace SharpNav
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
 								int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
-								if (area == spans[di].Area)
+								if (area == areas[di])
 									numConnections++;
 							}
 						}
@@ -186,11 +185,11 @@ namespace SharpNav
 								src[i] = (ushort)(src[di] + 2);
 
 							//(-1, -1)
-							if (Span.GetConnection(3, ref s) != NotConnected)
+							if (Span.GetConnection(3, ref ds) != NotConnected)
 							{
-								int ddx = x + MathHelper.GetDirOffsetX(3);
-								int ddy = y + MathHelper.GetDirOffsetY(3);
-								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(3, ref s);
+								int ddx = dx + MathHelper.GetDirOffsetX(3);
+								int ddy = dy + MathHelper.GetDirOffsetY(3);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(3, ref s);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -207,11 +206,11 @@ namespace SharpNav
 								src[i] = (ushort)(src[di] + 2);
 
 							//(1, -1)
-							if (Span.GetConnection(2, ref s) != NotConnected)
+							if (Span.GetConnection(2, ref ds) != NotConnected)
 							{
-								int ddx = x + MathHelper.GetDirOffsetX(2);
-								int ddy = y + MathHelper.GetDirOffsetY(2);
-								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(2, ref s);
+								int ddx = dx + MathHelper.GetDirOffsetX(2);
+								int ddy = dy + MathHelper.GetDirOffsetY(2);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(2, ref s);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -241,11 +240,11 @@ namespace SharpNav
 								src[i] = (ushort)(src[di] + 2);
 
 							//(1, 1)
-							if (Span.GetConnection(1, ref s) != NotConnected)
+							if (Span.GetConnection(1, ref ds) != NotConnected)
 							{
-								int ddx = x + MathHelper.GetDirOffsetX(1);
-								int ddy = y + MathHelper.GetDirOffsetY(1);
-								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(1, ref s);
+								int ddx = dx + MathHelper.GetDirOffsetX(1);
+								int ddy = dy + MathHelper.GetDirOffsetY(1);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(1, ref s);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -262,11 +261,11 @@ namespace SharpNav
 								src[i] = (ushort)(src[di] + 2);
 
 							//(-1, 1)
-							if (Span.GetConnection(0, ref s) != NotConnected)
+							if (Span.GetConnection(0, ref ds) != NotConnected)
 							{
-								int ddx = x + MathHelper.GetDirOffsetX(0);
-								int ddy = y + MathHelper.GetDirOffsetY(0);
-								int ddi = cells[dx + dy * width].StartIndex + Span.GetConnection(0, ref s);
+								int ddx = dx + MathHelper.GetDirOffsetX(0);
+								int ddy = dy + MathHelper.GetDirOffsetY(0);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(0, ref s);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -275,17 +274,17 @@ namespace SharpNav
 				}
 			}
 
-			maxDist = 0;
+			this.maxDist = 0;
 			for (int i = 0; i < spans.Length; i++)
-				maxDist = Math.Max(src[i], maxDist);
+				this.maxDist = Math.Max(src[i], maxDist);
 		}
 
 		/// <summary>
 		/// Part of building the distance field. It may or may not return an array equal to src.
 		/// </summary>
-		/// <param name="thr"></param>
-		/// <param name="src"></param>
-		/// <param name="dst"></param>
+		/// <param name="thr">Threshold?</param>
+		/// <param name="src">The source that contains all distance values</param>
+		/// <param name="dst">Write all values to the destination</param>
 		/// <returns></returns>
 		public ushort[] BoxBlur(int thr, ushort[] src, ushort[] dst)
 		{
@@ -300,12 +299,17 @@ namespace SharpNav
 					{
 						Span s = spans[i];
 						ushort cd = src[i];
+
+						//in BuildDistanceField, thr = 1.
+ 						//in this method, thr *= 2, so thr = 2
+						//cd is either 0, 1, or 2 so set that to destination
 						if (cd <= thr)
 						{
 							dst[i] = cd;
 							continue;
 						}
 
+						//cd must be greater than 2
 						int d = cd;
 						for (int dir = 0; dir < 4; dir++)
 						{
@@ -316,6 +320,7 @@ namespace SharpNav
 								int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
 								d += src[di];
 
+								//check spans in next direction
 								Span ds = spans[di];
 								int dir2 = (dir + 1) % 4;
 								if (Span.GetConnection(dir2, ref ds) != NotConnected)
@@ -335,6 +340,7 @@ namespace SharpNav
 								d += cd * 2;
 							}
 						}
+						//save new value to destination
 						dst[i] = (ushort)((d + 5) / 9);
 					}
 				}
@@ -351,11 +357,9 @@ namespace SharpNav
 		{
 			ushort[] src = new ushort[spans.Length];
 			ushort[] dst = new ushort[spans.Length];
-			ushort maxDist = 0;
 
 			//fill up all the values in src and get maxDist
-			CalculateDistanceField(src, ref maxDist);
-			this.maxDist = maxDist;
+			CalculateDistanceField(src);
 
 			//blur 
 			if (BoxBlur(1, src, dst) != src)
@@ -367,7 +371,7 @@ namespace SharpNav
 			}
 
 			//store distances
-			dist = src;
+			this.dist = src;
 
 			return true;
 		}
@@ -429,14 +433,12 @@ namespace SharpNav
 			public int Minimum;
 			public int Height;
 			public int Connections;
-			public AreaFlags Area;
 
 			public Span(int minimum, int height)
 			{
 				this.Minimum = minimum;
 				this.Height = height;
 				this.Connections = 0;
-				Area = AreaFlags.Null;
 			}
 
 			public bool HasUpperBound { get { return Height != int.MaxValue; } }
