@@ -20,7 +20,7 @@ namespace SharpNav
 	{
 		private int spanCount;
 		private ushort id;
-		private byte areaType;
+		private AreaFlags areaType;
 		private bool remap;
 		private bool visited;
 		private List<int> connections;
@@ -37,6 +37,37 @@ namespace SharpNav
 			connections = new List<int>();
 			floors = new List<int>();
 		}
+
+		public int SpanCount
+		{
+			get { return spanCount; }
+			set { this.spanCount = value; }
+		}
+
+		public ushort Id 
+		{ 
+			get { return id; }
+			set { this.id = value; }
+		}
+
+		public AreaFlags AreaType
+		{
+			set { this.areaType = value; }
+		}
+
+		public bool Remap 
+		{
+			get { return remap; }
+			set { this.remap = value; } 
+		}
+
+		public Boolean Visited
+		{
+			get { return visited; }
+			set { this.visited = value; }
+		}
+
+		
 
 		/// <summary>
 		/// Returns the list of floor regions
@@ -151,17 +182,17 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="otherRegion">The region to merge with</param>
 		/// <returns></returns>
-		public bool mergeRegions(Region otherRegion)
+		public bool mergeWithRegion(Region otherRegion)
 		{
 			ushort thisId = id;
 			ushort otherId = otherRegion.id;
-		
+
 			// Duplicate current neighbourhood.
 			List<int> thisConnected = new List<int>();
 			for (int i = 0; i < connections.Count; ++i)
 				thisConnected.Add(connections[i]);
 			List<int> otherConnected = otherRegion.connections;
-		
+
 			// Find insertion point on this region
 			int insertInThis = -1;
 			for (int i = 0; i < thisConnected.Count; ++i)
@@ -174,7 +205,7 @@ namespace SharpNav
 			}
 			if (insertInThis == -1)
 				return false;
-		
+
 			// Find insertion point on the other region
 			int insertInOther = -1;
 			for (int i = 0; i < otherConnected.Count; ++i)
@@ -187,7 +218,7 @@ namespace SharpNav
 			}
 			if (insertInOther == -1)
 				return false;
-		
+
 			// Merge neighbours.
 			connections = new List<int>();
 			for (int i = 0, ni = thisConnected.Count; i < ni - 1; ++i)
@@ -195,9 +226,9 @@ namespace SharpNav
 
 			for (int i = 0, ni = otherConnected.Count; i < ni - 1; ++i)
 				connections.Add(otherConnected[(insertInOther + 1 + i) % ni]);
-		
+
 			removeAdjacentNeighbours();
-		
+
 			for (int j = 0; j < otherRegion.floors.Count; ++j)
 				addUniqueFloorRegion(otherRegion.floors[j]);
 			spanCount += otherRegion.spanCount;
@@ -206,8 +237,6 @@ namespace SharpNav
 
 			return true;
 		}
-
-
 
 		/// <summary>
 		/// Test if region is connected to a border

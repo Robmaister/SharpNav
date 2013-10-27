@@ -189,7 +189,7 @@ namespace SharpNav
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(3);
 								int ddy = dy + MathHelper.GetDirOffsetY(3);
-								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(3, ref s);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(3, ref ds);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -210,7 +210,7 @@ namespace SharpNav
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(2);
 								int ddy = dy + MathHelper.GetDirOffsetY(2);
-								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(2, ref s);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(2, ref ds);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -244,7 +244,7 @@ namespace SharpNav
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(1);
 								int ddy = dy + MathHelper.GetDirOffsetY(1);
-								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(1, ref s);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(1, ref ds);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -265,7 +265,7 @@ namespace SharpNav
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(0);
 								int ddy = dy + MathHelper.GetDirOffsetY(0);
-								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(0, ref s);
+								int ddi = cells[ddx + ddy * width].StartIndex + Span.GetConnection(0, ref ds);
 								if (src[ddi] + 3 < src[i])
 									src[i] = (ushort)(src[ddi] + 3);
 							}
@@ -372,6 +372,369 @@ namespace SharpNav
 
 			//store distances
 			this.dist = src;
+
+			return true;
+		}
+
+		/// <summary>
+		/// A helper method for WalkContour
+		/// </summary>
+		/// <param name="srcReg">an array of ushort values</param>
+		/// <param name="x">cell x</param>
+		/// <param name="y">cell y</param>
+		/// <param name="i">index of span</param>
+		/// <param name="dir">direction</param>
+		/// <returns></returns>
+		public bool IsSolidEdge(ushort[] srcReg, int x, int y, int i, int dir)
+		{
+			Span s = spans[i];
+			ushort r = 0;
+
+			if (Span.GetConnection(dir, ref s) != NotConnected)
+			{
+				int dx = x + MathHelper.GetDirOffsetX(dir);
+				int dy = y + MathHelper.GetDirOffsetY(dir);
+				int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
+				r = srcReg[di];
+			}
+
+			if (r == srcReg[i])
+				return false;
+
+			return true;
+		}
+
+		/// <summary>
+		/// Try to visit all the spans. May be needed in filtering small regions. 
+		/// </summary>
+		/// <param name="srcReg">an array of ushort values</param>
+		/// <param name="x">cell x-coordinate</param>
+		/// <param name="y">cell y-coordinate</param>
+		/// <param name="i">index of span</param>
+		/// <param name="dir">direction</param>
+		/// <param name="cont">list of ints</param>
+		public void WalkContour(ushort[] srcReg, int x, int y, int i, int dir, List<int> cont)
+		{
+			int startDir = dir;
+			int starti = i;
+
+			Span ss = spans[i];
+			ushort curReg = 0;
+
+			if (Span.GetConnection(dir, ref ss) != NotConnected)
+			{
+				int dx = x + MathHelper.GetDirOffsetX(dir);
+				int dy = y + MathHelper.GetDirOffsetY(dir);
+				int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref ss);
+				curReg = srcReg[di];
+			}
+			cont.Add(curReg);
+
+			int iter = 0;
+			while (++iter < 40000)
+			{
+				Span s = spans[i];
+
+				if (IsSolidEdge(srcReg, x, y, i, dir))
+				{
+					//choose the edge corner
+					ushort r = 0;
+					if (Span.GetConnection(dir, ref s) != NotConnected)
+					{
+						int dx = x + MathHelper.GetDirOffsetX(dir);
+						int dy = y + MathHelper.GetDirOffsetY(dir);
+						int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
+						r = srcReg[di];
+					}
+
+					if (r != curReg)
+					{
+						curReg = r;
+						cont.Add(curReg);
+					}
+
+					dir = (dir + 1) % 4; //rotate clockwise
+				}
+				else
+				{
+					int di = -1;
+					int dx = x + MathHelper.GetDirOffsetX(dir);
+					int dy = y + MathHelper.GetDirOffsetY(dir);
+					if (Span.GetConnection(dir, ref s) != NotConnected)
+					{
+						Cell dc = cells[dx + dy * width];
+						di = dc.StartIndex + Span.GetConnection(dir, ref s);
+					}
+					if (di == -1)
+					{
+						//shouldn't happen
+						return;
+					}
+					x = dx;
+					y = dy;
+					i = di;
+					dir = (dir + 3) % 4; //rotate counterclockwise
+				}
+
+				if (starti == i && startDir == dir)
+					break;
+			}
+
+			//remove adjacent duplicates
+			if (cont.Count > 1)
+			{
+				for (int j = 0; j < cont.Count; )
+				{
+					//next element
+					int nj = (j + 1) % cont.Count;
+
+					//adjacent duplicate found
+					if (cont[j] == cont[nj]) 
+						cont.RemoveAt(j);
+					else
+						j++; 
+				}
+			}
+		}
+
+		/// <summary>
+		/// Discards regions that are too small. 
+		/// </summary>
+		/// <param name="minRegionArea"></param>
+		/// <param name="mergeRegionSize"></param>
+		/// <param name="maxRegionId"></param>
+		/// <param name="srcReg"></param>
+		/// <returns></returns>
+		public bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref ushort maxRegionId, ushort[] srcReg)
+		{
+			//HACK: Heightfield border flag. Unwalkable
+			const ushort BORDER_REG = 0x8000;
+
+			int numRegions = maxRegionId + 1;
+			Region[] regions = new Region[numRegions];
+
+			//construct regions
+			for (int i = 0; i < numRegions; i++)
+				regions[i] = new Region((ushort)i);
+
+			//find edge of a region and find connections around a contour
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[x + y * width];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						ushort r = srcReg[i];
+						if (r == 0 || r >= numRegions)
+							continue;
+
+						Region reg = regions[r];
+						reg.SpanCount++;
+						
+						//update floors
+						for (int j = c.StartIndex; j < end; j++)
+						{
+							if (i == j) continue;
+							ushort floorId = srcReg[j];
+							if (floorId == 0 || floorId >= numRegions)
+								continue;
+							reg.addUniqueFloorRegion(floorId);
+						}
+
+						//have found contour
+						if (reg.getConnections().Count > 0)
+							continue;
+
+						reg.AreaType = areas[i];
+
+						//check if this cell is next to a border
+						int ndir = -1;
+						for (int dir = 0; dir < 4; dir++)
+						{
+							if (IsSolidEdge(srcReg, x, y, i, dir))
+							{
+								ndir = dir;
+								break;
+							}
+						}
+
+						if (ndir != -1)
+						{
+							//The cell is at a border. 
+							//Walk around contour to find all neighbors
+							WalkContour(srcReg, x, y, i, ndir, reg.getConnections());
+						}
+					}
+				}
+			}
+
+			//Remove too small regions
+			List<int> stack = new List<int>();
+			List<int> trace = new List<int>();
+			for (int i = 0; i < numRegions; i++)
+			{
+				Region reg = regions[i];
+				if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
+					continue;
+				if (reg.SpanCount == 0)
+					continue;
+				if (reg.Visited)
+					continue;
+
+				//count the total size of all connected regions
+				//also keep track of the regions connections to a tile border
+				bool connectsToBorder = false;
+				int spanCount = 0;
+				stack.Clear();
+				trace.Clear();
+
+				reg.Visited = true;
+				stack.Add(i);
+
+				while (stack.Count != 0)
+				{
+					//pop
+					int ri = stack[stack.Count - 1];
+					stack.RemoveAt(stack.Count - 1);
+
+					Region creg = regions[ri];
+
+					spanCount += creg.SpanCount;
+					trace.Add(ri);
+
+					for (int j = 0; j < creg.getConnections().Count; j++)
+					{
+						if ((creg.getConnections()[j] & BORDER_REG) != 0)
+						{
+							connectsToBorder = true;
+							continue;
+						}
+						
+						Region neiReg = regions[creg.getConnections()[j]];
+						if (neiReg.Visited)
+							continue;
+						if (neiReg.Id == 0 || (neiReg.Id & BORDER_REG) != 0)
+							continue;
+						
+						//visit
+						stack.Add(neiReg.Id);
+						neiReg.Visited = true;
+					}
+				}
+
+				//if the accumulated region size is too small, remove it
+				//do not remove areas which connect to tile borders as their size can't be estimated correctly
+				//and removing them can potentially remove necessary areas
+				if (spanCount < minRegionArea && !connectsToBorder)
+				{
+					//kill all visited regions
+					for (int j = 0; j < trace.Count; j++)
+					{
+						regions[trace[j]].SpanCount = 0;
+						regions[trace[j]].Id = 0;
+					}
+				}
+
+			}
+
+			//Merge too small regions to neighbor regions
+			int mergeCount = 0;
+			do
+			{
+				mergeCount = 0;
+				for (int i = 0; i < numRegions; i++)
+				{
+					Region reg = regions[i];
+					if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
+						continue;
+					if (reg.SpanCount == 0)
+						continue;
+
+					//check to see if region should be merged
+					if (reg.SpanCount > mergeRegionSize && reg.isRegionConnectedToBorder())
+						continue;
+					
+					//small region with more than one connection or region which is not connected to border at all
+					//find smallest neighbor that connects to this one
+					int smallest = 0xfffffff; //HACK
+					ushort mergeId = reg.Id;
+					for (int j = 0; j < reg.getConnections().Count; j++)
+					{
+						if ((reg.getConnections()[i] & BORDER_REG) != 0) continue;
+						Region mreg = regions[reg.getConnections()[j]];
+						if (mreg.Id == 0 || (mreg.Id & BORDER_REG) != 0) continue;
+						if (mreg.SpanCount < smallest && reg.canMergeWithRegion(mreg) && mreg.canMergeWithRegion(reg))
+						{
+							smallest = mreg.SpanCount;
+							mergeId = mreg.Id;
+						}
+					}
+
+					//found new id
+					if (mergeId != reg.Id)
+					{
+						ushort oldId = reg.Id;
+						Region target = regions[mergeId];
+
+						//merge regions
+						if (target.mergeWithRegion(reg))
+						{
+							//fix regions pointing to current region
+							for (int j = 0; j < numRegions; j++)
+							{
+								if (regions[j].Id == 0 || (regions[j].Id & BORDER_REG) != 0) continue;
+								
+								//if another regions was already merged into current region
+								//change the nid of the previous region too
+								if (regions[j].Id == oldId)
+									regions[j].Id = mergeId;
+								
+								//replace current region with new one if current region is neighbor
+								regions[j].replaceNeighbour(oldId, mergeId);
+							}
+							mergeCount++;
+						}
+					}
+
+				}
+
+			} while (mergeCount > 0);
+
+			//Compress region ids
+			for (int i = 0; i < numRegions; i++)
+			{
+				regions[i].Remap = false;
+				if (regions[i].Id == 0) continue; //skip nil regions
+				if ((regions[i].Id & BORDER_REG) != 0) continue; //skip external regions
+				regions[i].Remap = true;
+			}
+
+			ushort regIdGen = 0;
+			for (int i = 0; i < numRegions; i++)
+			{
+				if (!regions[i].Remap)
+					continue;
+
+				ushort oldId = regions[i].Id;
+				ushort newId = ++regIdGen;
+				for (int j = i; j < numRegions; j++)
+				{
+					if (regions[j].Id == oldId)
+					{
+						regions[j].Id = newId;
+						regions[j].Remap = false;
+					}
+				}
+			}
+			maxRegionId = regIdGen;
+
+			//Remap regions
+			for (int i = 0; i < spans.Length; i++)
+			{
+				if ((srcReg[i] & BORDER_REG) == 0)
+					srcReg[i] = regions[srcReg[i]].Id;
+			}
 
 			return true;
 		}
