@@ -27,6 +27,7 @@ namespace SharpNav
 		public const ushort BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
 
 		//region variables
+		DistanceField distField;
 		private ushort maxRegions;
 		private int borderSize;
 		
@@ -126,9 +127,6 @@ namespace SharpNav
 			}
 		}
 
-		//public ushort[] Distances { get { return dist; } }
-		//public ushort MaxDist { get { return maxDist; } }
-
 		public int Width { get { return width; } }
 		public int Height { get { return height; } }
 		public int Length { get { return length; } }
@@ -137,6 +135,219 @@ namespace SharpNav
 		public Span[] Spans { get { return spans; } }
 		public AreaFlags[] Areas { get { return areas; } }
 
+		/// <summary>
+		/// Locate spans below the water level and try to add them to existing regions or create new regions
+		/// </summary>
+		/// <param name="maxIter">max iterations to go through</param>
+		/// <param name="level">current levels</param>
+		/// <param name="srcReg">source regions</param>
+		/// <param name="srcDist">source distances</param>
+		/// <param name="dstReg">destination region</param>
+		/// <param name="dstDist">destination distances</param>
+		/// <returns></returns>
+		public ushort[] ExpandRegions(int maxIter, ushort level, ushort[] srcReg, ushort[] srcDist, ushort[] dstReg, ushort[] dstDist)
+		{
+			//find cells revealed by the raised level
+			List<int> stack = new List<int>();
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					Cell c = cells[x + y * width];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						if (distField.Distances[i] >= level && srcReg[i] == 0 && areas[i] != AreaFlags.Null)
+						{
+							stack.Add(x);
+							stack.Add(y);
+							stack.Add(i);
+						}
+					}
+				}
+			}
+
+			int iter = 0;
+			while (stack.Count > 0)
+			{
+				int failed = 0;
+
+				dstReg = srcReg;
+				dstDist = srcDist;
+
+				for (int j = 0; j < stack.Count; j += 3)
+				{
+					int x = stack[j + 0];
+					int y = stack[j + 1];
+					int i = stack[j + 2];
+					if (i < 0)
+					{
+						failed++;
+						continue;
+					}
+
+					ushort r = srcReg[i];
+					ushort d2 = 0xffff;
+					AreaFlags area = areas[i];
+					Span s = spans[i];
+					for (int dir = 0; dir < 4; dir++)
+					{
+						if (Span.GetConnection(dir, ref s) == NotConnected) continue;
+						int dx = x + MathHelper.GetDirOffsetX(dir);
+						int dy = y + MathHelper.GetDirOffsetY(dir);
+						int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref s);
+						if (areas[di] != area) continue;
+						if (srcReg[di] > 0 && (srcReg[di] & BORDER_REG) == 0)
+						{
+							if (srcDist[di] + 2 < d2)
+							{
+								r = srcReg[di];
+								d2 = (ushort)(srcDist[di] + 2);
+							}
+						}
+					}
+					if (r != 0)
+					{
+						stack[j + 2] = -1; //mark as used
+						dstReg[i] = r;
+						dstDist[i] = d2;
+					}
+					else
+					{
+						failed++;
+					}
+				}
+
+				//swap source and dest
+				ushort[] temp = srcReg;
+				srcReg = dstReg;
+				dstReg = temp;
+
+				temp = srcDist;
+				srcDist = dstDist;
+				dstDist = temp;
+
+				if (failed * 3 == stack.Count)
+					break;
+
+				if (level > 0)
+				{
+					++iter;
+					if (iter >= maxIter)
+						break;
+				}
+			}
+
+			return srcReg;
+		}
+
+		/// <summary>
+		/// Floods the regions at a certain level
+		/// </summary>
+		/// <param name="x">starting x</param>
+		/// <param name="y">starting y</param>
+		/// <param name="i">span index</param>
+		/// <param name="level">current level</param>
+		/// <param name="r">region id</param>
+		/// <param name="srcReg">source region</param>
+		/// <param name="srcDist">source distances</param>
+		/// <returns></returns>
+		public bool FloodRegion(int x, int y, int i, ushort level, ushort r, ushort[] srcReg, ushort[] srcDist)
+		{
+			AreaFlags area = areas[i];
+
+			//flood fill mark region
+			List<int> stack = new List<int>();
+			stack.Add(x);
+			stack.Add(y);
+			stack.Add(i);
+			srcReg[i] = r;
+			srcDist[i] = 0;
+
+			ushort lev = (ushort)(level >= 2 ? level - 2 : 0);
+			int count = 0;
+
+			while (stack.Count > 0)
+			{
+				int ci = stack[stack.Count - 1];
+				stack.RemoveAt(stack.Count - 1);
+				int cy = stack[stack.Count - 1];
+				stack.RemoveAt(stack.Count - 1);
+				int cx = stack[stack.Count - 1];
+				stack.RemoveAt(stack.Count - 1);
+
+				Span cs = spans[ci];
+
+				//check if any of the neighbors already have a valid reigon set
+				ushort ar = 0;
+				for (int dir = 0; dir < 4; dir++)
+				{
+					//8 connected
+					if (Span.GetConnection(dir, ref cs) != NotConnected)
+					{
+						int dx = cx + MathHelper.GetDirOffsetX(dir);
+						int dy = cy + MathHelper.GetDirOffsetY(dir);
+						int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref cs);
+
+						if (areas[di] != area)
+							continue;
+
+						ushort nr = srcReg[di];
+						if ((nr & BORDER_REG) != 0) //skip borders
+							continue;
+						if (nr != 0 && nr != r)
+							ar = nr;
+
+						Span ds = spans[di];
+						int dir2 = (dir + 1) % 4;
+						if (Span.GetConnection(dir2, ref ds) != NotConnected)
+						{
+							int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
+							int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
+							int di2 = cells[dx2 + dy2 * width].StartIndex + Span.GetConnection(dir2, ref ds);
+
+							if (areas[di2] != area)
+								continue;
+
+							ushort nr2 = srcReg[di2];
+							if (nr2 != 0 && nr2 != r)
+								ar = nr2;
+						}
+
+					}
+				}
+				if (ar != 0)
+				{
+					srcReg[ci] = 0;
+					continue;
+				}
+				count++;
+
+				//expand neighbors
+				for (int dir = 0; dir < 4; dir++)
+				{
+					if (Span.GetConnection(dir, ref cs) != NotConnected)
+					{
+						int dx = cx + MathHelper.GetDirOffsetX(dir);
+						int dy = cy + MathHelper.GetDirOffsetY(dir);
+						int di = cells[dx + dy * width].StartIndex + Span.GetConnection(dir, ref cs);
+
+						if (areas[di] != area)
+							continue;
+
+						if (distField.Distances[di] >= lev && srcReg[di] == 0)
+						{
+							srcReg[di] = r;
+							srcDist[di] = 0;
+							stack.Add(dx);
+							stack.Add(dy);
+							stack.Add(di);
+						}
+					}
+				}
+			}
+
+			return count > 0;
+		}
 		/// <summary>
 		/// A helper method for WalkContour
 		/// </summary>
@@ -523,26 +734,6 @@ namespace SharpNav
 			}
 		}
 
-		//NOTE: Empty method. Will need to be filled in later
-		public ushort[] ExpandRegions(int maxIter, ushort level, ushort[] srcReg, ushort[] srcDist, ushort[] dstReg, ushort[] dstDist)
-		{
-			//TODO: fill in functionality
-			//...
-
-			return srcReg;
-		}
-
-		//NOTE: Empty method. Will need to be filled in later
-		public bool FloodRegion(int x, int y, int i, ushort level, ushort r, ushort[] srcReg, ushort[] srcDist)
-		{
-			int count = 0;
-
-			//TODO: fill in functionality
-			//...
-
-			return count > 0;
-		}
-
 		/// <summary>
 		/// The central method for building regions, which consists of connected, non-overlapping walkable spans.
 		/// </summary>
@@ -557,7 +748,7 @@ namespace SharpNav
 			ushort[] dstReg = new ushort[spans.Length];
 			ushort[] dstDist = new ushort[spans.Length];
 
-			DistanceField distField = new DistanceField(this);
+			distField = new DistanceField(this);
 
 			ushort regionId = 1;
 			ushort level = (ushort)((distField.MaxDistance + 1) & ~1); //find a better way to compute this
