@@ -67,17 +67,7 @@ namespace SharpNav
 			set { this.visited = value; }
 		}
 
-		
-
-		/// <summary>
-		/// Returns the list of floor regions
-		/// </summary>
 		public List<int> getFloorRegions() { return floors; }
-
-		/// <summary>
-		/// Returns the list of neighbors.
-		/// </summary>
-		/// <returns></returns>
 		public List<int> getConnections() { return connections; }
 
 		/// <summary>
