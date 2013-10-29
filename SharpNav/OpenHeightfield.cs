@@ -802,12 +802,14 @@ namespace SharpNav
 			public int Minimum;
 			public int Height;
 			public int Connections;
+			public int Region;
 
 			public Span(int minimum, int height)
 			{
 				this.Minimum = minimum;
 				this.Height = height;
-				this.Connections = 0;
+				this.Connections = ~0;
+				this.Region = 0;
 			}
 
 			public bool HasUpperBound { get { return Height != int.MaxValue; } }
@@ -824,7 +826,8 @@ namespace SharpNav
 			{
 				span.Minimum = min;
 				span.Height = max - min;
-				span.Connections = 0;
+				span.Connections = ~0;
+				span.Region = 0;
 			}
 
 			public static void SetConnection(int dir, int i, ref Span s)
