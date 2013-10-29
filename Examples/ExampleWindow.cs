@@ -35,6 +35,7 @@ namespace Examples
 		private VoxelDrawMode vDrawMode;
 
 		private bool hasOpenHeightfield;
+		private bool hasDistanceField;
 
 		private KeyboardState prevK;
 		private MouseState prevM;
@@ -225,6 +226,11 @@ namespace Examples
 					openHeightfield = new OpenHeightfield(heightfield, 40, 15);
 					hasOpenHeightfield = true;
 				}
+				else if (!hasDistanceField)
+				{
+					openHeightfield.BuildDistanceField();
+					hasDistanceField = true;
+				}
 			}
 
 			base.OnKeyDown(e);
@@ -249,7 +255,67 @@ namespace Examples
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
 
-			if (hasOpenHeightfield)
+			if (hasDistanceField)
+			{
+				if (vDrawMode == VoxelDrawMode.Transparent)
+				{
+					GL.Disable(EnableCap.Light0);
+					GL.Disable(EnableCap.Lighting);
+					GL.DepthMask(false);
+					GL.Color4(1f, 0f, 0f, 0.5f);
+				}
+
+				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+				ushort maxdist = openHeightfield.MaxDist;
+
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 squareScale, squareTrans;
+				OpenTK.Vector3 squarePos;
+				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+				for (int i = 0; i < openHeightfield.Length; i++)
+				{
+					for (int j = 0; j < openHeightfield.Width; j++)
+					{
+						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+
+						var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+
+						for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
+						{
+							GL.PushMatrix();
+							var span = openHeightfield.Spans[k];
+							var squarePosFinal = squarePos;
+							squarePosFinal.Y += span.Minimum * cellSize.Y;
+							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+
+							ushort dist = openHeightfield.Distances[k];
+							float val = (float)dist / (float)maxdist;
+							GL.Color4(val, val, val, 1f);
+
+							GL.MultMatrix(ref squareTrans);
+							GL.MultMatrix(ref squareScale);
+
+							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+							GL.PopMatrix();
+						}
+					}
+				}
+
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
+
+				if (vDrawMode == VoxelDrawMode.Transparent)
+					GL.DepthMask(true);
+			}
+			else if (hasOpenHeightfield)
 			{
 				if (vDrawMode == VoxelDrawMode.Transparent)
 				{
@@ -302,7 +368,6 @@ namespace Examples
 						}
 					}
 				}
-
 
 				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);

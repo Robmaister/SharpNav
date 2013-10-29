@@ -124,6 +124,12 @@ namespace SharpNav
 			}
 		}
 
+		public ushort[] Distances { get { return dist; } }
+		public ushort MaxDist { get { return maxDist; } }
+
+		public Cell[] Cells { get { return cells; } }
+		public Span[] Spans { get { return spans; } }
+
 		/// <summary>
 		/// A distance field estimates how far each span is from its nearest border span. This data is needed for region generation.
 		/// </summary>
@@ -301,7 +307,7 @@ namespace SharpNav
 						ushort cd = src[i];
 
 						//in BuildDistanceField, thr = 1.
- 						//in this method, thr *= 2, so thr = 2
+						//in this method, thr *= 2, so thr = 2
 						//cd is either 0, 1, or 2 so set that to destination
 						if (cd <= thr)
 						{
