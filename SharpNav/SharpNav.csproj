@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="AreaFlags.cs" />
     <Compile Include="ContourSet.cs" />
+    <Compile Include="Mesh.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />
