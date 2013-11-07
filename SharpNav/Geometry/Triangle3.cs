@@ -254,7 +254,7 @@ namespace SharpNav.Geometry
 			Triangle3? other = obj as Triangle3?;
 
 			if (other.HasValue)
-				return Equals(other.Value);
+				return this.Equals(other.Value);
 			else
 				return false;
 		}

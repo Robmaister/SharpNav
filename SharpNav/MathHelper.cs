@@ -15,29 +15,33 @@ namespace SharpNav
 {
 	internal static class MathHelper
 	{
-		private static readonly int[] dirOffsetsX = { -1, 0, 1, 0 };
-		private static readonly int[] dirOffsetsY = { 0, 1, 0, -1 };
+		private static readonly int[] DirOffsetsX = { -1, 0, 1, 0 };
+		private static readonly int[] DirOffsetsY = { 0, 1, 0, -1 };
 
 		/// <summary>
-		/// Get X offset
-		/// Directions: west, north, east, south
+		/// Gets an X offset.
 		/// </summary>
-		/// <param name="dir">direction</param>
-		/// <returns>The offset</returns>
+		/// <remarks>
+		/// The directions cycle between the following, starting from 0: west, north, east, south.
+		/// </remarks>
+		/// <param name="dir">The direction.</param>
+		/// <returns>The offset for the X coordinate.</returns>
 		internal static int GetDirOffsetX(int dir)
 		{
-			return dirOffsetsX[dir % 4];
+			return DirOffsetsX[dir % 4];
 		}
 
 		/// <summary>
-		/// Get Y offset
-		/// Directions: west, north, east, south
+		/// Get a Y offset.
 		/// </summary>
-		/// <param name="dir">direction</param>
-		/// <returns></returns>
+		/// <remarks>
+		/// The directions cycle between the following, starting from 0: west, north, east, south.
+		/// </remarks>
+		/// <param name="dir">The direction.</param>
+		/// <returns>The offset for the Y coordinate.</returns>
 		internal static int GetDirOffsetY(int dir)
 		{
-			return dirOffsetsY[dir % 4];
+			return DirOffsetsY[dir % 4];
 		}
 
 		internal static int Clamp(int val, int min, int max)

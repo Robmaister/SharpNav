@@ -19,7 +19,7 @@ namespace SharpNav.Geometry
 
 		public Vector3 Center { get { return (Min + Max) / 2; } }
 
-		public Vector3 Size { get { return (Max - Min); } }
+		public Vector3 Size { get { return Max - Min; } }
 
 		public static bool Overlapping(ref BBox3 a, ref BBox3 b)
 		{

@@ -56,34 +56,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
-		/// </summary>
-		/// <param name="x">The x coordinate.</param>
-		/// <param name="y">The y coordinate.</param>
-		public Cell this[int x, int y]
-		{
-			get
-			{
-				if (x < 0 || x >= width || y < 0 || y >= length)
-					throw new IndexOutOfRangeException();
-
-				return cells[y * width + x];
-			}
-		}
-
-		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
-		/// </summary>
-		/// <param name="i">The index.</param>
-		public Cell this[int i]
-		{
-			get
-			{
-				return cells[i];
-			}
-		}
-
-		/// <summary>
 		/// Gets the bounding box of the heightfield.
 		/// </summary>
 		public BBox3 Bounds { get { return bounds; } }
@@ -146,6 +118,34 @@ namespace SharpNav
 					count += cells[i].Spans.Count;
 
 				return count;
+			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
+		/// </summary>
+		/// <param name="x">The x coordinate.</param>
+		/// <param name="y">The y coordinate.</param>
+		public Cell this[int x, int y]
+		{
+			get
+			{
+				if (x < 0 || x >= width || y < 0 || y >= length)
+					throw new IndexOutOfRangeException();
+
+				return cells[y * width + x];
+			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
+		/// </summary>
+		/// <param name="i">The index.</param>
+		public Cell this[int i]
+		{
+			get
+			{
+				return cells[i];
 			}
 		}
 
@@ -221,7 +221,6 @@ namespace SharpNav
 						sMax = Math.Max(sMax, y);
 					}
 
-
 					//normalize span bounds to bottom of heightfield
 					float bMinY = bounds.Min.Y;
 					sMin -= bMinY;
@@ -256,7 +255,7 @@ namespace SharpNav
 		/// <summary>
 		/// If two neighboring spans have a small difference in maximum height (such as stairs), 
 		/// then make sure the spans are walkable.
-		///</summary>
+		/// </summary>
 		// Warning: Known to override the effect of filterLedgeSpans() function.
 		public void FilterLowHangingWalkableObstacles(int walkableClimb)
 		{
@@ -276,7 +275,7 @@ namespace SharpNav
 						Span currentSpan = spans[i];
 
 						bool walkable;
-						walkable = (currentSpan.Area != AreaFlags.Null);
+						walkable = currentSpan.Area != AreaFlags.Null;
 
 						// If current span is not walkable, but there is walkable
 						// span just below it, mark the span above it walkable too.
@@ -323,12 +322,12 @@ namespace SharpNav
 						Span currentSpan = spans[i];
 						Span nextSpan;
 
-						int bot = (int)(currentSpan.Maximum);
+						int bot = (int)currentSpan.Maximum;
 						int top;
 						if (i != spans.Count - 1)
 						{
 							nextSpan = spans[i + 1];
-							top = (int)(nextSpan.Minimum);
+							top = (int)nextSpan.Minimum;
 						}
 						else
 						{
@@ -373,12 +372,12 @@ namespace SharpNav
 						if (currentSpan.Area == AreaFlags.Null)
 							continue;
 
-						int bottom = (int)(currentSpan.Maximum);
+						int bottom = (int)currentSpan.Maximum;
 						int top;
 						if (i != spans.Count - 1)
 						{
 							nextSpan = spans[i + 1];
-							top = (int)(nextSpan.Minimum);
+							top = (int)nextSpan.Minimum;
 						}
 						else
 						{
@@ -537,7 +536,7 @@ namespace SharpNav
 			private int height;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Cell"/> class.
+			/// Initializes a new instance of the <see cref="Cell"/> class.
 			/// </summary>
 			/// <param name="height">The number of voxels in the column.</param>
 			public Cell(int height)
@@ -547,7 +546,7 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Gets the <see cref="SharpNav.Heightfield+Span"/> that contains the specified voxel.
+			/// Gets the <see cref="Span"/> that contains the specified voxel.
 			/// </summary>
 			/// <param name="location">The voxel to search for.</param>
 			public Span? this[int location]
@@ -575,19 +574,19 @@ namespace SharpNav
 
 			/// <summary>
 			/// [REMOVED] Reason: Spans need to be modified [REMOVED]
-			/// Gets a readonly list of all the <see cref="SharpNav.Heightfield+Span"/>s contained in the cell.
+			/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
 			/// </summary>
 			/// <value>A readonly list of spans.</value>
 			//public IReadOnlyList<Span> Spans { get { return spans.AsReadOnly(); } }
 
 			/// <summary>
-			/// Gets a list of all the <see cref="SharpNav.Heightfield+Span"/>s contained in the cell.
+			/// Gets a list of all the <see cref="Span"/>s contained in the cell.
 			/// </summary>
 			/// <value>A list of spans for modification</value>
 			public List<Span> Spans { get { return spans; } }
 
 			/// <summary>
-			/// Adds a <see cref="SharpNav.Heightfield+Span"/> to the cell.
+			/// Adds a <see cref="Span"/> to the cell.
 			/// </summary>
 			/// <param name="span">A span.</param>
 			public void AddSpan(Span span)
@@ -633,7 +632,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// A span is a range of integers which represents a range of voxels in a <see cref="SharpNav.Heightfield+Cell"/>.
+		/// A span is a range of integers which represents a range of voxels in a <see cref="Cell"/>.
 		/// </summary>
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Span
@@ -654,7 +653,7 @@ namespace SharpNav
 			public AreaFlags Area;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Span"/> struct.
+			/// Initializes a new instance of the <see cref="Span"/> struct.
 			/// </summary>
 			/// <param name="min">The lowest value in the span.</param>
 			/// <param name="max">The highest value in the span.</param>
@@ -666,7 +665,7 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="SharpNav.Heightfield+Span"/> struct.
+			/// Initializes a new instance of the <see cref="Span"/> struct.
 			/// </summary>
 			/// <param name="min">The lowest value in the span.</param>
 			/// <param name="max">The highest value in the span.</param>

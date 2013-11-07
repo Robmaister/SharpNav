@@ -148,6 +148,42 @@ namespace SharpNav
 		public AreaFlags[] Areas { get { return areas; } }
 
 		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
+		/// </summary>
+		/// <param name="x">The x coordinate.</param>
+		/// <param name="y">The y coordinate.</param>
+		public IEnumerable<Span> this[int x, int y]
+		{
+			get
+			{
+				if (x < 0 || x >= width || y < 0 || y >= length)
+					throw new IndexOutOfRangeException();
+
+				Cell c = cells[y * width + x];
+
+				int end = c.StartIndex + c.Count;
+				for (int i = c.StartIndex; i < end; i++)
+					yield return spans[i];
+			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
+		/// </summary>
+		/// <param name="i">The index.</param>
+		public IEnumerable<Span> this[int i]
+		{
+			get
+			{
+				Cell c = cells[i];
+
+				int end = c.StartIndex + c.Count;
+				for (int j = c.StartIndex; j < end; j++)
+					yield return spans[j];
+			}
+		}
+
+		/// <summary>
 		/// A distance field estimates how far each span is from its nearest border span. This data is needed for region generation.
 		/// </summary>
 		/// <param name="src">Array of values, each corresponding to an individual span</param>
@@ -391,7 +427,6 @@ namespace SharpNav
 			this.distances = src;
 		}
 
-		
 		/// <summary>
 		/// Locate spans below the water level and try to add them to existing regions or create new regions
 		/// </summary>
@@ -605,6 +640,7 @@ namespace SharpNav
 
 			return count > 0;
 		}
+
 		/// <summary>
 		/// A helper method for WalkContour
 		/// </summary>
@@ -736,7 +772,6 @@ namespace SharpNav
 		/// <returns></returns>
 		public bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref ushort maxRegionId, ushort[] srcReg)
 		{
-
 			int numRegions = maxRegionId + 1;
 			Region[] regions = new Region[numRegions];
 
@@ -766,11 +801,11 @@ namespace SharpNav
 							ushort floorId = srcReg[j];
 							if (floorId == 0 || floorId >= numRegions)
 								continue;
-							reg.addUniqueFloorRegion(floorId);
+							reg.AddUniqueFloorRegion(floorId);
 						}
 
 						//have found contour
-						if (reg.getConnections().Count > 0)
+						if (reg.Connections.Count > 0)
 							continue;
 
 						reg.AreaType = areas[i];
@@ -790,7 +825,7 @@ namespace SharpNav
 						{
 							//The cell is at a border. 
 							//Walk around contour to find all neighbors
-							WalkContour(srcReg, x, y, i, ndir, reg.getConnections());
+							WalkContour(srcReg, x, y, i, ndir, reg.Connections);
 						}
 					}
 				}
@@ -830,15 +865,15 @@ namespace SharpNav
 					spanCount += creg.SpanCount;
 					trace.Add(ri);
 
-					for (int j = 0; j < creg.getConnections().Count; j++)
+					for (int j = 0; j < creg.Connections.Count; j++)
 					{
-						if ((creg.getConnections()[j] & BORDER_REG) != 0)
+						if ((creg.Connections[j] & BORDER_REG) != 0)
 						{
 							connectsToBorder = true;
 							continue;
 						}
 						
-						Region neiReg = regions[creg.getConnections()[j]];
+						Region neiReg = regions[creg.Connections[j]];
 						if (neiReg.Visited)
 							continue;
 						if (neiReg.Id == 0 || (neiReg.Id & BORDER_REG) != 0)
@@ -886,12 +921,12 @@ namespace SharpNav
 					//find smallest neighbor that connects to this one
 					int smallest = 0xfffffff; 
 					ushort mergeId = reg.Id;
-					for (int j = 0; j < reg.getConnections().Count; j++)
+					for (int j = 0; j < reg.Connections.Count; j++)
 					{
-						if ((reg.getConnections()[i] & BORDER_REG) != 0) continue;
-						Region mreg = regions[reg.getConnections()[j]];
+						if ((reg.Connections[i] & BORDER_REG) != 0) continue;
+						Region mreg = regions[reg.Connections[j]];
 						if (mreg.Id == 0 || (mreg.Id & BORDER_REG) != 0) continue;
-						if (mreg.SpanCount < smallest && reg.canMergeWithRegion(mreg) && mreg.canMergeWithRegion(reg))
+						if (mreg.SpanCount < smallest && reg.CanMergeWithRegion(mreg) && mreg.CanMergeWithRegion(reg))
 						{
 							smallest = mreg.SpanCount;
 							mergeId = mreg.Id;
@@ -905,7 +940,7 @@ namespace SharpNav
 						Region target = regions[mergeId];
 
 						//merge regions
-						if (target.mergeWithRegion(reg))
+						if (target.MergeWithRegion(reg))
 						{
 							//fix regions pointing to current region
 							for (int j = 0; j < numRegions; j++)
@@ -926,7 +961,8 @@ namespace SharpNav
 
 				}
 
-			} while (mergeCount > 0);
+			}
+			while (mergeCount > 0);
 
 			//Compress region ids
 			for (int i = 0; i < numRegions; i++)
@@ -1019,10 +1055,14 @@ namespace SharpNav
 				int borderHeight = Math.Min(height, borderSize);
 
 				//paint regions
-				PaintRectRegion(0, borderWidth, 0, height, (ushort)(regionId | BORDER_REG), srcReg); regionId++;
-				PaintRectRegion(width - borderWidth, width, 0, height, (ushort)(regionId | BORDER_REG), srcReg); regionId++;
-				PaintRectRegion(0, width, 0, borderHeight, (ushort)(regionId | BORDER_REG), srcReg); regionId++;
-				PaintRectRegion(0, width, height - borderHeight, height, (ushort)(regionId | BORDER_REG), srcReg); regionId++;
+				PaintRectRegion(0, borderWidth, 0, height, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(width - borderWidth, width, 0, height, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(0, width, 0, borderHeight, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(0, width, height - borderHeight, height, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
 
 				this.borderSize = borderSize;
 			}
@@ -1085,42 +1125,6 @@ namespace SharpNav
 			return true;
 		}
 
-		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
-		/// </summary>
-		/// <param name="x">The x coordinate.</param>
-		/// <param name="y">The y coordinate.</param>
-		public IEnumerable<Span> this[int x, int y]
-		{
-			get
-			{
-				if (x < 0 || x >= width || y < 0 || y >= length)
-					throw new IndexOutOfRangeException();
-
-				Cell c = cells[y * width + x];
-
-				int end = c.StartIndex + c.Count;
-				for (int i = c.StartIndex; i < end; i++)
-					yield return spans[i];
-			}
-		}
-
-		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
-		/// </summary>
-		/// <param name="i">The index.</param>
-		public IEnumerable<Span> this[int i]
-		{
-			get
-			{
-				Cell c = cells[i];
-
-				int end = c.StartIndex + c.Count;
-				for (int j = c.StartIndex; j < end; j++)
-					yield return spans[j];
-			}
-		}
-
 		public struct Cell
 		{
 			public int StartIndex;
@@ -1149,6 +1153,7 @@ namespace SharpNav
 			}
 
 			public bool HasUpperBound { get { return Height != int.MaxValue; } }
+
 			public int Maximum { get { return Minimum + Height; } }
 
 			public static Span FromMinMax(int min, int max)

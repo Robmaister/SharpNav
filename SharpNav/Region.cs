@@ -61,14 +61,14 @@ namespace SharpNav
 			set { this.remap = value; } 
 		}
 
-		public Boolean Visited
+		public bool Visited
 		{
 			get { return visited; }
 			set { this.visited = value; }
 		}
 
-		public List<int> getFloorRegions() { return floors; }
-		public List<int> getConnections() { return connections; }
+		public List<int> FloorRegions { get { return floors; } }
+		public List<int> Connections { get { return connections; } }
 
 		/// <summary>
 		/// Remove adjacent connections if there is a duplicate
@@ -124,7 +124,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="otherRegion">The other region to merge with</param>
 		/// <returns></returns>
-		public bool canMergeWithRegion(Region otherRegion)
+		public bool CanMergeWithRegion(Region otherRegion)
 		{
 			//make sure area types are different
 			if (areaType != otherRegion.areaType)
@@ -156,7 +156,7 @@ namespace SharpNav
 		/// Only add a floor if it hasn't been added already
 		/// </summary>
 		/// <param name="n">The value of the floor</param>
-		public void addUniqueFloorRegion(int n)
+		public void AddUniqueFloorRegion(int n)
 		{
 			//check if floor currently exists
 			for (int i = 0; i < floors.Count; ++i)
@@ -172,7 +172,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="otherRegion">The region to merge with</param>
 		/// <returns></returns>
-		public bool mergeWithRegion(Region otherRegion)
+		public bool MergeWithRegion(Region otherRegion)
 		{
 			ushort thisId = id;
 			ushort otherId = otherRegion.id;
@@ -220,7 +220,7 @@ namespace SharpNav
 			removeAdjacentNeighbours();
 
 			for (int j = 0; j < otherRegion.floors.Count; ++j)
-				addUniqueFloorRegion(otherRegion.floors[j]);
+				AddUniqueFloorRegion(otherRegion.floors[j]);
 			spanCount += otherRegion.spanCount;
 			otherRegion.spanCount = 0;
 			otherRegion.connections.Clear();

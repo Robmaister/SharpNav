@@ -11,7 +11,7 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	class Mesh
+	public class Mesh
 	{
 		private int nverts;
 		private int npolys;
@@ -126,7 +126,7 @@ namespace SharpNav
 				
 				//builds initial polygons
 				int npolys = 0;
-				for (int j= 0; j < polys.Length; j++)
+				for (int j = 0; j < polys.Length; j++)
 					polys[i] = 0xff;
 				for (int j = 0; j < ntris; j++)
 				{
@@ -141,7 +141,6 @@ namespace SharpNav
 				}
 				if (npolys == 0)
 					continue;
-
 
 				//merge polygons
 				if (numVertsPerPoly > 3)
