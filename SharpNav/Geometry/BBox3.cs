@@ -28,6 +28,16 @@ namespace SharpNav.Geometry
 				|| a.Min.Z > b.Max.Z || a.Max.Z < b.Min.Z);
 		}
 
+		public static bool operator ==(BBox3 left, BBox3 right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(BBox3 left, BBox3 right)
+		{
+			return !(left == right);
+		}
+
 		public bool Equals(BBox3 other)
 		{
 			return Min == other.Min && Max == other.Max;
@@ -44,16 +54,6 @@ namespace SharpNav.Geometry
 		public override int GetHashCode()
 		{
 			return Min.GetHashCode() ^ Max.GetHashCode();
-		}
-
-		public static bool operator ==(BBox3 left, BBox3 right)
-		{
-			return left.Equals(right);
-		}
-
-		public static bool operator !=(BBox3 left, BBox3 right)
-		{
-			return !(left == right);
 		}
 	}
 }

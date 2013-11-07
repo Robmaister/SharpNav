@@ -73,7 +73,7 @@ namespace SharpNav
 		/// <summary>
 		/// Remove adjacent connections if there is a duplicate
 		/// </summary>
-		public void removeAdjacentNeighbours()
+		public void RemoveAdjacentNeighbours()
 		{
 			// Remove adjacent duplicates.
 			for (int i = 0; i < connections.Count && connections.Count > 1; )
@@ -94,7 +94,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="oldId">The value you want to replace</param>
 		/// <param name="newId">The new value that will be used</param>
-		public void replaceNeighbour(ushort oldId, ushort newId)
+		public void ReplaceNeighbour(ushort oldId, ushort newId)
 		{
 			//replace the connections
 			bool neiChanged = false;
@@ -116,7 +116,7 @@ namespace SharpNav
 
 			//make sure to remove adjacent neighbors
 			if (neiChanged)
-				removeAdjacentNeighbours();
+				RemoveAdjacentNeighbours();
 		}
 
 		/// <summary>
@@ -217,7 +217,7 @@ namespace SharpNav
 			for (int i = 0, ni = otherConnected.Count; i < ni - 1; ++i)
 				connections.Add(otherConnected[(insertInOther + 1 + i) % ni]);
 
-			removeAdjacentNeighbours();
+			RemoveAdjacentNeighbours();
 
 			for (int j = 0; j < otherRegion.floors.Count; ++j)
 				AddUniqueFloorRegion(otherRegion.floors[j]);
@@ -232,7 +232,7 @@ namespace SharpNav
 		/// Test if region is connected to a border
 		/// </summary>
 		/// <returns></returns>
-		public bool isRegionConnectedToBorder()
+		public bool IsRegionConnectedToBorder()
 		{
 			// Region is connected to border if
 			// one of the neighbours is null id.

@@ -13,6 +13,10 @@ namespace SharpNav
 {
 	public class OpenHeightfield
 	{
+		public const int NotConnected = 0xff; //HACK figure out a better way to do this
+
+		public const ushort BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
+
 		private BBox3 bounds;
 
 		private int width, height, length;
@@ -21,10 +25,6 @@ namespace SharpNav
 		private Cell[] cells;
 		private Span[] spans;
 		private AreaFlags[] areas;
-
-		public const int NotConnected = 0xff; //HACK figure out a better way to do this
-
-		public const ushort BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
 
 		//distance field
 		private ushort[] distances;
@@ -607,11 +607,13 @@ namespace SharpNav
 
 					}
 				}
+
 				if (ar != 0)
 				{
 					srcReg[ci] = 0;
 					continue;
 				}
+
 				count++;
 
 				//expand neighbors
@@ -725,16 +727,19 @@ namespace SharpNav
 					int di = -1;
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
+
 					if (Span.GetConnection(dir, ref s) != NotConnected)
 					{
 						Cell dc = cells[dx + dy * width];
 						di = dc.StartIndex + Span.GetConnection(dir, ref s);
 					}
+
 					if (di == -1)
 					{
 						//shouldn't happen
 						return;
 					}
+
 					x = dx;
 					y = dy;
 					i = di;
@@ -914,7 +919,7 @@ namespace SharpNav
 						continue;
 
 					//check to see if region should be merged
-					if (reg.SpanCount > mergeRegionSize && reg.isRegionConnectedToBorder())
+					if (reg.SpanCount > mergeRegionSize && reg.IsRegionConnectedToBorder())
 						continue;
 					
 					//small region with more than one connection or region which is not connected to border at all
@@ -953,7 +958,7 @@ namespace SharpNav
 									regions[j].Id = mergeId;
 								
 								//replace current region with new one if current region is neighbor
-								regions[j].replaceNeighbour(oldId, mergeId);
+								regions[j].ReplaceNeighbour(oldId, mergeId);
 							}
 							mergeCount++;
 						}
@@ -990,6 +995,7 @@ namespace SharpNav
 					}
 				}
 			}
+
 			maxRegionId = regIdGen;
 
 			//Remap regions
@@ -1046,7 +1052,7 @@ namespace SharpNav
 			ushort regionId = 1;
 			ushort level = (ushort)((maxDistance + 1) & ~1); //find a better way to compute this
 
-			const int expandIters = 8;
+			const int ExpandIters = 8;
 
 			if (borderSize > 0)
 			{
@@ -1072,7 +1078,7 @@ namespace SharpNav
 				level = (ushort)(level >= 2 ? level - 2 : 0);
 
 				//expand current regions until no new empty connected cells found
-				if (ExpandRegions(expandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
+				if (ExpandRegions(ExpandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
 				{
 					ushort[] temp = srcReg;
 					srcReg = dstReg;
@@ -1102,7 +1108,7 @@ namespace SharpNav
 			}
 
 			//expand current regions until no new empty connected cells found
-			if (ExpandRegions(expandIters * 8, 0, srcReg, srcDist, dstReg, dstDist) != srcReg)
+			if (ExpandRegions(ExpandIters * 8, 0, srcReg, srcDist, dstReg, dstDist) != srcReg)
 			{
 				ushort[] temp = srcReg;
 				srcReg = dstReg;

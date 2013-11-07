@@ -25,6 +25,13 @@ namespace SharpNav
 
 		private Cell[] cells;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Heightfield"/> class.
+		/// </summary>
+		/// <param name="min">The world-space minimum.</param>
+		/// <param name="max">The world-space maximum.</param>
+		/// <param name="cellSize">The world-space size of each cell in the XZ plane.</param>
+		/// <param name="cellHeight">The world-space height of each cell.</param>
 		public Heightfield(Vector3 min, Vector3 max, float cellSize, float cellHeight)
 		{
 			if (min.X > max.X || min.Y > max.Y || min.Z > max.Z)
@@ -149,12 +156,20 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="tris">An array of triangles.</param>
 		public void RasterizeTriangles(Triangle3[] tris)
 		{
 			for (int i = 0; i < tris.Length; i++)
 				RasterizeTriangle(tris[i]);
 		}
 
+		/// <summary>
+		/// Rasterizes a triangle using conservative voxelization.
+		/// </summary>
+		/// <param name="tri">The triangle as a <see cref="Triangle3"/> struct.</param>
 		public void RasterizeTriangle(Triangle3 tri)
 		{
 			float invCellSize = 1f / cellSize;
@@ -253,48 +268,48 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// If two neighboring spans have a small difference in maximum height (such as stairs), 
-		/// then make sure the spans are walkable.
+		/// Filters the heightmap to allow two neighboring spans have a small difference in maximum height (such as
+		/// stairs) to be walkable.
 		/// </summary>
-		// Warning: Known to override the effect of filterLedgeSpans() function.
+		/// <remarks>
+		/// This filter may override the results of <see cref="FilterLedgeSpans"/>.
+		/// </remarks>
 		public void FilterLowHangingWalkableObstacles(int walkableClimb)
 		{
-			for (int y = 0; y < length; ++y)
+			for (int i = 0; i < cells.Length; i++)
 			{
-				for (int x = 0; x < width; ++x)
+				Span previousSpan = new Span(0, 0, AreaFlags.Null);
+				bool previousWalkable = false;
+				AreaFlags previousArea = AreaFlags.Null;
+
+				Cell c = cells[i];
+				List<Span> spans = c.MutableSpans;
+
+				for (int j = 0; j < spans.Count; j++)
 				{
-					Span previousSpan = new Span(0, 0, AreaFlags.Null);
-					bool previousWalkable = false;
-					AreaFlags previousArea = AreaFlags.Null;
+					Span currentSpan = spans[j];
 
-					Cell c = cells[x + y * width];
-					List<Span> spans = c.Spans;
+					bool walkable;
+					walkable = currentSpan.Area != AreaFlags.Null;
 
-					for (int i = 0; i < spans.Count; i++)
+					// If current span is not walkable, but there is walkable
+					// span just below it, mark the span above it walkable too.
+					if (!walkable && previousWalkable)
 					{
-						Span currentSpan = spans[i];
-
-						bool walkable;
-						walkable = currentSpan.Area != AreaFlags.Null;
-
-						// If current span is not walkable, but there is walkable
-						// span just below it, mark the span above it walkable too.
-						if (!walkable && previousWalkable)
-						{
-							if (Math.Abs((int)currentSpan.Maximum - (int)previousSpan.Maximum) <= walkableClimb)
-								currentSpan.Area = previousArea;
-						}
-						// Copy walkable flag so that it cannot propagate
-						// past multiple non-walkable objects.
-						previousWalkable = walkable;
-						previousArea = currentSpan.Area;
-
-						//advance to the next span, keeping track of the previous span
-						previousSpan = currentSpan;
-
-						//make sure to save the new span information
-						spans[i] = currentSpan;
+						if (Math.Abs((int)currentSpan.Maximum - (int)previousSpan.Maximum) <= walkableClimb)
+							currentSpan.Area = previousArea;
 					}
+
+					// Copy walkable flag so that it cannot propagate
+					// past multiple non-walkable objects.
+					previousWalkable = walkable;
+					previousArea = currentSpan.Area;
+
+					//advance to the next span, keeping track of the previous span
+					previousSpan = currentSpan;
+
+					//make sure to save the new span information
+					spans[j] = currentSpan;
 				}
 			}
 		}
@@ -306,41 +321,36 @@ namespace SharpNav
 		/// <param name="walkableHeight">The clearance</param>
 		public void FilterWalkableLowHeightSpans(int walkableHeight)
 		{
-			const int MAX_HEIGHT = int.MaxValue;
-
 			// Remove walkable flag from spans which do not have enough
 			// space above them for the agent to stand there.
-			for (int y = 0; y < length; ++y)
+			for (int i = 0; i < cells.Length; i++)
 			{
-				for (int x = 0; x < width; ++x)
+				Cell c = cells[i];
+				List<Span> spans = c.MutableSpans;
+
+				for (int j = 0; j < spans.Count; j++)
 				{
-					Cell c = cells[x + y * width];
-					List<Span> spans = c.Spans;
+					Span currentSpan = spans[j];
+					Span nextSpan;
 
-					for (int i = 0; i < spans.Count; i++)
+					int bot = (int)currentSpan.Maximum;
+					int top;
+					if (j != spans.Count - 1)
 					{
-						Span currentSpan = spans[i];
-						Span nextSpan;
-
-						int bot = (int)currentSpan.Maximum;
-						int top;
-						if (i != spans.Count - 1)
-						{
-							nextSpan = spans[i + 1];
-							top = (int)nextSpan.Minimum;
-						}
-						else
-						{
-							top = MAX_HEIGHT;
-						}
-
-						//too low, not enough space to walk through
-						if ((top - bot) <= walkableHeight)
-							currentSpan.Area = AreaFlags.Null;
-
-						//save span data
-						spans[i] = currentSpan;
+						nextSpan = spans[j + 1];
+						top = (int)nextSpan.Minimum;
 					}
+					else
+					{
+						top = c.Height;
+					}
+
+					//too low, not enough space to walk through
+					if ((top - bot) <= walkableHeight)
+						currentSpan.Area = AreaFlags.Null;
+
+					//save span data
+					spans[j] = currentSpan;
 				}
 			}
 		}
@@ -352,15 +362,13 @@ namespace SharpNav
 		// ---NEEDS TESTING!---
 		public void FilterLedgeSpans(int walkableHeight, int walkableClimb)
 		{
-			const int MAX_HEIGHT = int.MaxValue;
-
 			// Mark border spans.
-			for (int y = 0; y < length; ++y)
+			for (int y = 0; y < length; y++)
 			{
-				for (int x = 0; x < width; ++x)
+				for (int x = 0; x < width; x++)
 				{
 					Cell c = cells[x + y * width];
-					List<Span> spans = c.Spans;
+					List<Span> spans = c.MutableSpans;
 
 					//Examine all the spans in each cell
 					for (int i = 0; i < spans.Count; i++)
@@ -381,11 +389,11 @@ namespace SharpNav
 						}
 						else
 						{
-							top = MAX_HEIGHT;
+							top = c.Height;
 						}
 
 						// Find neighbours minimum height.
-						int minHeight = MAX_HEIGHT;
+						int minHeight = c.Height;
 
 						// Min and max height of accessible neighbours.
 						int accessibleMin = currentSpan.Maximum;
@@ -404,7 +412,7 @@ namespace SharpNav
 
 							// From minus infinity to the first span.
 							Cell neighborCell = cells[dx + dy * width];
-							List<Span> neighborSpans = neighborCell.Spans;
+							List<Span> neighborSpans = neighborCell.MutableSpans;
 							Span currentNeighborSpan;
 							int neighborBottom = -walkableClimb;
 							int neighborTop;
@@ -415,7 +423,7 @@ namespace SharpNav
 							}
 							else
 							{
-								neighborTop = MAX_HEIGHT;
+								neighborTop = c.Height;
 							}
 
 							// Skip neightbour if the gap between the spans is too small.
@@ -435,7 +443,7 @@ namespace SharpNav
 								}
 								else
 								{
-									neighborTop = MAX_HEIGHT;
+									neighborTop = c.Height;
 								}
 
 								// Skip neightbour if the gap between the spans is too small.
@@ -545,6 +553,25 @@ namespace SharpNav
 				spans = new List<Span>();
 			}
 
+			public int Height { get { return height; } }
+
+			//public int SpanCount { get { return spans.Count; } }
+
+			/// <summary>
+			/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
+			/// </summary>
+			/// <value>A readonly list of spans.</value>
+			public IReadOnlyList<Span> Spans { get { return spans.AsReadOnly(); } }
+
+			//HACK figure out how to make this only accessible to containing class.
+
+			/// <summary>
+			/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
+			/// Should only be used for filtering in <see cref="Heightmap"/>.
+			/// </summary>
+			/// <value>A list of spans for modification</value>
+			internal List<Span> MutableSpans { get { return spans; } }
+
 			/// <summary>
 			/// Gets the <see cref="Span"/> that contains the specified voxel.
 			/// </summary>
@@ -567,23 +594,6 @@ namespace SharpNav
 					return null;
 				}
 			}
-
-			public int Height { get { return height; } }
-
-			//public int SpanCount { get { return spans.Count; } }
-
-			/// <summary>
-			/// [REMOVED] Reason: Spans need to be modified [REMOVED]
-			/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
-			/// </summary>
-			/// <value>A readonly list of spans.</value>
-			//public IReadOnlyList<Span> Spans { get { return spans.AsReadOnly(); } }
-
-			/// <summary>
-			/// Gets a list of all the <see cref="Span"/>s contained in the cell.
-			/// </summary>
-			/// <value>A list of spans for modification</value>
-			public List<Span> Spans { get { return spans; } }
 
 			/// <summary>
 			/// Adds a <see cref="Span"/> to the cell.

@@ -219,7 +219,7 @@ namespace SharpNav
 						if (ia == -1 || ib == -1)
 							continue;
 
-						mcont.mergeWithOtherContour(cont, ia, ib);
+						mcont.MergeWithOtherContour(cont, ia, ib);
 					}
 				}
 			}
@@ -406,7 +406,7 @@ namespace SharpNav
 					OpenHeightfield.Span ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)(openField.Areas[di2]) << 16));
+					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
 				}
 			}
 
@@ -826,7 +826,7 @@ namespace SharpNav
 			public ushort regionId;
 			public AreaFlags area;
 
-			public void mergeWithOtherContour(Contour contB, int ia, int ib)
+			public void MergeWithOtherContour(Contour contB, int ia, int ib)
 			{
 				int numVertsA = this.vertices.Count / 4;
 				int numVertsB = contB.vertices.Count / 4;

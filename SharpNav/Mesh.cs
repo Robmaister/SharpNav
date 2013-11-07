@@ -13,6 +13,8 @@ namespace SharpNav
 {
 	public class Mesh
 	{
+		private const int VERTEX_BUCKET_COUNT = 1 << 12;
+
 		private int nverts;
 		private int npolys;
 
@@ -30,8 +32,6 @@ namespace SharpNav
 		private float cellSize;
 		private float cellHeight;
 		private int borderSize;
-
-		private const int VERTEX_BUCKET_COUNT = (1 << 12);
 
 		/// <summary>
 		/// Create polygons out of a set of contours
