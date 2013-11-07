@@ -201,6 +201,11 @@ namespace SharpNav.Geometry
 
 		#region Methods
 
+		/// <summary>
+		/// Calculates the bounding box of a triangle.
+		/// </summary>
+		/// <param name="tri">A triangle.</param>
+		/// <returns>The triangle's bounding box.</returns>
 		public static BBox3 GetBoundingBox(Triangle3 tri)
 		{
 			BBox3 b;
@@ -208,6 +213,11 @@ namespace SharpNav.Geometry
 			return b;
 		}
 
+		/// <summary>
+		/// Calculates the bounding box of a triangle.
+		/// </summary>
+		/// <param name="tri">A triangle.</param>
+		/// <param name="bbox">The triangle's bounding box.</param>
 		public static void GetBoundingBox(ref Triangle3 tri, out BBox3 bbox)
 		{
 			Vector3 a = tri.A, b = tri.B, c = tri.C;

@@ -14,7 +14,7 @@ using SharpNav.Geometry;
 namespace SharpNav
 {
 	/// <summary>
-	/// A Heightfield represents a "voxel" grid represented as a 2-dimensional grid of <see cref="SharpNav.Heightfield+Cell"/>s.
+	/// A Heightfield represents a "voxel" grid represented as a 2-dimensional grid of <see cref="Cell"/>s.
 	/// </summary>
 	public class Heightfield : IEnumerable<Heightfield.Cell>
 	{
@@ -65,53 +65,107 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the bounding box of the heightfield.
 		/// </summary>
-		public BBox3 Bounds { get { return bounds; } }
+		public BBox3 Bounds
+		{
+			get
+			{
+				return bounds;
+			}
+		}
 
 		/// <summary>
 		/// Gets the world-space minimum.
 		/// </summary>
 		/// <value>The minimum.</value>
-		public Vector3 Minimum { get { return bounds.Min; } }
+		public Vector3 Minimum
+		{
+			get
+			{
+				return bounds.Min;
+			}
+		}
 
 		/// <summary>
 		/// Gets the world-space maximum.
 		/// </summary>
 		/// <value>The maximum.</value>
-		public Vector3 Maximum { get { return bounds.Max; } }
+		public Vector3 Maximum
+		{
+			get
+			{
+				return bounds.Max;
+			}
+		}
 
 		/// <summary>
 		/// Gets the number of cells in the X direction.
 		/// </summary>
 		/// <value>The width.</value>
-		public int Width { get { return width; } }
+		public int Width
+		{
+			get
+			{
+				return width;
+			}
+		}
 
 		/// <summary>
 		/// Gets the number of cells in the Y (up) direction.
 		/// </summary>
 		/// <value>The height.</value>
-		public int Height { get { return height; } }
+		public int Height
+		{
+			get
+			{
+				return height;
+			}
+		}
 
 		/// <summary>
 		/// Gets the number of cells in the Z direction.
 		/// </summary>
 		/// <value>The length.</value>
-		public int Length { get { return length; } }
+		public int Length
+		{
+			get
+			{
+				return length;
+			}
+		}
 
 		/// <summary>
 		/// Gets the size of a cell (voxel).
 		/// </summary>
 		/// <value>The size of the cell.</value>
-		public Vector3 CellSize { get { return new Vector3(cellSize, cellHeight, cellSize); } }
+		public Vector3 CellSize
+		{
+			get
+			{
+				return new Vector3(cellSize, cellHeight, cellSize);
+			}
+		}
 
 		/// <summary>
 		/// Gets the size of a cell on the X and Z axes.
 		/// </summary>
-		public float CellSizeXZ { get { return cellSize; } }
+		public float CellSizeXZ
+		{
+			get
+			{
+				return cellSize;
+			}
+		}
 
 		/// <summary>
 		/// Gets the size of a cell on the Y axis.
 		/// </summary>
-		public float CellHeight { get { return cellHeight; } }
+		public float CellHeight
+		{
+			get
+			{
+				return cellHeight;
+			}
+		}
 
 		/// <summary>
 		/// Gets the total number of spans.
@@ -129,10 +183,11 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
+		/// Gets the <see cref="Cell"/> at the specified coordinate.
 		/// </summary>
 		/// <param name="x">The x coordinate.</param>
 		/// <param name="y">The y coordinate.</param>
+		/// <returns>The cell at [x, y].</returns>
 		public Cell this[int x, int y]
 		{
 			get
@@ -145,9 +200,10 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
+		/// Gets the <see cref="Cell"/> at the specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
+		/// <returns>The cell at index i.</returns>
 		public Cell this[int i]
 		{
 			get
@@ -228,32 +284,32 @@ namespace SharpNav
 						continue;
 
 					//calculate the min/max of the polygon
-					float sMin = inVerts[0].Y, sMax = sMin;
+					float polyMin = inVerts[0].Y, polyMax = polyMin;
 					for (int i = 1; i < nv; i++)
 					{
 						float y = inVerts[i].Y;
-						sMin = Math.Min(sMin, y);
-						sMax = Math.Max(sMax, y);
+						polyMin = Math.Min(polyMin, y);
+						polyMax = Math.Max(polyMax, y);
 					}
 
 					//normalize span bounds to bottom of heightfield
-					float bMinY = bounds.Min.Y;
-					sMin -= bMinY;
-					sMax -= bMinY;
+					float boundMinY = bounds.Min.Y;
+					polyMin -= boundMinY;
+					polyMax -= boundMinY;
 
 					//if the spans are outside the heightfield, skip.
-					if (sMax < 0f || sMin > boundHeight)
+					if (polyMax < 0f || polyMin > boundHeight)
 						continue;
 
 					//clamp the span to the heightfield.
-					if (sMin < 0)
-						sMin = 0;
-					if (sMax > boundHeight)
-						sMax = boundHeight;
+					if (polyMin < 0)
+						polyMin = 0;
+					if (polyMax > boundHeight)
+						polyMax = boundHeight;
 
 					//snap to grid
-					int spanMin = MathHelper.Clamp((int)(sMin * invCellHeight), 0, height);
-					int spanMax = MathHelper.Clamp((int)Math.Ceiling(sMax * invCellHeight), spanMin + 1, height);
+					int spanMin = MathHelper.Clamp((int)(polyMin * invCellHeight), 0, height);
+					int spanMax = MathHelper.Clamp((int)Math.Ceiling(polyMax * invCellHeight), spanMin + 1, height);
 
 					if (spanMin == spanMax)
 					{
@@ -274,6 +330,7 @@ namespace SharpNav
 		/// <remarks>
 		/// This filter may override the results of <see cref="FilterLedgeSpans"/>.
 		/// </remarks>
+		/// <param name="walkableClimb">The maximum difference in height to filter.</param>
 		public void FilterLowHangingWalkableObstacles(int walkableClimb)
 		{
 			for (int i = 0; i < cells.Length; i++)
@@ -359,10 +416,12 @@ namespace SharpNav
 		/// A ledge is unwalkable because the differenc between the maximum height of two spans 
 		/// is too large of a drop (i.e. greater than walkableClimb).
 		/// </summary>
-		// ---NEEDS TESTING!---
+		/// <param name="walkableHeight">The maximum walkable height to filter.</param>
+		/// <param name="walkableClimb">The maximum walkable climb to filter.</param>
 		public void FilterLedgeSpans(int walkableHeight, int walkableClimb)
 		{
-			// Mark border spans.
+			//HACK needs testing.
+			//Mark border spans.
 			for (int y = 0; y < length; y++)
 			{
 				for (int x = 0; x < width; x++)
@@ -403,6 +462,7 @@ namespace SharpNav
 						{
 							int dx = x + MathHelper.GetDirOffsetX(dir);
 							int dy = y + MathHelper.GetDirOffsetY(dir);
+
 							// Skip neighbours which are out of bounds.
 							if (dx < 0 || dy < 0 || dx >= width || dy >= length)
 							{
@@ -457,9 +517,7 @@ namespace SharpNav
 										if (neighborBottom < accessibleMin) accessibleMin = neighborBottom;
 										if (neighborBottom > accessibleMax) accessibleMax = neighborBottom;
 									}
-
 								}
-
 							}
 						}
 
@@ -491,6 +549,10 @@ namespace SharpNav
 			return ((IEnumerable<Cell>)cells).GetEnumerator();
 		}
 
+		/// <summary>
+		/// Enumerates over the heightfield row-by-row.
+		/// </summary>
+		/// <returns>The enumerator.</returns>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return cells.GetEnumerator();
@@ -517,6 +579,7 @@ namespace SharpNav
 			{
 				bool inj = distances[j] >= 0;
 				bool ini = distances[i] >= 0;
+
 				if (inj != ini)
 				{
 					float s = distances[j] / (distances[j] - distances[i]);
@@ -525,6 +588,7 @@ namespace SharpNav
 					outVertices[m].Z = inVertices[j].Z + (inVertices[i].Z - inVertices[j].Z) * s;
 					m++;
 				}
+
 				if (ini)
 				{
 					outVertices[m] = inVertices[i];
@@ -533,112 +597,6 @@ namespace SharpNav
 			}
 
 			return m;
-		}
-
-		/// <summary>
-		/// A cell is a column of voxels represented in <see cref="SharpNav.Heightfield+Span"/>s.
-		/// </summary>
-		public class Cell
-		{
-			private List<Span> spans;
-			private int height;
-
-			/// <summary>
-			/// Initializes a new instance of the <see cref="Cell"/> class.
-			/// </summary>
-			/// <param name="height">The number of voxels in the column.</param>
-			public Cell(int height)
-			{
-				this.height = height;
-				spans = new List<Span>();
-			}
-
-			public int Height { get { return height; } }
-
-			//public int SpanCount { get { return spans.Count; } }
-
-			/// <summary>
-			/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
-			/// </summary>
-			/// <value>A readonly list of spans.</value>
-			public IReadOnlyList<Span> Spans { get { return spans.AsReadOnly(); } }
-
-			//HACK figure out how to make this only accessible to containing class.
-
-			/// <summary>
-			/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
-			/// Should only be used for filtering in <see cref="Heightmap"/>.
-			/// </summary>
-			/// <value>A list of spans for modification</value>
-			internal List<Span> MutableSpans { get { return spans; } }
-
-			/// <summary>
-			/// Gets the <see cref="Span"/> that contains the specified voxel.
-			/// </summary>
-			/// <param name="location">The voxel to search for.</param>
-			public Span? this[int location]
-			{
-				get
-				{
-					if (location < 0 || location >= height)
-						throw new IndexOutOfRangeException("Location must be a value between 0 and " + height + ".");
-
-					//iterate the list of spans
-					foreach (Span s in spans)
-					{
-						if (s.Minimum > location)
-							break;
-						else if (s.Maximum >= location)
-							return s;
-					}
-					return null;
-				}
-			}
-
-			/// <summary>
-			/// Adds a <see cref="Span"/> to the cell.
-			/// </summary>
-			/// <param name="span">A span.</param>
-			public void AddSpan(Span span)
-			{
-				//clamp the span to the cell's range of [0, maxHeight]
-				MathHelper.Clamp(ref span.Minimum, 0, height);
-				MathHelper.Clamp(ref span.Maximum, 0, height);
-
-				if (span.Minimum == span.Maximum)
-					throw new ArgumentException("Span has no thickness.");
-				else if (span.Maximum < span.Minimum)
-					throw new ArgumentException("Span is inverted. Maximum is less than minimum.");
-
-				for (int i = 0; i < spans.Count; i++)
-				{
-					//check whether the current span is below, or overlapping existing spans.
-					//if the span is completely above the current span the loop will continue.
-					Span cur = spans[i];
-					if (cur.Minimum > span.Maximum)
-					{
-						//The new span is below the current one and is not intersecting.
-						spans.Insert(i, span);
-						return;
-					}
-					else if (cur.Maximum >= span.Minimum)
-					{
-						//merge spans so that the span to add includes the current span.
-						if (cur.Minimum < span.Minimum)
-							span.Minimum = cur.Minimum;
-						if (cur.Maximum > span.Maximum)
-							span.Maximum = cur.Maximum;
-
-						//remove the current span and adjust i.
-						//we do this to avoid duplicating the current span.
-						spans.RemoveAt(i);
-						i--;
-					}
-				}
-
-				//if the span is not inserted, it is the highest span and will be added to the end.
-				spans.Add(span);
-			}
 		}
 
 		/// <summary>
@@ -690,7 +648,151 @@ namespace SharpNav
 			/// <summary>
 			/// Gets the height of the span.
 			/// </summary>
-			public int Height { get { return Maximum - Minimum; } }
+			public int Height
+			{
+				get
+				{
+					return Maximum - Minimum;
+				}
+			}
+		}
+
+		/// <summary>
+		/// A cell is a column of voxels represented in <see cref="SharpNav.Heightfield+Span"/>s.
+		/// </summary>
+		public class Cell
+		{
+			private List<Span> spans;
+			private int height;
+
+			/// <summary>
+			/// Initializes a new instance of the <see cref="Cell"/> class.
+			/// </summary>
+			/// <param name="height">The number of voxels in the column.</param>
+			public Cell(int height)
+			{
+				this.height = height;
+				spans = new List<Span>();
+			}
+
+			/// <summary>
+			/// Gets the height of the cell in number of voxels.
+			/// </summary>
+			public int Height
+			{
+				get
+				{
+					return height;
+				}
+			}
+			
+			/// <summary>
+			/// Gets the number of spans in the cell.
+			/// </summary>
+			public int SpanCount
+			{
+				get
+				{
+					return spans.Count;
+				}
+			}
+
+			/// <summary>
+			/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
+			/// </summary>
+			/// <value>A readonly list of spans.</value>
+			public IReadOnlyList<Span> Spans
+			{
+				get
+				{
+					return spans.AsReadOnly();
+				}
+			}
+
+			//HACK figure out how to make this only accessible to containing class.
+
+			/// <summary>
+			/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
+			/// Should only be used for filtering in <see cref="Heightmap"/>.
+			/// </summary>
+			/// <value>A list of spans for modification</value>
+			internal List<Span> MutableSpans
+			{
+				get
+				{
+					return spans;
+				}
+			}
+
+			/// <summary>
+			/// Gets the <see cref="Span"/> that contains the specified voxel.
+			/// </summary>
+			/// <param name="location">The voxel to search for.</param>
+			/// <returns>The span containing the voxel. Null if the voxel is empty.</returns>
+			public Span? this[int location]
+			{
+				get
+				{
+					if (location < 0 || location >= height)
+						throw new IndexOutOfRangeException("Location must be a value between 0 and " + height + ".");
+
+					//iterate the list of spans
+					foreach (Span s in spans)
+					{
+						if (s.Minimum > location)
+							break;
+						else if (s.Maximum >= location)
+							return s;
+					}
+
+					return null;
+				}
+			}
+
+			/// <summary>
+			/// Adds a <see cref="Span"/> to the cell.
+			/// </summary>
+			/// <param name="span">A span.</param>
+			public void AddSpan(Span span)
+			{
+				//clamp the span to the cell's range of [0, maxHeight]
+				MathHelper.Clamp(ref span.Minimum, 0, height);
+				MathHelper.Clamp(ref span.Maximum, 0, height);
+
+				if (span.Minimum == span.Maximum)
+					throw new ArgumentException("Span has no thickness.");
+				else if (span.Maximum < span.Minimum)
+					throw new ArgumentException("Span is inverted. Maximum is less than minimum.");
+
+				for (int i = 0; i < spans.Count; i++)
+				{
+					//check whether the current span is below, or overlapping existing spans.
+					//if the span is completely above the current span the loop will continue.
+					Span cur = spans[i];
+					if (cur.Minimum > span.Maximum)
+					{
+						//The new span is below the current one and is not intersecting.
+						spans.Insert(i, span);
+						return;
+					}
+					else if (cur.Maximum >= span.Minimum)
+					{
+						//merge spans so that the span to add includes the current span.
+						if (cur.Minimum < span.Minimum)
+							span.Minimum = cur.Minimum;
+						if (cur.Maximum > span.Maximum)
+							span.Maximum = cur.Maximum;
+
+						//remove the current span and adjust i.
+						//we do this to avoid duplicating the current span.
+						spans.RemoveAt(i);
+						i--;
+					}
+				}
+
+				//if the span is not inserted, it is the highest span and will be added to the end.
+				spans.Add(span);
+			}
 		}
 	}
 }

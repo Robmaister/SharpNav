@@ -1131,18 +1131,6 @@ namespace SharpNav
 			return true;
 		}
 
-		public struct Cell
-		{
-			public int StartIndex;
-			public int Count;
-
-			public Cell(int start, int count)
-			{
-				StartIndex = start;
-				Count = count;
-			}
-		}
-
 		public struct Span
 		{
 			public int Minimum;
@@ -1201,6 +1189,18 @@ namespace SharpNav
 				r.Height = max - r.Minimum;
 				r.Connections = 0;
 			}*/
+		}
+
+		public struct Cell
+		{
+			public int StartIndex;
+			public int Count;
+
+			public Cell(int start, int count)
+			{
+				StartIndex = start;
+				Count = count;
+			}
 		}
 	}
 }
