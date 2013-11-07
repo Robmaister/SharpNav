@@ -35,7 +35,7 @@ namespace Examples
 		private Camera cam;
 
 		private Heightfield heightfield;
-		private OpenHeightfield openHeightfield;
+		private CompactHeightfield openHeightfield;
 		private ObjModel model;
 
 		private bool hasVoxelized;
@@ -231,7 +231,7 @@ namespace Examples
 				}
 				else if (!hasOpenHeightfield)
 				{
-					openHeightfield = new OpenHeightfield(heightfield, 40, 15);
+					openHeightfield = new CompactHeightfield(heightfield, 40, 15);
 					hasOpenHeightfield = true;
 				}
 				else if (!hasDistanceField)

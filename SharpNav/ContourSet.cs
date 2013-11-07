@@ -38,7 +38,7 @@ namespace SharpNav
 		/// <param name="maxError">Amound of error allowed in simplification</param>
 		/// <param name="maxEdgeLen">Limit the length of an edge.</param>
 		/// <param name="buildFlags">?</param>
-		public ContourSet(OpenHeightfield openField, float maxError, int maxEdgeLen, int buildFlags)
+		public ContourSet(CompactHeightfield openField, float maxError, int maxEdgeLen, int buildFlags)
 		{
 			//copy the OpenHeightfield data into ContourSet
 			this.bounds = openField.Bounds;
@@ -77,7 +77,7 @@ namespace SharpNav
 
 						//if the region doesn't have an id (so default is 0?) or the region id satisfies border flag (so border flag returns 1?)
 						//then set the flag to 0
-						if (openField.Spans[i].Region == 0 || (openField.Spans[i].Region & OpenHeightfield.BORDER_REG) != 0)
+						if (openField.Spans[i].Region == 0 || (openField.Spans[i].Region & CompactHeightfield.BORDER_REG) != 0)
 						{
 							flags[i] = 0;
 							continue;
@@ -88,7 +88,7 @@ namespace SharpNav
 						{
 							//obtain region id
 							int r = 0;
-							if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+							if (CompactSpan.GetConnection(dir, ref s) != CompactHeightfield.NotConnected)
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -123,7 +123,7 @@ namespace SharpNav
 						}
 
 						ushort reg = (ushort)openField.Spans[i].Region;
-						if (reg == 0 || (reg & OpenHeightfield.BORDER_REG) != 0)
+						if (reg == 0 || (reg & CompactHeightfield.BORDER_REG) != 0)
 							continue;
 						
 						AreaFlags area = openField.Areas[i];
@@ -244,7 +244,7 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="flags">?</param>
 		/// <param name="points">Vertices of contour</param>
-		public void WalkContour(int x, int y, int i, OpenHeightfield openField, byte[] flags, List<int> points)
+		public void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<int> points)
 		{
 			//choose the first non-connected edge
 			int dir = 0;
@@ -283,7 +283,7 @@ namespace SharpNav
 
 					int r = 0;
 					CompactSpan s = openField.Spans[i];
-					if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+					if (CompactSpan.GetConnection(dir, ref s) != CompactHeightfield.NotConnected)
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -316,7 +316,7 @@ namespace SharpNav
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
 					CompactSpan s = openField.Spans[i];
-					if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+					if (CompactSpan.GetConnection(dir, ref s) != CompactHeightfield.NotConnected)
 					{
 						CompactCell dc = openField.Cells[dx + dy * openField.Width];
 						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);
@@ -351,7 +351,7 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="isBorderVertex">Determine whether the vertex is a border or not</param>
 		/// <returns></returns>
-		public int GetCornerHeight(int x, int y, int i, int dir, OpenHeightfield openField, ref bool isBorderVertex)
+		public int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, ref bool isBorderVertex)
 		{
 			CompactSpan s = openField.Spans[i];
 			int cornerHeight = s.Minimum;
@@ -362,7 +362,7 @@ namespace SharpNav
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
 			regs[0] = (uint)(openField.Spans[i].Region | ((byte)(openField.Areas[i]) << 16));
 
-			if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+			if (CompactSpan.GetConnection(dir, ref s) != CompactHeightfield.NotConnected)
 			{
 				//get neighbor span
 				int dx = x + MathHelper.GetDirOffsetX(dir);
@@ -374,7 +374,7 @@ namespace SharpNav
 				regs[1] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (CompactSpan.GetConnection(dirp, ref ds) != OpenHeightfield.NotConnected)
+				if (CompactSpan.GetConnection(dirp, ref ds) != CompactHeightfield.NotConnected)
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dirp);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dirp);
@@ -387,7 +387,7 @@ namespace SharpNav
 			}
 
 			//get neighbor span
-			if (CompactSpan.GetConnection(dirp, ref s) != OpenHeightfield.NotConnected)
+			if (CompactSpan.GetConnection(dirp, ref s) != CompactHeightfield.NotConnected)
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dirp);
 				int dy = y + MathHelper.GetDirOffsetY(dirp);
@@ -398,7 +398,7 @@ namespace SharpNav
 				regs[3] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (CompactSpan.GetConnection(dir, ref ds) != OpenHeightfield.NotConnected)
+				if (CompactSpan.GetConnection(dir, ref ds) != CompactHeightfield.NotConnected)
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dir);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dir);
@@ -421,8 +421,8 @@ namespace SharpNav
 
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
-				bool twoSameExteriors = (regs[a] & regs[b] & OpenHeightfield.BORDER_REG) != 0 && regs[a] == regs[b];
-				bool twoSameInteriors = ((regs[c] | regs[d]) & OpenHeightfield.BORDER_REG) == 0;
+				bool twoSameExteriors = (regs[a] & regs[b] & CompactHeightfield.BORDER_REG) != 0 && regs[a] == regs[b];
+				bool twoSameInteriors = ((regs[c] | regs[d]) & CompactHeightfield.BORDER_REG) == 0;
 				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
 				bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
 				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)

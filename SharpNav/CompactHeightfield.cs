@@ -11,7 +11,7 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	public class OpenHeightfield
+	public class CompactHeightfield
 	{
 		public const int NotConnected = 0xff; //HACK figure out a better way to do this
 
@@ -34,7 +34,7 @@ namespace SharpNav
 		private ushort maxRegions;
 		private int borderSize;
 		
-		public OpenHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
+		public CompactHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
 			this.bounds = field.Bounds;
 			this.width = field.Width;
