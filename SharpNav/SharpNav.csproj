@@ -35,6 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AreaFlags.cs" />
+    <Compile Include="Cell.cs" />
+    <Compile Include="CompactCell.cs" />
+    <Compile Include="CompactSpan.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="Region.cs" />
@@ -44,8 +47,9 @@
     <Compile Include="MathHelper.cs" />
     <Compile Include="OpenHeightfield.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Span.cs" />
     <Compile Include="Vector3.cs">
-        <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
   </ItemGroup>
   <ItemGroup />

@@ -361,7 +361,7 @@ namespace Examples
 							int numCons = 0;
 							for (int dir = 0; dir < 4; dir++)
 							{
-								if (OpenHeightfield.Span.GetConnection(dir, span) != 0xff)
+								if (CompactSpan.GetConnection(dir, span) != 0xff)
 									numCons++;
 							}
 

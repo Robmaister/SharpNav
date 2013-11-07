@@ -69,11 +69,11 @@ namespace SharpNav
 				for (int x = 0; x < openField.Width; x++)
 				{
 					//loop through all the spans in the cell
-					OpenHeightfield.Cell c = openField.Cells[x + y * openField.Width];
+					CompactCell c = openField.Cells[x + y * openField.Width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						byte res = 0;
-						OpenHeightfield.Span s = openField.Spans[i];
+						CompactSpan s = openField.Spans[i];
 
 						//if the region doesn't have an id (so default is 0?) or the region id satisfies border flag (so border flag returns 1?)
 						//then set the flag to 0
@@ -88,11 +88,11 @@ namespace SharpNav
 						{
 							//obtain region id
 							int r = 0;
-							if (OpenHeightfield.Span.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+							if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
-								int di = openField.Cells[dx + dy * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dir, ref s);
+								int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
 								r = openField.Spans[di].Region;
 							}
 
@@ -113,7 +113,7 @@ namespace SharpNav
 			{
 				for (int x = 0; x < openField.Width; x++)
 				{
-					OpenHeightfield.Cell c = openField.Cells[x + y * openField.Width];
+					CompactCell c = openField.Cells[x + y * openField.Width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						if (flags[i] == 0 || flags[i] == 0xf)
@@ -282,12 +282,12 @@ namespace SharpNav
 					}
 
 					int r = 0;
-					OpenHeightfield.Span s = openField.Spans[i];
-					if (OpenHeightfield.Span.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+					CompactSpan s = openField.Spans[i];
+					if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
-						int di = openField.Cells[dx + dy * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dir, ref s);
+						int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
 						r = openField.Spans[di].Region;
 						if (area != openField.Areas[di])
 							isAreaBorder = true;
@@ -315,11 +315,11 @@ namespace SharpNav
 					int di = -1;
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
-					OpenHeightfield.Span s = openField.Spans[i];
-					if (OpenHeightfield.Span.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+					CompactSpan s = openField.Spans[i];
+					if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
 					{
-						OpenHeightfield.Cell dc = openField.Cells[dx + dy * openField.Width];
-						di = dc.StartIndex + OpenHeightfield.Span.GetConnection(dir, ref s);
+						CompactCell dc = openField.Cells[dx + dy * openField.Width];
+						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);
 					}
 					
 					if (di == -1)
@@ -353,7 +353,7 @@ namespace SharpNav
 		/// <returns></returns>
 		public int GetCornerHeight(int x, int y, int i, int dir, OpenHeightfield openField, ref bool isBorderVertex)
 		{
-			OpenHeightfield.Span s = openField.Spans[i];
+			CompactSpan s = openField.Spans[i];
 			int cornerHeight = s.Minimum;
 			int dirp = (dir + 1) % 4; //new clockwise direction
 
@@ -362,24 +362,24 @@ namespace SharpNav
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
 			regs[0] = (uint)(openField.Spans[i].Region | ((byte)(openField.Areas[i]) << 16));
 
-			if (OpenHeightfield.Span.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
+			if (CompactSpan.GetConnection(dir, ref s) != OpenHeightfield.NotConnected)
 			{
 				//get neighbor span
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dir, ref s);
-				OpenHeightfield.Span ds = openField.Spans[di];
+				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
+				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
 				regs[1] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (OpenHeightfield.Span.GetConnection(dirp, ref ds) != OpenHeightfield.NotConnected)
+				if (CompactSpan.GetConnection(dirp, ref ds) != OpenHeightfield.NotConnected)
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dirp);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dirp);
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dirp, ref ds);
-					OpenHeightfield.Span ds2 = openField.Spans[di2];
+					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(dirp, ref ds);
+					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
 					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)(openField.Areas[di2]) << 16));
@@ -387,23 +387,23 @@ namespace SharpNav
 			}
 
 			//get neighbor span
-			if (OpenHeightfield.Span.GetConnection(dirp, ref s) != OpenHeightfield.NotConnected)
+			if (CompactSpan.GetConnection(dirp, ref s) != OpenHeightfield.NotConnected)
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dirp);
 				int dy = y + MathHelper.GetDirOffsetY(dirp);
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dirp, ref s);
-				OpenHeightfield.Span ds = openField.Spans[di];
+				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dirp, ref s);
+				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
 				regs[3] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (OpenHeightfield.Span.GetConnection(dir, ref ds) != OpenHeightfield.NotConnected)
+				if (CompactSpan.GetConnection(dir, ref ds) != OpenHeightfield.NotConnected)
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dir);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dir);
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + OpenHeightfield.Span.GetConnection(dir, ref ds);
-					OpenHeightfield.Span ds2 = openField.Spans[di2];
+					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref ds);
+					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
 					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));

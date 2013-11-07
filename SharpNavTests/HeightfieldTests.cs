@@ -83,8 +83,8 @@ namespace SharpNavTests
 		public void Filter_LowHangingWalkable_Success()
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-			var span = new Heightfield.Span(10, 15, AreaFlags.Walkable);
-			var span2 = new Heightfield.Span(16, 20, AreaFlags.Null);
+			var span = new Span(10, 15, AreaFlags.Walkable);
+			var span2 = new Span(16, 20, AreaFlags.Null);
 
 			hf[0].AddSpan(span);
 			hf[0].AddSpan(span2);
@@ -98,8 +98,8 @@ namespace SharpNavTests
 		public void Filter_LowHangingWalkable_Fail()
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-			var span = new Heightfield.Span(1, 2, AreaFlags.Walkable);
-			var span2 = new Heightfield.Span(10, 20, AreaFlags.Null);
+			var span = new Span(1, 2, AreaFlags.Walkable);
+			var span2 = new Span(10, 20, AreaFlags.Null);
 
 			hf[2].AddSpan(span);
 			hf[2].AddSpan(span2);
@@ -113,8 +113,8 @@ namespace SharpNavTests
 		public void Filter_WalkableLowHeight_Success()
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
-			var span = new Heightfield.Span(10, 20, AreaFlags.Walkable);
-			var span2 = new Heightfield.Span(25, 30, AreaFlags.Walkable);
+			var span = new Span(10, 20, AreaFlags.Walkable);
+			var span2 = new Span(25, 30, AreaFlags.Walkable);
 
 			hf[0].AddSpan(span);
 			hf[0].AddSpan(span2);

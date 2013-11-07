@@ -39,7 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RegionTests.cs" />
-    <Compile Include="HeightfieldCellTests.cs" />
+    <Compile Include="CellTests.cs" />
     <Compile Include="HeightfieldTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
