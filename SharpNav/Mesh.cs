@@ -11,6 +11,13 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	public class Edge
+	{
+		public int [] vert;
+		public int [] polyEdge;
+		public int [] poly;
+	}
+
 	public class Mesh
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12;
@@ -114,11 +121,8 @@ namespace SharpNav
 					indices[j] = j;
 
 				int ntris = Triangulate(cont.NumVerts, cont.Vertices, indices, tris);
-				if (ntris <= 0)
-				{
-					//shouldn't happen 
+				if (ntris <= 0) 
 					ntris = -ntris;
-				}
 
 				//add and merge vertices
 				for (int j = 0; j < cont.NumVerts; j++)
@@ -137,7 +141,8 @@ namespace SharpNav
 				//builds initial polygons
 				int npolys = 0;
 				for (int j = 0; j < polys.Length; j++)
-					polys[i] = 0xff;
+					polys[j] = 0xff;
+
 				for (int j = 0; j < ntris; j++)
 				{
 					int t = j * 3;
@@ -149,13 +154,14 @@ namespace SharpNav
 						npolys++;
 					}
 				}
+				
 				if (npolys == 0)
 					continue;
 
 				//merge polygons
 				if (numVertsPerPoly > 3)
 				{
-					for (; ; )
+					for ( ; ; )
 					{
 						//find best polygons
 						int bestMergeVal = 0;
@@ -213,14 +219,64 @@ namespace SharpNav
 				}
 			}
 
-			//TODO: remove edge vertices
-			//...
+			//remove edge vertices
+			for (int i = 0; i < this.nverts; i++)
+			{
+				if (vFlags[i] != 0)
+				{
+					if(!CanRemoveVertex(i))
+						continue;
+					
+					RemoveVertex(i, maxTris);
+
+					//change flags
+					for (int j = i; j < this.nverts; j++)
+						vFlags[j] = vFlags[j + 1];
+
+					--i;
+				}
+			}
+
+			BuildMeshAdjacency();
 			
-			//TODO: calculate adjacency
-			//...
-			
-			//TODO: find portal edges
-			//...
+			//find portal edges
+			if (this.borderSize > 0)
+			{
+				for (int i = 0; i < this.npolys; i++)
+				{
+					int p = i * 2 * numVertsPerPoly;
+					
+					for (int j = 0; j < numVertsPerPoly; j++)
+					{
+						if (this.polys[p + j] == MESH_NULL_IDX)
+							break;
+
+						//skip connected edges
+						if (this.polys[p + numVertsPerPoly + j] != MESH_NULL_IDX)
+							continue;
+
+						int nj = j + 1;
+						if (nj >= numVertsPerPoly || this.polys[p + nj] == MESH_NULL_IDX)
+							nj = 0;
+
+						int va = this.polys[(p + j) * 3];
+						int vb = this.polys[(p + nj) * 3];
+
+						if (this.verts[va + 0] == 0 && this.verts[vb + 0] == 0)
+							this.polys[p + numVertsPerPoly + j] = 0x8000 | 0;
+						else if (this.verts[va + 2] == contSet.Height && this.verts[vb + 2] == contSet.Height)
+							this.polys[p + numVertsPerPoly + j] = 0x8000 | 1;
+						else if (this.verts[va + 0] == contSet.Width && this.verts[vb + 0] == contSet.Width)
+							this.polys[p + numVertsPerPoly + j] = 0x8000 | 2;
+						else if (this.verts[va + 2] == 0 && this.verts[vb + 2] == 0)
+							this.polys[p + numVertsPerPoly + j] = 0x8000 | 3;
+					}
+				}
+			}
+
+			this.flags = new int[this.npolys];
+			for (int i = 0; i < this.flags.Length; i++)
+				this.flags[i] = 0;
 		}
 
 		/// <summary>
@@ -479,6 +535,460 @@ namespace SharpNav
 			polys = temp;
 		}
 
+		///<summary>
+		/// If vertex can't be removed, there is no need to spend time deleting it.
+		///</summary>
+		public bool CanRemoveVertex(int remove)
+		{
+			int numVertsPerPoly = this.numVertsPerPoly;
+
+			//count number of polygons to remove
+			int numRemovedVerts = 0;
+			int numTouchedVerts = 0;
+			int numRemainingEdges = 0;
+
+			for (int i = 0; i < this.npolys; i++)
+			{
+				int p = i * numVertsPerPoly * 2;
+				int nv = CountPolyVerts(this.polys, p, numVertsPerPoly);
+				int numRemoved = 0;
+				int numVerts = 0;
+
+				for (int j = 0; j < nv; j++)
+				{
+					if (this.polys[p + j] == remove)
+					{
+						numTouchedVerts++;
+						numRemoved++;
+					}
+					numVerts++;
+				}
+
+				if (numRemoved > 0)
+				{
+					numRemovedVerts += numRemoved;
+					numRemainingEdges += numVerts - (numRemoved + 1);
+				}
+			}
+
+			//don't remove a vertex from a triangle since you need at least three vertices to make a polygon
+			if (numRemainingEdges <= 2)
+				return false;
+
+			//find edges which share removed vertex
+			int maxEdges = numTouchedVerts * 2;
+			int nedges = 0;
+			int[] edges = new int[maxEdges * 3];
+
+			for (int i = 0; i < this.npolys; i++)
+			{
+				int p = i * numVertsPerPoly * 2;
+				int nv = CountPolyVerts(this.polys, p, numVertsPerPoly);
+
+				//collect edges which touch removed vertex
+				for (int j = 0, k = nv - 1; j < nv; k = j++)
+				{
+					if (this.polys[p + j] == remove || this.polys[p + k] == remove)
+					{
+						//arrange edge so that a = removed
+						int a = polys[p + j], b = polys[p + k];
+						if (b == remove)
+						{
+							int temp = a;
+							a = b;
+							b = temp;
+						}
+
+						//check if edge exists
+						bool exists = false;
+						for (int m = 0; m < nedges; m++)
+						{
+							int e = m * 3;
+							if (edges[e + 1] == b)
+							{
+								//increment vertex share count
+								edges[e + 2]++;
+								exists = true;
+							}
+						}
+
+						//add new edge
+						if (!exists)
+						{
+							int e = nedges * 3;
+							edges[e + 0] = a;
+							edges[e + 1] = b;
+							edges[e + 2] = 1;
+							nedges++;
+						}
+					}
+				}
+			}
+
+			//make sure there can't be more than two open edges
+			//since there could be two non-adjacent polygons which share the same vertex, which shouldn't be removed
+			int numOpenEdges = 0;
+			for (int i = 0; i < nedges; i++)
+			{
+				if (edges[i * 3 + 2] < 2)
+					numOpenEdges++;
+			}
+
+			if (numOpenEdges > 2)
+				return false;
+
+			return true;
+		}
+
+		public void RemoveVertex(int remove, int maxTris)
+		{
+			int numVertsPerPoly = this.numVertsPerPoly;
+
+			//count number of polygons to remove
+			int numRemovedVerts = 0;
+			for (int i = 0; i < this.npolys; i++)
+			{
+				int p = i * numVertsPerPoly * 2;
+				int nv = CountPolyVerts(this.polys, p, numVertsPerPoly);
+
+				for (int j = 0; j < nv; j++)
+				{
+					if (this.polys[p + j] == remove)
+						numRemovedVerts++;
+				}
+			}
+
+			int nedges = 0;
+			int[] edges = new int[numRemovedVerts * numVertsPerPoly * 4];
+			
+			int nhole = 0;
+			int[] hole = new int[numRemovedVerts * numVertsPerPoly];
+
+			int nhreg = 0;
+			int[] hreg = new int[numRemovedVerts * numVertsPerPoly];
+
+			int nharea = 0;
+			int[] harea = new int[numRemovedVerts * numVertsPerPoly];
+
+			for (int i = 0; i < this.npolys; i++)
+			{
+				int p = i * numVertsPerPoly * 2;
+				int nv = CountPolyVerts(this.polys, p, numVertsPerPoly);
+				
+				//determine if any vertices need to be removed
+				bool hasRemove = false;
+				for (int j = 0; j < nv; j++)
+				{
+					if (this.polys[p + j] == remove)
+						hasRemove = true;
+				}
+
+				if (hasRemove)
+				{
+					//collect edges which don't touch removed vertex
+					for (int j = 0, k = nv - 1; j < nv; k = j++)
+					{
+						if (this.polys[p + j] != remove && this.polys[p + k] != remove)
+						{
+							int e = nedges * 4;
+							edges[e + 0] = this.polys[p + k];
+							edges[e + 1] = this.polys[p + j];
+							edges[e + 2] = this.regionIds[i];
+							edges[e + 3] = (int)this.areas[i];
+							nedges++;
+						}
+					}
+
+					//remove polygon
+					int p2 = (this.npolys - 1) * numVertsPerPoly * 2;
+					this.polys[p] = this.polys[p2];
+					this.polys[p + numVertsPerPoly] = 0xff;
+					this.regionIds[i] = this.regionIds[this.npolys - 1];
+					this.areas[i] = this.areas[this.npolys - 1];
+					this.npolys--;
+					--i;
+				}
+			}
+
+			//remove vertex
+			for (int i = remove; i < this.nverts; i++)
+			{
+				this.verts[i * 3 + 0] = this.verts[(i + 1) * 3 + 0];
+				this.verts[i * 3 + 1] = this.verts[(i + 1) * 3 + 1];
+				this.verts[i * 3 + 2] = this.verts[(i + 1) * 3 + 2];
+			}
+			this.nverts--;
+
+			//adjust indices
+			for (int i = 0; i < this.npolys; i++)
+			{
+				int p = i * numVertsPerPoly * 2;
+				int nv = CountPolyVerts(this.polys, p, numVertsPerPoly);
+
+				for (int j = 0; j < nv; j++)
+				{
+					if (this.polys[p + j] > remove)
+						this.polys[p + j]--;
+				}
+			}
+
+			for (int i = 0; i < nedges; i++)
+			{
+				if (edges[i * 4 + 0] > remove)
+					edges[i * 4 + 0]--;
+
+				if (edges[i * 4 + 1] > remove)
+					edges[i * 4 + 1]--;
+			}
+
+			if (nedges == 0)
+				return;
+
+			PushBack(edges[0], hole, ref nhole);
+			PushBack(edges[1], hreg, ref nhreg);
+			PushBack(edges[2], harea, ref nharea);
+
+			while (nedges > 0)
+			{
+				bool match = false;
+
+				for (int i = 0; i < nedges; i++)
+				{
+					int ea = i * 4 + 0;
+					int eb = i * 4 + 1;
+					int r = i * 4 + 2;
+					int a = i * 4 + 3;
+					bool add = false;
+					if (hole[0] == eb)
+					{
+						//segment matches beginning of hole boundary
+						PushFront(ea, hole, ref nhole);
+						PushFront(r, hreg, ref nhreg);
+						PushFront(a, harea, ref nharea);
+						add = true;
+					}
+					else if (hole[nhole - 1] == ea)
+					{
+						//segment matches end of hole boundary
+						PushBack(eb, hole, ref nhole);
+						PushBack(r, hreg, ref nhreg);
+						PushBack(a, harea, ref nharea);
+						add = true;
+					}
+
+					if (add)
+					{
+						//edge segment was added so remove it
+						edges[i * 4 + 0] = edges[(nedges - 1) * 4 + 0];
+						edges[i * 4 + 1] = edges[(nedges - 1) * 4 + 1];
+						edges[i * 4 + 2] = edges[(nedges - 1) * 4 + 2];
+						edges[i * 4 + 3] = edges[(nedges - 1) * 4 + 3];
+						--nedges;
+						match = true;
+						--i;
+
+					}
+				}
+
+				if (!match)
+					break;
+			}
+
+			int[] tris = new int[nhole * 3];
+			int[] tverts = new int[nhole * 4];
+			int[] thole = new int[nhole];
+
+			//generate temp vertex array for triangulation
+			for (int i = 0; i < nhole; i++)
+			{
+				int pi = hole[i];
+				tverts[i * 4 + 0] = this.verts[pi * 3 + 0];
+				tverts[i * 4 + 1] = this.verts[pi * 3 + 1];
+				tverts[i * 4 + 2] = this.verts[pi * 3 + 2];
+				tverts[i * 4 + 3] = 0;
+				thole[i] = i;
+			}
+
+			//triangulate the hole
+			int ntris = Triangulate(nhole, tverts, thole, tris);
+			if (ntris < 0)
+				ntris = -ntris;
+
+			//merge hole triangles back to polygons
+			int[] polys = new int[(ntris + 1) * numVertsPerPoly];
+			int[] pregs = new int[ntris];
+			int[] pareas = new int[ntris];
+
+			//builds initial polygons
+			int npolys = 0;
+			for (int j = 0; j < polys.Length; j++)
+				polys[j] = 0xff;
+			for (int j = 0; j < ntris; j++)
+			{
+				int t = j * 3;
+				if (tris[t + 0] != tris[t + 1] && tris[t + 0] != tris[t + 2] && tris[t + 1] != tris[t + 2])
+				{
+					polys[npolys * numVertsPerPoly + 0] = hole[tris[t + 0]];
+					polys[npolys * numVertsPerPoly + 1] = hole[tris[t + 1]];
+					polys[npolys * numVertsPerPoly + 2] = hole[tris[t + 2]];
+					pregs[npolys] = hreg[tris[t + 0]];
+					pareas[npolys] = harea[tris[t + 0]];
+					npolys++;
+				}
+			}
+			if (npolys == 0)
+				return;
+
+			//merge polygons
+			if (numVertsPerPoly > 3)
+			{
+				for (; ; )
+				{
+					//find best polygons
+					int bestMergeVal = 0;
+					int bestPa = 0, bestPb = 0, bestEa = 0, bestEb = 0;
+
+					for (int j = 0; j < npolys - 1; j++)
+					{
+						int pj = j * numVertsPerPoly;
+						for (int k = j + 1; k < npolys; k++)
+						{
+							int pk = k * numVertsPerPoly;
+							int ea = 0, eb = 0;
+							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref ea, ref eb, numVertsPerPoly);
+							if (v > bestMergeVal)
+							{
+								bestMergeVal = v;
+								bestPa = j;
+								bestPb = k;
+								bestEa = ea;
+								bestEb = eb;
+							}
+						}
+					}
+
+					if (bestMergeVal > 0)
+					{
+						int pa = bestPa * numVertsPerPoly;
+						int pb = bestPb * numVertsPerPoly;
+						MergePolys(polys, pa, pb, bestEa, bestEb, numVertsPerPoly);
+						int lastPoly = (npolys - 1) * numVertsPerPoly;
+						polys[pb] = polys[lastPoly];
+						pregs[bestPb] = pregs[npolys - 1];
+						pareas[bestPb] = pareas[npolys - 1];
+						npolys--;
+					}
+					else
+					{
+						//no more merging
+						break;
+					}
+				}
+			}
+
+			//store polygons
+			for (int i = 0; i < npolys; i++)
+			{
+				if (this.npolys >= maxTris) break;
+				int p = this.npolys * numVertsPerPoly * 2;
+				this.polys[p] = 0xff;
+				for (int j = 0; j < numVertsPerPoly; j++)
+					this.polys[p + j] = polys[i * numVertsPerPoly + j];
+
+				this.regionIds[this.npolys] = pregs[i];
+				this.areas[this.npolys] = (AreaFlags)pareas[i];
+				this.npolys++;
+			}
+
+			return;
+		}
+
+		public void BuildMeshAdjacency()
+		{
+			int maxEdgeCount = npolys * numVertsPerPoly;
+			int[] firstEdge = new int[nverts + maxEdgeCount];
+			int nextEdge = nverts;
+			int edgeCount = 0;
+
+			Edge[] edges = new Edge[maxEdgeCount];
+			for (int i = 0; i < nverts; i++)
+				firstEdge[i] = MESH_NULL_IDX;
+
+			for (int i = 0; i < npolys; i++)
+			{
+				int t = i * numVertsPerPoly * 2;
+				for (int j = 0; j < numVertsPerPoly; j++)
+				{
+					if (polys[t + j] == MESH_NULL_IDX)
+						break;
+
+					int v0 = polys[t + j];
+					int v1 = (j + 1 >= numVertsPerPoly || polys[t + j + 1] == MESH_NULL_IDX) ? polys[t + 0] : polys[t + j + 1];
+
+					if (v0 < v1)
+					{
+						Edge edge = edges[edgeCount];
+						edge.vert = new int[2];
+						edge.polyEdge = new int[2];
+						edge.poly = new int[2];
+
+						edge.vert[0] = v0;
+						edge.vert[1] = v1;
+						edge.poly[0] = i;
+						edge.polyEdge[0] = j;
+						edge.poly[1] = i;
+						edge.polyEdge[1] = 0;
+
+						//insert edge
+						firstEdge[nextEdge + edgeCount] = firstEdge[v0];
+						firstEdge[v0] = edgeCount;
+						edgeCount++;
+					}
+				}
+			}
+
+			for (int i = 0; i < npolys; i++)
+			{
+				int t = i * numVertsPerPoly * 2;
+				for (int j = 0; j < numVertsPerPoly; j++)
+				{
+					if (polys[t + j] == MESH_NULL_IDX)
+						break;
+
+					int v0 = polys[t + j];
+					int v1 = (j + 1 >= numVertsPerPoly || polys[t + j + 1] == MESH_NULL_IDX) ? polys[t + 0] : polys[t + j + 1];
+
+					if (v0 > v1)
+					{
+						for (int e = firstEdge[v1]; e != MESH_NULL_IDX; e = firstEdge[nextEdge + e])
+						{
+							Edge edge = edges[e];
+							if (edge.vert[1] == v0 && edge.poly[0] == edge.poly[1])
+							{
+								edge.poly[1] = i;
+								edge.polyEdge[1] = j;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			//store adjacency
+			for (int i = 0; i < edgeCount; i++)
+			{
+				Edge e = edges[i];
+				if (e.poly[0] != e.poly[1])
+				{
+					int p0 = e.poly[0] * numVertsPerPoly * 2;
+					int p1 = e.poly[1] * numVertsPerPoly * 2;
+					polys[p0 + numVertsPerPoly + e.polyEdge[0]] = e.poly[1];
+					polys[p1 + numVertsPerPoly + e.polyEdge[1]] = e.poly[0];
+				}
+			}
+		}
+
+
 		/// <summary>
 		/// Count the number of vertices per polygon
 		/// </summary>
@@ -489,6 +999,20 @@ namespace SharpNav
 					return i;
 
 			return numVertsPerPolygon;
+		}
+
+		public void PushFront(int v, int[] array, ref int an)
+		{
+			an++;
+			for (int i = an - 1; i > 0; i--)
+				array[i] = array[i - 1];
+			array[0] = v;
+		}
+
+		public void PushBack(int v, int[] array, ref int an)
+		{
+			array[an] = v;
+			an++;
 		}
 
 		public bool ULeft(int[] verts, int a, int b, int c)

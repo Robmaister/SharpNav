@@ -241,8 +241,13 @@ namespace SharpNav
 
 		public float CellHeight { get { return cellHeight; } }
 
+		public int Width { get { return width; } }
+
+		public int Height { get { return height; } }
+
 		public int BorderSize { get { return borderSize; } }
 
+		
 		/// <summary>
 		/// Initial generation of the contours
 		/// </summary>
