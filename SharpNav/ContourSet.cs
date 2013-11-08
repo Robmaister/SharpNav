@@ -152,30 +152,38 @@ namespace SharpNav
 							Contour cont = contours[numContours++];
 
 							//Save all the simplified and raw data in the Contour
-							cont.vertices = simplified;
+							cont.NumVerts = simplified.Count / 4;
+							cont.Vertices = new int[cont.NumVerts * 4];
+							for (int j = 0; j < cont.Vertices.Length; j++)
+								cont.Vertices[j] = simplified[j];
+
 							if (borderSize > 0)
 							{
 								//remove offset
-								for (int j = 0; j < cont.vertices.Count / 4; j++)
+								for (int j = 0; j < cont.NumVerts; j++)
 								{
-									cont.vertices[j * 4 + 0] -= borderSize;
-									cont.vertices[j * 4 + 2] -= borderSize;
+									cont.Vertices[j * 4 + 0] -= borderSize;
+									cont.Vertices[j * 4 + 2] -= borderSize;
 								}
 							}
 
-							cont.rawVertices = verts;
+							cont.NumRawVerts = verts.Count / 4;
+							cont.RawVertices = new int[cont.NumRawVerts * 4];
+							for (int j = 0; j < cont.RawVertices.Length; j++)
+								cont.RawVertices[j] = verts[j];
+
 							if (borderSize > 0)
 							{
 								//remove offset
-								for (int j = 0; j < cont.rawVertices.Count / 4; j++)
+								for (int j = 0; j < cont.NumRawVerts; j++)
 								{
-									cont.rawVertices[j * 4 + 0] -= borderSize;
-									cont.rawVertices[j * 4 + 2] -= borderSize;
+									cont.RawVertices[j * 4 + 0] -= borderSize;
+									cont.RawVertices[j * 4 + 2] -= borderSize;
 								}
 							}
 
-							cont.regionId = reg;
-							cont.area = area;
+							cont.RegionId = reg;
+							cont.Area = area;
 						}
 					}
 				}
@@ -187,7 +195,7 @@ namespace SharpNav
 				Contour cont = contours[i];
 
 				//check if contour is backwards
-				if (CalcAreaOfPolygon2D(cont.vertices) < 0)
+				if (CalcAreaOfPolygon2D(cont.Vertices, cont.NumVerts) < 0)
 				{
 					//find another contour with same region id
 					int mergeIdx = -1;
@@ -197,10 +205,10 @@ namespace SharpNav
 						if (i == j) continue;
 
 						//same region id
-						if (contours[j].vertices.Count / 4 != 0 && contours[j].regionId == cont.regionId)
+						if (contours[j].NumVerts != 0 && contours[j].RegionId == cont.RegionId)
 						{
 							//make sure polygon is correctly oriented
-							if (CalcAreaOfPolygon2D(contours[j].vertices) > 0)
+							if (CalcAreaOfPolygon2D(contours[j].Vertices, cont.NumVerts) > 0)
 							{
 								mergeIdx = j;
 								break;
@@ -215,11 +223,11 @@ namespace SharpNav
 
 						//merge by closest points
 						int ia = 0, ib = 0;
-						GetClosestIndices(mcont.vertices, cont.vertices, ref ia, ref ib);
+						GetClosestIndices(mcont.Vertices, mcont.NumVerts, cont.Vertices, cont.NumVerts, ref ia, ref ib);
 						if (ia == -1 || ib == -1)
 							continue;
 
-						mcont.MergeWithOtherContour(cont, ia, ib);
+						MergeContours(ref mcont, cont, ia, ib);
 					}
 				}
 			}
@@ -749,11 +757,10 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">The vertex data</param>
 		/// <returns></returns>
-		public int CalcAreaOfPolygon2D(List<int> verts)
+		public int CalcAreaOfPolygon2D(int[] verts, int numVerts)
 		{
 			int area = 0;
-			int numVertices = verts.Count / 4;
-			for (int i = 0, j = numVertices - 1; i < numVertices; j = i++)
+			for (int i = 0, j = numVerts - 1; i < numVerts; j = i++)
 			{
 				area += verts[i * 4 + 0] * verts[j * 4 + 2] - verts[j * 4 + 0] * verts[i * 4 + 2];
 			}
@@ -767,20 +774,20 @@ namespace SharpNav
 		/// <param name="vertsB">Second set of vertices</param>
 		/// <param name="ia">First index</param>
 		/// <param name="ib">Second index</param>
-		public void GetClosestIndices(List<int> vertsA, List<int> vertsB, ref int ia, ref int ib)
+		public void GetClosestIndices(int[] vertsA, int numVertsA, int[] vertsB, int numVertsB, ref int ia, ref int ib)
 		{
 			int closestDistance = 0xfffffff;
 			ia = -1;
 			ib = -1;
-			for (int i = 0; i < vertsA.Count / 4; i++)
+			for (int i = 0; i < numVertsA; i++)
 			{
-				int iN = (i + 1) % (vertsA.Count / 4);
-				int iP = (i + vertsA.Count / 4 - 1) % (vertsA.Count / 4);
+				int iN = (i + 1) % numVertsA;
+				int iP = (i + numVertsA - 1) % numVertsA;
 				int va = i * 4; //vertsA
 				int vaN = iN * 4; //vertsA
 				int vaP = iP * 4; //vertsA
 
-				for (int j = 0; j < vertsB.Count / 4; j++)
+				for (int j = 0; j < numVertsB; j++)
 				{
 					int vb = j * 4; //vertsB
 					
@@ -810,10 +817,48 @@ namespace SharpNav
 		/// <param name="b">Second location in vertsA</param>
 		/// <param name="c">First location is vertsB</param>
 		/// <returns></returns>
-		public bool ILeft(List<int> vertsA, List<int> vertsB, int a, int b, int c)
+		public bool ILeft(int[] vertsA, int[] vertsB, int a, int b, int c)
 		{
 			return (vertsA[b + 0] - vertsA[a + 0]) * (vertsB[c + 2] - vertsA[a + 2])
 				- (vertsB[c + 0] - vertsA[a + 0]) * (vertsA[b + 2] - vertsA[a + 2]) <= 0;
+		}
+
+		public void MergeContours(ref Contour contA, Contour contB, int ia, int ib)
+		{
+			int maxVerts = contA.NumVerts + contB.NumVerts + 2;
+			int[] newVerts = new int[maxVerts * 4];
+			int nv = 0;
+
+			//copy contour A
+			for (int i = 0; i <= contA.NumVerts; i++)
+			{
+				int dst = nv * 4; //newVerts
+				int src = ((ia + 1) % contA.NumVerts) * 4; //contA
+
+				newVerts[dst + 0] = contA.Vertices[src + 0];
+				newVerts[dst + 1] = contA.Vertices[src + 1];
+				newVerts[dst + 2] = contA.Vertices[src + 2];
+				newVerts[dst + 3] = contA.Vertices[src + 3];
+
+				nv++;
+			}
+
+			//add contour B (other contour) to contour A (this contour)
+			for (int i = 0; i <= contB.NumVerts; i++)
+			{
+				int dst = nv * 4; //newVerts
+				int src = ((ib + i) % contB.NumVerts) * 4; //contB
+
+				newVerts[dst + 0] = contB.Vertices[src + 0];
+				newVerts[dst + 1] = contB.Vertices[src + 1];
+				newVerts[dst + 2] = contB.Vertices[src + 2];
+				newVerts[dst + 3] = contB.Vertices[src + 3];
+
+				nv++;
+			}
+
+			contA.Vertices = newVerts;
+			contA.NumVerts = nv;
 		}
 
 		/// <summary>
@@ -821,28 +866,13 @@ namespace SharpNav
 		/// </summary>
 		public class Contour
 		{
-			public List<int> vertices;
-			public List<int> rawVertices;
-			public ushort regionId;
-			public AreaFlags area;
+			public int [] Vertices;
+			public int NumVerts;
+			public int [] RawVertices;
+			public int NumRawVerts;
 
-			public void MergeWithOtherContour(Contour contB, int ia, int ib)
-			{
-				int numVertsA = this.vertices.Count / 4;
-				int numVertsB = contB.vertices.Count / 4;
-				int maxVerts = numVertsA + numVertsB + 2;
-				List<int> newVerts = new List<int>(maxVerts * 4);
-
-				//add contour B (other contour) to contour A (this contour)
-				for (int i = 0; i <= numVertsB; i++)
-				{
-					int src = ((ib + i) % numVertsB) * 4;
-					this.vertices.Add(contB.vertices[src + 0]);
-					this.vertices.Add(contB.vertices[src + 1]);
-					this.vertices.Add(contB.vertices[src + 2]);
-					this.vertices.Add(contB.vertices[src + 3]);
-				}
-			}
+			public ushort RegionId;
+			public AreaFlags Area;
 		}
 	}
 }
