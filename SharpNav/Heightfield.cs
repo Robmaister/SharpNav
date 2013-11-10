@@ -333,8 +333,10 @@ namespace SharpNav
 		/// <param name="walkableClimb">The maximum difference in height to filter.</param>
 		public void FilterLowHangingWalkableObstacles(int walkableClimb)
 		{
+			//Loop through every cell in the Heightfield
 			for (int i = 0; i < cells.Length; i++)
 			{
+				//Keep track of the previous span
 				Span previousSpan = new Span(0, 0, AreaFlags.Null);
 				bool previousWalkable = false;
 				AreaFlags previousArea = AreaFlags.Null;
@@ -342,12 +344,12 @@ namespace SharpNav
 				Cell c = cells[i];
 				List<Span> spans = c.MutableSpans;
 
+				//Loop through every span in the cell
 				for (int j = 0; j < spans.Count; j++)
 				{
+					//Examine the current span
 					Span currentSpan = spans[j];
-
-					bool walkable;
-					walkable = currentSpan.Area != AreaFlags.Null;
+					bool walkable = currentSpan.Area != AreaFlags.Null;
 
 					// If current span is not walkable, but there is walkable
 					// span just below it, mark the span above it walkable too.
@@ -385,6 +387,7 @@ namespace SharpNav
 				Cell c = cells[i];
 				List<Span> spans = c.MutableSpans;
 
+				//Examine all the spans
 				for (int j = 0; j < spans.Count; j++)
 				{
 					Span currentSpan = spans[j];

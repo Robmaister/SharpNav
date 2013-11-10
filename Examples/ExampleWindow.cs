@@ -278,7 +278,7 @@ namespace Examples
 				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
 				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
 
-				ushort maxdist = openHeightfield.MaxDistance;
+				int maxdist = openHeightfield.MaxDistance;
 
 				var cellSize = heightfield.CellSize;
 				var halfCellSize = cellSize * 0.5f;
@@ -301,7 +301,7 @@ namespace Examples
 							squarePosFinal.Y += span.Minimum * cellSize.Y;
 							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
 
-							ushort dist = openHeightfield.Distances[k];
+							int dist = openHeightfield.Distances[k];
 							float val = (float)dist / (float)maxdist;
 							GL.Color4(val, val, val, 1f);
 

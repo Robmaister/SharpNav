@@ -15,7 +15,7 @@ namespace SharpNav
 	{
 		public const int NotConnected = 0xff; //HACK figure out a better way to do this
 
-		public const ushort BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
+		public const int BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
 
 		private BBox3 bounds;
 
@@ -27,15 +27,19 @@ namespace SharpNav
 		private AreaFlags[] areas;
 
 		//distance field
-		private ushort[] distances;
-		private ushort maxDistance;
+		private int[] distances;
+		private int maxDistance;
 
 		//region
-		private ushort maxRegions;
+		private int maxRegions;
 		private int borderSize;
 		
 		public CompactHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
+			field.FilterWalkableLowHeightSpans(walkableHeight);
+			field.FilterLowHangingWalkableObstacles(walkableClimb);
+			field.FilterLedgeSpans(walkableHeight, walkableClimb);
+
 			this.bounds = field.Bounds;
 			this.width = field.Width;
 			this.height = field.Height;
@@ -66,6 +70,7 @@ namespace SharpNav
 					if (s.Area != AreaFlags.Null)
 					{
 						CompactSpan.FromMinMax(s.Maximum, fs[j + 1].Minimum, out spans[spanIndex]);
+						areas[spanIndex] = s.Area;
 						spanIndex++;
 						c.Count++;
 					}
@@ -76,6 +81,7 @@ namespace SharpNav
 				if (lastS.Area != AreaFlags.Null)
 				{
 					spans[spanIndex] = new CompactSpan(fs[lastInd].Maximum, int.MaxValue);
+					areas[spanIndex] = lastS.Area;
 					spanIndex++;
 					c.Count++;
 				}
@@ -138,8 +144,8 @@ namespace SharpNav
 		public float CellSize { get { return cellSize; } }
 		public float CellHeight { get { return cellHeight; } }
 
-		public ushort MaxDistance { get { return maxDistance; } }
-		public ushort[] Distances { get { return distances; } }
+		public int MaxDistance { get { return maxDistance; } }
+		public int[] Distances { get { return distances; } }
 		public int BorderSize { get { return borderSize; } }
 		public int MaxRegions { get { return maxRegions; } }
 
@@ -188,7 +194,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="src">Array of values, each corresponding to an individual span</param>
 		/// <param name="maxDist">The maximum value of the src array</param>
-		public void CalculateDistanceField(ushort[] src)
+		public void CalculateDistanceField(int[] src)
 		{
 			//initialize distance and points
 			for (int i = 0; i < spans.Length; i++)
@@ -217,6 +223,7 @@ namespace SharpNav
 									numConnections++;
 							}
 						}
+
 						if (numConnections != 4)
 							src[i] = 0;
 					}
@@ -340,7 +347,7 @@ namespace SharpNav
 		/// <param name="openField">The OpenHeightfield</param>
 		/// <param name="thr">Threshold?</param>
 		/// <returns></returns>
-		public ushort[] BoxBlur(int thr, ushort[] src, ushort[] dst)
+		public int[] BoxBlur(int thr, int[] src, int[] dst)
 		{
 			thr *= 2;
 
@@ -352,7 +359,7 @@ namespace SharpNav
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						CompactSpan s = spans[i];
-						ushort cd = src[i];
+						int cd = src[i];
 
 						//in constructor, thr = 1.
 						//in this method, thr *= 2, so thr = 2
@@ -406,8 +413,8 @@ namespace SharpNav
 
 		public void BuildDistanceField()
 		{
-			ushort[] src = new ushort[spans.Length];
-			ushort[] dst = new ushort[spans.Length];
+			int[] src = new int[spans.Length];
+			int[] dst = new int[spans.Length];
 
 			//fill up all the values in src
 			CalculateDistanceField(src);
@@ -437,7 +444,7 @@ namespace SharpNav
 		/// <param name="dstReg">destination region</param>
 		/// <param name="dstDist">destination distances</param>
 		/// <returns></returns>
-		public ushort[] ExpandRegions(int maxIter, ushort level, ushort[] srcReg, ushort[] srcDist, ushort[] dstReg, ushort[] dstDist)
+		public int[] ExpandRegions(int maxIter, int level, int[] srcReg,int[] srcDist, int[] dstReg, int[] dstDist)
 		{
 			//find cells revealed by the raised level
 			List<int> stack = new List<int>();
@@ -477,7 +484,7 @@ namespace SharpNav
 						continue;
 					}
 
-					ushort r = srcReg[i];
+					int r = srcReg[i];
 					ushort d2 = 0xffff;
 					AreaFlags area = areas[i];
 					CompactSpan s = spans[i];
@@ -510,7 +517,7 @@ namespace SharpNav
 				}
 
 				//swap source and dest
-				ushort[] temp = srcReg;
+				int[] temp = srcReg;
 				srcReg = dstReg;
 				dstReg = temp;
 
@@ -543,7 +550,7 @@ namespace SharpNav
 		/// <param name="srcReg">source region</param>
 		/// <param name="srcDist">source distances</param>
 		/// <returns></returns>
-		public bool FloodRegion(int x, int y, int i, ushort level, ushort r, ushort[] srcReg, ushort[] srcDist)
+		public bool FloodRegion(int x, int y, int i, int level, int r, int[] srcReg, int[] srcDist)
 		{
 			AreaFlags area = areas[i];
 
@@ -570,7 +577,7 @@ namespace SharpNav
 				CompactSpan cs = spans[ci];
 
 				//check if any of the neighbors already have a valid reigon set
-				ushort ar = 0;
+				int ar = 0;
 				for (int dir = 0; dir < 4; dir++)
 				{
 					//8 connected
@@ -583,7 +590,7 @@ namespace SharpNav
 						if (areas[di] != area)
 							continue;
 
-						ushort nr = srcReg[di];
+						int nr = srcReg[di];
 						if ((nr & BORDER_REG) != 0) //skip borders
 							continue;
 						if (nr != 0 && nr != r)
@@ -600,7 +607,7 @@ namespace SharpNav
 							if (areas[di2] != area)
 								continue;
 
-							ushort nr2 = srcReg[di2];
+							int nr2 = srcReg[di2];
 							if (nr2 != 0 && nr2 != r)
 								ar = nr2;
 						}
@@ -652,10 +659,10 @@ namespace SharpNav
 		/// <param name="i">index of span</param>
 		/// <param name="dir">direction</param>
 		/// <returns></returns>
-		public bool IsSolidEdge(ushort[] srcReg, int x, int y, int i, int dir)
+		public bool IsSolidEdge(int[] srcReg, int x, int y, int i, int dir)
 		{
 			CompactSpan s = spans[i];
-			ushort r = 0;
+			int r = 0;
 
 			if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
 			{
@@ -680,13 +687,13 @@ namespace SharpNav
 		/// <param name="i">index of span</param>
 		/// <param name="dir">direction</param>
 		/// <param name="cont">list of ints</param>
-		public void WalkContour(ushort[] srcReg, int x, int y, int i, int dir, List<int> cont)
+		public void WalkContour(int[] srcReg, int x, int y, int i, int dir, List<int> cont)
 		{
 			int startDir = dir;
 			int starti = i;
 
 			CompactSpan ss = spans[i];
-			ushort curReg = 0;
+			int curReg = 0;
 
 			if (CompactSpan.GetConnection(dir, ref ss) != NotConnected)
 			{
@@ -705,7 +712,7 @@ namespace SharpNav
 				if (IsSolidEdge(srcReg, x, y, i, dir))
 				{
 					//choose the edge corner
-					ushort r = 0;
+					int r = 0;
 					if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
@@ -775,7 +782,7 @@ namespace SharpNav
 		/// <param name="maxRegionId">determines the number of regions available</param>
 		/// <param name="srcReg">region data</param>
 		/// <returns></returns>
-		public bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref ushort maxRegionId, ushort[] srcReg)
+		public bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref int maxRegionId, int[] srcReg)
 		{
 			int numRegions = maxRegionId + 1;
 			Region[] regions = new Region[numRegions];
@@ -792,7 +799,7 @@ namespace SharpNav
 					CompactCell c = cells[x + y * width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
-						ushort r = srcReg[i];
+						int r = srcReg[i];
 						if (r == 0 || r >= numRegions)
 							continue;
 
@@ -803,7 +810,7 @@ namespace SharpNav
 						for (int j = c.StartIndex; j < end; j++)
 						{
 							if (i == j) continue;
-							ushort floorId = srcReg[j];
+							int floorId = srcReg[j];
 							if (floorId == 0 || floorId >= numRegions)
 								continue;
 							reg.AddUniqueFloorRegion(floorId);
@@ -1017,7 +1024,7 @@ namespace SharpNav
 		/// <param name="maxY">maximum y</param>
 		/// <param name="regionId">value to fill with</param>
 		/// <param name="srcReg">array to store the values</param>
-		public void PaintRectRegion(int minX, int maxX, int minY, int maxY, ushort regionId, ushort[] srcReg)
+		public void PaintRectRegion(int minX, int maxX, int minY, int maxY, int regionId, int[] srcReg)
 		{
 			for (int y = minY; y < maxY; y++)
 			{
@@ -1042,15 +1049,15 @@ namespace SharpNav
 		/// <returns></returns>
 		public bool BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
 		{
-			ushort[] srcReg = new ushort[spans.Length];
-			ushort[] srcDist = new ushort[spans.Length];
-			ushort[] dstReg = new ushort[spans.Length];
-			ushort[] dstDist = new ushort[spans.Length];
+			int[] srcReg = new int[spans.Length];
+			int[] srcDist = new int[spans.Length];
+			int[] dstReg = new int[spans.Length];
+			int[] dstDist = new int[spans.Length];
 
 			BuildDistanceField();
 
-			ushort regionId = 1;
-			ushort level = (ushort)((maxDistance + 1) & ~1); //find a better way to compute this
+			int regionId = 1;
+			int level = ((maxDistance + 1) & ~1); //find a better way to compute this
 
 			const int ExpandIters = 8;
 
@@ -1075,12 +1082,12 @@ namespace SharpNav
 
 			while (level > 0)
 			{
-				level = (ushort)(level >= 2 ? level - 2 : 0);
+				level = (level >= 2 ? level - 2 : 0);
 
 				//expand current regions until no new empty connected cells found
 				if (ExpandRegions(ExpandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
 				{
-					ushort[] temp = srcReg;
+					int[] temp = srcReg;
 					srcReg = dstReg;
 					dstReg = temp;
 
@@ -1110,7 +1117,7 @@ namespace SharpNav
 			//expand current regions until no new empty connected cells found
 			if (ExpandRegions(ExpandIters * 8, 0, srcReg, srcDist, dstReg, dstDist) != srcReg)
 			{
-				ushort[] temp = srcReg;
+				int[] temp = srcReg;
 				srcReg = dstReg;
 				dstReg = temp;
 
