@@ -27,6 +27,9 @@ namespace SharpNav
 			if (mesh.NVerts == 0 || mesh.NPolys == 0)
 				return;
 
+			List<int> edges = new List<int>(64);
+			List<int> tris = new List<int>(512);
+			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
@@ -111,8 +114,8 @@ namespace SharpNav
 				hp.height = bounds[i * 4 + 3] - bounds[i * 4 + 2];
 				GetHeightData(openField, poly, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
 
-				//TODO: Build Detail Mesh
-				//...
+				int verts = 0;
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, verts, nverts, tris, edges, samples);
 			}
 		}
 
@@ -303,6 +306,225 @@ namespace SharpNav
 				}
 			}
 
+		}
+
+		public void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
+			float[] verts, ref int nverts, List<int> tris, List<int> edges, List<int> samples)
+		{
+			const int MAX_VERTS = 127;
+			const int MAX_TRIS = 255;
+			const int MAX_VERTS_PER_EDGE = 32;
+			float[] edge = new float[(MAX_VERTS_PER_EDGE + 1) * 3];
+			int[] hull = new int [MAX_VERTS];
+			int nhull = 0;
+
+			nverts = 0;
+
+			for (int i = 0; i < nin_; ++i)
+			{
+				verts[i * 3 + 0] = in_[i * 3 + 0];
+				verts[i * 3 + 1] = in_[i * 3 + 1];
+				verts[i * 3 + 2] = in_[i * 3 + 2];
+			}
+			nverts = nin_;
+
+			float cs = openField.CellSize;
+			float ics = 1.0f / cs;
+
+			//tessellate outlines
+			if (sampleDist > 0)
+			{
+				for (int i = 0, j = nin_ - 1; i < nin_; j = i++)
+				{
+					int vj = j * 3;
+					int vi = i * 3;
+					bool swapped = false;
+
+					//make sure order is correct
+					if (Math.Abs(in_[vj + 0] - in_[vi + 0]) < 1E-06f)
+					{
+						if (in_[vj + 2] > in_[vi + 2])
+						{
+							float temp = in_[vj + 2];
+							in_[vj + 2] = in_[vi + 2];
+							in_[vi + 2] = temp;
+							swapped = true;
+						}
+					}
+					else
+					{
+						if (in_[vj + 0] > in_[vi + 0])
+						{
+							float temp = in_[vj + 0];
+							in_[vj + 0] = in_[vi + 0];
+							in_[vi + 0] = temp;
+							swapped = true;
+						}
+					}
+
+					//create samples along the edge
+					float dx = in_[vi + 0] - in_[vj + 0];
+					float dy = in_[vi + 1] - in_[vj + 1];
+					float dz = in_[vi + 2] - in_[vj + 2];
+					float d = (float)Math.Sqrt(dx * dx + dz * dz);
+					int nn = 1 + (int)Math.Floor(d / sampleDist);
+					if (nverts + nn >= MAX_VERTS)
+						nn = MAX_VERTS - 1 - nverts;
+
+					for (int k = 0; k <= nn; k++)
+					{
+						float u = (float)k / (float)nn;
+						int pos = k * 3;
+						edge[pos + 0] = in_[vj + 0] + dx * u;
+						edge[pos + 1] = in_[vj + 1] + dy * u;
+						edge[pos + 2] = in_[vj + 2] + dz * u;
+						edge[pos + 1] = GetHeight(edge[pos + 0], edge[pos + 1], edge[pos + 2], ics, openField.CellHeight, hp) * openField.CellHeight;
+					}
+
+					//simplify samples
+					int[] idx = new int[MAX_VERTS_PER_EDGE];
+					idx[0] = 0;
+					idx[1] = nn;
+					int nidx = 2;
+
+					for (int k = 0; k < nidx - 1; )
+					{
+						int a = idx[k];
+						int b = idx[k + 1];
+						int va = a * 3;
+						int vb = b * 3;
+
+						//find maximum deviation along segment
+						float maxd = 0;
+						int maxi = 0;
+						for (int m = a + 1; m < b; m++)
+						{
+							float dev = DistancePointSegment(edge, m * 3, va, vb);
+							if (dev > maxd)
+							{
+								maxd = dev;
+								maxi = m;
+							}
+						}
+
+						if (maxi != -1 && maxd > (sampleMaxError * sampleMaxError))
+						{
+							for (int m = nidx; m > k; m--)
+								idx[m] = idx[m - 1];
+
+							idx[k + 1] = maxi;
+							nidx++;
+						}
+						else
+						{
+							k++;
+						}
+					}
+
+					hull[nhull++] = j;
+
+					//add new vertices
+					if (swapped)
+					{
+						for (int k = nidx - 2; k > 0; k--)
+						{
+							verts[nverts * 3 + 0] = edge[idx[k] * 3 + 0];
+							verts[nverts * 3 + 1] = edge[idx[k] * 3 + 1];
+							verts[nverts * 3 + 2] = edge[idx[k] * 3 + 2];
+							hull[nhull++] = nverts;
+							nverts++;
+						}
+					}
+					else
+					{
+						for (int k = 1; k < nidx - 1; k++)
+						{
+							verts[nverts * 3 + 0] = edge[idx[k] * 3 + 0];
+							verts[nverts * 3 + 1] = edge[idx[k] * 3 + 1];
+							verts[nverts * 3 + 2] = edge[idx[k] * 3 + 2];
+							hull[nhull++] = nverts;
+							nverts++;
+						}
+					}
+				}
+			}
+
+			//TODO: tesselate base mesh
+			edges.Clear();
+			tris.Clear();
+		}
+
+		/// <summary>
+		/// Use the HeightPatch data to obtain a height for a certain location.
+		/// </summary>
+		/// <param name="fx"></param>
+		/// <param name="fy"></param>
+		/// <param name="fz"></param>
+		/// <param name="invCellSize"></param>
+		/// <param name="cellHeight"></param>
+		/// <param name="hp"></param>
+		public float GetHeight(float fx, float fy, float fz, float invCellSize, float cellHeight, HeightPatch hp)
+		{
+			int ix = (int)Math.Floor(fx * invCellSize + 0.01f);
+			int iz = (int)Math.Floor(fz * invCellSize + 0.01f);
+			ix = MathHelper.Clamp(ix - hp.xmin, 0, hp.width - 1);
+			iz = MathHelper.Clamp(iz - hp.ymin, 0, hp.height - 1);
+			int h = hp.data[ix + iz * hp.width];
+
+			if (h == UNSET_HEIGHT)
+			{
+				int[] off = { -1,0, -1,-1, 0,-1, 1,-1,
+								 1,0, 1,1, 0,1, -1,1 };
+				float dmin = float.MaxValue;
+
+				for (int i = 0; i < 8; i++)
+				{
+					int nx = ix + off[i * 2 + 0];
+					int nz = iz + off[i * 2 + 1];
+
+					if (nx < 0 || nz < 0 || nx >= hp.width || nz >= hp.height)
+						continue;
+
+					int nh = hp.data[nx + nz * hp.width];
+					if (nh == UNSET_HEIGHT)
+						continue;
+
+					float d = Math.Abs(nh * cellHeight - fy);
+					if (d < dmin)
+					{
+						h = nh;
+						dmin = d;
+					}
+				}
+			}
+
+			return h;
+		}
+
+		public float DistancePointSegment(float[] edge, int pt, int p, int q)
+		{
+			float pqx = edge[q + 0] - edge[p + 0];
+			float pqy = edge[q + 1] - edge[p + 1];
+			float pqz = edge[q + 2] - edge[p + 2];
+			float dx = edge[pt + 0] - edge[p + 0];
+			float dy = edge[pt + 1] - edge[p + 1];
+			float dz = edge[pt + 2] - edge[p + 2];
+			float d = pqx * pqx + pqy * pqy + pqz * pqz;
+			float t = pqx * dx + pqy * dy + pqz * dz;
+
+			if (d > 0)
+				t /= d;
+
+			//keep t between 0 and 1
+			if (t < 0)
+				t = 0;
+			else if (t > 1)
+				t = 1;
+
+			dx = edge[p + 0] + t * pqx - edge[pt + 0];
+			dy = edge[p + 1] + t * pqy - edge[pt + 1];
+			dz = edge[p + 2] + t * pqz - edge[pt + 2];
+			return dx * dx + dy * dy + dz * dz;
 		}
 
 		public class HeightPatch
