@@ -19,7 +19,7 @@ namespace SharpNav
 		private int nverts;
 		private int ntris;
 		private int[] meshes;
-		private int[] verts;
+		private float[] verts;
 		private int[] tris;
 
 		public MeshDetail(Mesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
@@ -31,6 +31,7 @@ namespace SharpNav
 			List<int> tris = new List<int>(512);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
+			float[] tempVerts = new float[256 * 3];
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
 
@@ -84,7 +85,7 @@ namespace SharpNav
 			int tcap = vcap * 2;
 
 			this.nverts = 0;
-			this.verts = new int[vcap * 3];
+			this.verts = new float[vcap * 3];
 
 			this.ntris = 0;
 			this.tris = new int[tcap * 4];
@@ -115,7 +116,7 @@ namespace SharpNav
 				GetHeightData(openField, poly, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
 
 				int verts = 0;
-				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, verts, nverts, tris, edges, samples);
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, tempVerts, ref nverts, tris, edges, samples);
 			}
 		}
 
@@ -315,7 +316,7 @@ namespace SharpNav
 			const int MAX_TRIS = 255;
 			const int MAX_VERTS_PER_EDGE = 32;
 			float[] edge = new float[(MAX_VERTS_PER_EDGE + 1) * 3];
-			int[] hull = new int [MAX_VERTS];
+			float[] hull = new float [MAX_VERTS];
 			int nhull = 0;
 
 			nverts = 0;
@@ -449,9 +450,25 @@ namespace SharpNav
 				}
 			}
 
-			//TODO: tesselate base mesh
+			//tesselate base mesh
 			edges.Clear();
 			tris.Clear();
+			
+			DelaunayHull(nverts, verts, nhull, hull, tris, edges);
+
+			if (tris.Count == 0)
+			{
+				//add default data
+				for (int i = 2; i < nverts; i++)
+				{
+					tris.Add(0);
+					tris.Add(i - 1);
+					tris.Add(i);
+					tris.Add(0);
+				}
+
+				return;
+			}
 		}
 
 		/// <summary>
@@ -525,6 +542,309 @@ namespace SharpNav
 			dy = edge[p + 1] + t * pqy - edge[pt + 1];
 			dz = edge[p + 2] + t * pqz - edge[pt + 2];
 			return dx * dx + dy * dy + dz * dz;
+		}
+
+		/// <summary>
+		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh.
+		/// </summary>
+		/// <param name="npts"></param>
+		/// <param name="pts"></param>
+		/// <param name="nhull"></param>
+		/// <param name="hull"></param>
+		/// <param name="tris"></param>
+		/// <param name="edges"></param>
+		public void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<int> edges)
+		{
+			int nfaces = 0;
+			int nedges = 0;
+			int maxEdges = npts * 10;
+			edges = new List<int>(maxEdges * 4);
+
+			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
+				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.HULL, (int)EdgeValues.UNDEF);
+
+			int currentEdge = 0;
+			while (currentEdge < nedges)
+			{
+				if (edges[currentEdge * 4 + 2] == (int)EdgeValues.UNDEF)
+					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
+				
+				if (edges[currentEdge * 4 + 3] == (int)EdgeValues.UNDEF)
+					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
+				
+				currentEdge++;
+			}
+
+			//create triangles
+			tris = new List<int>(nfaces * 4);
+			for (int i = 0; i < tris.Count; i++)
+				tris[i] = -1;
+
+			for (int i = 0; i < nedges; i++)
+			{
+				int edgePos = i * 4;
+				if (edges[edgePos + 3] >= 0)
+				{
+					//left face
+					int t = edges[edgePos + 3] * 4;
+					
+					if (tris[t + 0] == -1)
+					{
+						tris[t + 0] = edges[edgePos + 0];
+						tris[t + 1] = edges[edgePos + 1];
+					}
+					else if (tris[t + 0] == edges[edgePos + 1])
+					{
+						tris[t + 2] = edges[edgePos + 0];
+					}
+					else if (tris[t + 1] == edges[edgePos + 0])
+					{
+						tris[t + 2] = edges[edgePos + 1];
+					}
+				}
+			}
+
+			for (int i = 0; i < tris.Count / 4; i++)
+			{
+				int t = i * 4;
+				if (tris[t + 0] == -1 || tris[t + 1] == -1 || tris[t + 2] == -1)
+				{
+					tris[t + 0] = tris[tris.Count - 4];
+					tris[t + 1] = tris[tris.Count - 3];
+					tris[t + 2] = tris[tris.Count - 2];
+					tris[t + 3] = tris[tris.Count - 1];
+					tris.RemoveRange(tris.Count - 4, 4);
+					--i;
+				}
+			}
+		}
+
+		public void CompleteFacet(float[] pts, int npts, List<int> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
+		{
+			const float EPS = 1e-5f;
+			
+			int edgePos = e * 4;
+
+			//cache s and t
+			int s, t;
+			if (edges[edgePos + 2] == (int)EdgeValues.UNDEF)
+			{
+				s = edges[edgePos + 0];
+				t = edges[edgePos + 1];
+			}
+			else if (edges[edgePos + 3] == (int)EdgeValues.UNDEF)
+			{
+				s = edges[edgePos + 1];
+				t = edges[edgePos + 0];
+			}
+			else
+			{
+				//edge already completed
+				return;
+			}
+
+			//find best point on left edge
+			int pt = npts;
+			float[] c = { 0, 0, 0 };
+			float r = -1;
+			for (int u = 0; u < npts; u++)
+			{
+				if (u == s || u == t)
+					continue;
+
+				if (VCross2(pts, s * 3, t * 3, u * 3) > EPS)
+				{
+					if (r < 0)
+					{
+						//update circle now
+						pt = u;
+						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+						continue;
+					}
+
+					float dx = c[0] - pts[u * 3 + 0];
+					float dy = c[2] - pts[u * 3 + 2];
+					float d = (float)Math.Sqrt(dx * dx + dy * dy);
+					float tol = 0.001f;
+
+					if (d > r * (1 + tol))
+					{
+						//outside circumcircle
+						continue;
+					}
+					else if (d < r * (1 - tol))
+					{
+						//inside circumcircle, update
+						pt = u;
+						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+					}
+					else
+					{
+						//inside epsilon circumcircle
+						if (OverlapEdges(pts, edges, nedges, s, u))
+							continue;
+
+						if (OverlapEdges(pts, edges, nedges, t, u))
+							continue;
+
+						//edge is valid
+						pt = u;
+						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+					}
+				}
+			}
+
+			//add new triangle or update edge if s-t on hull
+			if (pt < npts)
+			{
+				UpdateLeftFace(edges, e * 4, s, t, nfaces);
+
+				e = FindEdge(edges, nedges, pt, s);
+				if (e == (int)EdgeValues.UNDEF)
+					AddEdge(edges, ref nedges, maxEdges, pt, s, nfaces, (int)EdgeValues.UNDEF);
+				else
+					UpdateLeftFace(edges, e * 4, pt, s, nfaces);
+
+				e = FindEdge(edges, nedges, t, pt);
+				if (e == (int)EdgeValues.UNDEF)
+					AddEdge(edges, ref nedges, maxEdges, t, pt, nfaces, (int)EdgeValues.UNDEF);
+				else
+					UpdateLeftFace(edges, e * 4, t, pt, nfaces);
+
+				nfaces++;
+			}
+			else
+			{
+				UpdateLeftFace(edges, e * 4, s, t, (int)EdgeValues.HULL);
+			}
+		}
+
+		public bool CircumCircle(float[] pts, int p1, int p2, int p3, float[] c, ref float r)
+		{
+			float EPS = 1e-6f;
+			float cp = VCross2(pts, p1, p2, p3);
+
+			if (Math.Abs(cp) > EPS)
+			{
+				float p1Sq = VDot2(pts, p1, p1);
+				float p2Sq = VDot2(pts, p2, p2);
+				float p3Sq = VDot2(pts, p3, p3);
+				c[0] = (p1Sq * (pts[p2 + 2] - pts[p3 + 2]) + p2Sq * (pts[p3 + 2] - pts[p1 + 2]) + p3Sq * (pts[p1 + 2] - pts[p2 + 2])) / (2 * cp);
+				c[2] = (p1Sq * (pts[p2 + 0] - pts[p3 + 0]) + p2Sq * (pts[p3 + 0] - pts[p1 + 0]) + p3Sq * (pts[p1 + 0] - pts[p2 + 0])) / (2 * cp);
+
+				float dx = c[0] - pts[p1 + 0];
+				float dy = c[2] - pts[p1 + 2];
+				r = (float)Math.Sqrt(dx * dx + dy * dy);
+				return true;
+			}
+
+			c[0] = pts[p1 + 0];
+			c[2] = pts[p1 + 2];
+			r = 0;
+			return false;
+		}
+
+		public int AddEdge(List<int> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
+		{
+			if (nedges >= maxEdges)
+			{
+				return (int)EdgeValues.UNDEF;
+			}
+
+			//add edge
+			int e = FindEdge(edges, nedges, s, t);
+			if (e == (int)EdgeValues.UNDEF)
+			{
+				int edge = nedges * 4;
+				edges[edge + 0] = s;
+				edges[edge + 1] = t;
+				edges[edge + 2] = l;
+				edges[edge + 3] = r;
+				return nedges++;
+			}
+			else
+			{
+				return (int)EdgeValues.UNDEF;
+			}
+		}
+
+		public int FindEdge(List<int> edges, int nedges, int s, int t)
+		{
+			for (int i = 0; i < nedges; i++)
+			{
+				int e = i * 4;
+				if ((edges[e + 0] == s && edges[e + 1] == t) || (edges[e + 0] == t && edges[e + 1] == s))
+					return i;
+			}
+
+			return (int)EdgeValues.UNDEF;
+		}
+
+		public bool OverlapEdges(float[] pts, List<int> edges, int nedges, int s1, int t1)
+		{
+			for (int i = 0; i < nedges; i++)
+			{
+				int s0 = edges[i * 4 + 0];
+				int t0 = edges[i * 4 + 1];
+
+				//same or connected edges do not overlap
+				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
+					continue;
+
+				if (OverlapSegSeg2d(pts, s0 * 3, t0 * 3, s1 * 3, t1 * 3) != 0)
+					return true;
+			}
+
+			return false;
+		}
+
+		public void UpdateLeftFace(List<int> edges, int edgePos, int s, int t, int f)
+		{
+			if (edges[edgePos + 0] == s && edges[edgePos + 1] == t && edges[edgePos + 2] == (int)EdgeValues.UNDEF)
+				edges[edgePos + 2] = f;
+			else if (edges[edgePos + 1] == s && edges[edgePos + 0] == t && edges[edgePos + 2] == (int)EdgeValues.UNDEF)
+				edges[edgePos + 3] = f;
+		}
+
+		public int OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
+		{
+			float a1 = VCross2(pts, a, b, d);
+			float a2 = VCross2(pts, a, b, c);
+
+			if (a1 * a2 < 0.0f)
+			{
+				float a3 = VCross2(pts, c, d, a);
+				float a4 = a3 + a2 - a1;
+				
+				if (a3 * a4 < 0.0f)
+					return 1;
+			}
+
+			return 0;
+		}
+
+		public float VCross2(float[] pts, int p1, int p2, int p3)
+		{
+			float u1 = pts[p2 + 0] - pts[p1 + 0];
+			float v1 = pts[p2 + 2] - pts[p1 + 2];
+			float u2 = pts[p3 + 0] - pts[p1 + 0];
+			float v2 = pts[p3 + 2] - pts[p1 + 2];
+
+			return u1 * v2 - v1 * u2;
+		}
+
+		public float VDot2(float[] pts, int a, int b)
+		{
+			return pts[a + 0] * pts[b + 0] + pts[a + 2] * pts[b + 2];
+		}
+
+		/// <summary>
+		/// Determines whether an edge has been created or not
+		/// </summary>
+		public enum EdgeValues : int
+		{
+			UNDEF = -1,
+			HULL = -2
 		}
 
 		public class HeightPatch
