@@ -336,39 +336,35 @@ namespace SharpNav
 			//Loop through every cell in the Heightfield
 			for (int i = 0; i < cells.Length; i++)
 			{
-				//Keep track of the previous span
-				Span previousSpan = new Span(0, 0, AreaFlags.Null);
-				bool previousWalkable = false;
-				AreaFlags previousArea = AreaFlags.Null;
-
 				Cell c = cells[i];
 				List<Span> spans = c.MutableSpans;
 
-				//Loop through every span in the cell
+				//store the first span's data as the "previous" data
+				AreaFlags prevArea = AreaFlags.Null;
+				bool prevWalkable = prevArea != AreaFlags.Null;
+				int prevMax = 0;
+
+				//iterate over all the spans in the cell
 				for (int j = 0; j < spans.Count; j++)
 				{
-					//Examine the current span
-					Span currentSpan = spans[j];
-					bool walkable = currentSpan.Area != AreaFlags.Null;
+					Span s = spans[j];
+					bool walkable = s.Area != AreaFlags.Null;
 
-					// If current span is not walkable, but there is walkable
-					// span just below it, mark the span above it walkable too.
-					if (!walkable && previousWalkable)
+					//if the current span isn't walkable but there's a walkable span right below it,
+					//mark this span as walkable too.
+					if (!walkable && prevWalkable)
 					{
-						if (Math.Abs((int)currentSpan.Maximum - (int)previousSpan.Maximum) <= walkableClimb)
-							currentSpan.Area = previousArea;
+						if (Math.Abs(s.Maximum - prevMax) < walkableClimb)
+							s.Area = prevArea;
 					}
 
-					// Copy walkable flag so that it cannot propagate
-					// past multiple non-walkable objects.
-					previousWalkable = walkable;
-					previousArea = currentSpan.Area;
+					//save changes back to the span list.
+					spans[j] = s;
 
-					//advance to the next span, keeping track of the previous span
-					previousSpan = currentSpan;
-
-					//make sure to save the new span information
-					spans[j] = currentSpan;
+					//set the previous data for the next iteration
+					prevArea = s.Area;
+					prevWalkable = walkable;
+					prevMax = s.Maximum;
 				}
 			}
 		}

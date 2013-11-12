@@ -44,7 +44,7 @@ namespace SharpNav
 		public CompactHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
 			//field.FilterWalkableLowHeightSpans(walkableHeight);
-			//field.FilterLowHangingWalkableObstacles(walkableClimb);
+			field.FilterLowHangingWalkableObstacles(walkableClimb);
 			//field.FilterLedgeSpans(walkableHeight, walkableClimb);
 
 			this.bounds = field.Bounds;
@@ -123,10 +123,18 @@ namespace SharpNav
 								CompactSpan ds = spans[j];
 
 								int overlapBottom = Math.Max(s.Minimum, ds.Minimum);
-								int overlapTop = Math.Min(s.Minimum + s.Height, ds.Minimum + ds.Height);
+								int overlapTop;
 
+								//TODO clean this up. Maybe a custom min/max function that takes infinite spans into account.
+								//This is an issue here but not in Recast since the stored value goes up to int.MaxValue instead of a lower limit.
 								if (!s.HasUpperBound && !ds.HasUpperBound)
 									overlapTop = int.MaxValue;
+								else if (!s.HasUpperBound)
+									overlapTop = ds.Minimum + ds.Height;
+								else if (!ds.HasUpperBound)
+									overlapTop = s.Minimum + s.Height;
+								else
+									overlapTop = Math.Min(s.Minimum + s.Height, ds.Minimum + ds.Height);
 
 								if ((overlapTop - overlapBottom) >= walkableHeight && Math.Abs(ds.Minimum - s.Minimum) <= walkableClimb)
 								{

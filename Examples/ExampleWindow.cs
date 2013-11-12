@@ -231,7 +231,7 @@ namespace Examples
 				}
 				else if (!hasOpenHeightfield)
 				{
-					openHeightfield = new CompactHeightfield(heightfield, 40, 15);
+					openHeightfield = new CompactHeightfield(heightfield, 15, 15);
 					hasOpenHeightfield = true;
 				}
 				else if (!hasDistanceField)
