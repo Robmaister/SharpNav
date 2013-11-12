@@ -221,7 +221,7 @@ namespace SharpNav
 
 				for (int dir = 0; dir < 4; dir++)
 				{
-					if (CompactSpan.GetConnection(dir, ref cs) == CompactHeightfield.NotConnected)
+					if (CompactSpan.GetConnection(dir, ref cs) == CompactSpan.NotConnected)
 						continue;
 
 					int ax = cx + MathHelper.GetDirOffsetX(dir);
@@ -281,7 +281,7 @@ namespace SharpNav
 				CompactSpan cs = openField.Spans[ci];
 				for (int dir = 0; dir < 4; dir++)
 				{
-					if (CompactSpan.GetConnection(dir, ref cs) == CompactHeightfield.NotConnected)
+					if (CompactSpan.GetConnection(dir, ref cs) == CompactSpan.NotConnected)
 						continue;
 
 					int ax = cx + MathHelper.GetDirOffsetX(dir);

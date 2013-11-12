@@ -11,10 +11,11 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A more memory-compact heightfield that stores open spans of voxels instead of closed ones.
+	/// </summary>
 	public class CompactHeightfield
 	{
-		public const int NotConnected = 0xff; //HACK figure out a better way to do this
-
 		public const int BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
 
 		private BBox3 bounds;
@@ -34,11 +35,17 @@ namespace SharpNav
 		private int maxRegions;
 		private int borderSize;
 		
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
+		/// </summary>
+		/// <param name="field">A <see cref="Heightfield"/> to build from.</param>
+		/// <param name="walkableHeight">The maximum difference in height to filter.</param>
+		/// <param name="walkableClimb">The maximum difference in slope to filter.</param>
 		public CompactHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
-			field.FilterWalkableLowHeightSpans(walkableHeight);
-			field.FilterLowHangingWalkableObstacles(walkableClimb);
-			field.FilterLedgeSpans(walkableHeight, walkableClimb);
+			//field.FilterWalkableLowHeightSpans(walkableHeight);
+			//field.FilterLowHangingWalkableObstacles(walkableClimb);
+			//field.FilterLedgeSpans(walkableHeight, walkableClimb);
 
 			this.bounds = field.Bounds;
 			this.width = field.Width;
@@ -47,9 +54,10 @@ namespace SharpNav
 			this.cellSize = field.CellSizeXZ;
 			this.cellHeight = field.CellHeight;
 
+			int spanCount = field.SpanCount;
 			cells = new CompactCell[width * length];
-			spans = new CompactSpan[field.SpanCount];
-			areas = new AreaFlags[field.SpanCount];
+			spans = new CompactSpan[spanCount];
+			areas = new AreaFlags[spanCount];
 
 			//iterate over the Heightfield's cells
 			int spanIndex = 0;
@@ -101,7 +109,7 @@ namespace SharpNav
 
 						for (int dir = 0; dir < 4; dir++)
 						{
-							CompactSpan.SetConnection(dir, NotConnected, ref spans[i]);
+							CompactSpan.SetConnection(dir, CompactSpan.NotConnected, ref spans[i]);
 
 							int dx = x + MathHelper.GetDirOffsetX(dir);
 							int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -136,22 +144,136 @@ namespace SharpNav
 			}
 		}
 
-		public int Width { get { return width; } }
-		public int Height { get { return height; } }
-		public int Length { get { return length; } }
+		/// <summary>
+		/// Gets the width of the <see cref="CompactHeightfield"/> in voxel units.
+		/// </summary>
+		public int Width
+		{
+			get
+			{
+				return width;
+			}
+		}
 
-		public BBox3 Bounds { get { return bounds; } }
-		public float CellSize { get { return cellSize; } }
-		public float CellHeight { get { return cellHeight; } }
+		/// <summary>
+		/// Gets the height of the <see cref="CompactHeightfield"/> in voxel units.
+		/// </summary>
+		public int Height
+		{
+			get
+			{
+				return height;
+			}
+		}
 
-		public int MaxDistance { get { return maxDistance; } }
-		public int[] Distances { get { return distances; } }
-		public int BorderSize { get { return borderSize; } }
-		public int MaxRegions { get { return maxRegions; } }
+		/// <summary>
+		/// Gets the length of the <see cref="CompactHeightfield"/> in voxel units.
+		/// </summary>
+		public int Length
+		{
+			get
+			{
+				return length;
+			}
+		}
 
-		public CompactCell[] Cells { get { return cells; } }
-		public CompactSpan[] Spans { get { return spans; } }
-		public AreaFlags[] Areas { get { return areas; } }
+		/// <summary>
+		/// Gets the world-space bounding box.
+		/// </summary>
+		public BBox3 Bounds
+		{
+			get
+			{
+				return bounds;
+			}
+		}
+
+		/// <summary>
+		/// Gets the world-space size of a cell in the XZ plane.
+		/// </summary>
+		public float CellSize
+		{
+			get
+			{
+				return cellSize;
+			}
+		}
+
+		/// <summary>
+		/// Gets the world-space size of a cell in the Y direction.
+		/// </summary>
+		public float CellHeight
+		{
+			get
+			{
+				return cellHeight;
+			}
+		}
+
+		public int MaxDistance
+		{
+			get
+			{
+				return maxDistance;
+			}
+		}
+
+		public int[] Distances
+		{
+			get
+			{
+				return distances;
+			}
+		}
+
+		public int BorderSize
+		{
+			get
+			{
+				return borderSize;
+			}
+		}
+
+		public int MaxRegions
+		{
+			get
+			{
+				return maxRegions;
+			}
+		}
+
+		/// <summary>
+		/// Gets the cells.
+		/// </summary>
+		public CompactCell[] Cells
+		{
+			get
+			{
+				return cells;
+			}
+		}
+
+		/// <summary>
+		/// Gets the spans.
+		/// </summary>
+		public CompactSpan[] Spans
+		{
+			get
+			{
+				return spans;
+			}
+		}
+
+		/// <summary>
+		/// Gets the area flags.
+		/// </summary>
+		public AreaFlags[] Areas
+		{
+			get
+			{
+				return areas;
+			}
+		}
 
 		/// <summary>
 		/// Gets the <see cref="Heightfield.Cell"/> at the specified coordinate.
@@ -198,7 +320,7 @@ namespace SharpNav
 		{
 			//initialize distance and points
 			for (int i = 0; i < spans.Length; i++)
-				src[i] = 0xffff;
+				src[i] = int.MaxValue;
 
 			//mark boundary cells
 			for (int y = 0; y < length; y++)
@@ -214,7 +336,7 @@ namespace SharpNav
 						int numConnections = 0;
 						for (int dir = 0; dir < 4; dir++)
 						{
-							if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
+							if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -240,7 +362,7 @@ namespace SharpNav
 					{
 						CompactSpan s = spans[i];
 
-						if (CompactSpan.GetConnection(0, ref s) != NotConnected)
+						if (CompactSpan.GetConnection(0, ref s) != CompactSpan.NotConnected)
 						{
 							//(-1, 0)
 							int dx = x + MathHelper.GetDirOffsetX(0);
@@ -248,20 +370,20 @@ namespace SharpNav
 							int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(0, ref s);
 							CompactSpan ds = spans[di];
 							if (src[di] + 2 < src[i])
-								src[i] = (ushort)(src[di] + 2);
+								src[i] = src[di] + 2;
 
 							//(-1, -1)
-							if (CompactSpan.GetConnection(3, ref ds) != NotConnected)
+							if (CompactSpan.GetConnection(3, ref ds) != CompactSpan.NotConnected)
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(3);
 								int ddy = dy + MathHelper.GetDirOffsetY(3);
 								int ddi = cells[ddx + ddy * width].StartIndex + CompactSpan.GetConnection(3, ref ds);
 								if (src[ddi] + 3 < src[i])
-									src[i] = (ushort)(src[ddi] + 3);
+									src[i] = src[ddi] + 3;
 							}
 						}
 
-						if (CompactSpan.GetConnection(3, ref s) != NotConnected)
+						if (CompactSpan.GetConnection(3, ref s) != CompactSpan.NotConnected)
 						{
 							//(0, -1)
 							int dx = x + MathHelper.GetDirOffsetX(3);
@@ -269,16 +391,16 @@ namespace SharpNav
 							int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(3, ref s);
 							CompactSpan ds = spans[di];
 							if (src[di] + 2 < src[i])
-								src[i] = (ushort)(src[di] + 2);
+								src[i] = src[di] + 2;
 
 							//(1, -1)
-							if (CompactSpan.GetConnection(2, ref ds) != NotConnected)
+							if (CompactSpan.GetConnection(2, ref ds) != CompactSpan.NotConnected)
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(2);
 								int ddy = dy + MathHelper.GetDirOffsetY(2);
 								int ddi = cells[ddx + ddy * width].StartIndex + CompactSpan.GetConnection(2, ref ds);
 								if (src[ddi] + 3 < src[i])
-									src[i] = (ushort)(src[ddi] + 3);
+									src[i] = src[ddi] + 3;
 							}
 						}
 					}
@@ -295,7 +417,7 @@ namespace SharpNav
 					{
 						CompactSpan s = spans[i];
 
-						if (CompactSpan.GetConnection(2, ref s) != NotConnected)
+						if (CompactSpan.GetConnection(2, ref s) != CompactSpan.NotConnected)
 						{
 							//(1, 0)
 							int dx = x + MathHelper.GetDirOffsetX(2);
@@ -303,20 +425,20 @@ namespace SharpNav
 							int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(2, ref s);
 							CompactSpan ds = spans[di];
 							if (src[di] + 2 < src[i])
-								src[i] = (ushort)(src[di] + 2);
+								src[i] = src[di] + 2;
 
 							//(1, 1)
-							if (CompactSpan.GetConnection(1, ref ds) != NotConnected)
+							if (CompactSpan.GetConnection(1, ref ds) != CompactSpan.NotConnected)
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(1);
 								int ddy = dy + MathHelper.GetDirOffsetY(1);
 								int ddi = cells[ddx + ddy * width].StartIndex + CompactSpan.GetConnection(1, ref ds);
 								if (src[ddi] + 3 < src[i])
-									src[i] = (ushort)(src[ddi] + 3);
+									src[i] = src[ddi] + 3;
 							}
 						}
 
-						if (CompactSpan.GetConnection(1, ref s) != NotConnected)
+						if (CompactSpan.GetConnection(1, ref s) != CompactSpan.NotConnected)
 						{
 							//(0, 1)
 							int dx = x + MathHelper.GetDirOffsetX(1);
@@ -324,16 +446,16 @@ namespace SharpNav
 							int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(1, ref s);
 							CompactSpan ds = spans[di];
 							if (src[di] + 2 < src[i])
-								src[i] = (ushort)(src[di] + 2);
+								src[i] = src[di] + 2;
 
 							//(-1, 1)
-							if (CompactSpan.GetConnection(0, ref ds) != NotConnected)
+							if (CompactSpan.GetConnection(0, ref ds) != CompactSpan.NotConnected)
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(0);
 								int ddy = dy + MathHelper.GetDirOffsetY(0);
 								int ddi = cells[ddx + ddy * width].StartIndex + CompactSpan.GetConnection(0, ref ds);
 								if (src[ddi] + 3 < src[i])
-									src[i] = (ushort)(src[ddi] + 3);
+									src[i] = src[ddi] + 3;
 							}
 						}
 					}
@@ -375,7 +497,7 @@ namespace SharpNav
 						for (int dir = 0; dir < 4; dir++)
 						{
 							//check neighbor span
-							if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
+							if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -385,7 +507,7 @@ namespace SharpNav
 								//check next span in next clockwise direction
 								CompactSpan ds = spans[di];
 								int dir2 = (dir + 1) % 4;
-								if (CompactSpan.GetConnection(dir2, ref ds) != NotConnected)
+								if (CompactSpan.GetConnection(dir2, ref ds) != CompactSpan.NotConnected)
 								{
 									int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
 									int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
@@ -403,7 +525,7 @@ namespace SharpNav
 							}
 						}
 						//save new value to destination
-						dst[i] = (ushort)((d + 5) / 9);
+						dst[i] = (d + 5) / 9;
 					}
 				}
 			}
@@ -490,7 +612,7 @@ namespace SharpNav
 					CompactSpan s = spans[i];
 					for (int dir = 0; dir < 4; dir++)
 					{
-						if (CompactSpan.GetConnection(dir, ref s) == NotConnected) continue;
+						if (CompactSpan.GetConnection(dir, ref s) == CompactSpan.NotConnected) continue;
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
 						int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(dir, ref s);
@@ -504,12 +626,14 @@ namespace SharpNav
 							}
 						}
 					}
+
 					if (r != 0)
 					{
 						stack[j + 2] = -1; //mark as used
 						dstReg[i] = r;
 						dstDist[i] = d2;
 					}
+
 					else
 					{
 						failed++;
@@ -581,7 +705,7 @@ namespace SharpNav
 				for (int dir = 0; dir < 4; dir++)
 				{
 					//8 connected
-					if (CompactSpan.GetConnection(dir, ref cs) != NotConnected)
+					if (CompactSpan.GetConnection(dir, ref cs) != CompactSpan.NotConnected)
 					{
 						int dx = cx + MathHelper.GetDirOffsetX(dir);
 						int dy = cy + MathHelper.GetDirOffsetY(dir);
@@ -598,7 +722,7 @@ namespace SharpNav
 
 						CompactSpan ds = spans[di];
 						int dir2 = (dir + 1) % 4;
-						if (CompactSpan.GetConnection(dir2, ref ds) != NotConnected)
+						if (CompactSpan.GetConnection(dir2, ref ds) != CompactSpan.NotConnected)
 						{
 							int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
 							int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
@@ -626,7 +750,7 @@ namespace SharpNav
 				//expand neighbors
 				for (int dir = 0; dir < 4; dir++)
 				{
-					if (CompactSpan.GetConnection(dir, ref cs) != NotConnected)
+					if (CompactSpan.GetConnection(dir, ref cs) != CompactSpan.NotConnected)
 					{
 						int dx = cx + MathHelper.GetDirOffsetX(dir);
 						int dy = cy + MathHelper.GetDirOffsetY(dir);
@@ -664,7 +788,7 @@ namespace SharpNav
 			CompactSpan s = spans[i];
 			int r = 0;
 
-			if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
+			if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -695,13 +819,14 @@ namespace SharpNav
 			CompactSpan ss = spans[i];
 			int curReg = 0;
 
-			if (CompactSpan.GetConnection(dir, ref ss) != NotConnected)
+			if (CompactSpan.GetConnection(dir, ref ss) != CompactSpan.NotConnected)
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
 				int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(dir, ref ss);
 				curReg = srcReg[di];
 			}
+
 			cont.Add(curReg);
 
 			int iter = 0;
@@ -713,7 +838,7 @@ namespace SharpNav
 				{
 					//choose the edge corner
 					int r = 0;
-					if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
+					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -735,7 +860,7 @@ namespace SharpNav
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
 
-					if (CompactSpan.GetConnection(dir, ref s) != NotConnected)
+					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 					{
 						CompactCell dc = cells[dx + dy * width];
 						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);
@@ -970,9 +1095,7 @@ namespace SharpNav
 							mergeCount++;
 						}
 					}
-
 				}
-
 			}
 			while (mergeCount > 0);
 

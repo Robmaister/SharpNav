@@ -11,6 +11,8 @@ namespace SharpNav
 	/// </summary>
 	public struct CompactSpan
 	{
+		public const int NotConnected = 0xff; //HACK this could be cleaner
+
 		/// <summary>
 		/// The span minimum.
 		/// </summary>
