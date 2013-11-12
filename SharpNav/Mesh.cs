@@ -42,19 +42,14 @@ namespace SharpNav
 		private int borderSize;
 
 		public int NVerts { get { return nverts; } }
-
 		public int NPolys { get { return npolys; } }
-
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
-
 		public int[] Verts { get { return verts; } }
-
 		public int[] Polys { get { return polys; } }
 
+		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
-
 		public float CellHeight { get { return CellHeight; } }
-
 		public int BorderSize { get { return borderSize; } }
 
 		/// <summary>
@@ -411,15 +406,22 @@ namespace SharpNav
 		/// <returns></returns>
 		public int AddVertex(int x, int y, int z, int[] verts, int[] firstVert, int[] nextVert, ref int nv)
 		{
+			//generate a hashed value
 			int bucket = ComputeVertexHash(x, 0, z);
+			
+			//access that vertex
 			int i = firstVert[bucket];
 			int v;
 
 			while (i != -1)
 			{
 				v = i * 3;
+
+				//done
 				if (verts[v + 0] == x && (Math.Abs(verts[v + 1] - y) <= 2) && verts[v + 2] == z)
 					return i;
+				
+				//next vertex
 				i = nextVert[i];
 			}
 
@@ -770,23 +772,23 @@ namespace SharpNav
 
 				for (int i = 0; i < nedges; i++)
 				{
-					int ea = i * 4 + 0;
-					int eb = i * 4 + 1;
+					int edgeA = i * 4 + 0;
+					int edgeB = i * 4 + 1;
 					int r = i * 4 + 2;
 					int a = i * 4 + 3;
 					bool add = false;
-					if (hole[0] == eb)
+					if (hole[0] == edgeB)
 					{
 						//segment matches beginning of hole boundary
-						PushFront(ea, hole, ref nhole);
+						PushFront(edgeA, hole, ref nhole);
 						PushFront(r, hreg, ref nhreg);
 						PushFront(a, harea, ref nharea);
 						add = true;
 					}
-					else if (hole[nhole - 1] == ea)
+					else if (hole[nhole - 1] == edgeA)
 					{
 						//segment matches end of hole boundary
-						PushBack(eb, hole, ref nhole);
+						PushBack(edgeB, hole, ref nhole);
 						PushBack(r, hreg, ref nhreg);
 						PushBack(a, harea, ref nharea);
 						add = true;
@@ -870,15 +872,15 @@ namespace SharpNav
 						for (int k = j + 1; k < npolys; k++)
 						{
 							int pk = k * numVertsPerPoly;
-							int ea = 0, eb = 0;
-							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref ea, ref eb, numVertsPerPoly);
+							int edgeA = 0, edgeB = 0;
+							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref edgeA, ref edgeB, numVertsPerPoly);
 							if (v > bestMergeVal)
 							{
 								bestMergeVal = v;
 								bestPa = j;
 								bestPb = k;
-								bestEa = ea;
-								bestEb = eb;
+								bestEa = edgeA;
+								bestEb = edgeB;
 							}
 						}
 					}
