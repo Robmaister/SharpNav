@@ -176,7 +176,7 @@ namespace SharpNav
 			{
 				int count = 0;
 				for (int i = 0; i < cells.Length; i++)
-					count += cells[i].Spans.Count;
+					count += cells[i].NonNullSpanCount;
 
 				return count;
 			}
@@ -373,40 +373,25 @@ namespace SharpNav
 		/// If two spans have little vertical space in between them, 
 		/// then span is considered unwalkable
 		/// </summary>
-		/// <param name="walkableHeight">The clearance</param>
+		/// <param name="walkableHeight">The clearance.</param>
 		public void FilterWalkableLowHeightSpans(int walkableHeight)
 		{
-			// Remove walkable flag from spans which do not have enough
-			// space above them for the agent to stand there.
 			for (int i = 0; i < cells.Length; i++)
 			{
 				Cell c = cells[i];
 				List<Span> spans = c.MutableSpans;
 
-				//Examine all the spans
-				for (int j = 0; j < spans.Count; j++)
+				//Iterate over all spans
+				for (int j = 0; j < spans.Count - 1; j++)
 				{
 					Span currentSpan = spans[j];
-					Span nextSpan;
-
-					int bot = (int)currentSpan.Maximum;
-					int top;
-					if (j != spans.Count - 1)
-					{
-						nextSpan = spans[j + 1];
-						top = (int)nextSpan.Minimum;
-					}
-					else
-					{
-						top = c.Height;
-					}
 
 					//too low, not enough space to walk through
-					if ((top - bot) <= walkableHeight)
+					if ((spans[j + 1].Minimum - currentSpan.Maximum) <= walkableHeight)
+					{
 						currentSpan.Area = AreaFlags.Null;
-
-					//save span data
-					spans[j] = currentSpan;
+						spans[j] = currentSpan;
+					}
 				}
 			}
 		}
@@ -419,7 +404,6 @@ namespace SharpNav
 		/// <param name="walkableClimb">The maximum walkable climb to filter.</param>
 		public void FilterLedgeSpans(int walkableHeight, int walkableClimb)
 		{
-			//HACK needs testing.
 			//Mark border spans.
 			for (int y = 0; y < length; y++)
 			{
@@ -432,26 +416,16 @@ namespace SharpNav
 					for (int i = 0; i < spans.Count; i++)
 					{
 						Span currentSpan = spans[i];
-						Span nextSpan;
 
 						// Skip non walkable spans.
 						if (currentSpan.Area == AreaFlags.Null)
 							continue;
 
 						int bottom = (int)currentSpan.Maximum;
-						int top;
-						if (i != spans.Count - 1)
-						{
-							nextSpan = spans[i + 1];
-							top = (int)nextSpan.Minimum;
-						}
-						else
-						{
-							top = c.Height;
-						}
+						int top = (i == spans.Count - 1) ? int.MaxValue : spans[i + 1].Minimum;
 
 						// Find neighbours minimum height.
-						int minHeight = c.Height;
+						int minHeight = int.MaxValue;
 
 						// Min and max height of accessible neighbours.
 						int accessibleMin = currentSpan.Maximum;
@@ -470,20 +444,10 @@ namespace SharpNav
 							}
 
 							// From minus infinity to the first span.
-							Cell neighborCell = cells[dx + dy * width];
+							Cell neighborCell = cells[dy * width + dx];
 							List<Span> neighborSpans = neighborCell.MutableSpans;
-							Span currentNeighborSpan;
 							int neighborBottom = -walkableClimb;
-							int neighborTop;
-							if (neighborSpans.Count >= 1 && !neighborSpans[0].Equals(null))
-							{
-								currentNeighborSpan = neighborCell.Spans[0];
-								neighborTop = currentNeighborSpan.Minimum;
-							}
-							else
-							{
-								neighborTop = c.Height;
-							}
+							int neighborTop = neighborSpans.Count > 0 ? neighborSpans[0].Minimum : int.MaxValue;
 
 							// Skip neightbour if the gap between the spans is too small.
 							if (Math.Min(top, neighborTop) - Math.Max(bottom, neighborBottom) > walkableHeight)
@@ -492,18 +456,10 @@ namespace SharpNav
 							// Rest of the spans.
 							for (int j = 0; j < neighborSpans.Count; j++)
 							{
-								currentNeighborSpan = neighborSpans[j];
-								Span nextNeighborSpan;
-								neighborBottom = (int)currentNeighborSpan.Maximum;
-								if (j != neighborSpans.Count - 1)
-								{
-									nextNeighborSpan = neighborSpans[j + 1];
-									neighborTop = (int)nextNeighborSpan.Minimum;
-								}
-								else
-								{
-									neighborTop = c.Height;
-								}
+								Span currentNeighborSpan = neighborSpans[j];
+
+								neighborBottom = currentNeighborSpan.Maximum;
+								neighborTop = j == neighborSpans.Count - 1 ? int.MaxValue : neighborSpans[j + 1].Minimum;
 
 								// Skip neightbour if the gap between the spans is too small.
 								if (Math.Min(top, neighborTop) - Math.Max(bottom, neighborBottom) > walkableHeight)
@@ -528,9 +484,7 @@ namespace SharpNav
 						// If the difference between all neighbours is too large,
 						// we are at steep slope, mark the span as ledge.
 						if ((accessibleMax - accessibleMin) > walkableClimb)
-						{
 							currentSpan.Area = AreaFlags.Null;
-						}
 
 						//save span data
 						spans[i] = currentSpan;

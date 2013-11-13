@@ -43,10 +43,6 @@ namespace SharpNav
 		/// <param name="walkableClimb">The maximum difference in slope to filter.</param>
 		public CompactHeightfield(Heightfield field, int walkableHeight, int walkableClimb)
 		{
-			//field.FilterWalkableLowHeightSpans(walkableHeight);
-			field.FilterLowHangingWalkableObstacles(walkableClimb);
-			//field.FilterLedgeSpans(walkableHeight, walkableClimb);
-
 			this.bounds = field.Bounds;
 			this.width = field.Width;
 			this.height = field.Height;
@@ -125,7 +121,7 @@ namespace SharpNav
 								int overlapBottom = Math.Max(s.Minimum, ds.Minimum);
 								int overlapTop;
 
-								//TODO clean this up. Maybe a custom min/max function that takes infinite spans into account.
+								//TODO clean this up. Maybe a custom min/max function that takes "infinite" spans into account.
 								//This is an issue here but not in Recast since the stored value goes up to int.MaxValue instead of a lower limit.
 								if (!s.HasUpperBound && !ds.HasUpperBound)
 									overlapTop = int.MaxValue;

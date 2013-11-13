@@ -231,7 +231,14 @@ namespace Examples
 				}
 				else if (!hasOpenHeightfield)
 				{
-					openHeightfield = new CompactHeightfield(heightfield, 15, 15);
+					const int WalkableClimb = 15;
+					const int WalkableHeight = 15;
+
+					heightfield.FilterLedgeSpans(WalkableHeight, WalkableClimb);
+					heightfield.FilterLowHangingWalkableObstacles(WalkableClimb);
+					heightfield.FilterWalkableLowHeightSpans(WalkableHeight);
+
+					openHeightfield = new CompactHeightfield(heightfield, WalkableHeight, WalkableClimb);
 					hasOpenHeightfield = true;
 				}
 				else if (!hasDistanceField)
