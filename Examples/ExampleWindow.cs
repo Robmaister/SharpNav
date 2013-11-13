@@ -45,6 +45,10 @@ namespace Examples
 
 		private bool hasDistanceField;
 
+		private ContourSet contourSet;
+		private Color4[] contourColors;
+		private bool hasContours;
+
 		private KeyboardState prevK;
 		private MouseState prevM;
 
@@ -246,6 +250,18 @@ namespace Examples
 					openHeightfield.BuildDistanceField();
 					hasDistanceField = true;
 				}
+				else if (!hasContours)
+				{
+					openHeightfield.BuildRegions(1, 5, 10);
+					contourSet = new ContourSet(openHeightfield, 1f, 5, 0);
+
+					Random r = new Random();
+					contourColors = new Color4[contourSet.Contours.Count];
+					for (int i = 0; i < contourColors.Length; i++)
+						contourColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
+
+					hasContours = true;
+				}
 			}
 
 			base.OnKeyDown(e);
@@ -270,7 +286,31 @@ namespace Examples
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
 
-			if (hasDistanceField)
+			if (hasContours)
+			{
+				if (vDrawMode == VoxelDrawMode.Transparent)
+				{
+					GL.Disable(EnableCap.Light0);
+					GL.Disable(EnableCap.Lighting);
+					GL.DepthMask(false);
+					GL.Color4(1f, 0f, 0f, 0.5f);
+				}
+
+				GL.DisableClientState(ArrayCap.NormalArray);
+
+				for (int i = 0; i < contourSet.Contours.Count; i++)
+				{
+					GL.Color4(contourColors[i]);
+					GL.VertexPointer(3, VertexPointerType.Int, 0, contourSet.Contours[i].Vertices);
+					GL.DrawArrays(BeginMode.LineLoop, 0, contourSet.Contours[i].Vertices.Length);
+				}
+
+				GL.DisableClientState(ArrayCap.VertexArray);
+
+				if (vDrawMode == VoxelDrawMode.Transparent)
+					GL.DepthMask(true);
+			}
+			else if (hasDistanceField)
 			{
 				if (vDrawMode == VoxelDrawMode.Transparent)
 				{

@@ -315,12 +315,372 @@ namespace SharpNav
 			}
 		}
 
+		public void BuildDistanceField()
+		{
+			int[] src = new int[spans.Length];
+			int[] dst = new int[spans.Length];
+
+			//fill up all the values in src
+			CalculateDistanceField(src);
+
+			//find the maximum distance
+			this.maxDistance = 0;
+			for (int i = 0; i < spans.Length; i++)
+				this.maxDistance = Math.Max(src[i], this.maxDistance);
+
+			//blur 
+			if (BoxBlur(1, src, dst) != src)
+			{
+				src = dst;
+			}
+
+			//store distances
+			this.distances = src;
+		}
+
+		/// <summary>
+		/// The central method for building regions, which consists of connected, non-overlapping walkable spans.
+		/// </summary>
+		/// <param name="borderSize"></param>
+		/// <param name="minRegionArea">If smaller than this value, region will be null</param>
+		/// <param name="mergeRegionArea">Reduce unneccesarily small regions</param>
+		/// <returns></returns>
+		public bool BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
+		{
+			int[] srcReg = new int[spans.Length];
+			int[] srcDist = new int[spans.Length];
+			int[] dstReg = new int[spans.Length];
+			int[] dstDist = new int[spans.Length];
+
+			//BuildDistanceField();
+
+			int regionId = 1;
+			int level = ((maxDistance + 1) & ~1); //find a better way to compute this
+
+			const int ExpandIters = 8;
+
+			if (borderSize > 0)
+			{
+				//make sure border doesn't overflow
+				int borderWidth = Math.Min(width, borderSize);
+				int borderHeight = Math.Min(length, borderSize);
+
+				//paint regions
+				PaintRectRegion(0, borderWidth, 0, length, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(width - borderWidth, width, 0, length, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(0, width, 0, borderHeight, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+				PaintRectRegion(0, width, length - borderHeight, length, (ushort)(regionId | BORDER_REG), srcReg);
+				regionId++;
+
+				this.borderSize = borderSize;
+			}
+
+			while (level > 0)
+			{
+				level = (level >= 2 ? level - 2 : 0);
+
+				//expand current regions until no new empty connected cells found
+				if (ExpandRegions(ExpandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
+				{
+					int[] temp = srcReg;
+					srcReg = dstReg;
+					dstReg = temp;
+
+					temp = srcDist;
+					srcDist = dstDist;
+					dstDist = temp;
+				}
+
+				//mark new regions with ids
+				for (int y = 0; y < length; y++)
+				{
+					for (int x = 0; x < width; x++)
+					{
+						CompactCell c = cells[x + y * width];
+						for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+						{
+							if (distances[i] < level || srcReg[i] != 0 || areas[i] == AreaFlags.Null)
+								continue;
+
+							if (FloodRegion(x, y, i, level, regionId, srcReg, srcDist))
+								regionId++;
+						}
+					}
+				}
+			}
+
+			//expand current regions until no new empty connected cells found
+			if (ExpandRegions(ExpandIters * 8, 0, srcReg, srcDist, dstReg, dstDist) != srcReg)
+			{
+				int[] temp = srcReg;
+				srcReg = dstReg;
+				dstReg = temp;
+
+				temp = srcDist;
+				srcDist = dstDist;
+				dstDist = temp;
+			}
+
+			//filter out small regions
+			this.maxRegions = regionId;
+			if (!FilterSmallRegions(minRegionArea, mergeRegionArea, ref this.maxRegions, srcReg))
+				return false;
+
+			//write the result out
+			for (int i = 0; i < spans.Length; i++)
+				spans[i].Region = srcReg[i];
+
+			return true;
+		}
+
+		/// <summary>
+		/// Discards regions that are too small. 
+		/// </summary>
+		/// <param name="minRegionArea"></param>
+		/// <param name="mergeRegionSize"></param>
+		/// <param name="maxRegionId">determines the number of regions available</param>
+		/// <param name="srcReg">region data</param>
+		/// <returns></returns>
+		private bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref int maxRegionId, int[] srcReg)
+		{
+			int numRegions = maxRegionId + 1;
+			Region[] regions = new Region[numRegions];
+
+			//construct regions
+			for (int i = 0; i < numRegions; i++)
+				regions[i] = new Region((ushort)i);
+
+			//find edge of a region and find connections around a contour
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					CompactCell c = cells[x + y * width];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						int r = srcReg[i];
+						if (r == 0 || r >= numRegions)
+							continue;
+
+						Region reg = regions[r];
+						reg.SpanCount++;
+
+						//update floors
+						for (int j = c.StartIndex; j < end; j++)
+						{
+							if (i == j) continue;
+							int floorId = srcReg[j];
+							if (floorId == 0 || floorId >= numRegions)
+								continue;
+							reg.AddUniqueFloorRegion(floorId);
+						}
+
+						//have found contour
+						if (reg.Connections.Count > 0)
+							continue;
+
+						reg.AreaType = areas[i];
+
+						//check if this cell is next to a border
+						int ndir = -1;
+						for (int dir = 0; dir < 4; dir++)
+						{
+							if (IsSolidEdge(srcReg, x, y, i, dir))
+							{
+								ndir = dir;
+								break;
+							}
+						}
+
+						if (ndir != -1)
+						{
+							//The cell is at a border. 
+							//Walk around contour to find all neighbors
+							WalkContour(srcReg, x, y, i, ndir, reg.Connections);
+						}
+					}
+				}
+			}
+
+			//Remove too small regions
+			List<int> stack = new List<int>();
+			List<int> trace = new List<int>();
+			for (int i = 0; i < numRegions; i++)
+			{
+				Region reg = regions[i];
+				if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
+					continue;
+				if (reg.SpanCount == 0)
+					continue;
+				if (reg.Visited)
+					continue;
+
+				//count the total size of all connected regions
+				//also keep track of the regions connections to a tile border
+				bool connectsToBorder = false;
+				int spanCount = 0;
+				stack.Clear();
+				trace.Clear();
+
+				reg.Visited = true;
+				stack.Add(i);
+
+				while (stack.Count != 0)
+				{
+					//pop
+					int ri = stack[stack.Count - 1];
+					stack.RemoveAt(stack.Count - 1);
+
+					Region creg = regions[ri];
+
+					spanCount += creg.SpanCount;
+					trace.Add(ri);
+
+					for (int j = 0; j < creg.Connections.Count; j++)
+					{
+						if ((creg.Connections[j] & BORDER_REG) != 0)
+						{
+							connectsToBorder = true;
+							continue;
+						}
+
+						Region neiReg = regions[creg.Connections[j]];
+						if (neiReg.Visited)
+							continue;
+						if (neiReg.Id == 0 || (neiReg.Id & BORDER_REG) != 0)
+							continue;
+
+						//visit
+						stack.Add(neiReg.Id);
+						neiReg.Visited = true;
+					}
+				}
+
+				//if the accumulated region size is too small, remove it
+				//do not remove areas which connect to tile borders as their size can't be estimated correctly
+				//and removing them can potentially remove necessary areas
+				if (spanCount < minRegionArea && !connectsToBorder)
+				{
+					//kill all visited regions
+					for (int j = 0; j < trace.Count; j++)
+					{
+						regions[trace[j]].SpanCount = 0;
+						regions[trace[j]].Id = 0;
+					}
+				}
+
+			}
+
+			//Merge too small regions to neighbor regions
+			int mergeCount = 0;
+			do
+			{
+				mergeCount = 0;
+				for (int i = 0; i < numRegions; i++)
+				{
+					Region reg = regions[i];
+					if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
+						continue;
+					if (reg.SpanCount == 0)
+						continue;
+
+					//check to see if region should be merged
+					if (reg.SpanCount > mergeRegionSize && reg.IsRegionConnectedToBorder())
+						continue;
+
+					//small region with more than one connection or region which is not connected to border at all
+					//find smallest neighbor that connects to this one
+					int smallest = 0xfffffff;
+					ushort mergeId = reg.Id;
+					for (int j = 0; j < reg.Connections.Count; j++)
+					{
+						if ((reg.Connections[j] & BORDER_REG) != 0) continue;
+						Region mreg = regions[reg.Connections[j]];
+						if (mreg.Id == 0 || (mreg.Id & BORDER_REG) != 0) continue;
+						if (mreg.SpanCount < smallest && reg.CanMergeWithRegion(mreg) && mreg.CanMergeWithRegion(reg))
+						{
+							smallest = mreg.SpanCount;
+							mergeId = mreg.Id;
+						}
+					}
+
+					//found new id
+					if (mergeId != reg.Id)
+					{
+						ushort oldId = reg.Id;
+						Region target = regions[mergeId];
+
+						//merge regions
+						if (target.MergeWithRegion(reg))
+						{
+							//fix regions pointing to current region
+							for (int j = 0; j < numRegions; j++)
+							{
+								if (regions[j].Id == 0 || (regions[j].Id & BORDER_REG) != 0) continue;
+
+								//if another regions was already merged into current region
+								//change the nid of the previous region too
+								if (regions[j].Id == oldId)
+									regions[j].Id = mergeId;
+
+								//replace current region with new one if current region is neighbor
+								regions[j].ReplaceNeighbour(oldId, mergeId);
+							}
+							mergeCount++;
+						}
+					}
+				}
+			}
+			while (mergeCount > 0);
+
+			//Compress region ids
+			for (int i = 0; i < numRegions; i++)
+			{
+				regions[i].Remap = false;
+				if (regions[i].Id == 0) continue; //skip nil regions
+				if ((regions[i].Id & BORDER_REG) != 0) continue; //skip external regions
+				regions[i].Remap = true;
+			}
+
+			ushort regIdGen = 0;
+			for (int i = 0; i < numRegions; i++)
+			{
+				if (!regions[i].Remap)
+					continue;
+
+				ushort oldId = regions[i].Id;
+				ushort newId = ++regIdGen;
+				for (int j = i; j < numRegions; j++)
+				{
+					if (regions[j].Id == oldId)
+					{
+						regions[j].Id = newId;
+						regions[j].Remap = false;
+					}
+				}
+			}
+
+			maxRegionId = regIdGen;
+
+			//Remap regions
+			for (int i = 0; i < spans.Length; i++)
+			{
+				if ((srcReg[i] & BORDER_REG) == 0)
+					srcReg[i] = regions[srcReg[i]].Id;
+			}
+
+			return true;
+		}
+
 		/// <summary>
 		/// A distance field estimates how far each span is from its nearest border span. This data is needed for region generation.
 		/// </summary>
 		/// <param name="src">Array of values, each corresponding to an individual span</param>
 		/// <param name="maxDist">The maximum value of the src array</param>
-		public void CalculateDistanceField(int[] src)
+		private void CalculateDistanceField(int[] src)
 		{
 			//initialize distance and points
 			for (int i = 0; i < spans.Length; i++)
@@ -473,7 +833,7 @@ namespace SharpNav
 		/// <param name="openField">The OpenHeightfield</param>
 		/// <param name="thr">Threshold?</param>
 		/// <returns></returns>
-		public int[] BoxBlur(int thr, int[] src, int[] dst)
+		private int[] BoxBlur(int thr, int[] src, int[] dst)
 		{
 			thr *= 2;
 
@@ -537,29 +897,6 @@ namespace SharpNav
 			return dst;
 		}
 
-		public void BuildDistanceField()
-		{
-			int[] src = new int[spans.Length];
-			int[] dst = new int[spans.Length];
-
-			//fill up all the values in src
-			CalculateDistanceField(src);
-
-			//find the maximum distance
-			this.maxDistance = 0;
-			for (int i = 0; i < spans.Length; i++)
-				this.maxDistance = Math.Max(src[i], this.maxDistance);
-
-			//blur 
-			if (BoxBlur(1, src, dst) != src)
-			{
-				src = dst;
-			}
-
-			//store distances
-			this.distances = src;
-		}
-
 		/// <summary>
 		/// Locate spans below the water level and try to add them to existing regions or create new regions
 		/// </summary>
@@ -570,7 +907,7 @@ namespace SharpNav
 		/// <param name="dstReg">destination region</param>
 		/// <param name="dstDist">destination distances</param>
 		/// <returns></returns>
-		public int[] ExpandRegions(int maxIter, int level, int[] srcReg,int[] srcDist, int[] dstReg, int[] dstDist)
+		private int[] ExpandRegions(int maxIter, int level, int[] srcReg,int[] srcDist, int[] dstReg, int[] dstDist)
 		{
 			//find cells revealed by the raised level
 			List<int> stack = new List<int>();
@@ -678,7 +1015,7 @@ namespace SharpNav
 		/// <param name="srcReg">source region</param>
 		/// <param name="srcDist">source distances</param>
 		/// <returns></returns>
-		public bool FloodRegion(int x, int y, int i, int level, int r, int[] srcReg, int[] srcDist)
+		private bool FloodRegion(int x, int y, int i, int level, int r, int[] srcReg, int[] srcDist)
 		{
 			AreaFlags area = areas[i];
 
@@ -787,7 +1124,7 @@ namespace SharpNav
 		/// <param name="i">index of span</param>
 		/// <param name="dir">direction</param>
 		/// <returns></returns>
-		public bool IsSolidEdge(int[] srcReg, int x, int y, int i, int dir)
+		private bool IsSolidEdge(int[] srcReg, int x, int y, int i, int dir)
 		{
 			CompactSpan s = spans[i];
 			int r = 0;
@@ -815,7 +1152,7 @@ namespace SharpNav
 		/// <param name="i">index of span</param>
 		/// <param name="dir">direction</param>
 		/// <param name="cont">list of ints</param>
-		public void WalkContour(int[] srcReg, int x, int y, int i, int dir, List<int> cont)
+		private void WalkContour(int[] srcReg, int x, int y, int i, int dir, List<int> cont)
 		{
 			int startDir = dir;
 			int starti = i;
@@ -904,245 +1241,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Discards regions that are too small. 
-		/// </summary>
-		/// <param name="minRegionArea"></param>
-		/// <param name="mergeRegionSize"></param>
-		/// <param name="maxRegionId">determines the number of regions available</param>
-		/// <param name="srcReg">region data</param>
-		/// <returns></returns>
-		public bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref int maxRegionId, int[] srcReg)
-		{
-			int numRegions = maxRegionId + 1;
-			Region[] regions = new Region[numRegions];
-
-			//construct regions
-			for (int i = 0; i < numRegions; i++)
-				regions[i] = new Region((ushort)i);
-
-			//find edge of a region and find connections around a contour
-			for (int y = 0; y < length; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					CompactCell c = cells[x + y * width];
-					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
-					{
-						int r = srcReg[i];
-						if (r == 0 || r >= numRegions)
-							continue;
-
-						Region reg = regions[r];
-						reg.SpanCount++;
-						
-						//update floors
-						for (int j = c.StartIndex; j < end; j++)
-						{
-							if (i == j) continue;
-							int floorId = srcReg[j];
-							if (floorId == 0 || floorId >= numRegions)
-								continue;
-							reg.AddUniqueFloorRegion(floorId);
-						}
-
-						//have found contour
-						if (reg.Connections.Count > 0)
-							continue;
-
-						reg.AreaType = areas[i];
-
-						//check if this cell is next to a border
-						int ndir = -1;
-						for (int dir = 0; dir < 4; dir++)
-						{
-							if (IsSolidEdge(srcReg, x, y, i, dir))
-							{
-								ndir = dir;
-								break;
-							}
-						}
-
-						if (ndir != -1)
-						{
-							//The cell is at a border. 
-							//Walk around contour to find all neighbors
-							WalkContour(srcReg, x, y, i, ndir, reg.Connections);
-						}
-					}
-				}
-			}
-
-			//Remove too small regions
-			List<int> stack = new List<int>();
-			List<int> trace = new List<int>();
-			for (int i = 0; i < numRegions; i++)
-			{
-				Region reg = regions[i];
-				if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
-					continue;
-				if (reg.SpanCount == 0)
-					continue;
-				if (reg.Visited)
-					continue;
-
-				//count the total size of all connected regions
-				//also keep track of the regions connections to a tile border
-				bool connectsToBorder = false;
-				int spanCount = 0;
-				stack.Clear();
-				trace.Clear();
-
-				reg.Visited = true;
-				stack.Add(i);
-
-				while (stack.Count != 0)
-				{
-					//pop
-					int ri = stack[stack.Count - 1];
-					stack.RemoveAt(stack.Count - 1);
-
-					Region creg = regions[ri];
-
-					spanCount += creg.SpanCount;
-					trace.Add(ri);
-
-					for (int j = 0; j < creg.Connections.Count; j++)
-					{
-						if ((creg.Connections[j] & BORDER_REG) != 0)
-						{
-							connectsToBorder = true;
-							continue;
-						}
-						
-						Region neiReg = regions[creg.Connections[j]];
-						if (neiReg.Visited)
-							continue;
-						if (neiReg.Id == 0 || (neiReg.Id & BORDER_REG) != 0)
-							continue;
-						
-						//visit
-						stack.Add(neiReg.Id);
-						neiReg.Visited = true;
-					}
-				}
-
-				//if the accumulated region size is too small, remove it
-				//do not remove areas which connect to tile borders as their size can't be estimated correctly
-				//and removing them can potentially remove necessary areas
-				if (spanCount < minRegionArea && !connectsToBorder)
-				{
-					//kill all visited regions
-					for (int j = 0; j < trace.Count; j++)
-					{
-						regions[trace[j]].SpanCount = 0;
-						regions[trace[j]].Id = 0;
-					}
-				}
-
-			}
-
-			//Merge too small regions to neighbor regions
-			int mergeCount = 0;
-			do
-			{
-				mergeCount = 0;
-				for (int i = 0; i < numRegions; i++)
-				{
-					Region reg = regions[i];
-					if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
-						continue;
-					if (reg.SpanCount == 0)
-						continue;
-
-					//check to see if region should be merged
-					if (reg.SpanCount > mergeRegionSize && reg.IsRegionConnectedToBorder())
-						continue;
-					
-					//small region with more than one connection or region which is not connected to border at all
-					//find smallest neighbor that connects to this one
-					int smallest = 0xfffffff; 
-					ushort mergeId = reg.Id;
-					for (int j = 0; j < reg.Connections.Count; j++)
-					{
-						if ((reg.Connections[i] & BORDER_REG) != 0) continue;
-						Region mreg = regions[reg.Connections[j]];
-						if (mreg.Id == 0 || (mreg.Id & BORDER_REG) != 0) continue;
-						if (mreg.SpanCount < smallest && reg.CanMergeWithRegion(mreg) && mreg.CanMergeWithRegion(reg))
-						{
-							smallest = mreg.SpanCount;
-							mergeId = mreg.Id;
-						}
-					}
-
-					//found new id
-					if (mergeId != reg.Id)
-					{
-						ushort oldId = reg.Id;
-						Region target = regions[mergeId];
-
-						//merge regions
-						if (target.MergeWithRegion(reg))
-						{
-							//fix regions pointing to current region
-							for (int j = 0; j < numRegions; j++)
-							{
-								if (regions[j].Id == 0 || (regions[j].Id & BORDER_REG) != 0) continue;
-								
-								//if another regions was already merged into current region
-								//change the nid of the previous region too
-								if (regions[j].Id == oldId)
-									regions[j].Id = mergeId;
-								
-								//replace current region with new one if current region is neighbor
-								regions[j].ReplaceNeighbour(oldId, mergeId);
-							}
-							mergeCount++;
-						}
-					}
-				}
-			}
-			while (mergeCount > 0);
-
-			//Compress region ids
-			for (int i = 0; i < numRegions; i++)
-			{
-				regions[i].Remap = false;
-				if (regions[i].Id == 0) continue; //skip nil regions
-				if ((regions[i].Id & BORDER_REG) != 0) continue; //skip external regions
-				regions[i].Remap = true;
-			}
-
-			ushort regIdGen = 0;
-			for (int i = 0; i < numRegions; i++)
-			{
-				if (!regions[i].Remap)
-					continue;
-
-				ushort oldId = regions[i].Id;
-				ushort newId = ++regIdGen;
-				for (int j = i; j < numRegions; j++)
-				{
-					if (regions[j].Id == oldId)
-					{
-						regions[j].Id = newId;
-						regions[j].Remap = false;
-					}
-				}
-			}
-
-			maxRegionId = regIdGen;
-
-			//Remap regions
-			for (int i = 0; i < spans.Length; i++)
-			{
-				if ((srcReg[i] & BORDER_REG) == 0)
-					srcReg[i] = regions[srcReg[i]].Id;
-			}
-
-			return true;
-		}
-
-		/// <summary>
 		/// Fill in a rectangular region with a region id.
 		/// </summary>
 		/// <param name="minX">minimum x</param>
@@ -1151,7 +1249,7 @@ namespace SharpNav
 		/// <param name="maxY">maximum y</param>
 		/// <param name="regionId">value to fill with</param>
 		/// <param name="srcReg">array to store the values</param>
-		public void PaintRectRegion(int minX, int maxX, int minY, int maxY, int regionId, int[] srcReg)
+		private void PaintRectRegion(int minX, int maxX, int minY, int maxY, int regionId, int[] srcReg)
 		{
 			for (int y = minY; y < maxY; y++)
 			{
@@ -1165,104 +1263,6 @@ namespace SharpNav
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// The central method for building regions, which consists of connected, non-overlapping walkable spans.
-		/// </summary>
-		/// <param name="borderSize"></param>
-		/// <param name="minRegionArea">If smaller than this value, region will be null</param>
-		/// <param name="mergeRegionArea">Reduce unneccesarily small regions</param>
-		/// <returns></returns>
-		public bool BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
-		{
-			int[] srcReg = new int[spans.Length];
-			int[] srcDist = new int[spans.Length];
-			int[] dstReg = new int[spans.Length];
-			int[] dstDist = new int[spans.Length];
-
-			BuildDistanceField();
-
-			int regionId = 1;
-			int level = ((maxDistance + 1) & ~1); //find a better way to compute this
-
-			const int ExpandIters = 8;
-
-			if (borderSize > 0)
-			{
-				//make sure border doesn't overflow
-				int borderWidth = Math.Min(width, borderSize);
-				int borderHeight = Math.Min(height, borderSize);
-
-				//paint regions
-				PaintRectRegion(0, borderWidth, 0, height, (ushort)(regionId | BORDER_REG), srcReg);
-				regionId++;
-				PaintRectRegion(width - borderWidth, width, 0, height, (ushort)(regionId | BORDER_REG), srcReg);
-				regionId++;
-				PaintRectRegion(0, width, 0, borderHeight, (ushort)(regionId | BORDER_REG), srcReg);
-				regionId++;
-				PaintRectRegion(0, width, height - borderHeight, height, (ushort)(regionId | BORDER_REG), srcReg);
-				regionId++;
-
-				this.borderSize = borderSize;
-			}
-
-			while (level > 0)
-			{
-				level = (level >= 2 ? level - 2 : 0);
-
-				//expand current regions until no new empty connected cells found
-				if (ExpandRegions(ExpandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
-				{
-					int[] temp = srcReg;
-					srcReg = dstReg;
-					dstReg = temp;
-
-					temp = srcDist;
-					srcDist = dstDist;
-					dstDist = temp;
-				}
-
-				//mark new regions with ids
-				for (int y = 0; y < length; y++)
-				{
-					for (int x = 0; x < width; x++)
-					{
-						CompactCell c = cells[x + y * width];
-						for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
-						{
-							if (distances[i] < level || srcReg[i] != 0 || areas[i] == AreaFlags.Null)
-								continue;
-
-							if (FloodRegion(x, y, i, level, regionId, srcReg, srcDist))
-								regionId++;
-						}
-					}
-				}
-			}
-
-			//expand current regions until no new empty connected cells found
-			if (ExpandRegions(ExpandIters * 8, 0, srcReg, srcDist, dstReg, dstDist) != srcReg)
-			{
-				int[] temp = srcReg;
-				srcReg = dstReg;
-				dstReg = temp;
-
-				temp = srcDist;
-				srcDist = dstDist;
-				dstDist = temp;
-			}
-
-			//filter out small regions
-			this.maxRegions = regionId;
-			if (!FilterSmallRegions(minRegionArea, mergeRegionArea, ref this.maxRegions, srcReg))
-				return false;
-
-			//write the result out
-			for (int i = 0; i < spans.Length; i++)
-				spans[i].Region = srcReg[i];
-
-			return true;
 		}
 	}
 }

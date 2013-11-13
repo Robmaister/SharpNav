@@ -139,18 +139,8 @@ namespace SharpNav
 
 						if (simplified.Count / 4 >= 3)
 						{
-							//Allocate more contours if there are not enough
-							if (numContours >= maxContours)
-							{
-								maxContours *= 2;
-								List<Contour> newContours = new List<Contour>(maxContours);
-								for (int j = 0; j < contours.Count; j++)
-									newContours[j] = contours[j];
-								this.contours = newContours;
-							}
-
-							Contour cont = contours[numContours++];
-
+							Contour cont = new Contour();
+							
 							//Save all the simplified and raw data in the Contour
 							cont.NumVerts = simplified.Count / 4;
 							cont.Vertices = new int[cont.NumVerts * 4];
@@ -184,6 +174,9 @@ namespace SharpNav
 
 							cont.RegionId = reg;
 							cont.Area = area;
+
+							contours.Add(cont);
+							numContours++;
 						}
 					}
 				}

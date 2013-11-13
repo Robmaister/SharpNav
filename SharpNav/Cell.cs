@@ -58,7 +58,21 @@ namespace SharpNav
 			}
 		}
 
-		//HACK figure out how to make this only accessible to containing class.
+		/// <summary>
+		/// 
+		/// </summary>
+		public int NonNullSpanCount
+		{
+			get
+			{
+				int count = 0;
+				for (int i = 0; i < spans.Count; i++)
+					if (spans[i].Area != AreaFlags.Null)
+						count++;
+
+				return count;
+			}
+		}
 
 		/// <summary>
 		/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
@@ -141,19 +155,6 @@ namespace SharpNav
 
 			//if the span is not inserted, it is the highest span and will be added to the end.
 			spans.Add(span);
-		}
-
-		public int NonNullSpanCount
-		{
-			get
-			{
-				int count = 0;
-				for (int i = 0; i < spans.Count; i++)
-					if (spans[i].Area != AreaFlags.Null)
-						count++;
-
-				return count;
-			}
 		}
 	}
 }
