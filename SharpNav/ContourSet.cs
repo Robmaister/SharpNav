@@ -98,13 +98,30 @@ namespace SharpNav
 
 							//region ids are equal
 							if (r == openField.Spans[i].Region)
-								res |= (byte)(1 << dir); //?
+							{
+								//res marks all the INTERNAL edges
+								//res represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
+								//default is 0000
+								//the |= operation sets each direction bit to 1 (so if dir = 0, 0000 -> 0001)
+
+								res |= (byte)(1 << dir);
+							}
 						}
-						flags[i] = (byte)(res ^ 0xf); //inverse, mark non connected edges
+
+						//flips all the bits in res
+						//0000 (completely internal) -> 1111
+						//1111 (no internal edges) -> 0000
+
+						//flags represents all the nonconnected edges, edges that are only internal
+						//the edges need to be between different regions
+						flags[i] = (byte)(res ^ 0xf); 
 					}
 				}
 			}
 
+			//Points are in format (each point takes up 4 array elements): 
+			//	(x, y, z) coordinates
+			//	region id
 			List<int> verts = new List<int>();
 			List<int> simplified = new List<int>();
 
@@ -116,23 +133,28 @@ namespace SharpNav
 					CompactCell c = openField.Cells[x + y * openField.Width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
+						//flags is either 0000 or 1111
+						//in other words, not connected at all 
+						//or has all connections, which means span is in the middle and thus not an edge.
 						if (flags[i] == 0 || flags[i] == 0xf)
 						{
 							flags[i] = 0;
 							continue;
 						}
 
-						ushort reg = (ushort)openField.Spans[i].Region;
+						int reg = openField.Spans[i].Region;
 						if (reg == 0 || (reg & CompactHeightfield.BORDER_REG) != 0)
 							continue;
 						
 						AreaFlags area = openField.Areas[i];
-
+						
+						//reset each iteration
 						verts.Clear();
 						simplified.Clear();
 
 						//Mark points, which are basis of contous, intially with "verts"
-						//then, simplify "verts" to get "simplified"
+						//Then, simplify "verts" to get "simplified"
+						//Finally, clean up the "simplified" data
 						WalkContour(x, y, i, openField, flags, verts);
 						SimplifyContour(verts, simplified, maxError, maxEdgeLen, buildFlags);
 						RemoveDegenerateSegments(simplified);
@@ -157,6 +179,7 @@ namespace SharpNav
 								}
 							}
 
+							//copy raw data
 							cont.NumRawVerts = verts.Count / 4;
 							cont.RawVertices = new int[cont.NumRawVerts * 4];
 							for (int j = 0; j < cont.RawVertices.Length; j++)
@@ -293,8 +316,12 @@ namespace SharpNav
 		/// <param name="points">Vertices of contour</param>
 		public void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<int> points)
 		{
-			//choose the first non-connected edge
 			int dir = 0;
+
+			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
+			//find the first rightmost bit that equals 0 (non-connected)
+			//ex:	0001 & 0001 = 1
+			//		0001 & 0010 = 0 (found!)
 			while ((flags[i] & (1 << dir)) == 0)
 				dir++;
 
@@ -306,23 +333,28 @@ namespace SharpNav
 			int iter = 0;
 			while (++iter < 40000)
 			{
+				//this direction is connected
 				if ((flags[i] & (1 << dir)) != 0)
 				{
 					//choose the edge corner
 					bool isBorderVertex = false;
 					bool isAreaBorder = false;
+
 					int px = x;
 					int py = GetCornerHeight(x, y, i, dir, openField, ref isBorderVertex);
 					int pz = y;
+
 					switch (dir)
 					{
 						case 0:
 							pz++;
 							break;
+						
 						case 1:
 							px++;
 							pz++;
 							break;
+						
 						case 2:
 							px++;
 							break;
@@ -353,6 +385,11 @@ namespace SharpNav
 					points.Add(pz);
 					points.Add(r);
 
+					//say flag = 0110
+					//dir = 2 (so 1 << dir = 0100)
+					//~dir = 1011
+					//flag &= ~dir
+					//flag = 0110 & 1011 = 0010
 					flags[i] &= (byte)(~(1 << dir)); // remove visited edges
 					dir = (dir + 1) % 4; //rotate clockwise
 				}
@@ -362,6 +399,7 @@ namespace SharpNav
 					int di = -1;
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
+					
 					CompactSpan s = openField.Spans[i];
 					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
 					{
@@ -509,6 +547,7 @@ namespace SharpNav
 					int ii = (i + 1) % end;
 					bool differentRegions = (points[i * 4 + 3] & CONTOUR_REG_MASK) != (points[ii * 4 + 3] & CONTOUR_REG_MASK);
 					bool areaBorders = (points[i * 4 + 3] & AREA_BORDER) != (points[ii * 4 + 3] & AREA_BORDER);
+					
 					if (differentRegions || areaBorders)
 					{
 						simplified.Add(points[i * 4 + 0]);
@@ -519,6 +558,7 @@ namespace SharpNav
 				}
 			}
 
+			//add some points if thhere are no connections
 			if (simplified.Count == 0)
 			{
 				//find lower-left and upper-right vertices of contour
@@ -532,6 +572,7 @@ namespace SharpNav
 				int upperRightZ = points[2];
 				int upperRightI = 0;
 				
+				//iterate through points, make sure to skip 4 elements each time
 				for (int i = 0; i < points.Count; i += 4)
 				{
 					int x = points[i + 0];
@@ -555,6 +596,7 @@ namespace SharpNav
 					}
 				}
 				
+				//save the points
 				simplified.Add(lowerLeftX);
 				simplified.Add(lowerLeftY);
 				simplified.Add(lowerLeftZ);
@@ -572,6 +614,7 @@ namespace SharpNav
 			{
 				int ii = (i + 1) % (simplified.Count / 4);
 
+				//obtain (x, z) coordinates, along with region id
 				int ax = simplified[i * 4 + 0];
 				int az = simplified[i * 4 + 2];
 				int ai = simplified[i * 4 + 3];
@@ -584,7 +627,7 @@ namespace SharpNav
 				int maxi = -1;
 				int ci, cinc, endi;
 
-				//traverse segment in lexilogical order
+				//traverse segment in lexilogical order (try to go from smallest to largest coordinates?)
 				if (bx > ax || (bx == ax && bz > az))
 				{
 					cinc = 1;
@@ -601,14 +644,17 @@ namespace SharpNav
 				//tessellate only outer edges or edges between areas
 				if ((points[ci * 4 + 3] & CONTOUR_REG_MASK) == 0 || (points[ci * 4 + 3] & AREA_BORDER) != 0)
 				{
+					//find the maximum deviation
 					while (ci != endi)
 					{
 						float deviation = DistancePointSegment(points[ci * 4 + 0], points[ci * 4 + 2], ax, az, bx, bz);
+						
 						if (deviation > maxDeviation)
 						{
 							maxDeviation = deviation;
 							maxi = ci;
 						}
+						
 						ci = (ci + cinc) % numPoints;
 					}
 				}
@@ -616,10 +662,12 @@ namespace SharpNav
 				//If max deviation is larger than accepted error, add new point
 				if (maxi != -1 && maxDeviation > (maxError * maxError))
 				{
+					//add extra space to list
 					for (int j = 0; j < 4; j++)
 						simplified.Add(new int());
 
-					//make space for new point
+					//make space for new point by shifting elements to the right
+					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
 					for (int j = simplified.Count / 4 - 1; j > i; j--)
 					{
 						simplified[j * 4 + 0] = simplified[(j - 1) * 4 + 0];
@@ -628,7 +676,7 @@ namespace SharpNav
 						simplified[j * 4 + 3] = simplified[(j - 1) * 4 + 3];
 					}
 
-					//add point
+					//add point 
 					simplified[(i + 1) * 4 + 0] = points[maxi * 4 + 0];
 					simplified[(i + 1) * 4 + 1] = points[maxi * 4 + 1];
 					simplified[(i + 1) * 4 + 2] = points[maxi * 4 + 2];
@@ -647,6 +695,7 @@ namespace SharpNav
 				{
 					int ii = (i + 1) % (simplified.Count / 4);
 
+					//get (x, z) coordinates along with region id
 					int ax = simplified[i * 4 + 0];
 					int az = simplified[i * 4 + 2];
 					int ai = simplified[i * 4 + 3];
@@ -676,8 +725,10 @@ namespace SharpNav
 						int dz = bz - az;
 						if (dx * dx + dz * dz > maxEdgeLen * maxEdgeLen)
 						{
-							//round based on lexilogical direction
+							//round based on lexilogical direction (smallest to largest cooridinates, first by x.
+							//if x coordinates are equal, then compare z coordinates)
 							int n = bi < ai ? (bi + numPoints - ai) : (bi - ai);
+							
 							if (n > 1)
 							{
 								if (bx > ax || (bx == ax && bz > az))
@@ -691,10 +742,12 @@ namespace SharpNav
 					//add new point
 					if (maxi != -1)
 					{
+						//add extra space to list
 						for (int j = 0; j < 4; j++)
 							simplified.Add(new int());
 
-						//make space for new point
+						//make space for new point by shifting elements to the right
+						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
 						for (int j = simplified.Count / 4 - 1; j > i; j--)
 						{
 							simplified[j * 4 + 0] = simplified[(j - 1) * 4 + 0];
@@ -721,6 +774,8 @@ namespace SharpNav
 				//take edge vertex flag from current raw point and neighbor region from next raw point
 				int ai = (simplified[i * 4 + 3] + 1) % numPoints;
 				int bi = simplified[i * 4 + 3];
+
+				//save new region id
 				simplified[i * 4 + 3] = (points[ai * 4 + 3] & (CONTOUR_REG_MASK | AREA_BORDER)) | (points[bi * 4 + 3] & BORDER_VERTEX);
 			}
 		}
@@ -905,12 +960,15 @@ namespace SharpNav
 		/// </summary>
 		public class Contour
 		{
+			//In a group of 4 elements, first 3 store x,y,z coordinates. last one stores index of raw vertex group
 			public int [] Vertices;
 			public int NumVerts;
+
+			//similar to vertices (simplified), except last element stores region id
 			public int [] RawVertices;
 			public int NumRawVerts;
 
-			public ushort RegionId;
+			public int RegionId;
 			public AreaFlags Area;
 		}
 	}

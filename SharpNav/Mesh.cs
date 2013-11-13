@@ -20,17 +20,17 @@ namespace SharpNav
 
 	public class Mesh
 	{
-		private const int VERTEX_BUCKET_COUNT = 1 << 12;
+		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
 		public const int MESH_NULL_IDX = 0xffff;
 
 		private int nverts;
 		private int npolys;
 
-		private int[] verts;
+		private int[] verts; //each vertex contains (x, y, z)
 		private int[] polys;
-		private int[] regionIds;
+		private int[] regionIds; //contains region id for each triangle
 		private int[] flags; //flags for a polygon
-		private AreaFlags[] areas;
+		private AreaFlags[] areas; //contains area flags for each triangle
 		
 		private int maxPolys;
 		private int numVertsPerPoly;
@@ -86,7 +86,7 @@ namespace SharpNav
 				vFlags[i] = 0;
 
 			//initialize the mesh members
-			this.verts = new int[maxVertices * 3];
+			this.verts = new int[maxVertices * 3]; 
 			this.polys = new int[maxTris * numVertsPerPoly * 2];
 			this.regionIds = new int[maxTris];
 			this.areas = new AreaFlags[maxTris];
@@ -110,13 +110,14 @@ namespace SharpNav
 			for (int i = 0; i < nextVert.Length; i++)
 				nextVert[i] = 0;
 
+			//This stores a hash table. The x,y,z coordinates generate a specific number.
 			int[] firstVert = new int[VERTEX_BUCKET_COUNT];
 			for (int i = 0; i < firstVert.Length; i++)
 				firstVert[i] = -1;
 
-			int[] indices = new int[maxVertsPerCont];
-			int[] tris = new int[maxVertsPerCont * 3];
-			int[] polys = new int[(maxVertsPerCont + 1) * numVertsPerPoly];
+			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
+			int[] tris = new int[maxVertsPerCont * 3]; //store three vertex hash codes
+			int[] polys = new int[(maxVertsPerCont + 1) * numVertsPerPoly]; 
 
 			//extract contour data
 			for (int i = 0; i < contSet.Contours.Count; i++)
@@ -131,6 +132,7 @@ namespace SharpNav
 				for (int j = 0; j < cont.NumVerts; j++)
 					indices[j] = j;
 
+				//Form triangles inside the area bounded by the contours
 				int ntris = Triangulate(cont.NumVerts, cont.Vertices, indices, tris);
 				if (ntris <= 0) 
 					ntris = -ntris;
@@ -139,6 +141,8 @@ namespace SharpNav
 				for (int j = 0; j < cont.NumVerts; j++)
 				{
 					int v = j * 4;
+
+					//save the hash code for each vertex
 					indices[j] = AddVertex(cont.Vertices[v + 0], cont.Vertices[v + 1], cont.Vertices[v + 2],
 						this.verts, firstVert, nextVert, ref this.nverts);
 
@@ -154,11 +158,17 @@ namespace SharpNav
 				for (int j = 0; j < polys.Length; j++)
 					polys[j] = 0xff;
 
+				//iterate through all the triangles
 				for (int j = 0; j < ntris; j++)
 				{
 					int t = j * 3;
+
+					//make sure there are three distinct vertices. anything less can't be a polygon.
 					if (tris[t + 0] != tris[t + 1] && tris[t + 0] != tris[t + 2] && tris[t + 1] != tris[t + 2])
 					{
+						//each polygon has numVertsPerPoly
+						//index 0, 1, 2 store triangle vertices
+						//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
 						polys[npolys * numVertsPerPoly + 0] = indices[tris[t + 0]];
 						polys[npolys * numVertsPerPoly + 1] = indices[tris[t + 1]];
 						polys[npolys * numVertsPerPoly + 2] = indices[tris[t + 2]];
@@ -166,6 +176,7 @@ namespace SharpNav
 					}
 				}
 				
+				//no polygons generated, so skip
 				if (npolys == 0)
 					continue;
 
@@ -176,11 +187,12 @@ namespace SharpNav
 					{
 						//find best polygons
 						int bestMergeVal = 0;
-						int bestPa = 0, bestPb = 0, bestEa = 0, bestEb = 0;
+						int bestPolyA = 0, bestPolyB = 0, bestEdgeA = 0, bestEdgeB = 0;
 
 						for (int j = 0; j < npolys - 1; j++)
 						{
 							int pj = j * numVertsPerPoly;
+
 							for (int k = j + 1; k < npolys; k++)
 							{
 								int pk = k * numVertsPerPoly;
@@ -189,23 +201,27 @@ namespace SharpNav
 								if (v > bestMergeVal)
 								{
 									bestMergeVal = v;
-									bestPa = j;
-									bestPb = k;
-									bestEa = ea;
-									bestEb = eb;
+									bestPolyA = j;
+									bestPolyB = k;
+									bestEdgeA = ea;
+									bestEdgeB = eb;
 								}
 							}
 						}
 
 						if (bestMergeVal > 0)
 						{
-							int pa = bestPa * numVertsPerPoly;
-							int pb = bestPb * numVertsPerPoly;
-							MergePolys(polys, pa, pb, bestEa, bestEb, numVertsPerPoly);
+							int pa = bestPolyA * numVertsPerPoly;
+							int pb = bestPolyB * numVertsPerPoly;
+							MergePolys(polys, pa, pb, bestEdgeA, bestEdgeB, numVertsPerPoly);
+							
+							//overwrite second polygon since it has already part of another polygon
 							int lastPoly = (npolys - 1) * numVertsPerPoly;
 							if (polys[pb] != polys[lastPoly])
-								polys[pb] = polys[lastPoly];
-
+							{
+								for (int k = 0; k < numVertsPerPoly; k++)
+									polys[pb + k] = polys[lastPoly + k];
+							}
 							npolys--;
 						}
 						else
@@ -320,13 +336,17 @@ namespace SharpNav
 				}
 			}
 
+			//need 3 verts minimum for a polygon 
 			while (n > 3)
 			{
+				//find the minimum distance betwee two vertices. 
+				//also, save their index
 				int minLen = -1;
 				int mini = -1;
 				for (i = 0; i < n; i++)
 				{
 					i1 = Next(i, n);
+					
 					if ((indices[i1] & 0x80000000) != 0)
 					{
 						int p0 = (indices[i] & 0x0fffffff) * 4;
@@ -396,6 +416,7 @@ namespace SharpNav
 			dst[dstIndex] = indices[2] & 0x0fffffff; dstIndex++;
 			ntris++;
 
+			//save triangle information
 			tris = dst;
 			return ntris;
 		}
@@ -406,34 +427,44 @@ namespace SharpNav
 		/// <returns></returns>
 		public int AddVertex(int x, int y, int z, int[] verts, int[] firstVert, int[] nextVert, ref int nv)
 		{
-			//generate a hashed value
+			//generate a unique index
 			int bucket = ComputeVertexHash(x, 0, z);
 			
 			//access that vertex
 			int i = firstVert[bucket];
 			int v;
 
+			//default unintialized i value is -1.
+			//if i isn't equal to -1, this vertex should exist somewhere
 			while (i != -1)
 			{
+				//vertex only has three elements (x,y,z)
 				v = i * 3;
 
-				//done
+				//found existing vertex
 				if (verts[v + 0] == x && (Math.Abs(verts[v + 1] - y) <= 2) && verts[v + 2] == z)
 					return i;
 				
-				//next vertex
+				//next vertex. this stores the vertices linearly (similar to a linked list)
 				i = nextVert[i];
 			}
 
-			//make new
+			//no existing vertex so make a new one
 			i = nv;
 			nv++;
+
+			//save the data
 			v = i * 3;
 			verts[v + 0] = x;
 			verts[v + 1] = y;
 			verts[v + 2] = z;
+
+			//add this current vertex to the chain
 			nextVert[i] = firstVert[bucket];
+
+			//update so this vertex index isn't reused again
 			firstVert[bucket] = i;
+			
 			return i;
 		}
 
@@ -458,72 +489,83 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
-		public int GetPolyMergeValue(int[] polys, int pa, int pb, int[] verts, ref int ea, ref int eb, int nvp)
+		public int GetPolyMergeValue(int[] polys, int polyA, int polyB, int[] verts, ref int edgeA, ref int edgeB, int nvp)
 		{
-			int na = CountPolyVerts(polys, pa, nvp);
-			int nb = CountPolyVerts(polys, pb, nvp);
+			int numVertsA = CountPolyVerts(polys, polyA, nvp);
+			int numVertsB = CountPolyVerts(polys, polyB, nvp);
 
 			//don't merge if result is too big
-			if (na + nb - 2 > nvp)
+			if (numVertsA + numVertsB - 2 > nvp)
 				return -1;
 
 			//check if polygons share an edge
-			ea = -1;
-			eb = -1;
+			edgeA = -1;
+			edgeB = -1;
 
-			for (int i = 0; i < na; i++)
+			//iterate through all the vertices of polygonA
+			for (int i = 0; i < numVertsA; i++)
 			{
-				int va0 = polys[pa + i];
-				int va1 = polys[pa + (i + 1) % na];
+				//take two nearby vertices
+				int va0 = polys[polyA + i];
+				int va1 = polys[polyA + (i + 1) % numVertsA];
+				
+				//make sure va0 < va1
 				if (va0 > va1)
 				{
 					int temp = va0;
 					va0 = va1;
 					va1 = temp;
 				}
-				for (int j = 0; j < nb; j++)
+
+				//iterate through all the vertices of polygon B
+				for (int j = 0; j < numVertsB; j++)
 				{
-					int vb0 = polys[pb + j];
-					int vb1 = polys[pb + (j + 1) % nb];
+					//take two nearby vertices
+					int vb0 = polys[polyB + j];
+					int vb1 = polys[polyB + (j + 1) % numVertsB];
+					
+					//make sure vb0 < vb1
 					if (vb0 > vb1)
 					{
 						int temp = vb0;
 						vb0 = vb1;
 						vb1 = temp;
 					}
+
+					//edge shared, since vertices are equal
 					if (va0 == vb0 && va1 == vb1)
 					{
-						ea = i;
-						eb = j;
+						edgeA = i;
+						edgeB = j;
 						break;
 					}
 				}
 			}
 
 			//no common edge
-			if (ea == -1 || eb == -1)
+			if (edgeA == -1 || edgeB == -1)
 				return -1;
 
 			//check if merged polygon would be convex
-			int va, vb, vc;
+			int vertA, vertB, vertC;
 
-			va = polys[pa + (ea + na - 1) % na]; 
-			vb = polys[pa + ea]; 
-			vc = polys[pb + (eb + 2) % nb];
-			if (!ULeft(verts, va * 3, vb * 3, vc * 3))
+			vertA = polys[polyA + (edgeA + numVertsA - 1) % numVertsA];
+			vertB = polys[polyA + edgeA];
+			vertC = polys[polyB + (edgeB + 2) % numVertsB];
+			if (!ULeft(verts, vertA * 3, vertB * 3, vertC * 3))
 				return -1;
 
-			va = polys[pb + (eb + nb - 1) % nb];
-			vb = polys[pb + eb];
-			vc = polys[pa + (ea + 2) % na];
-			if (!ULeft(verts, va * 3, vb * 3, vc * 3))
+			vertA = polys[polyB + (edgeB + numVertsB - 1) % numVertsB];
+			vertB = polys[polyB + edgeB];
+			vertC = polys[polyA + (edgeA + 2) % numVertsA];
+			if (!ULeft(verts, vertA * 3, vertB * 3, vertC * 3))
 				return -1;
 
-			va = polys[pa + ea];
-			vb = polys[pa + (ea + 1) % na];
+			vertA = polys[polyA + edgeA];
+			vertB = polys[polyA + (edgeA + 1) % numVertsA];
 
-			int dx = verts[va * 3 + 0] - verts[vb * 3 + 0];
-			int dy = verts[va * 3 + 2] - verts[vb * 3 + 2];
+			int dx = verts[vertA * 3 + 0] - verts[vertB * 3 + 0];
+			int dy = verts[vertA * 3 + 2] - verts[vertB * 3 + 2];
 			return dx * dx + dy * dy;
 		}
 
@@ -550,6 +592,7 @@ namespace SharpNav
 			for (int i = 0; i < numB - 1; i++)
 				temp[n++] = polys[polyB + (edgeB + 1 + i) % numB];
 
+			//save merged data to new polygon
 			polys = temp;
 		}
 
@@ -608,7 +651,7 @@ namespace SharpNav
 				{
 					if (this.polys[p + j] == remove || this.polys[p + k] == remove)
 					{
-						//arrange edge so that a = removed
+						//arrange edge so that a has the removed value
 						int a = polys[p + j], b = polys[p + k];
 						if (b == remove)
 						{
@@ -658,6 +701,11 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Removing vertices will leave holes that have to be triangulated again.
+		/// </summary>
+		/// <param name="remove">Index in polygon array</param>
+		/// <param name="maxTris">Maximum triangle count</param>
 		public void RemoveVertex(int remove, int maxTris)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
@@ -688,6 +736,7 @@ namespace SharpNav
 			int nharea = 0;
 			int[] harea = new int[numRemovedVerts * numVertsPerPoly];
 
+			//Iterate through all the polygons
 			for (int i = 0; i < this.npolys; i++)
 			{
 				int p = i * numVertsPerPoly * 2;
@@ -762,6 +811,7 @@ namespace SharpNav
 			if (nedges == 0)
 				return;
 
+			//Find edges surrounding the holes
 			PushBack(edges[0], hole, ref nhole);
 			PushBack(edges[1], hreg, ref nhreg);
 			PushBack(edges[2], harea, ref nharea);
@@ -774,23 +824,24 @@ namespace SharpNav
 				{
 					int edgeA = i * 4 + 0;
 					int edgeB = i * 4 + 1;
-					int r = i * 4 + 2;
-					int a = i * 4 + 3;
+					int reg = i * 4 + 2;
+					int area = i * 4 + 3;
 					bool add = false;
+
 					if (hole[0] == edgeB)
 					{
 						//segment matches beginning of hole boundary
 						PushFront(edgeA, hole, ref nhole);
-						PushFront(r, hreg, ref nhreg);
-						PushFront(a, harea, ref nharea);
+						PushFront(reg, hreg, ref nhreg);
+						PushFront(area, harea, ref nharea);
 						add = true;
 					}
 					else if (hole[nhole - 1] == edgeA)
 					{
 						//segment matches end of hole boundary
 						PushBack(edgeB, hole, ref nhole);
-						PushBack(r, hreg, ref nhreg);
-						PushBack(a, harea, ref nharea);
+						PushBack(reg, hreg, ref nhreg);
+						PushBack(area, harea, ref nharea);
 						add = true;
 					}
 
@@ -804,7 +855,6 @@ namespace SharpNav
 						--nedges;
 						match = true;
 						--i;
-
 					}
 				}
 
@@ -841,6 +891,7 @@ namespace SharpNav
 			int npolys = 0;
 			for (int j = 0; j < polys.Length; j++)
 				polys[j] = 0xff;
+
 			for (int j = 0; j < ntris; j++)
 			{
 				int t = j * 3;
@@ -864,7 +915,7 @@ namespace SharpNav
 				{
 					//find best polygons
 					int bestMergeVal = 0;
-					int bestPa = 0, bestPb = 0, bestEa = 0, bestEb = 0;
+					int bestPolyA = 0, bestPolyB = 0, bestEa = 0, bestEb = 0;
 
 					for (int j = 0; j < npolys - 1; j++)
 					{
@@ -877,8 +928,8 @@ namespace SharpNav
 							if (v > bestMergeVal)
 							{
 								bestMergeVal = v;
-								bestPa = j;
-								bestPb = k;
+								bestPolyA = j;
+								bestPolyB = k;
 								bestEa = edgeA;
 								bestEb = edgeB;
 							}
@@ -887,13 +938,19 @@ namespace SharpNav
 
 					if (bestMergeVal > 0)
 					{
-						int pa = bestPa * numVertsPerPoly;
-						int pb = bestPb * numVertsPerPoly;
-						MergePolys(polys, pa, pb, bestEa, bestEb, numVertsPerPoly);
+						int polyA = bestPolyA * numVertsPerPoly;
+						int polyB = bestPolyB * numVertsPerPoly;
+						MergePolys(polys, polyA, polyB, bestEa, bestEb, numVertsPerPoly);
+						
+						//save space by overwriting second polygon with last polygon 
+						//since second polygon is no longer need
 						int lastPoly = (npolys - 1) * numVertsPerPoly;
-						polys[pb] = polys[lastPoly];
-						pregs[bestPb] = pregs[npolys - 1];
-						pareas[bestPb] = pareas[npolys - 1];
+						
+						for (int k = 0; k < numVertsPerPoly; k++)
+							polys[polyB + k] = polys[lastPoly + k];
+						
+						pregs[bestPolyB] = pregs[npolys - 1];
+						pareas[bestPolyB] = pareas[npolys - 1];
 						npolys--;
 					}
 					else
@@ -907,9 +964,11 @@ namespace SharpNav
 			//store polygons
 			for (int i = 0; i < npolys; i++)
 			{
-				if (this.npolys >= maxTris) break;
+				//polygon count exceeds limit
+				if (this.npolys >= maxTris) 
+					break;
+
 				int p = this.npolys * numVertsPerPoly * 2;
-				this.polys[p] = 0xff;
 				for (int j = 0; j < numVertsPerPoly; j++)
 					this.polys[p + j] = polys[i * numVertsPerPoly + j];
 
@@ -917,8 +976,6 @@ namespace SharpNav
 				this.areas[this.npolys] = (AreaFlags)pareas[i];
 				this.npolys++;
 			}
-
-			return;
 		}
 
 		public void BuildMeshAdjacency()
@@ -932,14 +989,17 @@ namespace SharpNav
 			for (int i = 0; i < nverts; i++)
 				firstEdge[i] = MESH_NULL_IDX;
 
+			//Iterate through all the polygons
 			for (int i = 0; i < npolys; i++)
 			{
+				//Iterate through all the vertices
 				int t = i * numVertsPerPoly * 2;
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
 					if (polys[t + j] == MESH_NULL_IDX)
 						break;
 
+					//get closest two verts
 					int v0 = polys[t + j];
 					int v1 = (j + 1 >= numVertsPerPoly || polys[t + j + 1] == MESH_NULL_IDX) ? polys[t + 0] : polys[t + j + 1];
 
@@ -965,6 +1025,7 @@ namespace SharpNav
 				}
 			}
 
+			//Iterate through all the polygons again
 			for (int i = 0; i < npolys; i++)
 			{
 				int t = i * numVertsPerPoly * 2;
@@ -978,6 +1039,7 @@ namespace SharpNav
 
 					if (v0 > v1)
 					{
+						//Iterate through al the edges
 						for (int e = firstEdge[v1]; e != MESH_NULL_IDX; e = firstEdge[nextEdge + e])
 						{
 							Edge edge = edges[e];
@@ -1019,6 +1081,12 @@ namespace SharpNav
 			return numVertsPerPolygon;
 		}
 
+		/// <summary>
+		/// Shift all existing elements to the right and insert new element at index 0
+		/// </summary>
+		/// <param name="v"></param>
+		/// <param name="array"></param>
+		/// <param name="an"></param>
 		public void PushFront(int v, int[] array, ref int an)
 		{
 			an++;
@@ -1027,12 +1095,22 @@ namespace SharpNav
 			array[0] = v;
 		}
 
+		/// <summary>
+		/// Append new element to the end of the list
+		/// </summary>
+		/// <param name="v"></param>
+		/// <param name="array"></param>
+		/// <param name="an"></param>
 		public void PushBack(int v, int[] array, ref int an)
 		{
 			array[an] = v;
 			an++;
 		}
-
+		
+		// (Bx - Ax) (Cx - Ax)
+		// (Bz - Az) (Cz - Az) 
+		//
+		//(Bx - Ax) * (Cz - Az) - (Cx - Ax) * (Bz - Az)
 		public bool ULeft(int[] verts, int a, int b, int c)
 		{
 			return (verts[b + 0] - verts[a + 0]) * (verts[c + 2] - verts[a + 2]) -
