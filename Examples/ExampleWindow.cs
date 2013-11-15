@@ -23,12 +23,6 @@ namespace Examples
 {
 	public class ExampleWindow : GameWindow
 	{
-		private enum VoxelDrawMode
-		{
-			Lit,
-			Transparent
-		}
-
 		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo, squareVbo, squareIbo;
 		private int levelNumVerts;
 
@@ -39,15 +33,17 @@ namespace Examples
 		private ObjModel model;
 
 		private bool hasVoxelized;
-		private VoxelDrawMode vDrawMode;
 
 		private bool hasOpenHeightfield;
 
 		private bool hasDistanceField;
 
+		private bool hasRegions;
+		private Color4[] regionColors;
+
 		private ContourSet contourSet;
-		private Color4[] contourColors;
 		private bool hasContours;
+		private bool hasSimplifiedContours;
 
 		private KeyboardState prevK;
 		private MouseState prevM;
@@ -198,7 +194,7 @@ namespace Examples
 			if (k[Key.E])
 				cam.Elevate(-5f * (float)e.Time);
 
-			if (m[MouseButton.Right])
+			if (m[MouseButton.Left])
 			{
 				cam.RotatePitch((m.X - prevM.X) * (float)e.Time * 2f);
 				cam.RotateHeading((prevM.Y - m.Y) * (float)e.Time * 2f);
@@ -215,13 +211,6 @@ namespace Examples
 		{
 			if (e.Key == Key.Escape)
 				Exit();
-			else if (e.Key == Key.F10 && hasVoxelized)
-			{
-				if (vDrawMode == VoxelDrawMode.Lit)
-					vDrawMode = VoxelDrawMode.Transparent;
-				else if (vDrawMode == VoxelDrawMode.Transparent)
-					vDrawMode = VoxelDrawMode.Lit;
-			}
 			else if (e.Key == Key.F11)
 				WindowState = OpenTK.WindowState.Normal;
 			else if (e.Key == Key.F12)
@@ -250,17 +239,25 @@ namespace Examples
 					openHeightfield.BuildDistanceField();
 					hasDistanceField = true;
 				}
-				else if (!hasContours)
+				else if (!hasRegions)
 				{
-					openHeightfield.BuildRegions(1, 5, 10);
-					contourSet = new ContourSet(openHeightfield, 1f, 5, 0);
+					openHeightfield.BuildRegions(2, 8, 20);
 
 					Random r = new Random();
-					contourColors = new Color4[contourSet.Contours.Count];
-					for (int i = 0; i < contourColors.Length; i++)
-						contourColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
+					regionColors = new Color4[openHeightfield.MaxRegions];
+					for (int i = 0; i < regionColors.Length; i++)
+						regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
 
+					hasRegions = true;
+				}
+				else if (!hasContours)
+				{
+					contourSet = new ContourSet(openHeightfield, 1f, 5, 0);
 					hasContours = true;
+				}
+				else if (!hasSimplifiedContours)
+				{
+					hasSimplifiedContours = true;
 				}
 			}
 
@@ -286,40 +283,146 @@ namespace Examples
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
 
-			if (hasContours)
+			GL.Disable(EnableCap.Light0);
+			GL.Disable(EnableCap.Lighting);
+			GL.DepthMask(false);
+			GL.Color4(1f, 0f, 0f, 0.5f);
+
+			if (hasSimplifiedContours)
 			{
-				if (vDrawMode == VoxelDrawMode.Transparent)
-				{
-					GL.Disable(EnableCap.Light0);
-					GL.Disable(EnableCap.Lighting);
-					GL.DepthMask(false);
-					GL.Color4(1f, 0f, 0f, 0.5f);
-				}
+				int maxdist = openHeightfield.MaxDistance;
+
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 squareScale, squareTrans;
+				Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
+				Matrix4.CreateTranslation(heightfield.Bounds.Min.X + 1, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + 1, out squareTrans);
 
 				GL.DisableClientState(ArrayCap.NormalArray);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
-				for (int i = 0; i < contourSet.Contours.Count; i++)
+				foreach (var c in contourSet.Contours)
 				{
-					GL.Color4(contourColors[i]);
-					GL.VertexPointer(3, VertexPointerType.Int, 0, contourSet.Contours[i].Vertices);
-					GL.DrawArrays(BeginMode.LineLoop, 0, contourSet.Contours[i].Vertices.Length);
+					GL.PushMatrix();
+
+					GL.MultMatrix(ref squareTrans);
+					GL.MultMatrix(ref squareScale);
+
+					GL.VertexPointer(3, VertexPointerType.Int, 16, c.Vertices);
+
+					int region = c.RegionId;
+					if ((region & 0x8000) == 0x8000) //HACK properly display border regions
+						region &= 0x7fff;
+
+					Color4 col = regionColors[region];
+					GL.Color4(col);
+
+					GL.LineWidth(5f);
+					GL.DrawArrays(BeginMode.LineLoop, 0, c.NumVerts);
+
+					GL.PopMatrix();
 				}
 
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
+			}
+			else if (hasContours)
+			{
+				int maxdist = openHeightfield.MaxDistance;
 
-				if (vDrawMode == VoxelDrawMode.Transparent)
-					GL.DepthMask(true);
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 squareScale, squareTrans;
+				Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
+				Matrix4.CreateTranslation(heightfield.Bounds.Min.X + 1, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + 1, out squareTrans);
+
+				GL.DisableClientState(ArrayCap.NormalArray);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+				foreach (var c in contourSet.Contours)
+				{
+					GL.PushMatrix();
+
+					GL.MultMatrix(ref squareTrans);
+					GL.MultMatrix(ref squareScale);
+
+					GL.VertexPointer(3, VertexPointerType.Int, 16, c.RawVertices);
+
+					int region = c.RegionId;
+					if ((region & 0x8000) == 0x8000) //HACK properly display border regions
+						region &= 0x7fff;
+
+					Color4 col = regionColors[region];
+					GL.Color4(col);
+
+					GL.LineWidth(5f);
+					GL.DrawArrays(BeginMode.LineLoop, 0, c.NumRawVerts);
+
+					GL.PopMatrix();
+				}
+
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
+			}
+			else if (hasRegions)
+			{
+				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+				int maxdist = openHeightfield.MaxDistance;
+
+				var cellSize = heightfield.CellSize;
+				var halfCellSize = cellSize * 0.5f;
+				Matrix4 squareScale, squareTrans;
+				OpenTK.Vector3 squarePos;
+				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+				for (int i = 0; i < openHeightfield.Length; i++)
+				{
+					for (int j = 0; j < openHeightfield.Width; j++)
+					{
+						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+
+						var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+
+						for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
+						{
+							GL.PushMatrix();
+							var span = openHeightfield.Spans[k];
+							var squarePosFinal = squarePos;
+							squarePosFinal.Y += span.Minimum * cellSize.Y;
+							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+
+							int region = span.Region;
+							if ((region & 0x8000) == 0x8000)
+								region &= 0x7fff;
+							Color4 col = regionColors[region];
+							GL.Color4(col);
+
+							GL.MultMatrix(ref squareTrans);
+							GL.MultMatrix(ref squareScale);
+
+							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+							GL.PopMatrix();
+						}
+					}
+				}
+
+				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+				GL.DisableClientState(ArrayCap.VertexArray);
+				GL.DisableClientState(ArrayCap.NormalArray);
 			}
 			else if (hasDistanceField)
 			{
-				if (vDrawMode == VoxelDrawMode.Transparent)
-				{
-					GL.Disable(EnableCap.Light0);
-					GL.Disable(EnableCap.Lighting);
-					GL.DepthMask(false);
-					GL.Color4(1f, 0f, 0f, 0.5f);
-				}
-
 				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
 				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
 				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
@@ -366,20 +469,9 @@ namespace Examples
 				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 				GL.DisableClientState(ArrayCap.VertexArray);
 				GL.DisableClientState(ArrayCap.NormalArray);
-
-				if (vDrawMode == VoxelDrawMode.Transparent)
-					GL.DepthMask(true);
 			}
 			else if (hasOpenHeightfield)
 			{
-				if (vDrawMode == VoxelDrawMode.Transparent)
-				{
-					GL.Disable(EnableCap.Light0);
-					GL.Disable(EnableCap.Lighting);
-					GL.DepthMask(false);
-					GL.Color4(1f, 0f, 0f, 0.5f);
-				}
-
 				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
 				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
 				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
@@ -412,7 +504,7 @@ namespace Examples
 									numCons++;
 							}
 
-							GL.Color4(1f, 0f, numCons / 4f, 1f);
+							GL.Color4(numCons / 4f, numCons / 4f, numCons / 4f, 1f);
 
 							GL.MultMatrix(ref squareTrans);
 							GL.MultMatrix(ref squareScale);
@@ -428,20 +520,9 @@ namespace Examples
 				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 				GL.DisableClientState(ArrayCap.VertexArray);
 				GL.DisableClientState(ArrayCap.NormalArray);
-
-				if (vDrawMode == VoxelDrawMode.Transparent)
-					GL.DepthMask(true);
 			}
 			else if (hasVoxelized)
 			{
-				if (vDrawMode == VoxelDrawMode.Transparent)
-				{
-					GL.Disable(EnableCap.Light0);
-					GL.Disable(EnableCap.Lighting);
-					GL.DepthMask(false);
-					GL.Color4(1f, 0f, 0f, 0.5f);
-				}
-
 				GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
 				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
 				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
@@ -478,10 +559,9 @@ namespace Examples
 				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 				GL.DisableClientState(ArrayCap.VertexArray);
 				GL.DisableClientState(ArrayCap.NormalArray);
-
-				if (vDrawMode == VoxelDrawMode.Transparent)
-					GL.DepthMask(true);
 			}
+
+			GL.DepthMask(true);
 
 			SwapBuffers();
 		}
