@@ -19,14 +19,14 @@ namespace SharpNav
 	public class Region
 	{
 		private int spanCount;
-		private ushort id;
+		private int id;
 		private AreaFlags areaType;
 		private bool remap;
 		private bool visited;
 		private List<int> connections;
 		private List<int> floors;
 
-		public Region(ushort idNum)
+		public Region(int idNum)
 		{
 			spanCount = 0;
 			id = idNum;
@@ -44,7 +44,7 @@ namespace SharpNav
 			set { this.spanCount = value; }
 		}
 
-		public ushort Id 
+		public int Id 
 		{ 
 			get { return id; }
 			set { this.id = value; }
@@ -94,7 +94,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="oldId">The value you want to replace</param>
 		/// <param name="newId">The new value that will be used</param>
-		public void ReplaceNeighbour(ushort oldId, ushort newId)
+		public void ReplaceNeighbour(int oldId, int newId)
 		{
 			//replace the connections
 			bool neiChanged = false;
@@ -174,8 +174,8 @@ namespace SharpNav
 		/// <returns></returns>
 		public bool MergeWithRegion(Region otherRegion)
 		{
-			ushort thisId = id;
-			ushort otherId = otherRegion.id;
+			int thisId = id;
+			int otherId = otherRegion.id;
 
 			// Duplicate current neighbourhood.
 			List<int> thisConnected = new List<int>();

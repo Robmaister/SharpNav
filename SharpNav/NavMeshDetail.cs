@@ -86,7 +86,7 @@ namespace SharpNav
 				maxhh = Math.Max(maxhh, ymax - ymin);
 			}
 
-			hp.data = new int[maxhw * maxhh];
+			hp.Data = new int[maxhw * maxhh];
 
 			this.nmeshes = mesh.NPolys;
 			this.meshes = new int[this.nmeshes * 4];
@@ -205,7 +205,7 @@ namespace SharpNav
 			}
 		}
 
-		public int GetTriFlags(float[] verts, int va, int vb, int vc, float[] vpoly, int npoly)
+		private int GetTriFlags(float[] verts, int va, int vb, int vc, float[] vpoly, int npoly)
 		{
 			int flags = 0;
 			flags |= GetEdgeFlags(verts, va, vb, vpoly, npoly) << 0;
@@ -214,7 +214,7 @@ namespace SharpNav
 			return flags;
 		}
 
-		public int GetEdgeFlags(float[] verts, int va, int vb, float[] vpoly, int npoly)
+		private int GetEdgeFlags(float[] verts, int va, int vb, float[] vpoly, int npoly)
 		{
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
@@ -239,10 +239,10 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp"></param>
-		public void GetHeightData(CompactHeightfield openField, float[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield openField, float[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
 		{
-			for (int i = 0; i < hp.data.Length; i++)
-				hp.data[i] = 0;
+			for (int i = 0; i < hp.Data.Length; i++)
+				hp.Data[i] = 0;
 
 			List<int> stack = new List<int>();
 
@@ -315,7 +315,7 @@ namespace SharpNav
 				int cx = stack[i + 0];
 				int cy = stack[i + 1];
 				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
-				hp.data[idx] = 1;
+				hp.Data[idx] = 1;
 			}
 
 			//process the entire stack
@@ -362,7 +362,7 @@ namespace SharpNav
 						ay < hp.ymin || ay >= (hp.ymin + hp.height))
 						continue;
 
-					if (hp.data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != 0)
+					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != 0)
 						continue;
 
 					//get the new index
@@ -371,7 +371,7 @@ namespace SharpNav
 
 					//save data
 					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
-					hp.data[idx] = 1;
+					hp.Data[idx] = 1;
 
 					//push to stack
 					stack.Add(ax);
@@ -381,8 +381,8 @@ namespace SharpNav
 			}
 
 			//initialize to some default value 
-			for (int i = 0; i < hp.data.Length; i++)
-				hp.data[i] = 0xff;
+			for (int i = 0; i < hp.Data.Length; i++)
+				hp.Data[i] = 0xff;
 
 			//mark start locations
 			for (int i = 0; i < stack.Count; i += 3)
@@ -395,7 +395,7 @@ namespace SharpNav
 				//set new heightpatch data
 				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
 				CompactSpan cs = openField.Spans[ci];
-				hp.data[idx] = cs.Minimum;
+				hp.Data[idx] = cs.Minimum;
 			}
 
 			const int RETRACT_SIZE = 256;
@@ -438,7 +438,7 @@ namespace SharpNav
 						continue;
 
 					//only continue if height is unset
-					if (hp.data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != UNSET_HEIGHT)
+					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != UNSET_HEIGHT)
 						continue;
 
 					//get new span index
@@ -450,7 +450,7 @@ namespace SharpNav
 					
 					//save
 					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
-					hp.data[idx] = ds.Minimum;
+					hp.Data[idx] = ds.Minimum;
 
 					//add grouping to stack
 					stack.Add(ax);
@@ -461,7 +461,7 @@ namespace SharpNav
 
 		}
 
-		public void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
+		private void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
 			float[] verts, ref int nverts, List<int> tris, List<int> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
@@ -726,12 +726,12 @@ namespace SharpNav
 			return;
 		}
 
-		public float GetJitterX(int i)
+		private float GetJitterX(int i)
 		{
 			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
 		}
 
-		public float GetJitterY(int i)
+		private float GetJitterY(int i)
 		{
 			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
 		}
@@ -745,13 +745,13 @@ namespace SharpNav
 		/// <param name="invCellSize"></param>
 		/// <param name="cellHeight"></param>
 		/// <param name="hp"></param>
-		public float GetHeight(float fx, float fy, float fz, float invCellSize, float cellHeight, HeightPatch hp)
+		private float GetHeight(float fx, float fy, float fz, float invCellSize, float cellHeight, HeightPatch hp)
 		{
 			int ix = (int)Math.Floor(fx * invCellSize + 0.01f);
 			int iz = (int)Math.Floor(fz * invCellSize + 0.01f);
 			ix = MathHelper.Clamp(ix - hp.xmin, 0, hp.width - 1);
 			iz = MathHelper.Clamp(iz - hp.ymin, 0, hp.height - 1);
-			int h = hp.data[ix + iz * hp.width];
+			int h = hp.Data[ix + iz * hp.width];
 
 			if (h == UNSET_HEIGHT)
 			{
@@ -767,7 +767,7 @@ namespace SharpNav
 					if (nx < 0 || nz < 0 || nx >= hp.width || nz >= hp.height)
 						continue;
 
-					int nh = hp.data[nx + nz * hp.width];
+					int nh = hp.Data[nx + nz * hp.width];
 					if (nh == UNSET_HEIGHT)
 						continue;
 
@@ -792,7 +792,7 @@ namespace SharpNav
 		/// <param name="hull"></param>
 		/// <param name="tris"></param>
 		/// <param name="edges"></param>
-		public void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<int> edges)
+		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<int> edges)
 		{
 			int nfaces = 0;
 			int nedges = 0;
@@ -858,7 +858,7 @@ namespace SharpNav
 			}
 		}
 
-		public void CompleteFacet(float[] pts, int npts, List<int> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
+		private void CompleteFacet(float[] pts, int npts, List<int> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
 		{
 			const float EPS = 1e-5f;
 			
@@ -958,7 +958,7 @@ namespace SharpNav
 			}
 		}
 
-		public int AddEdge(List<int> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
+		private int AddEdge(List<int> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
 		{
 			if (nedges >= maxEdges)
 			{
@@ -982,7 +982,7 @@ namespace SharpNav
 			}
 		}
 
-		public int FindEdge(List<int> edges, int nedges, int s, int t)
+		private int FindEdge(List<int> edges, int nedges, int s, int t)
 		{
 			for (int i = 0; i < nedges; i++)
 			{
@@ -994,7 +994,7 @@ namespace SharpNav
 			return (int)EdgeValues.UNDEF;
 		}
 
-		public bool OverlapEdges(float[] pts, List<int> edges, int nedges, int s1, int t1)
+		private bool OverlapEdges(float[] pts, List<int> edges, int nedges, int s1, int t1)
 		{
 			for (int i = 0; i < nedges; i++)
 			{
@@ -1012,7 +1012,7 @@ namespace SharpNav
 			return false;
 		}
 
-		public void UpdateLeftFace(List<int> edges, int edgePos, int s, int t, int f)
+		private void UpdateLeftFace(List<int> edges, int edgePos, int s, int t, int f)
 		{
 			if (edges[edgePos + 0] == s && edges[edgePos + 1] == t && edges[edgePos + 2] == (int)EdgeValues.UNDEF)
 				edges[edgePos + 2] = f;
@@ -1020,7 +1020,7 @@ namespace SharpNav
 				edges[edgePos + 3] = f;
 		}
 
-		public bool CircumCircle(float[] pts, int p1, int p2, int p3, float[] c, ref float r)
+		private bool CircumCircle(float[] pts, int p1, int p2, int p3, float[] c, ref float r)
 		{
 			float EPS = 1e-6f;
 			float cp = VCross2(pts, p1, p2, p3);
@@ -1045,7 +1045,7 @@ namespace SharpNav
 			return false;
 		}
 
-		public float DistanceToTriMesh(float[] p, float[] verts, List<int> tris, int ntris)
+		private float DistanceToTriMesh(float[] p, float[] verts, List<int> tris, int ntris)
 		{
 			float dmin = float.MaxValue;
 
@@ -1065,7 +1065,7 @@ namespace SharpNav
 			return dmin;
 		}
 
-		public float DistancePointTri(float[] p, float[] verts, int a, int b, int c)
+		private float DistancePointTri(float[] p, float[] verts, int a, int b, int c)
 		{
 			float[] v0 = new float[3];
 			float[] v1 = new float[3];
@@ -1104,7 +1104,7 @@ namespace SharpNav
 			
 		}
 
-		public float DistanceToPoly(int nvert, float[] verts, float[] p)
+		private float DistanceToPoly(int nvert, float[] verts, float[] p)
 		{
 			float dmin = float.MaxValue;
 			bool c = false;
@@ -1126,7 +1126,7 @@ namespace SharpNav
 			return c ? -dmin : dmin;
 		}
 
-		public float DistancePointSegment(float[] edge, int pt, int p, int q)
+		private float DistancePointSegment(float[] edge, int pt, int p, int q)
 		{
 			float pqx = edge[q + 0] - edge[p + 0];
 			float pqy = edge[q + 1] - edge[p + 1];
@@ -1153,7 +1153,7 @@ namespace SharpNav
 			return dx * dx + dy * dy + dz * dz;
 		}
 
-		public float DistancePointSegment2d(float[] pt, float[] verts, int p, int q)
+		private float DistancePointSegment2d(float[] pt, float[] verts, int p, int q)
 		{
 			float pqx = verts[q + 0] - verts[p + 0];
 			float pqz = verts[q + 2] - verts[p + 2];
@@ -1177,7 +1177,7 @@ namespace SharpNav
 			return dx * dx + dz * dz;
 		}
 
-		public int OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
+		private int OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
 		{
 			float a1 = VCross2(pts, a, b, d);
 			float a2 = VCross2(pts, a, b, c);
@@ -1194,7 +1194,7 @@ namespace SharpNav
 			return 0;
 		}
 
-		public float VCross2(float[] pts, int p1, int p2, int p3)
+		private float VCross2(float[] pts, int p1, int p2, int p3)
 		{
 			float u1 = pts[p2 + 0] - pts[p1 + 0];
 			float v1 = pts[p2 + 2] - pts[p1 + 2];
@@ -1204,7 +1204,7 @@ namespace SharpNav
 			return u1 * v2 - v1 * u2;
 		}
 
-		public float VDot2(float[] pts, int a, int b)
+		private float VDot2(float[] pts, int a, int b)
 		{
 			return pts[a + 0] * pts[b + 0] + pts[a + 2] * pts[b + 2];
 		}
@@ -1212,13 +1212,13 @@ namespace SharpNav
 		/// <summary>
 		/// Determines whether an edge has been created or not
 		/// </summary>
-		public enum EdgeValues : int
+		private enum EdgeValues : int
 		{
 			UNDEF = -1,
 			HULL = -2
 		}
 
-		public class HeightPatch
+		private class HeightPatch
 		{
 			public HeightPatch()
 			{
@@ -1228,7 +1228,7 @@ namespace SharpNav
 				height = 0;
 			}
 
-			public int[] data;
+			public int[] Data;
 			public int xmin, ymin, width, height;
 		}
 	}

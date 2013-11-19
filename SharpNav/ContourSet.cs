@@ -314,7 +314,7 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="flags">?</param>
 		/// <param name="points">Vertices of contour</param>
-		public void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<int> points)
+		private void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<int> points)
 		{
 			int dir = 0;
 
@@ -436,7 +436,7 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="isBorderVertex">Determine whether the vertex is a border or not</param>
 		/// <returns></returns>
-		public int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, ref bool isBorderVertex)
+		private int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, ref bool isBorderVertex)
 		{
 			CompactSpan s = openField.Spans[i];
 			int cornerHeight = s.Minimum;
@@ -525,7 +525,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
-		public void SimplifyContour(List<int> points, List<int> simplified, float maxError, int maxEdgeLen, int buildFlags)
+		private void SimplifyContour(List<int> points, List<int> simplified, float maxError, int maxEdgeLen, int buildFlags)
 		{
 			//add initial points
 			bool hasConnections = false;
@@ -792,7 +792,7 @@ namespace SharpNav
 		/// <param name="qx">Segment point 2 x</param>
 		/// <param name="qz">Segment point 2 z</param>
 		/// <returns></returns>
-		public float DistancePointSegment(int x, int z, int px, int pz, int qx, int qz)
+		private float DistancePointSegment(int x, int z, int px, int pz, int qx, int qz)
 		{
 			float segmentDeltaX = qx - px;
 			float segmentDeltaZ = qz - pz;
@@ -821,7 +821,7 @@ namespace SharpNav
 		/// Clean up the simplified segments
 		/// </summary>
 		/// <param name="simplified"></param>
-		public void RemoveDegenerateSegments(List<int> simplified)
+		private void RemoveDegenerateSegments(List<int> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
 			for (int i = 0; i < simplified.Count / 4; i++)
@@ -851,7 +851,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">The vertex data</param>
 		/// <returns></returns>
-		public int CalcAreaOfPolygon2D(int[] verts, int numVerts)
+		private int CalcAreaOfPolygon2D(int[] verts, int numVerts)
 		{
 			int area = 0;
 			for (int i = 0, j = numVerts - 1; i < numVerts; j = i++)
@@ -868,7 +868,7 @@ namespace SharpNav
 		/// <param name="vertsB">Second set of vertices</param>
 		/// <param name="ia">First index</param>
 		/// <param name="ib">Second index</param>
-		public void GetClosestIndices(int[] vertsA, int numVertsA, int[] vertsB, int numVertsB, ref int ia, ref int ib)
+		private void GetClosestIndices(int[] vertsA, int numVertsA, int[] vertsB, int numVertsB, ref int ia, ref int ib)
 		{
 			int closestDistance = 0xfffffff;
 			ia = -1;
@@ -911,13 +911,13 @@ namespace SharpNav
 		/// <param name="b">Second location in vertsA</param>
 		/// <param name="c">First location is vertsB</param>
 		/// <returns></returns>
-		public bool ILeft(int[] vertsA, int[] vertsB, int a, int b, int c)
+		private bool ILeft(int[] vertsA, int[] vertsB, int a, int b, int c)
 		{
 			return (vertsA[b + 0] - vertsA[a + 0]) * (vertsB[c + 2] - vertsA[a + 2])
 				- (vertsB[c + 0] - vertsA[a + 0]) * (vertsA[b + 2] - vertsA[a + 2]) <= 0;
 		}
 
-		public void MergeContours(ref Contour contA, Contour contB, int ia, int ib)
+		private void MergeContours(ref Contour contA, Contour contB, int ia, int ib)
 		{
 			int maxVerts = contA.NumVerts + contB.NumVerts + 2;
 			int[] newVerts = new int[maxVerts * 4];

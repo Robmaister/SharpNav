@@ -315,7 +315,7 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		public int Triangulate(int n, int[] verts, int[] indices, int[] tris)
+		private int Triangulate(int n, int[] verts, int[] indices, int[] tris)
 		{
 			int ntris = 0;
 			int[] dst = tris;
@@ -425,7 +425,7 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <returns></returns>
-		public int AddVertex(int x, int y, int z, int[] verts, int[] firstVert, int[] nextVert, ref int nv)
+		private int AddVertex(int x, int y, int z, int[] verts, int[] firstVert, int[] nextVert, ref int nv)
 		{
 			//generate a unique index
 			int bucket = ComputeVertexHash(x, 0, z);
@@ -475,7 +475,7 @@ namespace SharpNav
 		/// <param name="y"></param>
 		/// <param name="z"></param>
 		/// <returns></returns>
-		public int ComputeVertexHash(int x, int y, int z)
+		private int ComputeVertexHash(int x, int y, int z)
 		{
 			//choose large multiplicative constants, which are primes
 			uint h1 = 0x8da6b343;
@@ -489,7 +489,7 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
-		public int GetPolyMergeValue(int[] polys, int polyA, int polyB, int[] verts, ref int edgeA, ref int edgeB, int nvp)
+		private int GetPolyMergeValue(int[] polys, int polyA, int polyB, int[] verts, ref int edgeA, ref int edgeB, int nvp)
 		{
 			int numVertsA = CountPolyVerts(polys, polyA, nvp);
 			int numVertsB = CountPolyVerts(polys, polyB, nvp);
@@ -572,7 +572,7 @@ namespace SharpNav
 		/// <summary>
 		/// The two polygon arrrays are merged into a single array
 		/// </summary>
-		public void MergePolys(int[] polys, int polyA, int polyB, int edgeA, int edgeB, int numVertsPerPolygon)
+		private void MergePolys(int[] polys, int polyA, int polyB, int edgeA, int edgeB, int numVertsPerPolygon)
 		{
 			int numA = CountPolyVerts(polys, polyA, numVertsPerPolygon);
 			int numB = CountPolyVerts(polys, polyB, numVertsPerPolygon);
@@ -599,7 +599,7 @@ namespace SharpNav
 		///<summary>
 		/// If vertex can't be removed, there is no need to spend time deleting it.
 		///</summary>
-		public bool CanRemoveVertex(int remove)
+		private bool CanRemoveVertex(int remove)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
 
@@ -706,7 +706,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="remove">Index in polygon array</param>
 		/// <param name="maxTris">Maximum triangle count</param>
-		public void RemoveVertex(int remove, int maxTris)
+		private void RemoveVertex(int remove, int maxTris)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
 
@@ -978,7 +978,7 @@ namespace SharpNav
 			}
 		}
 
-		public void BuildMeshAdjacency()
+		private void BuildMeshAdjacency()
 		{
 			int maxEdgeCount = npolys * numVertsPerPoly;
 			int[] firstEdge = new int[nverts + maxEdgeCount];
@@ -1072,7 +1072,7 @@ namespace SharpNav
 		/// <summary>
 		/// Count the number of vertices per polygon
 		/// </summary>
-		public int CountPolyVerts(int[] polys, int start, int numVertsPerPolygon)
+		private int CountPolyVerts(int[] polys, int start, int numVertsPerPolygon)
 		{
 			for (int i = start; i < start + numVertsPerPolygon; i++)
 				if (polys[i] == MESH_NULL_IDX)
@@ -1087,7 +1087,7 @@ namespace SharpNav
 		/// <param name="v"></param>
 		/// <param name="array"></param>
 		/// <param name="an"></param>
-		public void PushFront(int v, int[] array, ref int an)
+		private void PushFront(int v, int[] array, ref int an)
 		{
 			an++;
 			for (int i = an - 1; i > 0; i--)
@@ -1101,7 +1101,7 @@ namespace SharpNav
 		/// <param name="v"></param>
 		/// <param name="array"></param>
 		/// <param name="an"></param>
-		public void PushBack(int v, int[] array, ref int an)
+		private void PushBack(int v, int[] array, ref int an)
 		{
 			array[an] = v;
 			an++;
@@ -1111,19 +1111,19 @@ namespace SharpNav
 		// (Bz - Az) (Cz - Az) 
 		//
 		//(Bx - Ax) * (Cz - Az) - (Cx - Ax) * (Bz - Az)
-		public bool ULeft(int[] verts, int a, int b, int c)
+		private bool ULeft(int[] verts, int a, int b, int c)
 		{
 			return (verts[b + 0] - verts[a + 0]) * (verts[c + 2] - verts[a + 2]) -
 				(verts[c + 0] - verts[a + 0]) * (verts[b + 2] - verts[a + 2]) < 0;
 		}
 
-		public int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
-		public int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
+		private int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
+		private int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 		
 		///<summary>
 		///true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
 		///</summary>
-		public bool Diagonal(int i, int j, int n, int[] verts, int[] indices)
+		private bool Diagonal(int i, int j, int n, int[] verts, int[] indices)
 		{
 			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
 		}
@@ -1132,7 +1132,7 @@ namespace SharpNav
 		///true if and only if diagonal (i, j) is strictly internal to polygon 
 		///in neighborhood of i endpoint
 		///</summary>
-		public bool InCone(int i, int j, int n, int[] verts, int[] indices)
+		private bool InCone(int i, int j, int n, int[] verts, int[] indices)
 		{
 			int pi = (indices[i] & 0x0fffffff) * 4;
 			int pj = (indices[j] & 0x0fffffff) * 4;
@@ -1151,7 +1151,7 @@ namespace SharpNav
 		///true if and only if (v[i], v[j]) is internal or external diagonal
 		///ignoring edges incident to v[i] or v[j]
 		///</summary>
-		public bool Diagonalie(int i, int j, int n, int[] verts, int[] indices)
+		private bool Diagonalie(int i, int j, int n, int[] verts, int[] indices)
 		{
 			int d0 = (indices[i] & 0x0fffffff) * 4;
 			int d1 = (indices[j] & 0x0fffffff) * 4;
@@ -1178,28 +1178,28 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool Left(int[] verts, int a, int b, int c)
+		private bool Left(int[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) < 0;
 		}
 
-		public bool LeftOn(int[] verts, int a, int b, int c)
+		private bool LeftOn(int[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) <= 0;
 		}
 
-		public bool Collinear(int[] verts, int a, int b, int c)
+		private bool Collinear(int[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) == 0;
 		}
 
-		public int Area2(int[] verts, int a, int b, int c)
+		private int Area2(int[] verts, int a, int b, int c)
 		{
 			return (verts[b + 0] - verts[a + 0]) * (verts[c + 2] - verts[a + 2]) -
 				(verts[c + 0] - verts[a + 0]) * (verts[b + 2] - verts[a + 2]);
 		}
 
-		public bool VEqual(int[] verts, int a, int b)
+		private bool VEqual(int[] verts, int a, int b)
 		{
 			return verts[a + 0] == verts[b + 0] && verts[a + 2] == verts[b + 2];
 		}
@@ -1207,7 +1207,7 @@ namespace SharpNav
 		/// <summary>
 		/// True if and only if segments AB and CD intersect, properly or improperyl
 		/// </summary>
-		public bool Intersect(int[] verts, int a, int b, int c, int d)
+		private bool Intersect(int[] verts, int a, int b, int c, int d)
 		{
 			if (IntersectProp(verts, a, b, c, d))
 				return true;
@@ -1217,10 +1217,11 @@ namespace SharpNav
 			else
 				return false;
 		}
+
 		/// <summary>
 		/// Intersect properly: share a point interior to both segments. properness determined by strict leftness
 		/// </summary>
-		public bool IntersectProp(int[] verts, int a, int b, int c, int d)
+		private bool IntersectProp(int[] verts, int a, int b, int c, int d)
 		{
 			//eliminate improper cases
 			if (Collinear(verts, a, b, c) || Collinear(verts, a, b, d) ||
@@ -1237,7 +1238,7 @@ namespace SharpNav
 		/// <param name="x"></param>
 		/// <param name="y"></param>
 		/// <returns></returns>
-		public bool xorb(bool x, bool y)
+		private bool xorb(bool x, bool y)
 		{
 			return !x ^ !y;
 		}
@@ -1245,7 +1246,7 @@ namespace SharpNav
 		/// <summary>
 		/// True if and only if (A, B, C) are collinear and point C lies on closed segment AB
 		/// </summary>
-		public bool Between(int[] verts, int a, int b, int c)
+		private bool Between(int[] verts, int a, int b, int c)
 		{
 			if (!Collinear(verts, a, b, c))
 				return false;

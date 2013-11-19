@@ -594,7 +594,7 @@ namespace SharpNav
 					//small region with more than one connection or region which is not connected to border at all
 					//find smallest neighbor that connects to this one
 					int smallest = 0xfffffff;
-					ushort mergeId = reg.Id;
+					int mergeId = reg.Id;
 					for (int j = 0; j < reg.Connections.Count; j++)
 					{
 						if ((reg.Connections[j] & BORDER_REG) != 0) continue;
@@ -610,7 +610,7 @@ namespace SharpNav
 					//found new id
 					if (mergeId != reg.Id)
 					{
-						ushort oldId = reg.Id;
+						int oldId = reg.Id;
 						Region target = regions[mergeId];
 
 						//merge regions
@@ -651,7 +651,7 @@ namespace SharpNav
 				if (!regions[i].Remap)
 					continue;
 
-				ushort oldId = regions[i].Id;
+				int oldId = regions[i].Id;
 				ushort newId = ++regIdGen;
 				for (int j = i; j < numRegions; j++)
 				{
