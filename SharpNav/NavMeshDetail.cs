@@ -11,7 +11,7 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	class MeshDetail
+	public class NavMeshDetail
 	{
 		public const int UNSET_HEIGHT = 0xffff;
 
@@ -30,7 +30,7 @@ namespace SharpNav
 		/// <param name="openField">Compact heightfield data</param>
 		/// <param name="sampleDist"></param>
 		/// <param name="sampleMaxError"></param>
-		public MeshDetail(Mesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
+		public NavMeshDetail(NavMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
 		{
 			if (mesh.NVerts == 0 || mesh.NPolys == 0)
 				return;
@@ -61,7 +61,7 @@ namespace SharpNav
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[p + j] == Mesh.MESH_NULL_IDX)
+					if (mesh.Polys[p + j] == NavMesh.MESH_NULL_IDX)
 						break;
 
 					int v = mesh.Polys[p + j] * 3;
@@ -108,7 +108,7 @@ namespace SharpNav
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[p + j] == Mesh.MESH_NULL_IDX)
+					if (mesh.Polys[p + j] == NavMesh.MESH_NULL_IDX)
 						break;
 
 					int v = mesh.Polys[p + j] * 3;

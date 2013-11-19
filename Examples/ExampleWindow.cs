@@ -45,6 +45,12 @@ namespace Examples
 		private bool hasContours;
 		private bool hasSimplifiedContours;
 
+		private NavMesh navMesh;
+		private bool hasNavMesh;
+
+		private NavMeshDetail navMeshDetail;
+		private bool hasNavMeshDetail;
+
 		private KeyboardState prevK;
 		private MouseState prevM;
 
@@ -225,7 +231,7 @@ namespace Examples
 				else if (!hasOpenHeightfield)
 				{
 					const int WalkableClimb = 15;
-					const int WalkableHeight = 15;
+					const int WalkableHeight = 40;
 
 					heightfield.FilterLedgeSpans(WalkableHeight, WalkableClimb);
 					heightfield.FilterLowHangingWalkableObstacles(WalkableClimb);
@@ -259,6 +265,16 @@ namespace Examples
 				{
 					hasSimplifiedContours = true;
 				}
+				else if (!hasNavMesh)
+				{
+					//navMesh = new NavMesh(contourSet, 6);
+					//hasNavMesh = true;
+				}
+				else if (!hasNavMeshDetail)
+				{
+					//navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, 6, 1);
+					//hasNavMeshDetail = true;
+				}
 			}
 
 			base.OnKeyDown(e);
@@ -285,283 +301,42 @@ namespace Examples
 
 			GL.Disable(EnableCap.Light0);
 			GL.Disable(EnableCap.Lighting);
-			GL.DepthMask(false);
-			GL.Color4(1f, 0f, 0f, 0.5f);
 
-			if (hasSimplifiedContours)
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.NormalArray);
+			GL.DisableClientState(ArrayCap.VertexArray);
+
+			if (hasNavMesh)
 			{
-				int maxdist = openHeightfield.MaxDistance;
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 squareScale, squareTrans;
-				Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
-				Matrix4.CreateTranslation(heightfield.Bounds.Min.X + 1, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + 1, out squareTrans);
-
-				GL.DisableClientState(ArrayCap.NormalArray);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-
-				foreach (var c in contourSet.Contours)
-				{
-					GL.PushMatrix();
-
-					GL.MultMatrix(ref squareTrans);
-					GL.MultMatrix(ref squareScale);
-
-					GL.VertexPointer(3, VertexPointerType.Int, 16, c.Vertices);
-
-					int region = c.RegionId;
-					if ((region & 0x8000) == 0x8000) //HACK properly display border regions
-						region &= 0x7fff;
-
-					Color4 col = regionColors[region];
-					GL.Color4(col);
-
-					GL.LineWidth(5f);
-					GL.DrawArrays(BeginMode.LineLoop, 0, c.NumVerts);
-
-					GL.PopMatrix();
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawNavMesh();
+			}
+			else if (hasSimplifiedContours)
+			{
+				DrawContours(true);
 			}
 			else if (hasContours)
 			{
-				int maxdist = openHeightfield.MaxDistance;
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 squareScale, squareTrans;
-				Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
-				Matrix4.CreateTranslation(heightfield.Bounds.Min.X + 1, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + 1, out squareTrans);
-
-				GL.DisableClientState(ArrayCap.NormalArray);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-
-				foreach (var c in contourSet.Contours)
-				{
-					GL.PushMatrix();
-
-					GL.MultMatrix(ref squareTrans);
-					GL.MultMatrix(ref squareScale);
-
-					GL.VertexPointer(3, VertexPointerType.Int, 16, c.RawVertices);
-
-					int region = c.RegionId;
-					if ((region & 0x8000) == 0x8000) //HACK properly display border regions
-						region &= 0x7fff;
-
-					Color4 col = regionColors[region];
-					GL.Color4(col);
-
-					GL.LineWidth(5f);
-					GL.DrawArrays(BeginMode.LineLoop, 0, c.NumRawVerts);
-
-					GL.PopMatrix();
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawContours(false);
 			}
 			else if (hasRegions)
 			{
-				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
-				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
-				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
-
-				int maxdist = openHeightfield.MaxDistance;
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 squareScale, squareTrans;
-				OpenTK.Vector3 squarePos;
-				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
-				for (int i = 0; i < openHeightfield.Length; i++)
-				{
-					for (int j = 0; j < openHeightfield.Width; j++)
-					{
-						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
-
-						var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
-
-						for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
-						{
-							GL.PushMatrix();
-							var span = openHeightfield.Spans[k];
-							var squarePosFinal = squarePos;
-							squarePosFinal.Y += span.Minimum * cellSize.Y;
-							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
-
-							int region = span.Region;
-							if ((region & 0x8000) == 0x8000)
-								region &= 0x7fff;
-							Color4 col = regionColors[region];
-							GL.Color4(col);
-
-							GL.MultMatrix(ref squareTrans);
-							GL.MultMatrix(ref squareScale);
-
-							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
-
-							GL.PopMatrix();
-						}
-					}
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawRegions();
 			}
 			else if (hasDistanceField)
 			{
-				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
-				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
-				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
-
-				int maxdist = openHeightfield.MaxDistance;
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 squareScale, squareTrans;
-				OpenTK.Vector3 squarePos;
-				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
-				for (int i = 0; i < openHeightfield.Length; i++)
-				{
-					for (int j = 0; j < openHeightfield.Width; j++)
-					{
-						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
-
-						var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
-
-						for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
-						{
-							GL.PushMatrix();
-							var span = openHeightfield.Spans[k];
-							var squarePosFinal = squarePos;
-							squarePosFinal.Y += span.Minimum * cellSize.Y;
-							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
-
-							int dist = openHeightfield.Distances[k];
-							float val = (float)dist / (float)maxdist;
-							GL.Color4(val, val, val, 1f);
-
-							GL.MultMatrix(ref squareTrans);
-							GL.MultMatrix(ref squareScale);
-
-							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
-
-							GL.PopMatrix();
-						}
-					}
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawDistanceField();
 			}
 			else if (hasOpenHeightfield)
 			{
-				GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
-				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
-				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 squareScale, squareTrans;
-				OpenTK.Vector3 squarePos;
-				Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
-				for (int i = 0; i < openHeightfield.Length; i++)
-				{
-					for (int j = 0; j < openHeightfield.Width; j++)
-					{
-						squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
-
-						var cell = openHeightfield[j, i];
-
-						foreach (var span in cell)
-						{
-							GL.PushMatrix();
-							var squarePosFinal = squarePos;
-							squarePosFinal.Y += span.Minimum * cellSize.Y;
-							Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
-
-							int numCons = 0;
-							for (int dir = 0; dir < 4; dir++)
-							{
-								if (CompactSpan.GetConnection(dir, span) != 0xff)
-									numCons++;
-							}
-
-							GL.Color4(numCons / 4f, numCons / 4f, numCons / 4f, 1f);
-
-							GL.MultMatrix(ref squareTrans);
-							GL.MultMatrix(ref squareScale);
-
-							GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
-
-							GL.PopMatrix();
-						}
-					}
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawCompactHeightfield();
 			}
 			else if (hasVoxelized)
 			{
-				GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
-				GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
-				GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
-
-				var cellSize = heightfield.CellSize;
-				var halfCellSize = cellSize * 0.5f;
-				Matrix4 cellLoc, spanLoc, spanScale;
-				for (int i = 0; i < heightfield.Length; i++)
-				{
-					for (int j = 0; j < heightfield.Width; j++)
-					{
-						Matrix4.CreateTranslation(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z, out cellLoc);
-						var cell = heightfield[j, i];
-
-						foreach (var span in cell.Spans)
-						{
-							GL.PushMatrix();
-							Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Height, cellSize.Z, out spanScale);
-							Matrix4.CreateTranslation(0, (span.Minimum + (span.Height * 0.5f)) * cellSize.Y, 0, out spanLoc);
-
-
-							GL.MultMatrix(ref spanLoc);
-							GL.MultMatrix(ref cellLoc);
-							GL.MultMatrix(ref spanScale);
-
-							GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
-							GL.PopMatrix();
-						}
-					}
-				}
-
-				GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-				GL.DisableClientState(ArrayCap.VertexArray);
-				GL.DisableClientState(ArrayCap.NormalArray);
+				DrawHeightfield();
 			}
 
-			GL.DepthMask(true);
+			//GL.DepthMask(true);
 
 			SwapBuffers();
 		}
@@ -578,6 +353,270 @@ namespace Examples
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
 			GL.LoadIdentity();
+		}
+
+		private void DrawHeightfield()
+		{
+			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.EnableClientState(ArrayCap.NormalArray);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
+			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+
+			GL.Color4(1f, 0f, 0f, 0.5f);
+			GL.DepthMask(false);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
+
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+			Matrix4 spanLoc, spanScale;
+			for (int i = 0; i < heightfield.Length; i++)
+			{
+				for (int j = 0; j < heightfield.Width; j++)
+				{
+					SharpNav.Vector3 cellLoc = new SharpNav.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+					var cell = heightfield[j, i];
+
+					foreach (var span in cell.Spans)
+					{
+						GL.PushMatrix();
+						
+						Matrix4.CreateTranslation(cellLoc.X, ((span.Minimum + span.Maximum) * 0.5f) * cellSize.Y + cellLoc.Y, cellLoc.Z, out spanLoc);
+						GL.MultMatrix(ref spanLoc);
+
+						Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Height, cellSize.Z, out spanScale);
+						GL.MultMatrix(ref spanScale);
+
+						GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.PopMatrix();
+					}
+				}
+			}
+
+			GL.DepthMask(true);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.VertexArray);
+			GL.DisableClientState(ArrayCap.NormalArray);
+		}
+
+		private void DrawCompactHeightfield()
+		{
+			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.EnableClientState(ArrayCap.NormalArray);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+
+			Matrix4 squareScale, squareTrans;
+			OpenTK.Vector3 squarePos;
+			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+
+			for (int i = 0; i < openHeightfield.Length; i++)
+			{
+				for (int j = 0; j < openHeightfield.Width; j++)
+				{
+					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+
+					var cell = openHeightfield[j, i];
+
+					foreach (var span in cell)
+					{
+						GL.PushMatrix();
+						
+						int numCons = 0;
+						for (int dir = 0; dir < 4; dir++)
+						{
+							if (CompactSpan.GetConnection(dir, span) != 0xff)
+								numCons++;
+						}
+
+						GL.Color4(numCons / 4f, numCons / 4f, numCons / 4f, 1f);
+
+						var squarePosFinal = squarePos;
+						squarePosFinal.Y += span.Minimum * cellSize.Y;
+						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+						GL.MultMatrix(ref squareTrans);
+
+						GL.MultMatrix(ref squareScale);
+
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+						GL.PopMatrix();
+					}
+				}
+			}
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.VertexArray);
+			GL.DisableClientState(ArrayCap.NormalArray);
+		}
+
+		private void DrawDistanceField()
+		{
+			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.EnableClientState(ArrayCap.NormalArray);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+			int maxdist = openHeightfield.MaxDistance;
+
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+
+			Matrix4 squareScale, squareTrans;
+			OpenTK.Vector3 squarePos;
+			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+
+			for (int i = 0; i < openHeightfield.Length; i++)
+			{
+				for (int j = 0; j < openHeightfield.Width; j++)
+				{
+					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+
+					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+
+					for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
+					{
+						GL.PushMatrix();
+
+						int dist = openHeightfield.Distances[k];
+						float val = (float)dist / (float)maxdist;
+						GL.Color4(val, val, val, 1f);
+
+						var span = openHeightfield.Spans[k];
+						var squarePosFinal = squarePos;
+						squarePosFinal.Y += span.Minimum * cellSize.Y;
+						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+						GL.MultMatrix(ref squareTrans);
+
+						GL.MultMatrix(ref squareScale);
+
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+						GL.PopMatrix();
+					}
+				}
+			}
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.VertexArray);
+			GL.DisableClientState(ArrayCap.NormalArray);
+		}
+
+		private void DrawRegions()
+		{
+			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.EnableClientState(ArrayCap.NormalArray);
+
+			GL.BindBuffer(BufferTarget.ArrayBuffer, squareVbo);
+			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
+			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
+
+			int maxdist = openHeightfield.MaxDistance;
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+
+			Matrix4 squareScale, squareTrans;
+			OpenTK.Vector3 squarePos;
+			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
+
+			for (int i = 0; i < openHeightfield.Length; i++)
+			{
+				for (int j = 0; j < openHeightfield.Width; j++)
+				{
+					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+
+					for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
+					{
+						GL.PushMatrix();
+						var span = openHeightfield.Spans[k];
+
+						int region = span.Region;
+						if ((region & 0x8000) == 0x8000)
+							region &= 0x7fff;
+						Color4 col = regionColors[region];
+						GL.Color4(col);
+
+						var squarePosFinal = squarePos;
+						squarePosFinal.Y += span.Minimum * cellSize.Y;
+						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
+						GL.MultMatrix(ref squareTrans);
+
+						GL.MultMatrix(ref squareScale);
+
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+
+						GL.PopMatrix();
+					}
+				}
+			}
+
+			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			GL.DisableClientState(ArrayCap.VertexArray);
+			GL.DisableClientState(ArrayCap.NormalArray);
+		}
+
+		private void DrawContours(bool simplified)
+		{
+			GL.EnableClientState(ArrayCap.VertexArray);
+
+			int maxdist = openHeightfield.MaxDistance;
+			var cellSize = heightfield.CellSize;
+			var halfCellSize = cellSize * 0.5f;
+
+			GL.PushMatrix();
+
+			Matrix4 squareScale, squareTrans;
+
+			Matrix4.CreateTranslation(heightfield.Bounds.Min.X + 1, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + 1, out squareTrans);
+			GL.MultMatrix(ref squareTrans);
+
+			Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
+			GL.MultMatrix(ref squareScale);
+
+			foreach (var c in contourSet.Contours)
+			{
+				GL.VertexPointer(3, VertexPointerType.Int, 16, simplified ? c.Vertices : c.RawVertices);
+
+				int region = c.RegionId;
+				if ((region & 0x8000) == 0x8000) //HACK properly display border regions
+					region &= 0x7fff;
+
+				Color4 col = regionColors[region];
+				GL.Color4(col);
+
+				GL.LineWidth(5f);
+				GL.DrawArrays(BeginMode.LineLoop, 0, simplified ? c.NumVerts : c.NumRawVerts);
+			}
+
+			GL.PopMatrix();
+
+			GL.DisableClientState(ArrayCap.VertexArray);
+		}
+
+		private void DrawNavMesh()
+		{
+			
 		}
 	}
 }
