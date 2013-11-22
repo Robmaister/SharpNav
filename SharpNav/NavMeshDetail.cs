@@ -123,7 +123,7 @@ namespace SharpNav
 				hp.ymin = bounds[i * 4 + 2];
 				hp.width = bounds[i * 4 + 1] - bounds[i * 4 + 0];
 				hp.height = bounds[i * 4 + 3] - bounds[i * 4 + 2];
-				GetHeightData(openField, poly, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
+				GetHeightData(openField, mesh.Polys, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
 
 				int nverts = 0;
 				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, tempVerts, ref nverts, tris, edges, samples);
@@ -239,7 +239,7 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp"></param>
-		private void GetHeightData(CompactHeightfield openField, float[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield openField, int[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;
@@ -249,7 +249,7 @@ namespace SharpNav
 			//9 x 2
 			int [] offset = { 0,0, -1,-1, 0,-1, 
 								1,-1, 1,0, 1,1, 
-								0,1 -1,1, -1,0};
+								0,1, -1,1, -1,0};
 
 			//use poly vertices as seed points
 			for (int j = 0; j < npoly; j++)
@@ -798,6 +798,8 @@ namespace SharpNav
 			int nedges = 0;
 			int maxEdges = npts * 10;
 			edges = new List<int>(maxEdges * 4);
+			for (int i = 0; i < maxEdges * 4; i++) //HACK should be an array, or algorithm should add edges as it goes
+				edges.Add(0);
 
 			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
 				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.HULL, (int)EdgeValues.UNDEF);

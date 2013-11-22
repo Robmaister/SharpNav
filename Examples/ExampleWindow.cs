@@ -267,13 +267,13 @@ namespace Examples
 				}
 				else if (!hasNavMesh)
 				{
-					//navMesh = new NavMesh(contourSet, 6);
-					//hasNavMesh = true;
+					navMesh = new NavMesh(contourSet, 6);
+					hasNavMesh = true;
 				}
 				else if (!hasNavMeshDetail)
 				{
-					//navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, 6, 1);
-					//hasNavMeshDetail = true;
+					navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, 6, 1);
+					hasNavMeshDetail = true;
 				}
 			}
 

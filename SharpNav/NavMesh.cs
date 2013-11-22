@@ -49,7 +49,7 @@ namespace SharpNav
 
 		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
-		public float CellHeight { get { return CellHeight; } }
+		public float CellHeight { get { return cellHeight; } }
 		public int BorderSize { get { return borderSize; } }
 
 		/// <summary>
@@ -77,7 +77,7 @@ namespace SharpNav
 				
 				maxVertices += contSet.Contours[i].NumVerts;
 				maxTris += contSet.Contours[i].NumVerts - 2;
-				maxVertsPerCont += Math.Max(maxVertsPerCont, contSet.Contours[i].NumVerts);
+				maxVertsPerCont = Math.Max(maxVertsPerCont, contSet.Contours[i].NumVerts);
 			}
 
 			//vertex flags
@@ -1005,7 +1005,7 @@ namespace SharpNav
 
 					if (v0 < v1)
 					{
-						Edge edge = edges[edgeCount];
+						Edge edge = new Edge();
 						edge.vert = new int[2];
 						edge.polyEdge = new int[2];
 						edge.poly = new int[2];
@@ -1020,6 +1020,8 @@ namespace SharpNav
 						//insert edge
 						firstEdge[nextEdge + edgeCount] = firstEdge[v0];
 						firstEdge[v0] = edgeCount;
+
+						edges[edgeCount] = edge;
 						edgeCount++;
 					}
 				}
