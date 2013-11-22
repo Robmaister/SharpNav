@@ -18,8 +18,18 @@ namespace SharpNav
 		private int nmeshes;
 		private int nverts;
 		private int ntris;
-		private int[] meshes;
+
+		//each mesh has 4 elements in this order: 
+		//-current number of vertices
+		//-updated number of vertices
+		//-current number of triangles
+		//-updated number of triangles
+		private int[] meshes; 
+
+		//each vertex has 3 elements: its x,y,z coordinates
 		private float[] verts;
+
+		//each triangle has 4 elements: its three vertices and a flag
 		private int[] tris;
 
 		/// <summary>
@@ -151,14 +161,15 @@ namespace SharpNav
 				this.meshes[i * 4 + 2] = this.ntris;
 				this.meshes[i * 4 + 3] = ntris;
 
-				//store vertices
+				//exapnd vertex array
 				if (this.nverts + nverts > vcap)
 				{
+					//make sure vertex cap is large enough
 					while (this.nverts + nverts > vcap)
 						vcap += 256;
 
+					//copy old elements to new array
 					float[] newv = new float[vcap * 3];
-
 					if (this.nverts > 0)
 					{
 						for (int j = 0; j < this.verts.Length; j++)
@@ -168,6 +179,7 @@ namespace SharpNav
 					this.verts = newv;
 				}
 
+				//save new vertices
 				for (int j = 0; j < nverts; j++)
 				{
 					this.verts[this.nverts * 3 + 0] = verts[j * 3 + 0];
@@ -183,7 +195,6 @@ namespace SharpNav
 						tcap += 256;
 
 					int[] newt = new int[tcap * 4];
-
 					if (this.ntris > 0)
 					{
 						for (int j = 0; j < this.tris.Length; j++)
@@ -205,15 +216,39 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Determine which edges of the triangle are part of the polygon
+		/// </summary>
+		/// <param name="verts">Vertices containing triangles</param>
+		/// <param name="va">Triangle vertex A</param>
+		/// <param name="vb">Triangle vertex B</param>
+		/// <param name="vc">Triangle vertex C</param>
+		/// <param name="vpoly">Polygon vertex data</param>
+		/// <param name="npoly">Number of polygons</param>
+		/// <returns></returns>
 		private int GetTriFlags(float[] verts, int va, int vb, int vc, float[] vpoly, int npoly)
 		{
 			int flags = 0;
+
+			//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
+			//each bit stores whether two vertices are close enough to a polygon edge 
+			//since triangle has three vertices, there are three distinct pairs of vertices (va,vb), (vb,vc) and (vc,va)
 			flags |= GetEdgeFlags(verts, va, vb, vpoly, npoly) << 0;
 			flags |= GetEdgeFlags(verts, vb, vc, vpoly, npoly) << 2;
 			flags |= GetEdgeFlags(verts, vc, va, vpoly, npoly) << 4;
+			
 			return flags;
 		}
 
+		/// <summary>
+		/// Determine whether an edge of the triangle is part of the polygon (1 if true, 0 if false)
+		/// </summary>
+		/// <param name="verts">Vertices containing triangles</param>
+		/// <param name="va">Triangle vertex A</param>
+		/// <param name="vb">Triangle vertex B</param>
+		/// <param name="vpoly">Polygon vertex data</param>
+		/// <param name="npoly">Number of polygons</param>
+		/// <returns></returns>
 		private int GetEdgeFlags(float[] verts, int va, int vb, float[] vpoly, int npoly)
 		{
 			//true if edge is part of polygon
@@ -223,6 +258,8 @@ namespace SharpNav
 			{
 				float[] pt1 = { verts[va + 0], verts[va + 1], verts[va + 2] };
 				float[] pt2 = { verts[vb + 0], verts[vb + 1], verts[vb + 2] };
+
+				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
 				if (DistancePointSegment2d(pt1 , vpoly, j * 3, i * 3) < thrSqr && DistancePointSegment2d(pt2, vpoly, j * 3, i * 3) < thrSqr)
 					return 1;
 			}
@@ -233,12 +270,12 @@ namespace SharpNav
 		/// <summary>
 		/// Floodfill heightfield to get 2D height data, starting at vertex locations
 		/// </summary>
-		/// <param name="openField"></param>
-		/// <param name="poly"></param>
-		/// <param name="npoly"></param>
+		/// <param name="openField">Original heightfield data</param>
+		/// <param name="poly">Polygon vertices</param>
+		/// <param name="npoly">Number of polygons</param>
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
-		/// <param name="hp"></param>
+		/// <param name="hp">Heightpatch which extracts heightfield data</param>
 		private void GetHeightData(CompactHeightfield openField, int[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
@@ -461,6 +498,7 @@ namespace SharpNav
 
 		}
 
+
 		private void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
 			float[] verts, ref int nverts, List<int> tris, List<int> edges, List<int> samples)
 		{
@@ -473,6 +511,7 @@ namespace SharpNav
 
 			nverts = 0;
 
+			//fill up vertex array
 			for (int i = 0; i < nin_; ++i)
 			{
 				verts[i * 3 + 0] = in_[i * 3 + 0];
@@ -493,7 +532,7 @@ namespace SharpNav
 					int vi = i * 3;
 					bool swapped = false;
 
-					//make sure order is correct
+					//make sure order is correct, otherwise swap data
 					if (Math.Abs(in_[vj + 0] - in_[vi + 0]) < 1E-06f)
 					{
 						if (in_[vj + 2] > in_[vi + 2])
@@ -528,9 +567,12 @@ namespace SharpNav
 					{
 						float u = (float)k / (float)nn;
 						int pos = k * 3;
+						
+						//edge seems to store vertex data
 						edge[pos + 0] = in_[vj + 0] + dx * u;
 						edge[pos + 1] = in_[vj + 1] + dy * u;
 						edge[pos + 2] = in_[vj + 2] + dz * u;
+
 						edge[pos + 1] = GetHeight(edge[pos + 0], edge[pos + 1], edge[pos + 2], ics, openField.CellHeight, hp) * openField.CellHeight;
 					}
 
@@ -562,9 +604,11 @@ namespace SharpNav
 
 						if (maxi != -1 && maxd > (sampleMaxError * sampleMaxError))
 						{
+							//shift data to the right
 							for (int m = nidx; m > k; m--)
 								idx[m] = idx[m - 1];
 
+							//set new value
 							idx[k + 1] = maxi;
 							nidx++;
 						}
@@ -1007,7 +1051,7 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (OverlapSegSeg2d(pts, s0 * 3, t0 * 3, s1 * 3, t1 * 3) != 0)
+				if (OverlapSegSeg2d(pts, s0 * 3, t0 * 3, s1 * 3, t1 * 3) == true)
 					return true;
 			}
 
@@ -1029,9 +1073,11 @@ namespace SharpNav
 
 			if (Math.Abs(cp) > EPS)
 			{
-				float p1Sq = VDot2(pts, p1, p1);
-				float p2Sq = VDot2(pts, p2, p2);
-				float p3Sq = VDot2(pts, p3, p3);
+				//find magnitude of each point
+				float p1Sq = VDot2(pts, p1, pts, p1);
+				float p2Sq = VDot2(pts, p2, pts, p2);
+				float p3Sq = VDot2(pts, p3, pts, p3);
+
 				c[0] = (p1Sq * (pts[p2 + 2] - pts[p3 + 2]) + p2Sq * (pts[p3 + 2] - pts[p1 + 2]) + p3Sq * (pts[p1 + 2] - pts[p2 + 2])) / (2 * cp);
 				c[2] = (p1Sq * (pts[p2 + 0] - pts[p3 + 0]) + p2Sq * (pts[p3 + 0] - pts[p1 + 0]) + p3Sq * (pts[p1 + 0] - pts[p2 + 0])) / (2 * cp);
 
@@ -1083,11 +1129,11 @@ namespace SharpNav
 			v2[1] = p[1] - verts[a + 1];
 			v2[2] = p[2] - verts[a + 2];
 
-			float dot00 = v0[0] * v0[0] + v0[2] * v0[2];
-			float dot01 = v0[0] * v1[0] + v0[2] * v1[2];
-			float dot02 = v0[0] * v2[0] + v0[2] * v2[2];
-			float dot11 = v1[0] * v1[0] + v1[0] * v1[0];
-			float dot12 = v1[0] * v2[0] + v1[0] * v2[0];
+			float dot00 = VDot2(v0, 0, v0, 0);
+			float dot01 = VDot2(v0, 0, v1, 0);
+			float dot02 = VDot2(v0, 0, v2, 0);
+			float dot11 = VDot2(v1, 0, v1, 0);
+			float dot12 = VDot2(v1, 0, v2, 0);
 
 			//compute barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
@@ -1095,7 +1141,7 @@ namespace SharpNav
 			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 			//if point lies inside triangle, return interpolated y-coordinate
-			float EPS = 1e-4f;
+			float EPS = 1E-4f;
 			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
 			{
 				float y = verts[a + 1] + v0[1] * u + v1[1] * v;
@@ -1103,7 +1149,6 @@ namespace SharpNav
 			}
 
 			return float.MaxValue;
-			
 		}
 
 		private float DistanceToPoly(int nvert, float[] verts, float[] p)
@@ -1128,19 +1173,31 @@ namespace SharpNav
 			return c ? -dmin : dmin;
 		}
 
-		private float DistancePointSegment(float[] edge, int pt, int p, int q)
+		/// <summary>
+		/// Finds the shortest distance between a point and a segment in the 3d plane.
+		/// </summary>
+		/// <param name="verts"></param>
+		/// <param name="pt">Individual point</param>
+		/// <param name="p">One end of a segment</param>
+		/// <param name="q">Other end of segment</param>
+		/// <returns></returns>
+		private float DistancePointSegment(float[] verts, int pt, int p, int q)
 		{
-			float pqx = edge[q + 0] - edge[p + 0];
-			float pqy = edge[q + 1] - edge[p + 1];
-			float pqz = edge[q + 2] - edge[p + 2];
-			float dx = edge[pt + 0] - edge[p + 0];
-			float dy = edge[pt + 1] - edge[p + 1];
-			float dz = edge[pt + 2] - edge[p + 2];
-			float d = pqx * pqx + pqy * pqy + pqz * pqz;
+			//distance from P to Q
+			float pqx = verts[q + 0] - verts[p + 0];
+			float pqy = verts[q + 1] - verts[p + 1];
+			float pqz = verts[q + 2] - verts[p + 2];
+
+			//disance from P to the lone point
+			float dx = verts[pt + 0] - verts[p + 0];
+			float dy = verts[pt + 1] - verts[p + 1];
+			float dz = verts[pt + 2] - verts[p + 2];
+		
+			float segmentMagnitude = pqx * pqx + pqy * pqy + pqz * pqz;
 			float t = pqx * dx + pqy * dy + pqz * dz;
 
-			if (d > 0)
-				t /= d;
+			if (segmentMagnitude > 0)
+				t /= segmentMagnitude;
 
 			//keep t between 0 and 1
 			if (t < 0)
@@ -1148,24 +1205,36 @@ namespace SharpNav
 			else if (t > 1)
 				t = 1;
 
-			dx = edge[p + 0] + t * pqx - edge[pt + 0];
-			dy = edge[p + 1] + t * pqy - edge[pt + 1];
-			dz = edge[p + 2] + t * pqz - edge[pt + 2];
+			dx = verts[p + 0] + t * pqx - verts[pt + 0];
+			dy = verts[p + 1] + t * pqy - verts[pt + 1];
+			dz = verts[p + 2] + t * pqz - verts[pt + 2];
 
 			return dx * dx + dy * dy + dz * dz;
 		}
 
+		/// <summary>
+		/// Find the shortest distance between a point and a segment in the 2D xz-plane.
+		/// </summary>
+		/// <param name="pt">Lone point</param>
+		/// <param name="verts">Vertices that store P and Q</param>
+		/// <param name="p">First vertex</param>
+		/// <param name="q">Second vertex</param>
+		/// <returns></returns>
 		private float DistancePointSegment2d(float[] pt, float[] verts, int p, int q)
 		{
+			//distance from P to Q in the xz plane
 			float pqx = verts[q + 0] - verts[p + 0];
 			float pqz = verts[q + 2] - verts[p + 2];
+
+			//distance from P to lone point in xz plane
 			float dx = pt[0] - verts[p + 0];
 			float dz = pt[2] - verts[p + 2];
-			float d = pqx * pqx + pqz * pqz;
+
+			float segmentMagnitude = pqx * pqx + pqz * pqz;
 			float t = pqx * dx + pqz * dz;
 
-			if (d > 0)
-				t /= d;
+			if (segmentMagnitude > 0)
+				t /= segmentMagnitude;
 
 			//keep t between 0 and 1
 			if (t < 0)
@@ -1179,7 +1248,7 @@ namespace SharpNav
 			return dx * dx + dz * dz;
 		}
 
-		private int OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
+		private bool OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
 		{
 			float a1 = VCross2(pts, a, b, d);
 			float a2 = VCross2(pts, a, b, c);
@@ -1190,10 +1259,10 @@ namespace SharpNav
 				float a4 = a3 + a2 - a1;
 				
 				if (a3 * a4 < 0.0f)
-					return 1;
+					return true;
 			}
 
-			return 0;
+			return false;
 		}
 
 		private float VCross2(float[] pts, int p1, int p2, int p3)
@@ -1206,9 +1275,10 @@ namespace SharpNav
 			return u1 * v2 - v1 * u2;
 		}
 
-		private float VDot2(float[] pts, int a, int b)
+		private float VDot2(float[] pts1, int a, float[] pts2, int b)
 		{
-			return pts[a + 0] * pts[b + 0] + pts[a + 2] * pts[b + 2];
+			//dot product of (x1, z1) and (x2, z2) is x1 * x2 + z1 * z2 
+			return pts1[a + 0] * pts2[b + 0] + pts1[a + 2] * pts2[b + 2];
 		}
 
 		/// <summary>
@@ -1220,6 +1290,9 @@ namespace SharpNav
 			HULL = -2
 		}
 
+		/// <summary>
+		/// Store height data, which will later be merged with the NavMesh
+		/// </summary>
 		private class HeightPatch
 		{
 			public HeightPatch()
