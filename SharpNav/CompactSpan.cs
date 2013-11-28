@@ -1,17 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#region License
+/**
+ * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System;
+using System.Runtime.InteropServices;
 
 namespace SharpNav
 {
 	/// <summary>
 	/// Represents a voxel span in a <see cref="CompactHeightfield"/>.
 	/// </summary>
+	[StructLayout(LayoutKind.Sequential)]
 	public struct CompactSpan
 	{
-		public const int NotConnected = 0xff; //HACK this could be cleaner
+		public const byte NotConnected = 0xff; //TODO any clean way to do this without bloating up the struct?
 
 		/// <summary>
 		/// The span minimum.
@@ -26,7 +31,10 @@ namespace SharpNav
 		/// <summary>
 		/// An int (split into 4 bytes) containing span connection data to neighboring cells.
 		/// </summary>
-		public int Connections;
+		public byte ConnectionWest;
+		public byte ConnectionNorth;
+		public byte ConnectionEast;
+		public byte ConnectionSouth;
 
 		/// <summary>
 		/// The region the span belongs to.
@@ -42,7 +50,10 @@ namespace SharpNav
 		{
 			this.Minimum = minimum;
 			this.Height = height;
-			this.Connections = ~0;
+			this.ConnectionWest = NotConnected;
+			this.ConnectionNorth = NotConnected;
+			this.ConnectionEast = NotConnected;
+			this.ConnectionSouth = NotConnected;
 			this.Region = 0;
 		}
 
@@ -91,7 +102,10 @@ namespace SharpNav
 		{
 			span.Minimum = min;
 			span.Height = max - min;
-			span.Connections = ~0;
+			span.ConnectionWest = NotConnected;
+			span.ConnectionNorth = NotConnected;
+			span.ConnectionEast = NotConnected;
+			span.ConnectionSouth = NotConnected;
 			span.Region = 0;
 		}
 
@@ -103,20 +117,26 @@ namespace SharpNav
 		/// <param name="s">The <see cref="CompactSpan"/> to set the data for.</param>
 		public static void SetConnection(int dir, int i, ref CompactSpan s)
 		{
-			//split the int up into 4 parts, 8 bits each
-			int shift = dir * 8;
-			s.Connections = (s.Connections & ~(0xff << shift)) | ((i & 0xff) << shift);
-		}
+			if (i > NotConnected)
+				throw new ArgumentOutOfRangeException("Index of connecting span is too high to be stored. Try increasing cell height.", "i");
 
-		/// <summary>
-		/// Gets the connection data for a neighboring cell in a specified direction.
-		/// </summary>
-		/// <param name="dir">The direction.</param>
-		/// <param name="s">The <see cref="CompactSpan"/> to get the connection data from.</param>
-		/// <returns>The index of the span in the neighboring cell.</returns>
-		public static int GetConnection(int dir, CompactSpan s)
-		{
-			return GetConnection(dir, ref s);
+			dir %= 4;
+
+			switch (dir)
+			{
+				case 0:
+					s.ConnectionWest = (byte)i;
+					break;
+				case 1:
+					s.ConnectionNorth = (byte)i;
+					break;
+				case 2:
+					s.ConnectionEast = (byte)i;
+					break;
+				case 3:
+					s.ConnectionSouth = (byte)i;
+					break;
+			}
 		}
 
 		/// <summary>
@@ -127,15 +147,30 @@ namespace SharpNav
 		/// <returns>The index of the span in the neighboring cell.</returns>
 		public static int GetConnection(int dir, ref CompactSpan s)
 		{
-			return (s.Connections >> (dir * 8)) & 0xff;
+			dir %= 4;
+
+			switch (dir)
+			{
+				case 0:
+					return s.ConnectionWest;
+				case 1:
+					return s.ConnectionNorth;
+				case 2:
+					return s.ConnectionEast;
+				case 3:
+				default:
+					return s.ConnectionSouth;
+			}
 		}
 
-		/*public static void Overlap(ref CompactSpan a, ref CompactSpan b, out CompactSpan r)
+		/// <summary>
+		/// Gets the connection data for a neighboring call in a specified direction.
+		/// </summary>
+		/// <param name="dir">The direction.</param>
+		/// <returns>The index of the span in the neighboring cell.</returns>
+		public int GetConnection(int dir)
 		{
-			int max = Math.Min(a.Minimum + a.Height, b.Minimum + b.Height);
-			r.Minimum = a.Minimum > b.Minimum ? a.Minimum : b.Minimum;
-			r.Height = max - r.Minimum;
-			r.Connections = 0;
-		}*/
+			return GetConnection(dir, ref this);
+		}
 	}
 }

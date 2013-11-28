@@ -1,8 +1,13 @@
-﻿using System;
+﻿#region License
+/**
+ * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace SharpNav
 {
@@ -50,7 +55,7 @@ namespace SharpNav
 		/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
 		/// </summary>
 		/// <value>A readonly list of spans.</value>
-		public IReadOnlyList<Span> Spans
+		public ReadOnlyCollection<Span> Spans
 		{
 			get
 			{
@@ -97,7 +102,7 @@ namespace SharpNav
 			get
 			{
 				if (location < 0 || location >= height)
-					throw new IndexOutOfRangeException("Location must be a value between 0 and " + height + ".");
+					throw new ArgumentOutOfRangeException("Location must be a value between 0 and " + height + ".");
 
 				//iterate the list of spans
 				foreach (Span s in spans)

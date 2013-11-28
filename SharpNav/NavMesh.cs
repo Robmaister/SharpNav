@@ -251,7 +251,7 @@ namespace SharpNav
 			{
 				if (vFlags[i] != 0)
 				{
-					if(!CanRemoveVertex(i))
+					if (!CanRemoveVertex(i))
 						continue;
 					
 					RemoveVertex(i, maxTris);

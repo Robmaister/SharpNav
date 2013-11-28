@@ -83,17 +83,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Constructs a new Vector3 from the given Vector2.
-		/// </summary>
-		/// <param name="v">The Vector2 to copy components from.</param>
-		/*public Vector3(Vector2 v)
-		{
-			X = v.X;
-			Y = v.Y;
-			Z = 0.0f;
-		}*/
-
-		/// <summary>
 		/// Constructs a new Vector3 from the given Vector3.
 		/// </summary>
 		/// <param name="v">The Vector3 to copy components from.</param>
@@ -104,42 +93,54 @@ namespace SharpNav
 			Z = v.Z;
 		}
 
-		/// <summary>
-		/// Constructs a new Vector3 from the given Vector4.
-		/// </summary>
-		/// <param name="v">The Vector4 to copy components from.</param>
-		/*public Vector3(Vector4 v)
-		{
-			X = v.X;
-			Y = v.Y;
-			Z = v.Z;
-		}*/
-
 		#endregion
 
 		#region Public Members
 
+		#region Indexer
 
 		/// <summary>
 		/// Gets or sets the value at the index of the Vector.
 		/// </summary>
+		/// <param name="index">The index.</param>
+		/// <returns>The component of the vector at index.</returns>
 		public float this[int index]
 		{
 			get
 			{
-				if (index == 0) return X;
-				else if (index == 1) return Y;
-				else if (index == 2) return Z;
-				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
+				switch (index)
+				{
+					case 0:
+						return X;
+					case 1:
+						return Y;
+					case 2:
+						return Z;
+					default:
+						throw new ArgumentOutOfRangeException("You tried to access this vector at index: " + index);
+				}
 			}
+
 			set
 			{
-				if (index == 0) X = value;
-				else if (index == 1) Y = value;
-				else if (index == 2) Z = value;
-				throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
+				switch (index)
+				{
+					case 0:
+						X = value;
+						break;
+					case 1:
+						Y = value;
+						break;
+					case 2:
+						Z = value;
+						break;
+					default:
+						throw new ArgumentOutOfRangeException("You tried to set this vector at index: " + index);
+				}
 			}
 		}
+
+		#endregion
 
 		#region Instance
 
@@ -239,27 +240,6 @@ namespace SharpNav
 
 		#endregion
 
-		#region public float LengthFast
-
-		/// <summary>
-		/// Gets an approximation of the vector length (magnitude).
-		/// </summary>
-		/// <remarks>
-		/// This property uses an approximation of the square root function to calculate vector magnitude, with
-		/// an upper error bound of 0.001.
-		/// </remarks>
-		/// <see cref="Length"/>
-		/// <seealso cref="LengthSquared"/>
-		/*public float LengthFast
-		{
-			get
-			{
-				return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
-			}
-		}*/
-
-		#endregion
-
 		#region public float LengthSquared
 
 		/// <summary>
@@ -303,21 +283,6 @@ namespace SharpNav
 			Y *= scale;
 			Z *= scale;
 		}
-
-		#endregion
-
-		#region public void NormalizeFast()
-
-		/// <summary>
-		/// Scales the Vector3 to approximately unit length.
-		/// </summary>
-		/*public void NormalizeFast()
-		{
-			float scale = MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z);
-			X *= scale;
-			Y *= scale;
-			Z *= scale;
-		}*/
 
 		#endregion
 
@@ -813,37 +778,6 @@ namespace SharpNav
 
 		#endregion
 
-		#region NormalizeFast
-
-		/// <summary>
-		/// Scale a vector to approximately unit length
-		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <returns>The normalized vector</returns>
-		/*public static Vector3 NormalizeFast(Vector3 vec)
-		{
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
-			vec.X *= scale;
-			vec.Y *= scale;
-			vec.Z *= scale;
-			return vec;
-		}
-
-		/// <summary>
-		/// Scale a vector to approximately unit length
-		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <param name="result">The normalized vector</param>
-		public static void NormalizeFast(ref Vector3 vec, out Vector3 result)
-		{
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
-			result.X = vec.X * scale;
-			result.Y = vec.Y * scale;
-			result.Z = vec.Z * scale;
-		}*/
-
-		#endregion
-
 		#region Dot
 
 		/// <summary>
@@ -974,227 +908,6 @@ namespace SharpNav
 
 		#endregion
 
-		#region Transform
-
-		/// <summary>Transform a direction vector by the given Matrix
-		/// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
-		/// </summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed vector</returns>
-		/*public static Vector3 TransformVector(Vector3 vec, Matrix4 mat)
-		{
-			Vector3 v;
-			v.X = Vector3.Dot(vec, new Vector3(mat.Column0));
-			v.Y = Vector3.Dot(vec, new Vector3(mat.Column1));
-			v.Z = Vector3.Dot(vec, new Vector3(mat.Column2));
-			return v;
-		}
-
-		/// <summary>Transform a direction vector by the given Matrix
-		/// Assumes the matrix has a bottom row of (0,0,0,1), that is the translation part is ignored.
-		/// </summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed vector</param>
-		public static void TransformVector(ref Vector3 vec, ref Matrix4 mat, out Vector3 result)
-		{
-			result.X = vec.X * mat.Row0.X +
-					   vec.Y * mat.Row1.X +
-					   vec.Z * mat.Row2.X;
-
-			result.Y = vec.X * mat.Row0.Y +
-					   vec.Y * mat.Row1.Y +
-					   vec.Z * mat.Row2.Y;
-
-			result.Z = vec.X * mat.Row0.Z +
-					   vec.Y * mat.Row1.Z +
-					   vec.Z * mat.Row2.Z;
-		}
-
-		/// <summary>Transform a Normal by the given Matrix</summary>
-		/// <remarks>
-		/// This calculates the inverse of the given matrix, use TransformNormalInverse if you
-		/// already have the inverse to avoid this extra calculation
-		/// </remarks>
-		/// <param name="norm">The normal to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed normal</returns>
-		public static Vector3 TransformNormal(Vector3 norm, Matrix4 mat)
-		{
-			mat.Invert();
-			return TransformNormalInverse(norm, mat);
-		}
-
-		/// <summary>Transform a Normal by the given Matrix</summary>
-		/// <remarks>
-		/// This calculates the inverse of the given matrix, use TransformNormalInverse if you
-		/// already have the inverse to avoid this extra calculation
-		/// </remarks>
-		/// <param name="norm">The normal to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed normal</param>
-		public static void TransformNormal(ref Vector3 norm, ref Matrix4 mat, out Vector3 result)
-		{
-			Matrix4 Inverse = Matrix4.Invert(mat);
-			Vector3.TransformNormalInverse(ref norm, ref Inverse, out result);
-		}
-
-		/// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
-		/// <remarks>
-		/// This version doesn't calculate the inverse matrix.
-		/// Use this version if you already have the inverse of the desired transform to hand
-		/// </remarks>
-		/// <param name="norm">The normal to transform</param>
-		/// <param name="invMat">The inverse of the desired transformation</param>
-		/// <returns>The transformed normal</returns>
-		public static Vector3 TransformNormalInverse(Vector3 norm, Matrix4 invMat)
-		{
-			Vector3 n;
-			n.X = Vector3.Dot(norm, new Vector3(invMat.Row0));
-			n.Y = Vector3.Dot(norm, new Vector3(invMat.Row1));
-			n.Z = Vector3.Dot(norm, new Vector3(invMat.Row2));
-			return n;
-		}
-
-		/// <summary>Transform a Normal by the (transpose of the) given Matrix</summary>
-		/// <remarks>
-		/// This version doesn't calculate the inverse matrix.
-		/// Use this version if you already have the inverse of the desired transform to hand
-		/// </remarks>
-		/// <param name="norm">The normal to transform</param>
-		/// <param name="invMat">The inverse of the desired transformation</param>
-		/// <param name="result">The transformed normal</param>
-		public static void TransformNormalInverse(ref Vector3 norm, ref Matrix4 invMat, out Vector3 result)
-		{
-			result.X = norm.X * invMat.Row0.X +
-					   norm.Y * invMat.Row0.Y +
-					   norm.Z * invMat.Row0.Z;
-
-			result.Y = norm.X * invMat.Row1.X +
-					   norm.Y * invMat.Row1.Y +
-					   norm.Z * invMat.Row1.Z;
-
-			result.Z = norm.X * invMat.Row2.X +
-					   norm.Y * invMat.Row2.Y +
-					   norm.Z * invMat.Row2.Z;
-		}
-
-		/// <summary>Transform a Position by the given Matrix</summary>
-		/// <param name="pos">The position to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed position</returns>
-		public static Vector3 TransformPosition(Vector3 pos, Matrix4 mat)
-		{
-			Vector3 p;
-			p.X = Vector3.Dot(pos, new Vector3(mat.Column0)) + mat.Row3.X;
-			p.Y = Vector3.Dot(pos, new Vector3(mat.Column1)) + mat.Row3.Y;
-			p.Z = Vector3.Dot(pos, new Vector3(mat.Column2)) + mat.Row3.Z;
-			return p;
-		}
-
-		/// <summary>Transform a Position by the given Matrix</summary>
-		/// <param name="pos">The position to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed position</param>
-		public static void TransformPosition(ref Vector3 pos, ref Matrix4 mat, out Vector3 result)
-		{
-			result.X = pos.X * mat.Row0.X +
-					   pos.Y * mat.Row1.X +
-					   pos.Z * mat.Row2.X +
-					   mat.Row3.X;
-
-			result.Y = pos.X * mat.Row0.Y +
-					   pos.Y * mat.Row1.Y +
-					   pos.Z * mat.Row2.Y +
-					   mat.Row3.Y;
-
-			result.Z = pos.X * mat.Row0.Z +
-					   pos.Y * mat.Row1.Z +
-					   pos.Z * mat.Row2.Z +
-					   mat.Row3.Z;
-		}
-
-		/// <summary>Transform a Vector by the given Matrix</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed vector</returns>
-		public static Vector3 Transform(Vector3 vec, Matrix4 mat)
-		{
-			Vector3 result;
-			Transform(ref vec, ref mat, out result);
-			return result;
-		}
-
-		/// <summary>Transform a Vector by the given Matrix</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed vector</param>
-		public static void Transform(ref Vector3 vec, ref Matrix4 mat, out Vector3 result)
-		{
-			Vector4 v4 = new Vector4(vec.X, vec.Y, vec.Z, 1.0f);
-			Vector4.Transform(ref v4, ref mat, out v4);
-			result = v4.Xyz;
-		}
-
-		/// <summary>
-		/// Transforms a vector by a quaternion rotation.
-		/// </summary>
-		/// <param name="vec">The vector to transform.</param>
-		/// <param name="quat">The quaternion to rotate the vector by.</param>
-		/// <returns>The result of the operation.</returns>
-		public static Vector3 Transform(Vector3 vec, Quaternion quat)
-		{
-			Vector3 result;
-			Transform(ref vec, ref quat, out result);
-			return result;
-		}
-
-		/// <summary>
-		/// Transforms a vector by a quaternion rotation.
-		/// </summary>
-		/// <param name="vec">The vector to transform.</param>
-		/// <param name="quat">The quaternion to rotate the vector by.</param>
-		/// <param name="result">The result of the operation.</param>
-		public static void Transform(ref Vector3 vec, ref Quaternion quat, out Vector3 result)
-		{
-			// Since vec.W == 0, we can optimize quat * vec * quat^-1 as follows:
-			// vec + 2.0 * cross(quat.xyz, cross(quat.xyz, vec) + quat.w * vec)
-			Vector3 xyz = quat.Xyz, temp, temp2;
-			Vector3.Cross(ref xyz, ref vec, out temp);
-			Vector3.Multiply(ref vec, quat.W, out temp2);
-			Vector3.Add(ref temp, ref temp2, out temp);
-			Vector3.Cross(ref xyz, ref temp, out temp);
-			Vector3.Multiply(ref temp, 2, out temp);
-			Vector3.Add(ref vec, ref temp, out result);
-		}
-
-		/// <summary>Transform a Vector3 by the given Matrix, and project the resulting Vector4 back to a Vector3</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed vector</returns>
-		public static Vector3 TransformPerspective(Vector3 vec, Matrix4 mat)
-		{
-			Vector3 result;
-			TransformPerspective(ref vec, ref mat, out result);
-			return result;
-		}
-
-		/// <summary>Transform a Vector3 by the given Matrix, and project the resulting Vector4 back to a Vector3</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed vector</param>
-		public static void TransformPerspective(ref Vector3 vec, ref Matrix4 mat, out Vector3 result)
-		{
-			Vector4 v = new Vector4(vec, 1);
-			Vector4.Transform(ref v, ref mat, out v);
-			result.X = v.X / v.W;
-			result.Y = v.Y / v.W;
-			result.Z = v.Z / v.W;
-		}*/
-
-		#endregion
-
 		#region CalculateAngle
 
 		/// <summary>
@@ -1227,76 +940,31 @@ namespace SharpNav
 
 		#region Swizzle
 
-		#region 2-component
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the X and Y components of this instance.
-		/// </summary>
-		/*[XmlIgnore]
-		public Vector2 Xy { get { return new Vector2(X, Y); } set { X = value.X; Y = value.Y; } }
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the X and Z components of this instance.
-		/// </summary>
-		[XmlIgnore]
-		public Vector2 Xz { get { return new Vector2(X, Z); } set { X = value.X; Z = value.Y; } }
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the Y and X components of this instance.
-		/// </summary>
-		[XmlIgnore]
-		public Vector2 Yx { get { return new Vector2(Y, X); } set { Y = value.X; X = value.Y; } }
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the Y and Z components of this instance.
-		/// </summary>
-		[XmlIgnore]
-		public Vector2 Yz { get { return new Vector2(Y, Z); } set { Y = value.X; Z = value.Y; } }
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the Z and X components of this instance.
-		/// </summary>
-		[XmlIgnore]
-		public Vector2 Zx { get { return new Vector2(Z, X); } set { Z = value.X; X = value.Y; } }
-
-		/// <summary>
-		/// Gets or sets an OpenTK.Vector2 with the Z and Y components of this instance.
-		/// </summary>
-		[XmlIgnore]
-		public Vector2 Zy { get { return new Vector2(Z, Y); } set { Z = value.X; Y = value.Y; } }*/
-
-		#endregion
-
 		#region 3-component
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the X, Z, and Y components of this instance.
 		/// </summary>
-		//[XmlIgnore]
 		public Vector3 Xzy { get { return new Vector3(X, Z, Y); } set { X = value.X; Z = value.Y; Y = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Y, X, and Z components of this instance.
 		/// </summary>
-		//[XmlIgnore]
 		public Vector3 Yxz { get { return new Vector3(Y, X, Z); } set { Y = value.X; X = value.Y; Z = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Y, Z, and X components of this instance.
 		/// </summary>
-		//[XmlIgnore]
 		public Vector3 Yzx { get { return new Vector3(Y, Z, X); } set { Y = value.X; Z = value.Y; X = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Z, X, and Y components of this instance.
 		/// </summary>
-		//[XmlIgnore]
 		public Vector3 Zxy { get { return new Vector3(Z, X, Y); } set { Z = value.X; X = value.Y; Y = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Z, Y, and X components of this instance.
 		/// </summary>
-		//[XmlIgnore]
 		public Vector3 Zyx { get { return new Vector3(Z, Y, X); } set { Z = value.X; Y = value.Y; X = value.Z; } }
 
 		#endregion

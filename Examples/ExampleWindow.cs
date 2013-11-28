@@ -436,7 +436,7 @@ namespace Examples
 						int numCons = 0;
 						for (int dir = 0; dir < 4; dir++)
 						{
-							if (CompactSpan.GetConnection(dir, span) != 0xff)
+							if (span.GetConnection(dir) != 0xff)
 								numCons++;
 						}
 

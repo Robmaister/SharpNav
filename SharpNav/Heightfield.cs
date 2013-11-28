@@ -193,7 +193,7 @@ namespace SharpNav
 			get
 			{
 				if (x < 0 || x >= width || y < 0 || y >= length)
-					throw new IndexOutOfRangeException();
+					throw new ArgumentOutOfRangeException();
 
 				return cells[y * width + x];
 			}

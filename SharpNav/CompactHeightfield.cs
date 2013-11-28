@@ -830,8 +830,7 @@ namespace SharpNav
 		/// <summary>
 		/// Part of building the distance field. It may or may not return an array equal to src.
 		/// </summary>
-		/// <param name="openField">The OpenHeightfield</param>
-		/// <param name="thr">Threshold?</param>
+		/// <param name="thr">The threshold.</param>
 		/// <returns></returns>
 		private int[] BoxBlur(int thr, int[] src, int[] dst)
 		{
@@ -865,7 +864,7 @@ namespace SharpNav
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
-								int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(dir, ref s);
+								int di = cells[dy * width + dx].StartIndex + CompactSpan.GetConnection(dir, ref s);
 								d += src[di];
 
 								//check next span in next clockwise direction
@@ -875,7 +874,7 @@ namespace SharpNav
 								{
 									int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
 									int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
-									int di2 = cells[dx2 + dy2 * width].StartIndex + CompactSpan.GetConnection(dir2, ref ds);
+									int di2 = cells[dy2 * width + dx2].StartIndex + CompactSpan.GetConnection(dir2, ref ds);
 									d += src[di2];
 								}
 								else
@@ -907,7 +906,7 @@ namespace SharpNav
 		/// <param name="dstReg">destination region</param>
 		/// <param name="dstDist">destination distances</param>
 		/// <returns></returns>
-		private int[] ExpandRegions(int maxIter, int level, int[] srcReg,int[] srcDist, int[] dstReg, int[] dstDist)
+		private int[] ExpandRegions(int maxIter, int level, int[] srcReg, int[] srcDist, int[] dstReg, int[] dstDist)
 		{
 			//find cells revealed by the raised level
 			List<int> stack = new List<int>();
@@ -951,13 +950,19 @@ namespace SharpNav
 					ushort d2 = 0xffff;
 					AreaFlags area = areas[i];
 					CompactSpan s = spans[i];
+
 					for (int dir = 0; dir < 4; dir++)
 					{
-						if (CompactSpan.GetConnection(dir, ref s) == CompactSpan.NotConnected) continue;
+						if (CompactSpan.GetConnection(dir, ref s) == CompactSpan.NotConnected)
+							continue;
+
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
 						int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(dir, ref s);
-						if (areas[di] != area) continue;
+
+						if (areas[di] != area)
+							continue;
+
 						if (srcReg[di] > 0 && (srcReg[di] & BORDER_REG) == 0)
 						{
 							if (srcDist[di] + 2 < d2)
