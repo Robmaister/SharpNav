@@ -11,6 +11,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Gwen;
+using Gwen.Control;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -18,6 +21,9 @@ using OpenTK.Input;
 
 using SharpNav;
 using SharpNav.Geometry;
+
+using Key = OpenTK.Input.Key;
+using GwenKey = Gwen.Key;
 
 namespace Examples
 {
@@ -53,6 +59,12 @@ namespace Examples
 
 		private KeyboardState prevK;
 		private MouseState prevM;
+
+		private Gwen.Input.OpenTK gwenInput;
+		private Gwen.Renderer.OpenTK gwenRenderer;
+		private Gwen.Skin.Base gwenSkin;
+		private Gwen.Control.Canvas gwenCanvas;
+		private Matrix4 gwenProjection;
 
 		private static readonly byte[] squareInds =
 		{
@@ -120,13 +132,18 @@ namespace Examples
 			: base()
 		{
 			cam = new Camera();
+
+			Keyboard.KeyDown += OnKeyboardKeyDown;
+			Keyboard.KeyUp += OnKeyboardKeyUp;
+			Mouse.ButtonDown += OnMouseButtonDown;
+			Mouse.ButtonUp += OnMouseButtonUp;
+			Mouse.Move += OnMouseMove;
+			Mouse.WheelChanged += OnMouseWheel;
 		}
 
 		protected override void OnLoad(EventArgs e)
 		{
 			base.OnLoad(e);
-
-			Keyboard.KeyDown += OnKeyboardKeyDown;
 
 			GL.Enable(EnableCap.DepthTest);
 			GL.DepthMask(true);
@@ -178,6 +195,37 @@ namespace Examples
 			GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)squareInds.Length, squareInds, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
+			gwenRenderer = new Gwen.Renderer.OpenTK();
+			gwenSkin = new Gwen.Skin.TexturedBase(gwenRenderer, "GwenSkin.png");
+			gwenCanvas = new Gwen.Control.Canvas(gwenSkin);
+			gwenInput = new Gwen.Input.OpenTK(this);
+
+			gwenInput.Initialize(gwenCanvas);
+			gwenCanvas.SetSize(Width, Height);
+			gwenCanvas.ShouldDrawBackground = false;
+
+			gwenProjection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, -1, 1);
+
+			DockBase dock = new DockBase(gwenCanvas);
+			dock.Dock = Pos.Fill;
+			dock.SetSize(Width, Height);
+
+			Base genBase = new Base(dock);
+			
+			dock.RightDock.TabControl.AddPage("NavMesh Generation", genBase);
+
+			Button generateButton = new Button(genBase);
+			generateButton.Text = "Generate!";
+			//genParent.AddChild(generateButton);
+			//genFiller.FitChildrenToSize();
+			//generateButton.SetPosition(5, 5);
+
+			/*WindowControl window = new WindowControl(gwenCanvas);
+			window.Title = "Test";
+			window.IsClosable = false;
+			window.SetBounds(0, 0, 200, 200);*/
+
+			//generateButton.Padding = new Padding(0, 5, 5, 0);
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -200,7 +248,7 @@ namespace Examples
 			if (k[Key.E])
 				cam.Elevate(-5f * (float)e.Time);
 
-			if (m[MouseButton.Left])
+			if (m[MouseButton.Right])
 			{
 				cam.RotatePitch((m.X - prevM.X) * (float)e.Time * 2f);
 				cam.RotateHeading((prevM.Y - m.Y) * (float)e.Time * 2f);
@@ -211,6 +259,9 @@ namespace Examples
 
 			prevK = k;
 			prevM = m;
+
+			if (gwenRenderer.TextCacheSize > 1000)
+				gwenRenderer.FlushTextCache();
 		}
 
 		protected void OnKeyboardKeyDown(object sender, KeyboardKeyEventArgs e)
@@ -277,7 +328,34 @@ namespace Examples
 				}
 			}
 
+			gwenInput.ProcessKeyDown(e);
+
 			base.OnKeyDown(e);
+		}
+
+		protected void OnKeyboardKeyUp(object sender, KeyboardKeyEventArgs e)
+		{
+			gwenInput.ProcessKeyUp(e);
+		}
+
+		protected void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
+		{
+			gwenInput.ProcessMouseMessage(e);
+		}
+
+		protected void OnMouseButtonUp(object sender, MouseButtonEventArgs e)
+		{
+			gwenInput.ProcessMouseMessage(e);
+		}
+
+		protected void OnMouseMove(object sender, MouseMoveEventArgs e)
+		{
+			gwenInput.ProcessMouseMessage(e);
+		}
+
+		protected void OnMouseWheel(object sender, MouseWheelEventArgs e)
+		{
+			gwenInput.ProcessMouseMessage(e);
 		}
 
 		protected override void OnRenderFrame(FrameEventArgs e)
@@ -336,7 +414,17 @@ namespace Examples
 				DrawHeightfield();
 			}
 
-			//GL.DepthMask(true);
+			GL.PushMatrix();
+			GL.LoadIdentity();
+			GL.MatrixMode(MatrixMode.Projection);
+			GL.PushMatrix();
+			GL.LoadMatrix(ref gwenProjection);
+			GL.FrontFace(FrontFaceDirection.Cw);
+			gwenCanvas.RenderCanvas();
+			GL.FrontFace(FrontFaceDirection.Ccw);
+			GL.PopMatrix();
+			GL.MatrixMode(MatrixMode.Modelview);
+			GL.PopMatrix();
 
 			SwapBuffers();
 		}
@@ -353,6 +441,25 @@ namespace Examples
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
 			GL.LoadIdentity();
+
+			gwenProjection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, 0, 1);
+			gwenCanvas.SetSize(Width, Height);
+		}
+
+		protected override void OnUnload(EventArgs e)
+		{
+			gwenCanvas.Dispose();
+			gwenSkin.Dispose();
+			gwenRenderer.Dispose();
+
+			GL.DeleteBuffer(levelVbo);
+			GL.DeleteBuffer(levelNormVbo);
+			GL.DeleteBuffer(heightfieldVoxelVbo);
+			GL.DeleteBuffer(heightfieldVoxelIbo);
+			GL.DeleteBuffer(squareVbo);
+			GL.DeleteBuffer(squareIbo);
+
+			base.OnUnload(e);
 		}
 
 		private void DrawHeightfield()

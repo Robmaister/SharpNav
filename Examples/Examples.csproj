@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Gwen">
+      <HintPath>..\Binaries\Gwen.dll</HintPath>
+    </Reference>
+    <Reference Include="Gwen.Renderer.OpenTK">
+      <HintPath>..\Binaries\Gwen.Renderer.OpenTK.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>..\Binaries\OpenTK.dll</HintPath>
     </Reference>
@@ -58,6 +64,11 @@
       <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
       <Name>SharpNav</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GwenSkin.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
