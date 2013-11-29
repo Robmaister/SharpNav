@@ -19,18 +19,28 @@ namespace SharpNav
 		private int nverts;
 		private int ntris;
 
-		//each mesh has 4 elements in this order: 
-		//-current number of vertices
-		//-updated number of vertices
-		//-current number of triangles
-		//-updated number of triangles
-		private int[] meshes; 
+		//mesh info contains number of vertices and triangles
+		public class MeshInfo
+		{
+			public int OldNumVerts;
+			public int NewNumVerts;
+			public int OldNumTris;
+			public int NewNumTris;
+		}
+		private MeshInfo[] meshes;
+		
+		//each vertex is basically a vector3 (has x, y, z coordinates)
+		private Vector3[] verts;
 
-		//each vertex has 3 elements: its x,y,z coordinates
-		private float[] verts;
-
-		//each triangle has 4 elements: its three vertices and a flag
-		private int[] tris;
+		//triangle info contains three vertex hashes and a flag
+		public class TrisInfo
+		{
+			public int Vertex1Hash;
+			public int Vertex2Hash;
+			public int Vertex3Hash;
+			public int Flag; //indicates which 3 vertices are part of the polygon
+		}
+		private TrisInfo[] tris;
 
 		/// <summary>
 		/// Use the CompactHeightfield data to add the height detail to the mesh. 
@@ -51,7 +61,7 @@ namespace SharpNav
 			List<int> tris = new List<int>(512);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
-			float[] tempVerts = new float[256 * 3];
+			float[] verts = new float[256 * 3];
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
 
@@ -99,16 +109,16 @@ namespace SharpNav
 			hp.Data = new int[maxhw * maxhh];
 
 			this.nmeshes = mesh.NPolys;
-			this.meshes = new int[this.nmeshes * 4];
+			this.meshes = new MeshInfo[this.nmeshes];
 
 			int vcap = nPolyVerts + nPolyVerts / 2;
 			int tcap = vcap * 2;
 
 			this.nverts = 0;
-			this.verts = new float[vcap * 3];
+			this.verts = new Vector3[vcap];
 
 			this.ntris = 0;
-			this.tris = new int[tcap * 4];
+			this.tris = new TrisInfo[tcap];
 
 			for (int i = 0; i < mesh.NPolys; i++)
 			{
@@ -136,7 +146,7 @@ namespace SharpNav
 				GetHeightData(openField, mesh.Polys, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
 
 				int nverts = 0;
-				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, tempVerts, ref nverts, tris, edges, samples);
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, verts, ref nverts, tris, edges, samples);
 
 				//more detail verts
 				for (int j = 0; j < nverts; j++)
@@ -156,10 +166,10 @@ namespace SharpNav
 				//save data
 				int ntris = tris.Count / 4;
 
-				this.meshes[i * 4 + 0] = this.nverts;
-				this.meshes[i * 4 + 1] = nverts;
-				this.meshes[i * 4 + 2] = this.ntris;
-				this.meshes[i * 4 + 3] = ntris;
+				this.meshes[i].OldNumVerts = this.nverts;
+				this.meshes[i].NewNumVerts = nverts;
+				this.meshes[i].OldNumTris = this.ntris;
+				this.meshes[i].NewNumTris = ntris;
 
 				//exapnd vertex array
 				if (this.nverts + nverts > vcap)
@@ -169,7 +179,7 @@ namespace SharpNav
 						vcap += 256;
 
 					//copy old elements to new array
-					float[] newv = new float[vcap * 3];
+					Vector3[] newv = new Vector3[vcap];
 					if (this.nverts > 0)
 					{
 						for (int j = 0; j < this.verts.Length; j++)
@@ -182,19 +192,20 @@ namespace SharpNav
 				//save new vertices
 				for (int j = 0; j < nverts; j++)
 				{
-					this.verts[this.nverts * 3 + 0] = verts[j * 3 + 0];
-					this.verts[this.nverts * 3 + 1] = verts[j * 3 + 1];
-					this.verts[this.nverts * 3 + 2] = verts[j * 3 + 2];
+					this.verts[this.nverts].X = verts[j * 3 + 0];
+					this.verts[this.nverts].Y = verts[j * 3 + 1];
+					this.verts[this.nverts].Z = verts[j * 3 + 2];
 					this.nverts++;
 				}
 
-				//store triangles
+				//expand triangle array
 				if (this.ntris + ntris > tcap)
 				{
 					while (this.ntris + ntris > tcap)
 						tcap += 256;
 
-					int[] newt = new int[tcap * 4];
+					TrisInfo[] newt = new TrisInfo[tcap];
+
 					if (this.ntris > 0)
 					{
 						for (int j = 0; j < this.tris.Length; j++)
@@ -204,13 +215,14 @@ namespace SharpNav
 					this.tris = newt;
 				}
 
+				//store triangles
 				for (int j = 0; j < ntris; j++)
 				{
 					int t = j * 4;
-					this.tris[this.ntris * 4 + 0] = tris[t + 0];
-					this.tris[this.ntris * 4 + 1] = tris[t + 1];
-					this.tris[this.ntris * 4 + 2] = tris[t + 2];
-					this.tris[this.ntris * 4 + 3] = GetTriFlags(verts, tris[t + 0] * 3, tris[t + 1] * 3, tris[t + 2] * 3, poly, npoly);
+					this.tris[this.ntris].Vertex1Hash = tris[t + 0];
+					this.tris[this.ntris].Vertex2Hash = tris[t + 1];
+					this.tris[this.ntris].Vertex3Hash = tris[t + 2];
+					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t + 0] * 3, tris[t + 1] * 3, tris[t + 2] * 3, poly, npoly);
 					this.ntris++;
 				}
 			}
