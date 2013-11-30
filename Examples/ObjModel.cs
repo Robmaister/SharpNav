@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,10 +55,7 @@ namespace Examples
 								continue;
 
 							Vector3 v;
-							if (!float.TryParse(line[1], out v.X)) continue;
-							if (!float.TryParse(line[2], out v.Y)) continue;
-							if (!float.TryParse(line[3], out v.Z)) continue;
-
+							if (!TryParseVec(line, 1, 2, 3, out v)) continue;
 							tempVerts.Add(v);
 							break;
 						case "vn":
@@ -65,10 +63,7 @@ namespace Examples
 								continue;
 
 							Vector3 n;
-							if (!float.TryParse(line[1], out n.X)) continue;
-							if (!float.TryParse(line[2], out n.Y)) continue;
-							if (!float.TryParse(line[3], out n.Z)) continue;
-
+							if (!TryParseVec(line, 1, 2, 3, out n)) continue;
 							tempNorms.Add(n);
 							break;
 						case "f":
@@ -96,38 +91,6 @@ namespace Examples
 								norms.Add(tempNorms[n0]);
 								norms.Add(tempNorms[n1]);
 								norms.Add(tempNorms[n2]);
-							}
-							else if (line.Length == 5)
-							{
-								int v0, v1, v2, v3;
-								int n0, n1, n2, n3;
-								if (!int.TryParse(line[1].Split('/')[0], out v0)) continue;
-								if (!int.TryParse(line[2].Split('/')[0], out v1)) continue;
-								if (!int.TryParse(line[3].Split('/')[0], out v2)) continue;
-								if (!int.TryParse(line[4].Split('/')[0], out v3)) continue;
-								if (!int.TryParse(line[1].Split('/')[2], out n0)) continue;
-								if (!int.TryParse(line[2].Split('/')[2], out n1)) continue;
-								if (!int.TryParse(line[3].Split('/')[2], out n2)) continue;
-								if (!int.TryParse(line[4].Split('/')[2], out n3)) continue;
-
-								v0 -= 1;
-								v1 -= 1;
-								v2 -= 1;
-								v3 -= 1;
-								n0 -= 1;
-								n1 -= 1;
-								n2 -= 1;
-								n3 -= 1;
-
-								tris.Add(new Triangle3(tempVerts[v0], tempVerts[v1], tempVerts[v2]));
-								tris.Add(new Triangle3(tempVerts[v0], tempVerts[v2], tempVerts[v3]));
-
-								norms.Add(tempNorms[n0]);
-								norms.Add(tempNorms[n1]);
-								norms.Add(tempNorms[n2]);
-								norms.Add(tempNorms[n0]);
-								norms.Add(tempNorms[n2]);
-								norms.Add(tempNorms[n3]);
 							}
 							else
 							{
@@ -160,9 +123,6 @@ namespace Examples
 							}
 							break;
 					}
-
-					//for (int i = 0; i < norms.Count; i++)
-						//norms[i] = Vector3.Normalize(norms[i]);
 				}
 			}
 		}
@@ -211,6 +171,17 @@ namespace Examples
 				max.Y = v.Y;
 			if (v.Z > max.Z)
 				max.Z = v.Z;
+		}
+
+		private bool TryParseVec(string[] values, int x, int y, int z, out Vector3 v)
+		{
+			v = Vector3.Zero;
+
+			if (!float.TryParse(values[x], NumberStyles.Any, CultureInfo.InvariantCulture, out v.X)) return false;
+			if (!float.TryParse(values[y], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Y)) return false;
+			if (!float.TryParse(values[z], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Z)) return false;
+
+			return true;
 		}
 	}
 }
