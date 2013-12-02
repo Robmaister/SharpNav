@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+
+using SharpNav;
 using SharpNav.Geometry;
 
 namespace Examples
@@ -99,6 +101,9 @@ namespace Examples
 		private void LoadLevel()
 		{
 			level = new ObjModel("nav_test.obj");
+
+			var bounds = level.GetBounds().Center;
+			cam.Position = new OpenTK.Vector3(bounds.X, bounds.Y, bounds.Z);
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
@@ -445,7 +450,192 @@ namespace Examples
 
 		private void DrawNavMesh()
 		{
+			GL.PushMatrix();
 
+			Matrix4 squareScale, squareTrans;
+
+			Matrix4.CreateTranslation(navMesh.Bounds.Min.X + navMesh.CellSize * 0.5f, navMesh.Bounds.Min.Y, navMesh.Bounds.Min.Z + navMesh.CellSize * 0.5f, out squareTrans);
+			GL.MultMatrix(ref squareTrans);
+
+			Matrix4.CreateScale(navMesh.CellSize, navMesh.CellHeight, navMesh.CellSize, out squareScale);
+			GL.MultMatrix(ref squareScale);
+
+			Color4 color = Color4.DarkViolet;
+			color.A = 0.5f;
+			GL.Color4(color);
+
+			GL.Begin(BeginMode.Triangles);
+
+			for (int i = 0; i < navMesh.NPolys; i++)
+			{
+				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
+
+				if (navMesh.Areas[i] != AreaFlags.Walkable)
+					continue;
+
+				for (int j = 2; j < navMesh.NumVertsPerPoly; j++)
+				{
+					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+						break;
+
+					int vertIndex0 = navMesh.Polys[polyIndex] * 3;
+					int vertIndex1 = navMesh.Polys[polyIndex + j - 1] * 3;
+					int vertIndex2 = navMesh.Polys[polyIndex + j] * 3;
+					OpenTK.Vector3 v;
+
+					v.X = navMesh.Verts[vertIndex0 + 0];
+					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex0 + 2];
+
+					GL.Vertex3(v);
+
+					v.X = navMesh.Verts[vertIndex1 + 0];
+					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex1 + 2];
+
+					GL.Vertex3(v);
+
+					v.X = navMesh.Verts[vertIndex2 + 0];
+					v.Y = navMesh.Verts[vertIndex2 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex2 + 2];
+
+					GL.Vertex3(v);
+				}
+			}
+
+			GL.End();
+
+			GL.DepthMask(false);
+
+			//neighbor edges
+			GL.Color4(Color4.Purple);
+
+			GL.LineWidth(1.5f);
+			GL.Begin(BeginMode.Lines);
+
+			for (int i = 0; i < navMesh.NPolys; i++)
+			{
+				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
+				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
+				{
+					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+						break;
+					if ((navMesh.Polys[polyIndex + navMesh.NumVertsPerPoly + j] & 0x8000) != 0)
+						continue;
+
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[polyIndex + j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+
+					int vertIndex0 = navMesh.Polys[polyIndex + j] * 3;
+					int vertIndex1 = navMesh.Polys[polyIndex + nj] * 3;
+					OpenTK.Vector3 v;
+
+					v.X = navMesh.Verts[vertIndex0 + 0];
+					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex0 + 2];
+
+					GL.Vertex3(v);
+
+					v.X = navMesh.Verts[vertIndex1 + 0];
+					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex1 + 2];
+
+					GL.Vertex3(v);
+				}
+			}
+
+			GL.End();
+
+			//boundary edges
+			GL.LineWidth(3.5f);
+			GL.Begin(BeginMode.Lines);
+			for (int i = 0; i < navMesh.NPolys; i++)
+			{
+				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
+
+				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
+				{
+					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+						break;
+
+					if ((navMesh.Polys[polyIndex + navMesh.NumVertsPerPoly + j] & 0x8000) == 0)
+						continue;
+
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[polyIndex + j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+
+					int vertIndex0 = navMesh.Polys[polyIndex + j] * 3;
+					int vertIndex1 = navMesh.Polys[polyIndex + nj] * 3;
+					OpenTK.Vector3 v;
+
+					v.X = navMesh.Verts[vertIndex0 + 0];
+					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex0 + 2];
+
+					GL.Vertex3(v);
+
+					v.X = navMesh.Verts[vertIndex1 + 0];
+					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
+					v.Z = navMesh.Verts[vertIndex1 + 2];
+
+					GL.Vertex3(v);
+				}
+			}
+
+			GL.End();
+
+			GL.PointSize(4.8f);
+			GL.Begin(BeginMode.Points);
+			for (int i = 0; i < navMesh.NVerts; i++)
+			{
+				OpenTK.Vector3 v;
+
+				v.X = navMesh.Verts[i * 3 + 0];
+				v.Y = navMesh.Verts[i * 3 + 1] + 1;
+				v.Z = navMesh.Verts[i * 3 + 2];
+
+				GL.Vertex3(v);
+			}
+
+			GL.End();
+
+			GL.DepthMask(true);
+
+			GL.PopMatrix();
+		}
+
+		private void DrawNavMeshDetail()
+		{
+			GL.PushMatrix();
+
+			Color4 color = Color4.DarkViolet;
+			color.A = 0.5f;
+			GL.Color4(color);
+
+			GL.Begin(BeginMode.Triangles);
+			for (int i = 0; i < navMeshDetail.NMeshes; i++)
+			{
+				NavMeshDetail.MeshInfo m = navMeshDetail.Meshes[i];
+
+				int vertIndex = m.OldNumVerts;
+				int triIndex = m.OldNumTris;
+
+				for (int j = 0; j < m.NewNumTris; j++)
+				{
+					var t = navMeshDetail.Tris[triIndex + j];
+
+					SharpNav.Vector3 v = navMeshDetail.Verts[vertIndex + t.Vertex1Hash];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = navMeshDetail.Verts[vertIndex + t.Vertex2Hash];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = navMeshDetail.Verts[vertIndex + t.Vertex3Hash];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			GL.PopMatrix();
 		}
 	}
 }

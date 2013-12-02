@@ -20,7 +20,7 @@ namespace SharpNav
 		private int ntris;
 
 		//mesh info contains number of vertices and triangles
-		public class MeshInfo
+		public struct MeshInfo
 		{
 			public int OldNumVerts;
 			public int NewNumVerts;
@@ -33,7 +33,7 @@ namespace SharpNav
 		private Vector3[] verts;
 
 		//triangle info contains three vertex hashes and a flag
-		public class TrisInfo
+		public struct TrisInfo
 		{
 			public int Vertex1Hash;
 			public int Vertex2Hash;
@@ -227,6 +227,19 @@ namespace SharpNav
 				}
 			}
 		}
+
+		public int NMeshes { get { return nmeshes; } }
+
+		public int NVerts { get { return nverts; } }
+
+		public int NTris { get { return ntris; } }
+
+		public MeshInfo[] Meshes { get { return meshes; } }
+
+		public Vector3[] Verts { get { return verts; } }
+
+		public TrisInfo[] Tris { get { return tris; } }
+
 
 		/// <summary>
 		/// Determine which edges of the triangle are part of the polygon

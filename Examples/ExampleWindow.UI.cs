@@ -44,8 +44,8 @@ namespace Examples
 			hfSettings.Dock = Pos.Top;
 			hfSettings.Height = 112;
 
-			Base cellSizeSetting = CreateSliderOption(hfSettings, "Cell Size:", 0.1f, 2.0f, 0.5f, "N1", leftMax, rightMax, v => settings.CellSize = v);
-			Base cellHeightSetting = CreateSliderOption(hfSettings, "Cell Height:", 0.1f, 2f, 0.2f, "N1", leftMax, rightMax, v => settings.CellHeight = v);
+			Base cellSizeSetting = CreateSliderOption(hfSettings, "Cell Size:", 0.1f, 2.0f, 0.2f, "N1", leftMax, rightMax, v => settings.CellSize = v);
+			Base cellHeightSetting = CreateSliderOption(hfSettings, "Cell Height:", 0.1f, 2f, 0.1f, "N1", leftMax, rightMax, v => settings.CellHeight = v);
 			Base maxSlopeSetting = CreateSliderOption(hfSettings, "Max Climb:", 1f, 20f, 15f, "N0", leftMax, rightMax, v => settings.MaxClimb = (int)Math.Round(v));
 			Base maxHeightSetting = CreateSliderOption(hfSettings, "Max Height:", 1f, 50f, 40f, "N0", leftMax, rightMax, v => settings.MaxHeight = (int)Math.Round(v));
 

@@ -107,18 +107,25 @@ namespace Examples
 			KeyboardState k = OpenTK.Input.Keyboard.GetState();
 			MouseState m = OpenTK.Input.Mouse.GetState();
 
+			bool isShiftDown = false;
+			if (k[Key.LShift] || k[Key.RShift])
+				isShiftDown = true;
+
+			//TODO make cam speed/shift speedup controllable from GUI
+			float camSpeed = 5f * (float)e.Time * (isShiftDown ? 3f : 1f);
+
 			if (k[Key.W])
-				cam.Move(-5f * (float)e.Time);
+				cam.Move(-camSpeed);
 			if (k[Key.A])
-				cam.Strafe(-5f * (float)e.Time);
+				cam.Strafe(-camSpeed);
 			if (k[Key.S])
-				cam.Move(5f * (float)e.Time);
+				cam.Move(camSpeed);
 			if (k[Key.D])
-				cam.Strafe(5f * (float)e.Time);
+				cam.Strafe(camSpeed);
 			if (k[Key.Q])
-				cam.Elevate(5f * (float)e.Time);
+				cam.Elevate(camSpeed);
 			if (k[Key.E])
-				cam.Elevate(-5f * (float)e.Time);
+				cam.Elevate(-camSpeed);
 
 			if (m[MouseButton.Right])
 			{
@@ -194,7 +201,9 @@ namespace Examples
 			GL.Disable(EnableCap.Light0);
 			GL.Disable(EnableCap.Lighting);
 
-			if (hasNavMesh)
+			/*if (hasNavMeshDetail)
+				DrawNavMeshDetail();
+			else*/ if (hasNavMesh)
 				DrawNavMesh();
 			else if (hasSimplifiedContours)
 				DrawContours(true);
@@ -221,7 +230,7 @@ namespace Examples
 			GL.Viewport(0, 0, Width, Height);
 			float aspect = Width / (float)Height;
 
-			Matrix4 persp = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+			Matrix4 persp = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
 			GL.MatrixMode(MatrixMode.Projection);
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
@@ -275,10 +284,10 @@ namespace Examples
 			hasSimplifiedContours = true;
 
 			navMesh = new NavMesh(contourSet, settings.VertsPerPoly);
-			//hasNavMesh = true;
+			hasNavMesh = true;
 
 			navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, settings.SampleDistance, settings.MaxSmapleError);
-			//hasNavMeshDetail = true;
+			hasNavMeshDetail = true;
 		}
 	}
 }

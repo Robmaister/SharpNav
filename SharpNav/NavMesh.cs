@@ -21,7 +21,7 @@ namespace SharpNav
 	public class NavMesh
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
-		public const int MESH_NULL_IDX = 0xffff;
+		public const int MESH_NULL_IDX = -1;
 
 		private int nverts;
 		private int npolys;
@@ -46,6 +46,7 @@ namespace SharpNav
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
 		public int[] Verts { get { return verts; } }
 		public int[] Polys { get { return polys; } }
+		public AreaFlags[] Areas { get { return areas; } }
 
 		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
@@ -82,8 +83,6 @@ namespace SharpNav
 
 			//vertex flags
 			int[] vFlags = new int[maxVertices];
-			for (int i = 0; i < vFlags.Length; i++)
-				vFlags[i] = 0;
 
 			//initialize the mesh members
 			this.verts = new int[maxVertices * 3]; 
@@ -96,19 +95,11 @@ namespace SharpNav
 			this.numVertsPerPoly = numVertsPerPoly;
 			this.maxPolys = maxTris;
 
-			for (int i = 0; i < this.verts.Length; i++)
-				this.verts[i] = 0;
 			for (int i = 0; i < this.polys.Length; i++)
-				this.polys[i] = 0xff;
-			for (int i = 0; i < this.regionIds.Length; i++)
-				this.regionIds[i] = 0;
-			for (int i = 0; i < this.areas.Length; i++)
-				this.areas[i] = AreaFlags.Null;
+				this.polys[i] = MESH_NULL_IDX;
 
 			//temporary variables needed for calculations
 			int[] nextVert = new int[maxVertices];
-			for (int i = 0; i < nextVert.Length; i++)
-				nextVert[i] = 0;
 
 			//This stores a hash table. The x,y,z coordinates generate a specific number.
 			int[] firstVert = new int[VERTEX_BUCKET_COUNT];
@@ -117,7 +108,9 @@ namespace SharpNav
 
 			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
 			int[] tris = new int[maxVertsPerCont * 3]; //store three vertex hash codes
-			int[] polys = new int[(maxVertsPerCont + 1) * numVertsPerPoly]; 
+			int[] polys = new int[(maxVertsPerCont + 1) * numVertsPerPoly];
+
+			int tempPolyIndex = maxVertsPerCont * numVertsPerPoly;
 
 			//extract contour data
 			for (int i = 0; i < contSet.Contours.Count; i++)
@@ -134,7 +127,7 @@ namespace SharpNav
 
 				//Form triangles inside the area bounded by the contours
 				int ntris = Triangulate(cont.NumVerts, cont.Vertices, indices, tris);
-				if (ntris <= 0) 
+				if (ntris <= 0) //TODO notify user when this happens. Logging?
 					ntris = -ntris;
 
 				//add and merge vertices
@@ -143,8 +136,7 @@ namespace SharpNav
 					int v = j * 4;
 
 					//save the hash code for each vertex
-					indices[j] = AddVertex(cont.Vertices[v + 0], cont.Vertices[v + 1], cont.Vertices[v + 2],
-						this.verts, firstVert, nextVert, ref this.nverts);
+					indices[j] = AddVertex(cont.Vertices[v + 0], cont.Vertices[v + 1], cont.Vertices[v + 2], this.verts, firstVert, nextVert, ref this.nverts);
 
 					if ((cont.Vertices[v + 3] & ContourSet.BORDER_VERTEX) != 0)
 					{
@@ -156,7 +148,7 @@ namespace SharpNav
 				//builds initial polygons
 				int npolys = 0;
 				for (int j = 0; j < polys.Length; j++)
-					polys[j] = 0xff;
+					polys[j] = MESH_NULL_IDX;
 
 				//iterate through all the triangles
 				for (int j = 0; j < ntris; j++)
@@ -286,8 +278,8 @@ namespace SharpNav
 						if (nj >= numVertsPerPoly || this.polys[p + nj] == MESH_NULL_IDX)
 							nj = 0;
 
-						int va = this.polys[(p + j) * 3];
-						int vb = this.polys[(p + nj) * 3];
+						int va = this.polys[(p + j)] * 3;
+						int vb = this.polys[(p + nj)] * 3;
 
 						if (this.verts[va + 0] == 0 && this.verts[vb + 0] == 0)
 							this.polys[p + numVertsPerPoly + j] = 0x8000 | 0;
@@ -321,18 +313,16 @@ namespace SharpNav
 			int[] dst = tris;
 			int dstIndex = 0;
 
-			int i, i1;
-
 			//last bit of index determines whether vertex can be removed
-			for (i = 0; i < n; i++)
+			for (int i = 0; i < n; i++)
 			{
-				i1 = Next(i, n);
+				int i1 = Next(i, n);
 				int i2 = Next(i1, n);
 				if (Diagonal(i, i2, n, verts, indices))
 				{
 					uint temp = (uint)indices[i1];
 					temp |= 0x80000000;
-					indices[i1] = (int)temp;
+					indices[i1] |= (int)temp;
 				}
 			}
 
@@ -343,9 +333,9 @@ namespace SharpNav
 				//also, save their index
 				int minLen = -1;
 				int mini = -1;
-				for (i = 0; i < n; i++)
+				for (int i = 0; i < n; i++)
 				{
-					i1 = Next(i, n);
+					int i1 = Next(i, n);
 					
 					if ((indices[i1] & 0x80000000) != 0)
 					{
@@ -369,44 +359,44 @@ namespace SharpNav
 					return -ntris;
 				}
 
-				i = mini;
-				i1 = Next(i, n);
-				int i2 = Next(i1, n);
+				int mi = mini;
+				int mi1 = Next(mi, n);
+				int mi2 = Next(mi1, n);
 
-				dst[dstIndex] = indices[i] & 0x0fffffff; dstIndex++;
-				dst[dstIndex] = indices[i1] & 0x0fffffff; dstIndex++;
-				dst[dstIndex] = indices[i2] & 0x0fffffff; dstIndex++;
+				dst[dstIndex] = indices[mi] & 0x0fffffff; dstIndex++;
+				dst[dstIndex] = indices[mi1] & 0x0fffffff; dstIndex++;
+				dst[dstIndex] = indices[mi2] & 0x0fffffff; dstIndex++;
 				ntris++;
 
 				//remove P[i1]
 				n--;
-				for (int k = i1; k < n; k++)
+				for (int k = mi1; k < n; k++)
 					indices[k] = indices[k + 1];
 
-				if (i1 >= n) i1 = 0;
-				i = Prev(i1, n);
+				if (mi1 >= n) mi1 = 0;
+				mi = Prev(mi1, n);
 
 				//update diagonal flags
-				if (Diagonal(Prev(i, n), i1, n, verts, indices))
+				if (Diagonal(Prev(mi, n), mi1, n, verts, indices))
 				{
-					uint temp = (uint)indices[i1];
+					uint temp = (uint)indices[mi1];
 					temp |= 0x80000000;
-					indices[i1] = (int)temp;
+					indices[mi1] = (int)temp;
 				}
 				else
 				{
-					indices[i] &= 0x0fffffff;
+					indices[mi] &= 0x0fffffff;
 				}
 
-				if (Diagonal(i, Next(i1, n), n, verts, indices))
+				if (Diagonal(mi, Next(mi1, n), n, verts, indices))
 				{
-					uint temp = (uint)indices[i1];
+					uint temp = (uint)indices[mi1];
 					temp |= 0x80000000;
-					indices[i1] = (int)temp;
+					indices[mi1] = (int)temp;
 				}
 				else
 				{
-					indices[i1] &= 0x0fffffff;
+					indices[mi1] &= 0x0fffffff;
 				}
 			}
 
@@ -580,7 +570,7 @@ namespace SharpNav
 
 			//merge
 			for (int i = 0; i < temp.Length; i++)
-				temp[i] = 0xff;
+				temp[i] = MESH_NULL_IDX;
 
 			int n = 0;
 
@@ -769,7 +759,7 @@ namespace SharpNav
 					//remove polygon
 					int p2 = (this.npolys - 1) * numVertsPerPoly * 2;
 					this.polys[p] = this.polys[p2];
-					this.polys[p + numVertsPerPoly] = 0xff;
+					this.polys[p + numVertsPerPoly] = MESH_NULL_IDX;
 					this.regionIds[i] = this.regionIds[this.npolys - 1];
 					this.areas[i] = this.areas[this.npolys - 1];
 					this.npolys--;
@@ -890,7 +880,7 @@ namespace SharpNav
 			//builds initial polygons
 			int npolys = 0;
 			for (int j = 0; j < polys.Length; j++)
-				polys[j] = 0xff;
+				polys[j] = MESH_NULL_IDX;
 
 			for (int j = 0; j < ntris; j++)
 			{
