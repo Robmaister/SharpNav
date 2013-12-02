@@ -29,29 +29,31 @@ namespace Examples
 {
 	public partial class ExampleWindow : GameWindow
 	{
+		private enum DisplayMode
+		{
+			None,
+			Heightfield,
+			CompactHeightfield,
+			DistanceField,
+			Regions,
+			Contours,
+			SimplifiedContours,
+			NavMesh,
+			NavMeshDetail
+		}
+
 		private Camera cam;
 
 		private Heightfield heightfield;
 		private CompactHeightfield openHeightfield;
-
-		private bool hasVoxelized;
-
-		private bool hasOpenHeightfield;
-
-		private bool hasDistanceField;
-
-		private bool hasRegions;
 		private Color4[] regionColors;
-
 		private ContourSet contourSet;
-		private bool hasContours;
-		private bool hasSimplifiedContours;
-
 		private NavMesh navMesh;
-		private bool hasNavMesh;
-
 		private NavMeshDetail navMeshDetail;
-		private bool hasNavMeshDetail;
+
+		private bool hasGenerated;
+		private bool displayLevel;
+		private DisplayMode displayMode;
 
 		private KeyboardState prevK;
 		private MouseState prevM;
@@ -96,8 +98,6 @@ namespace Examples
 			gwenProjection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, -1, 1);
 
 			InitializeUI();
-
-			//settingsScrollParent.SizeToChildren(true, false);
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -192,31 +192,48 @@ namespace Examples
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-			GL.Enable(EnableCap.Lighting);
-			GL.Enable(EnableCap.Light0);
-			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
+			if (displayLevel)
+			{
+				GL.Enable(EnableCap.Lighting);
+				GL.Enable(EnableCap.Light0);
+				GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
 
-			DrawLevel();
+				DrawLevel();
 
-			GL.Disable(EnableCap.Light0);
-			GL.Disable(EnableCap.Lighting);
+				GL.Disable(EnableCap.Light0);
+				GL.Disable(EnableCap.Lighting);
+			}
 
-			/*if (hasNavMeshDetail)
-				DrawNavMeshDetail();
-			else*/ if (hasNavMesh)
-				DrawNavMesh();
-			else if (hasSimplifiedContours)
-				DrawContours(true);
-			else if (hasContours)
-				DrawContours(false);
-			else if (hasRegions)
-				DrawRegions();
-			else if (hasDistanceField)
-				DrawDistanceField();
-			else if (hasOpenHeightfield)
-				DrawCompactHeightfield();
-			else if (hasVoxelized)
-				DrawHeightfield();
+			if (hasGenerated)
+			{
+				switch (displayMode)
+				{
+					case DisplayMode.Heightfield: 
+						DrawHeightfield();
+						break;
+					case DisplayMode.CompactHeightfield:
+						DrawCompactHeightfield();
+						break;
+					case DisplayMode.DistanceField:
+						DrawDistanceField();
+						break;
+					case DisplayMode.Regions:
+						DrawRegions();
+						break;
+					case DisplayMode.Contours:
+						DrawContours(false);
+						break;
+					case DisplayMode.SimplifiedContours:
+						DrawContours(true);
+						break;
+					case DisplayMode.NavMesh:
+						DrawNavMesh();
+						break;
+					case DisplayMode.NavMeshDetail:
+						DrawNavMeshDetail();
+						break;
+				}
+			}
 
 			DrawUI();
 
@@ -257,18 +274,12 @@ namespace Examples
 			BBox3 bounds = level.GetBounds();
 			heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
 			heightfield.RasterizeTriangles(level.GetTriangles());
-			hasVoxelized = true;
-
 			heightfield.FilterLedgeSpans(settings.MaxHeight, settings.MaxClimb);
 			heightfield.FilterLowHangingWalkableObstacles(settings.MaxClimb);
 			heightfield.FilterWalkableLowHeightSpans(settings.MaxHeight);
 
 			openHeightfield = new CompactHeightfield(heightfield, settings.MaxHeight, settings.MaxClimb);
-			hasOpenHeightfield = true;
-
 			openHeightfield.BuildDistanceField();
-			hasDistanceField = true;
-
 			openHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
 
 			Random r = new Random();
@@ -276,18 +287,12 @@ namespace Examples
 			for (int i = 0; i < regionColors.Length; i++)
 				regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
 
-			hasRegions = true;
-
 			contourSet = new ContourSet(openHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
-			hasContours = true;
-
-			hasSimplifiedContours = true;
 
 			navMesh = new NavMesh(contourSet, settings.VertsPerPoly);
-			hasNavMesh = true;
-
 			navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, settings.SampleDistance, settings.MaxSmapleError);
-			hasNavMeshDetail = true;
+
+			hasGenerated = true;
 		}
 	}
 }

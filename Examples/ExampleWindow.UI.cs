@@ -31,10 +31,52 @@ namespace Examples
 			generateButton.Dock = Pos.Top;
 			generateButton.Pressed += (s, e) => GenerateNavMesh();
 
-			/*ScrollControl settingsBase = new ScrollControl(genBase);
-			settingsBase.Padding = new Padding(0, 4, 0, 0);
-			settingsBase.Dock = Pos.Fill;
-			settingsBase.EnableScroll(false, true);*/
+			GroupBox displaySettings = new GroupBox(genBase);
+			displaySettings.Text = "Display";
+			displaySettings.Dock = Pos.Top;
+			displaySettings.Height = 60;
+
+			Base levelCheckBase = new Base(displaySettings);
+			levelCheckBase.Dock = Pos.Top;
+
+			Label levelCheckLabel = new Label(levelCheckBase);
+			levelCheckLabel.Text = "Level";
+			levelCheckLabel.Dock = Pos.Left;
+
+			CheckBox levelCheckBox = new CheckBox(levelCheckBase);
+			levelCheckBox.Dock = Pos.Right;
+			levelCheckBox.Checked += (s, e) => displayLevel = true;
+			levelCheckBox.UnChecked += (s, e) => displayLevel = false;
+			levelCheckBox.IsChecked = true;
+
+			levelCheckBase.SizeToChildren();
+
+			Base displayModeBase = new Base(displaySettings);
+			displayModeBase.Dock = Pos.Top;
+			displayModeBase.Padding = new Padding(0, 4, 0, 0);
+
+			Label displayModeLabel = new Label(displayModeBase);
+			displayModeLabel.Text = "Generation Step";
+			displayModeLabel.Dock = Pos.Left;
+			displayModeLabel.Padding = new Padding(0, 0, 4, 0);
+
+			ComboBox displayModes = new ComboBox(displayModeBase);
+			displayModes.Dock = Pos.Top;
+			displayModes.AddItem("None", "", DisplayMode.None);
+			displayModes.AddItem("Heightfield", "", DisplayMode.Heightfield);
+			displayModes.AddItem("Compact Heightfield", "", DisplayMode.CompactHeightfield);
+			displayModes.AddItem("Distance Field", "", DisplayMode.DistanceField);
+			displayModes.AddItem("Regions", "", DisplayMode.Regions);
+			displayModes.AddItem("Contours", "", DisplayMode.Contours);
+			displayModes.AddItem("Simplified Contours", "", DisplayMode.SimplifiedContours);
+			displayModes.AddItem("Navigation Mesh", "", DisplayMode.NavMesh);
+			displayModes.AddItem("Navigation Mesh Detail", "", DisplayMode.NavMeshDetail);
+			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
+
+			displayModes.SelectByUserData(DisplayMode.NavMesh);
+
+			displayModeBase.SizeToChildren();
+			displayModeBase.Height += 4; //accounts for the padding, GWEN.NET should do this
 
 			const int leftMax = 125;
 			const int rightMax = 20;
