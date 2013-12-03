@@ -210,7 +210,7 @@ namespace SharpNav
 							{
 								int pk = k * numVertsPerPoly;
 								int ea = 0, eb = 0;
-								int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref ea, ref eb, numVertsPerPoly);
+								int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref ea, ref eb);
 								if (v > bestMergeVal)
 								{
 									bestMergeVal = v;
@@ -226,7 +226,7 @@ namespace SharpNav
 						{
 							int pa = bestPolyA * numVertsPerPoly;
 							int pb = bestPolyB * numVertsPerPoly;
-							MergePolys(polys, pa, pb, bestEdgeA, bestEdgeB, numVertsPerPoly);
+							MergePolys(polys, pa, pb, bestEdgeA, bestEdgeB);
 							
 							//overwrite second polygon since it has already part of another polygon
 							int lastPoly = (npolys - 1) * numVertsPerPoly;
@@ -450,7 +450,6 @@ namespace SharpNav
 			
 			//access that vertex
 			int i = firstVert[bucket];
-			int v;
 
 			//default unintialized i value is -1.
 			//if i isn't equal to -1, this vertex should exist somewhere
@@ -503,13 +502,13 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
-		private int GetPolyMergeValue(int[] polys, int polyA, int polyB, Vector3[] verts, ref int edgeA, ref int edgeB, int nvp)
+		private int GetPolyMergeValue(int[] polys, int polyA, int polyB, Vector3[] verts, ref int edgeA, ref int edgeB)
 		{
-			int numVertsA = CountPolyVerts(polys, polyA, nvp);
-			int numVertsB = CountPolyVerts(polys, polyB, nvp);
+			int numVertsA = CountPolyVerts(polys, polyA);
+			int numVertsB = CountPolyVerts(polys, polyB);
 
 			//don't merge if result is too big
-			if (numVertsA + numVertsB - 2 > nvp)
+			if (numVertsA + numVertsB - 2 > numVertsPerPoly)
 				return -1;
 
 			//check if polygons share an edge
@@ -586,10 +585,10 @@ namespace SharpNav
 		/// <summary>
 		/// The two polygon arrrays are merged into a single array
 		/// </summary>
-		private void MergePolys(int[] polys, int polyA, int polyB, int edgeA, int edgeB, int numVertsPerPolygon)
+		private void MergePolys(int[] polys, int polyA, int polyB, int edgeA, int edgeB)
 		{
-			int numA = CountPolyVerts(polys, polyA, numVertsPerPolygon);
-			int numB = CountPolyVerts(polys, polyB, numVertsPerPolygon);
+			int numA = CountPolyVerts(polys, polyA);
+			int numB = CountPolyVerts(polys, polyB);
 			int[] temp = new int[numA + numB];
 
 			//merge
@@ -624,7 +623,7 @@ namespace SharpNav
 
 			for (int i = 0; i < this.npolys; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i, numVertsPerPoly);
+				int nv = CountPolyVerts(this.polys, i);
 				int numRemoved = 0;
 				int numVerts = 0;
 
@@ -656,7 +655,7 @@ namespace SharpNav
 
 			for (int i = 0; i < this.npolys; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i, numVertsPerPoly);
+				int nv = CountPolyVerts(this.polys, i);
 
 				//collect edges which touch removed vertex
 				for (int j = 0, k = nv - 1; j < nv; k = j++)
@@ -726,7 +725,7 @@ namespace SharpNav
 			int numRemovedVerts = 0;
 			for (int i = 0; i < this.npolys; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i, numVertsPerPoly);
+				int nv = CountPolyVerts(this.polys, i);
 
 				for (int j = 0; j < nv; j++)
 				{
@@ -750,7 +749,7 @@ namespace SharpNav
 			//Iterate through all the polygons
 			for (int i = 0; i < this.npolys; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i, numVertsPerPoly);
+				int nv = CountPolyVerts(this.polys, i);
 				
 				//determine if any vertices need to be removed
 				bool hasRemove = false;
@@ -801,7 +800,7 @@ namespace SharpNav
 			//adjust indices
 			for (int i = 0; i < this.npolys; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i, numVertsPerPoly);
+				int nv = CountPolyVerts(this.polys, i);
 
 				for (int j = 0; j < nv; j++)
 				{
@@ -936,7 +935,7 @@ namespace SharpNav
 						{
 							int pk = k * numVertsPerPoly;
 							int edgeA = 0, edgeB = 0;
-							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref edgeA, ref edgeB, numVertsPerPoly);
+							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref edgeA, ref edgeB);
 							if (v > bestMergeVal)
 							{
 								bestMergeVal = v;
@@ -952,7 +951,7 @@ namespace SharpNav
 					{
 						int polyA = bestPolyA * numVertsPerPoly;
 						int polyB = bestPolyB * numVertsPerPoly;
-						MergePolys(polys, polyA, polyB, bestEa, bestEb, numVertsPerPoly);
+						MergePolys(polys, polyA, polyB, bestEa, bestEb);
 						
 						//save space by overwriting second polygon with last polygon 
 						//since second polygon is no longer need
@@ -981,7 +980,10 @@ namespace SharpNav
 					break;
 
 				for (int j = 0; j < numVertsPerPoly; j++)
+				{
 					this.polys[this.npolys].Vertices[j] = polys[i * numVertsPerPoly + j];
+					this.polys[this.npolys].ExtraInfo[j] = MESH_NULL_IDX;
+				}
 
 				this.regionIds[this.npolys] = pregs[i];
 				this.areas[this.npolys] = (AreaFlags)pareas[i];
@@ -1092,22 +1094,22 @@ namespace SharpNav
 		/// <summary>
 		/// Count the number of vertices per polygon
 		/// </summary>
-		private int CountPolyVerts(Polygon[] polys, int polyIndex, int numVertsPerPolygon)
+		private int CountPolyVerts(Polygon[] polys, int polyIndex)
 		{
-			for (int i = 0; i < numVertsPerPolygon; i++)
+			for (int i = 0; i < numVertsPerPoly; i++)
 				if (polys[polyIndex].Vertices[i] == MESH_NULL_IDX)
 					return i;
 
-			return numVertsPerPolygon;
+			return numVertsPerPoly;
 		}
 
-		private int CountPolyVerts(int[] polys, int start, int numVertsPerPolygon)
+		private int CountPolyVerts(int[] polys, int start)
 		{
-			for (int i = start; i < start + numVertsPerPolygon; i++)
+			for (int i = start; i < start + numVertsPerPoly; i++)
 				if (polys[i] == MESH_NULL_IDX)
 					return i;
 
-			return numVertsPerPolygon;
+			return numVertsPerPoly;
 		}
 
 		/// <summary>

@@ -484,25 +484,15 @@ namespace Examples
 					int vertIndex0 = navMesh.Polys[i].Vertices[0];
 					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1];
 					int vertIndex2 = navMesh.Polys[i].Vertices[j];
-					OpenTK.Vector3 v;
+					
+					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v.X = navMesh.Verts[vertIndex0].X;
-					v.Y = navMesh.Verts[vertIndex0].Y + 1;
-					v.Z = navMesh.Verts[vertIndex0].Z;
+					v = navMesh.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					GL.Vertex3(v);
-
-					v.X = navMesh.Verts[vertIndex1].X;
-					v.Y = navMesh.Verts[vertIndex1].Y + 1;
-					v.Z = navMesh.Verts[vertIndex1].Z;
-
-					GL.Vertex3(v);
-
-					v.X = navMesh.Verts[vertIndex2].X;
-					v.Y = navMesh.Verts[vertIndex2].Y + 1;
-					v.Z = navMesh.Verts[vertIndex2].Z;
-
-					GL.Vertex3(v);
+					v = navMesh.Verts[vertIndex2];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
 
@@ -529,19 +519,12 @@ namespace Examples
 
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
-					OpenTK.Vector3 v;
+					
+					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v.X = navMesh.Verts[vertIndex0].X;
-					v.Y = navMesh.Verts[vertIndex0].Y + 1;
-					v.Z = navMesh.Verts[vertIndex0].Z;
-
-					GL.Vertex3(v);
-
-					v.X = navMesh.Verts[vertIndex1].X;
-					v.Y = navMesh.Verts[vertIndex1].Y + 1;
-					v.Z = navMesh.Verts[vertIndex1].Z;
-
-					GL.Vertex3(v);
+					v = navMesh.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
 
@@ -564,19 +547,12 @@ namespace Examples
 
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
-					OpenTK.Vector3 v;
-
-					v.X = navMesh.Verts[vertIndex0].X;
-					v.Y = navMesh.Verts[vertIndex0].Y + 1;
-					v.Z = navMesh.Verts[vertIndex0].Z;
-
-					GL.Vertex3(v);
 					
-					v.X = navMesh.Verts[vertIndex1].X;
-					v.Y = navMesh.Verts[vertIndex1].Y + 1;
-					v.Z = navMesh.Verts[vertIndex1].Z;
+					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					GL.Vertex3(v);
+					v = navMesh.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
 
@@ -586,13 +562,8 @@ namespace Examples
 			GL.Begin(BeginMode.Points);
 			for (int i = 0; i < navMesh.NVerts; i++)
 			{
-				OpenTK.Vector3 v;
-
-				v.X = navMesh.Verts[i].X;
-				v.Y = navMesh.Verts[i].Y + 1;
-				v.Z = navMesh.Verts[i].Z;
-
-				GL.Vertex3(v);
+				SharpNav.Vector3 v = navMesh.Verts[i];
+				GL.Vertex3(v.X, v.Y + 1, v.Z);
 			}
 
 			GL.End();
