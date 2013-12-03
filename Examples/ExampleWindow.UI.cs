@@ -105,7 +105,7 @@ namespace Examples
 			navMeshSettings.Height = 90;
 
 			Base maxEdgeLength = CreateSliderOption(navMeshSettings, "Max Edge Length:", 0f, 50f, 12f, "N0", leftMax, rightMax, v => settings.MaxEdgeLength = (int)Math.Round(v));
-			Base maxEdgeErr = CreateSliderOption(navMeshSettings, "Max Edge Error:", 0f, 3f, 1.3f, "N1", leftMax, rightMax, v => settings.MaxEdgeError = v);
+			Base maxEdgeErr = CreateSliderOption(navMeshSettings, "Max Edge Error:", 0f, 3f, 1.8f, "N1", leftMax, rightMax, v => settings.MaxEdgeError = v);
 			Base vertsPerPoly = CreateSliderOption(navMeshSettings, "Verts Per Poly:", 3f, 12f, 6f, "N0", leftMax, rightMax, v => settings.VertsPerPoly = (int)Math.Round(v));
 
 			GroupBox navMeshDetailSettings = new GroupBox(genBase);
