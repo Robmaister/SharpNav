@@ -194,12 +194,15 @@ namespace Examples
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
 
+			GL.Enable(EnableCap.Lighting);
+			GL.Enable(EnableCap.Light0);
+			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
+
 			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
 			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
 			GL.NormalPointer(NormalPointerType.Float, 6 * 4, 3 * 4);
 
-			GL.Color4(1f, 0f, 0f, 0.5f);
-			GL.DepthMask(false);
+			GL.Color4(0.5f, 0.5f, 0.5f, 1f);
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, heightfieldVoxelIbo);
 
@@ -229,10 +232,12 @@ namespace Examples
 				}
 			}
 
-			GL.DepthMask(true);
-
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+			GL.Disable(EnableCap.Light0);
+			GL.Disable(EnableCap.Lighting);
+
 			GL.DisableClientState(ArrayCap.VertexArray);
 			GL.DisableClientState(ArrayCap.NormalArray);
 		}
