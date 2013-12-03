@@ -83,12 +83,12 @@ namespace SharpNav
 					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int v = mesh.Polys[i].Vertices[j] * 3;
+					int v = mesh.Polys[i].Vertices[j];
 
-					xmin = bounds[i * 4 + 0] = Math.Min(xmin, mesh.Verts[v + 0]);
-					xmax = bounds[i * 4 + 1] = Math.Max(xmax, mesh.Verts[v + 0]);
-					ymin = bounds[i * 4 + 2] = Math.Min(ymin, mesh.Verts[v + 2]);
-					ymax = bounds[i * 4 + 3] = Math.Max(ymax, mesh.Verts[v + 2]);
+					xmin = bounds[i * 4 + 0] = (int)Math.Min(xmin, mesh.Verts[v].X);
+					xmax = bounds[i * 4 + 1] = (int)Math.Max(xmax, mesh.Verts[v].X);
+					ymin = bounds[i * 4 + 2] = (int)Math.Min(ymin, mesh.Verts[v].Z);
+					ymax = bounds[i * 4 + 3] = (int)Math.Max(ymax, mesh.Verts[v].Z);
 
 					nPolyVerts++;
 				}
@@ -128,10 +128,10 @@ namespace SharpNav
 					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int v = mesh.Polys[i].Vertices[j] * 3;
-					poly[j * 3 + 0] = mesh.Verts[v + 0] * mesh.CellSize;
-					poly[j * 3 + 1] = mesh.Verts[v + 1] * mesh.CellHeight;
-					poly[j * 3 + 2] = mesh.Verts[v + 2] * mesh.CellSize;
+					int v = mesh.Polys[i].Vertices[j];
+					poly[j * 3 + 0] = mesh.Verts[v].X * mesh.CellSize;
+					poly[j * 3 + 1] = mesh.Verts[v].Y * mesh.CellHeight;
+					poly[j * 3 + 2] = mesh.Verts[v].Z * mesh.CellSize;
 					npoly++;
 				}
 
@@ -298,7 +298,7 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield openField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, int[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield openField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;
@@ -319,9 +319,9 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					int ax = verts[poly[polyStartIndex].Vertices[j] * 3 + 0] + offset[k * 2 + 0];
-					int ay = verts[poly[polyStartIndex].Vertices[j] * 3 + 1];
-					int az = verts[poly[polyStartIndex].Vertices[j] * 3 + 2] + offset[k * 2 + 1];
+					int ax = (int)verts[poly[polyStartIndex].Vertices[j]].X + offset[k * 2 + 0];
+					int ay = (int)verts[poly[polyStartIndex].Vertices[j]].Y;
+					int az = (int)verts[poly[polyStartIndex].Vertices[j]].Z + offset[k * 2 + 1];
 
 					//skip if out of bounds
 					if (ax < hp.xmin || ax >= hp.xmin + hp.width ||
@@ -362,8 +362,8 @@ namespace SharpNav
 			int pcx = 0, pcz = 0;
 			for (int j = 0; j < numVertsPerPoly; j++)
 			{
-				pcx += verts[(int)poly[polyStartIndex].Vertices[j] * 3 + 0];
-				pcz += verts[(int)poly[polyStartIndex].Vertices[j] * 3 + 2];
+				pcx += (int)verts[poly[polyStartIndex].Vertices[j]].X;
+				pcz += (int)verts[poly[polyStartIndex].Vertices[j]].Z;
 			}
 			pcx /= numVertsPerPoly;
 			pcz /= numVertsPerPoly;

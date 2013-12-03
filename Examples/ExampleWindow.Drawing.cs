@@ -481,26 +481,26 @@ namespace Examples
 					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[0] * 3;
-					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1] * 3;
-					int vertIndex2 = navMesh.Polys[i].Vertices[j] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[0];
+					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1];
+					int vertIndex2 = navMesh.Polys[i].Vertices[j];
 					OpenTK.Vector3 v;
 
-					v.X = navMesh.Verts[vertIndex0 + 0];
-					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex0 + 2];
+					v.X = navMesh.Verts[vertIndex0].X;
+					v.Y = navMesh.Verts[vertIndex0].Y + 1;
+					v.Z = navMesh.Verts[vertIndex0].Z;
 
 					GL.Vertex3(v);
 
-					v.X = navMesh.Verts[vertIndex1 + 0];
-					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex1 + 2];
+					v.X = navMesh.Verts[vertIndex1].X;
+					v.Y = navMesh.Verts[vertIndex1].Y + 1;
+					v.Z = navMesh.Verts[vertIndex1].Z;
 
 					GL.Vertex3(v);
 
-					v.X = navMesh.Verts[vertIndex2 + 0];
-					v.Y = navMesh.Verts[vertIndex2 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex2 + 2];
+					v.X = navMesh.Verts[vertIndex2].X;
+					v.Y = navMesh.Verts[vertIndex2].Y + 1;
+					v.Z = navMesh.Verts[vertIndex2].Z;
 
 					GL.Vertex3(v);
 				}
@@ -527,19 +527,19 @@ namespace Examples
 
 					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[j] * 3;
-					int vertIndex1 = navMesh.Polys[i].Vertices[nj] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[j];
+					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
 					OpenTK.Vector3 v;
 
-					v.X = navMesh.Verts[vertIndex0 + 0];
-					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex0 + 2];
+					v.X = navMesh.Verts[vertIndex0].X;
+					v.Y = navMesh.Verts[vertIndex0].Y + 1;
+					v.Z = navMesh.Verts[vertIndex0].Z;
 
 					GL.Vertex3(v);
 
-					v.X = navMesh.Verts[vertIndex1 + 0];
-					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex1 + 2];
+					v.X = navMesh.Verts[vertIndex1].X;
+					v.Y = navMesh.Verts[vertIndex1].Y + 1;
+					v.Z = navMesh.Verts[vertIndex1].Z;
 
 					GL.Vertex3(v);
 				}
@@ -562,19 +562,19 @@ namespace Examples
 
 					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[j] * 3;
-					int vertIndex1 = navMesh.Polys[i].Vertices[nj] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[j];
+					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
 					OpenTK.Vector3 v;
 
-					v.X = navMesh.Verts[vertIndex0 + 0];
-					v.Y = navMesh.Verts[vertIndex0 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex0 + 2];
+					v.X = navMesh.Verts[vertIndex0].X;
+					v.Y = navMesh.Verts[vertIndex0].Y + 1;
+					v.Z = navMesh.Verts[vertIndex0].Z;
 
 					GL.Vertex3(v);
-
-					v.X = navMesh.Verts[vertIndex1 + 0];
-					v.Y = navMesh.Verts[vertIndex1 + 1] + 1;
-					v.Z = navMesh.Verts[vertIndex1 + 2];
+					
+					v.X = navMesh.Verts[vertIndex1].X;
+					v.Y = navMesh.Verts[vertIndex1].Y + 1;
+					v.Z = navMesh.Verts[vertIndex1].Z;
 
 					GL.Vertex3(v);
 				}
@@ -588,9 +588,9 @@ namespace Examples
 			{
 				OpenTK.Vector3 v;
 
-				v.X = navMesh.Verts[i * 3 + 0];
-				v.Y = navMesh.Verts[i * 3 + 1] + 1;
-				v.Z = navMesh.Verts[i * 3 + 2];
+				v.X = navMesh.Verts[i].X;
+				v.Y = navMesh.Verts[i].Y + 1;
+				v.Z = navMesh.Verts[i].Z;
 
 				GL.Vertex3(v);
 			}

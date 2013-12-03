@@ -26,7 +26,7 @@ namespace SharpNav
 		private int nverts;
 		private int npolys;
 
-		private int[] verts; //each vertex contains (x, y, z)
+		private Vector3[] verts; //each vertex contains (x, y, z)
 		private Polygon[] polys;
 		private int[] regionIds; //contains region id for each triangle
 		private int[] flags; //flags for a polygon
@@ -44,7 +44,7 @@ namespace SharpNav
 		public int NVerts { get { return nverts; } }
 		public int NPolys { get { return npolys; } }
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
-		public int[] Verts { get { return verts; } }
+		public Vector3[] Verts { get { return verts; } }
 		public Polygon[] Polys { get { return polys; } }
 		public AreaFlags[] Areas { get { return areas; } }
 
@@ -96,7 +96,7 @@ namespace SharpNav
 			int[] vFlags = new int[maxVertices];
 
 			//initialize the mesh members
-			this.verts = new int[maxVertices * 3]; 
+			this.verts = new Vector3[maxVertices]; 
 			this.polys = new Polygon[maxTris];
 			this.regionIds = new int[maxTris];
 			this.areas = new AreaFlags[maxTris];
@@ -301,17 +301,17 @@ namespace SharpNav
 							nj = 0;
 
 						//grab two consecutive vertices
-						int va = this.polys[i].Vertices[j] * 3;
-						int vb = this.polys[i].Vertices[nj] * 3;
+						int va = this.polys[i].Vertices[j];
+						int vb = this.polys[i].Vertices[nj];
 
 						//set some flags
-						if (this.verts[va + 0] == 0 && this.verts[vb + 0] == 0)
+						if (this.verts[va].X == 0 && this.verts[vb].X == 0)
 							this.polys[i].ExtraInfo[j] = 0x8000 | 0;
-						else if (this.verts[va + 2] == contSet.Height && this.verts[vb + 2] == contSet.Height)
+						else if (this.verts[va].Z == contSet.Height && this.verts[vb].Z == contSet.Height)
 							this.polys[i].ExtraInfo[j] = 0x8000 | 1;
-						else if (this.verts[va + 0] == contSet.Width && this.verts[vb + 0] == contSet.Width)
+						else if (this.verts[va].X == contSet.Width && this.verts[vb].X == contSet.Width)
 							this.polys[i].ExtraInfo[j] = 0x8000 | 2;
-						else if (this.verts[va + 2] == 0 && this.verts[vb + 2] == 0)
+						else if (this.verts[va].Z == 0 && this.verts[vb].Z == 0)
 							this.polys[i].ExtraInfo[j] = 0x8000 | 3;
 					}
 				}
@@ -443,7 +443,7 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <returns></returns>
-		private int AddVertex(int x, int y, int z, int[] verts, int[] firstVert, int[] nextVert, ref int nv)
+		private int AddVertex(int x, int y, int z, Vector3[] verts, int[] firstVert, int[] nextVert, ref int nv)
 		{
 			//generate a unique index
 			int bucket = ComputeVertexHash(x, 0, z);
@@ -456,11 +456,8 @@ namespace SharpNav
 			//if i isn't equal to -1, this vertex should exist somewhere
 			while (i != -1)
 			{
-				//vertex only has three elements (x,y,z)
-				v = i * 3;
-
 				//found existing vertex
-				if (verts[v + 0] == x && (Math.Abs(verts[v + 1] - y) <= 2) && verts[v + 2] == z)
+				if (verts[i].X == x && (Math.Abs(verts[i].Y - y) <= 2) && verts[i].Z == z)
 					return i;
 				
 				//next vertex. this stores the vertices linearly (similar to a linked list)
@@ -472,10 +469,9 @@ namespace SharpNav
 			nv++;
 
 			//save the data
-			v = i * 3;
-			verts[v + 0] = x;
-			verts[v + 1] = y;
-			verts[v + 2] = z;
+			verts[i].X = x;
+			verts[i].Y = y;
+			verts[i].Z = z;
 
 			//add this current vertex to the chain
 			nextVert[i] = firstVert[bucket];
@@ -507,7 +503,7 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
-		private int GetPolyMergeValue(int[] polys, int polyA, int polyB, int[] verts, ref int edgeA, ref int edgeB, int nvp)
+		private int GetPolyMergeValue(int[] polys, int polyA, int polyB, Vector3[] verts, ref int edgeA, ref int edgeB, int nvp)
 		{
 			int numVertsA = CountPolyVerts(polys, polyA, nvp);
 			int numVertsB = CountPolyVerts(polys, polyB, nvp);
@@ -570,20 +566,20 @@ namespace SharpNav
 			vertA = polys[polyA + (edgeA + numVertsA - 1) % numVertsA];
 			vertB = polys[polyA + edgeA];
 			vertC = polys[polyB + (edgeB + 2) % numVertsB];
-			if (!ULeft(verts, vertA * 3, vertB * 3, vertC * 3))
+			if (!ULeft(verts, vertA, vertB, vertC))
 				return -1;
 
 			vertA = polys[polyB + (edgeB + numVertsB - 1) % numVertsB];
 			vertB = polys[polyB + edgeB];
 			vertC = polys[polyA + (edgeA + 2) % numVertsA];
-			if (!ULeft(verts, vertA * 3, vertB * 3, vertC * 3))
+			if (!ULeft(verts, vertA, vertB, vertC))
 				return -1;
 
 			vertA = polys[polyA + edgeA];
 			vertB = polys[polyA + (edgeA + 1) % numVertsA];
 
-			int dx = verts[vertA * 3 + 0] - verts[vertB * 3 + 0];
-			int dy = verts[vertA * 3 + 2] - verts[vertB * 3 + 2];
+			int dx = (int)(verts[vertA].X - verts[vertB].X);
+			int dy = (int)(verts[vertA].Z - verts[vertB].Z);
 			return dx * dx + dy * dy;
 		}
 
@@ -885,9 +881,9 @@ namespace SharpNav
 			for (int i = 0; i < nhole; i++)
 			{
 				int pi = hole[i];
-				tverts[i * 4 + 0] = this.verts[pi * 3 + 0];
-				tverts[i * 4 + 1] = this.verts[pi * 3 + 1];
-				tverts[i * 4 + 2] = this.verts[pi * 3 + 2];
+				tverts[i * 4 + 0] = (int)this.verts[pi].X;
+				tverts[i * 4 + 1] = (int)this.verts[pi].Y;
+				tverts[i * 4 + 2] = (int)this.verts[pi].Z;
 				tverts[i * 4 + 3] = 0;
 				thole[i] = i;
 			}
@@ -1140,14 +1136,10 @@ namespace SharpNav
 			an++;
 		}
 		
-		// (Bx - Ax) (Cx - Ax)
-		// (Bz - Az) (Cz - Az) 
-		//
-		//(Bx - Ax) * (Cz - Az) - (Cx - Ax) * (Bz - Az)
-		private bool ULeft(int[] verts, int a, int b, int c)
+		private bool ULeft(Vector3[] verts, int a, int b, int c)
 		{
-			return (verts[b + 0] - verts[a + 0]) * (verts[c + 2] - verts[a + 2]) -
-				(verts[c + 0] - verts[a + 0]) * (verts[b + 2] - verts[a + 2]) < 0;
+			return (verts[b].X - verts[a].X) * (verts[c].Z - verts[a].Z) -
+				(verts[c].X - verts[a].X) * (verts[b].Z - verts[a].Z) < 0;
 		}
 
 		private int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
