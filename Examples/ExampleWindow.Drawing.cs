@@ -468,19 +468,17 @@ namespace Examples
 
 			for (int i = 0; i < navMesh.NPolys; i++)
 			{
-				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
-
 				if (navMesh.Areas[i] != AreaFlags.Walkable)
 					continue;
 
 				for (int j = 2; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int vertIndex0 = navMesh.Polys[polyIndex] * 3;
-					int vertIndex1 = navMesh.Polys[polyIndex + j - 1] * 3;
-					int vertIndex2 = navMesh.Polys[polyIndex + j] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[0] * 3;
+					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1] * 3;
+					int vertIndex2 = navMesh.Polys[i].Vertices[j] * 3;
 					OpenTK.Vector3 v;
 
 					v.X = navMesh.Verts[vertIndex0 + 0];
@@ -515,18 +513,17 @@ namespace Examples
 
 			for (int i = 0; i < navMesh.NPolys; i++)
 			{
-				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
 				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
-					if ((navMesh.Polys[polyIndex + navMesh.NumVertsPerPoly + j] & 0x8000) != 0)
+					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) != 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[polyIndex + j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[polyIndex + j] * 3;
-					int vertIndex1 = navMesh.Polys[polyIndex + nj] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[j] * 3;
+					int vertIndex1 = navMesh.Polys[i].Vertices[nj] * 3;
 					OpenTK.Vector3 v;
 
 					v.X = navMesh.Verts[vertIndex0 + 0];
@@ -550,20 +547,18 @@ namespace Examples
 			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < navMesh.NPolys; i++)
 			{
-				int polyIndex = i * navMesh.NumVertsPerPoly * 2;
-
 				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[polyIndex + j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					if ((navMesh.Polys[polyIndex + navMesh.NumVertsPerPoly + j] & 0x8000) == 0)
+					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) == 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[polyIndex + j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[polyIndex + j] * 3;
-					int vertIndex1 = navMesh.Polys[polyIndex + nj] * 3;
+					int vertIndex0 = navMesh.Polys[i].Vertices[j] * 3;
+					int vertIndex1 = navMesh.Polys[i].Vertices[nj] * 3;
 					OpenTK.Vector3 v;
 
 					v.X = navMesh.Verts[vertIndex0 + 0];

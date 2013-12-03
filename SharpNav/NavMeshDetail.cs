@@ -71,7 +71,6 @@ namespace SharpNav
 			//find max size for polygon area
 			for (int i = 0; i < mesh.NPolys; i++)
 			{
-				int p = i * mesh.NumVertsPerPoly * 2;
 				int xmin, xmax, ymin, ymax;
 
 				xmin = bounds[i * 4 + 0] = openField.Width;
@@ -81,10 +80,10 @@ namespace SharpNav
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[p + j] == NavMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int v = mesh.Polys[p + j] * 3;
+					int v = mesh.Polys[i].Vertices[j] * 3;
 
 					xmin = bounds[i * 4 + 0] = Math.Min(xmin, mesh.Verts[v + 0]);
 					xmax = bounds[i * 4 + 1] = Math.Max(xmax, mesh.Verts[v + 0]);
@@ -122,16 +121,14 @@ namespace SharpNav
 
 			for (int i = 0; i < mesh.NPolys; i++)
 			{
-				int p = i * mesh.NumVertsPerPoly * 2;
-
 				//store polygon vertices for processing
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[p + j] == NavMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
 						break;
 
-					int v = mesh.Polys[p + j] * 3;
+					int v = mesh.Polys[i].Vertices[j] * 3;
 					poly[j * 3 + 0] = mesh.Verts[v + 0] * mesh.CellSize;
 					poly[j * 3 + 1] = mesh.Verts[v + 1] * mesh.CellHeight;
 					poly[j * 3 + 2] = mesh.Verts[v + 2] * mesh.CellSize;
@@ -143,7 +140,7 @@ namespace SharpNav
 				hp.ymin = bounds[i * 4 + 2];
 				hp.width = bounds[i * 4 + 1] - bounds[i * 4 + 0];
 				hp.height = bounds[i * 4 + 3] - bounds[i * 4 + 2];
-				GetHeightData(openField, mesh.Polys, i * mesh.NumVertsPerPoly * 2, npoly, mesh.Verts, mesh.BorderSize, ref hp);
+				GetHeightData(openField, mesh.Polys, i, npoly, mesh.Verts, mesh.BorderSize, ref hp);
 
 				int nverts = 0;
 				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, verts, ref nverts, tris, edges, samples);
@@ -301,7 +298,7 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield openField, int[] poly, int polyStartIndex, int npoly, int[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield openField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, int[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;
@@ -314,7 +311,7 @@ namespace SharpNav
 								0,1, -1,1, -1,0};
 
 			//use poly vertices as seed points
-			for (int j = 0; j < npoly; j++)
+			for (int j = 0; j < numVertsPerPoly; j++)
 			{
 				int cx = 0, cz = 0, ci = -1;
 				int dmin = UNSET_HEIGHT;
@@ -322,9 +319,9 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					int ax = verts[(int)poly[polyStartIndex + j] * 3 + 0] + offset[k * 2 + 0];
-					int ay = verts[(int)poly[polyStartIndex + j] * 3 + 1];
-					int az = verts[(int)poly[polyStartIndex + j] * 3 + 2] + offset[k * 2 + 1];
+					int ax = verts[poly[polyStartIndex].Vertices[j] * 3 + 0] + offset[k * 2 + 0];
+					int ay = verts[poly[polyStartIndex].Vertices[j] * 3 + 1];
+					int az = verts[poly[polyStartIndex].Vertices[j] * 3 + 2] + offset[k * 2 + 1];
 
 					//skip if out of bounds
 					if (ax < hp.xmin || ax >= hp.xmin + hp.width ||
@@ -363,13 +360,13 @@ namespace SharpNav
 
 			//find center of polygon using flood fill
 			int pcx = 0, pcz = 0;
-			for (int j = 0; j < npoly; j++)
+			for (int j = 0; j < numVertsPerPoly; j++)
 			{
-				pcx += verts[(int)poly[polyStartIndex + j] * 3 + 0];
-				pcz += verts[(int)poly[polyStartIndex + j] * 3 + 2];
+				pcx += verts[(int)poly[polyStartIndex].Vertices[j] * 3 + 0];
+				pcz += verts[(int)poly[polyStartIndex].Vertices[j] * 3 + 2];
 			}
-			pcx /= npoly;
-			pcz /= npoly;
+			pcx /= numVertsPerPoly;
+			pcz /= numVertsPerPoly;
 
 			//stack groups 3 elements as one part
 			for (int i = 0; i < stack.Count; i += 3)
