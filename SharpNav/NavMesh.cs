@@ -11,13 +11,6 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	public class Edge
-	{
-		public int [] vert;
-		public int [] polyEdge;
-		public int [] poly;
-	}
-
 	public class NavMesh
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
@@ -59,9 +52,16 @@ namespace SharpNav
 			public int[] ExtraInfo; //"numVertsPerPoly" elements (contains flags, other polys)
 		}
 
-		public struct Tris
+		private struct Tris
 		{
 			public int [] VertexHash; //make sure only 3 vertices
+		}
+		
+		private struct Edge
+		{
+			public int[] vert;
+			public int[] polyEdge;
+			public int[] poly;
 		}
 
 		/// <summary>

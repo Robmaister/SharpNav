@@ -35,14 +35,12 @@ namespace SharpNav
 		//triangle info contains three vertex hashes and a flag
 		public struct TrisInfo
 		{
-			public int Vertex1Hash;
-			public int Vertex2Hash;
-			public int Vertex3Hash;
+			public int [] VertexHash;
 			public int Flag; //indicates which 3 vertices are part of the polygon
 		}
 		private TrisInfo[] tris;
 
-		public class EdgeInfo
+		private class EdgeInfo
 		{
 			public int[] EndPts;
 			public int LeftFace;
@@ -223,9 +221,10 @@ namespace SharpNav
 				for (int j = 0; j < ntris; j++)
 				{
 					int t = j * 4;
-					this.tris[this.ntris].Vertex1Hash = tris[t + 0];
-					this.tris[this.ntris].Vertex2Hash = tris[t + 1];
-					this.tris[this.ntris].Vertex3Hash = tris[t + 2];
+					this.tris[this.ntris].VertexHash = new int[3];
+					this.tris[this.ntris].VertexHash[0] = tris[t + 0];
+					this.tris[this.ntris].VertexHash[1] = tris[t + 1];
+					this.tris[this.ntris].VertexHash[2] = tris[t + 2];
 					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t + 0] * 3, tris[t + 1] * 3, tris[t + 2] * 3, poly, npoly);
 					this.ntris++;
 				}
@@ -402,7 +401,7 @@ namespace SharpNav
 				if (Math.Abs(cx - pcx) <= 1 && Math.Abs(cy - pcz) <= 1)
 				{
 					//clear the stack and add a new group
-					stack = new List<int>();
+					stack.Clear();
 					
 					stack.Add(cx);
 					stack.Add(cy);
@@ -479,10 +478,14 @@ namespace SharpNav
 				{
 					head = 0;
 
-					//remove all the old elements 
 					if (stack.Count > RETRACT_SIZE * 3)
 					{
-						stack.RemoveRange(0, RETRACT_SIZE * 3 - 1);
+						//copy elements at the end of the stack to the beginning
+						for (int i = 0; i < stack.Count - RETRACT_SIZE * 3; i++)
+							stack[i] = stack[RETRACT_SIZE * 3 + i];
+
+						//shrink stack
+						stack.RemoveRange(RETRACT_SIZE * 3, stack.Count - RETRACT_SIZE * 3);
 					}
 				}
 
@@ -784,6 +787,7 @@ namespace SharpNav
 					verts[nverts * 3 + 2] = bestpt[2];
 					nverts++;
 
+					//create new triangulation
 					edges.Clear();
 					tris.Clear();
 					DelaunayHull(nverts, verts, nhull, hull, tris, edges);
@@ -828,8 +832,11 @@ namespace SharpNav
 
 			if (h == UNSET_HEIGHT)
 			{
-				int[] off = { -1,0, -1,-1, 0,-1, 1,-1,
-								 1,0, 1,1, 0,1, -1,1 };
+				//go in counterclockwise direction starting from west, ending in northwest
+				int[] off = { -1, 0,	-1, -1,		0, -1, 
+							   1, -1,	 1, 0,		1, 1, 
+							   0, 1,    -1, 1 };
+
 				float dmin = float.MaxValue;
 
 				for (int i = 0; i < 8; i++)

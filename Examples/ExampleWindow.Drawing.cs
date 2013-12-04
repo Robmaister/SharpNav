@@ -433,10 +433,11 @@ namespace Examples
 			Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
 			GL.MultMatrix(ref squareScale);
 
+			GL.LineWidth(5f);
+			GL.Begin(BeginMode.Lines);
+			
 			foreach (var c in contourSet.Contours)
 			{
-				GL.VertexPointer(3, VertexPointerType.Int, 16, simplified ? c.Vertices : c.RawVertices);
-
 				int region = c.RegionId;
 				if ((region & 0x8000) == 0x8000) //HACK properly display border regions
 					region &= 0x7fff;
@@ -444,9 +445,27 @@ namespace Examples
 				Color4 col = regionColors[region];
 				GL.Color4(col);
 
-				GL.LineWidth(5f);
-				GL.DrawArrays(BeginMode.LineLoop, 0, simplified ? c.NumVerts : c.NumRawVerts);
+				if (simplified)
+				{
+					for (int i = 0; i < c.NumVerts; i++)
+					{
+						int ni = (i + 1) % c.NumVerts;
+						GL.Vertex3(c.Vertices[i * 4 + 0], c.Vertices[i * 4 + 1], c.Vertices[i * 4 + 2]);
+						GL.Vertex3(c.Vertices[ni * 4 + 0], c.Vertices[ni * 4 + 1], c.Vertices[ni * 4 + 2]);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < c.NumRawVerts; i++)
+					{
+						int ni = (i + 1) % c.NumRawVerts;
+						GL.Vertex3(c.RawVertices[i].X, c.RawVertices[i].Y, c.RawVertices[i].Z);
+						GL.Vertex3(c.RawVertices[ni].X, c.RawVertices[ni].Y, c.RawVertices[ni].Z);
+					}
+				}
 			}
+
+			GL.End();
 
 			GL.PopMatrix();
 
@@ -593,13 +612,13 @@ namespace Examples
 				{
 					var t = navMeshDetail.Tris[triIndex + j];
 
-					SharpNav.Vector3 v = navMeshDetail.Verts[vertIndex + t.Vertex1Hash];
+					SharpNav.Vector3 v = navMeshDetail.Verts[vertIndex + t.VertexHash[0]];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = navMeshDetail.Verts[vertIndex + t.Vertex2Hash];
+					v = navMeshDetail.Verts[vertIndex + t.VertexHash[1]];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = navMeshDetail.Verts[vertIndex + t.Vertex3Hash];
+					v = navMeshDetail.Verts[vertIndex + t.VertexHash[2]];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}

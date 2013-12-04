@@ -122,7 +122,7 @@ namespace SharpNav
 			//Points are in format (each point takes up 4 array elements): 
 			//	(x, y, z) coordinates
 			//	region id
-			List<int> verts = new List<int>();
+			List<RawVertex> verts = new List<RawVertex>();
 			List<int> simplified = new List<int>();
 
 			int numContours = 0;
@@ -180,8 +180,8 @@ namespace SharpNav
 							}
 
 							//copy raw data
-							cont.NumRawVerts = verts.Count / 4;
-							cont.RawVertices = new int[cont.NumRawVerts * 4];
+							cont.NumRawVerts = verts.Count;
+							cont.RawVertices = new RawVertex[cont.NumRawVerts];
 							for (int j = 0; j < cont.RawVertices.Length; j++)
 								cont.RawVertices[j] = verts[j];
 
@@ -190,8 +190,8 @@ namespace SharpNav
 								//remove offset
 								for (int j = 0; j < cont.NumRawVerts; j++)
 								{
-									cont.RawVertices[j * 4 + 0] -= borderSize;
-									cont.RawVertices[j * 4 + 2] -= borderSize;
+									cont.RawVertices[j].X -= borderSize;
+									cont.RawVertices[j].Z -= borderSize;
 								}
 							}
 
@@ -314,7 +314,7 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="flags">?</param>
 		/// <param name="points">Vertices of contour</param>
-		private void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<int> points)
+		private void WalkContour(int x, int y, int i, CompactHeightfield openField, byte[] flags, List<RawVertex> points)
 		{
 			int dir = 0;
 
@@ -379,12 +379,9 @@ namespace SharpNav
 					if (isAreaBorder)
 						r |= AREA_BORDER;
 					
-					//save the point (x,y,z) coordinate and region id
-					points.Add(px);
-					points.Add(py);
-					points.Add(pz);
-					points.Add(r);
-
+					//save the point
+					points.Add(new RawVertex(px, py, pz, r));
+					
 					//say flag = 0110
 					//dir = 2 (so 1 << dir = 0100)
 					//~dir = 1011
@@ -525,13 +522,13 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
-		private void SimplifyContour(List<int> points, List<int> simplified, float maxError, int maxEdgeLen, int buildFlags)
+		private void SimplifyContour(List<RawVertex> points, List<int> simplified, float maxError, int maxEdgeLen, int buildFlags)
 		{
 			//add initial points
 			bool hasConnections = false;
-			for (int i = 0; i < points.Count; i += 4)
+			for (int i = 0; i < points.Count; i++)
 			{
-				if ((points[i + 3] & CONTOUR_REG_MASK) != 0)
+				if ((points[i].RegionId & CONTOUR_REG_MASK) != 0)
 				{
 					hasConnections = true;
 					break;
@@ -542,17 +539,17 @@ namespace SharpNav
 			{
 				//contour has some portals to other regions
 				//add new point to every location where region changes
-				for (int i = 0, end = points.Count / 4; i < end; i++)
+				for (int i = 0, end = points.Count; i < end; i++)
 				{
 					int ii = (i + 1) % end;
-					bool differentRegions = (points[i * 4 + 3] & CONTOUR_REG_MASK) != (points[ii * 4 + 3] & CONTOUR_REG_MASK);
-					bool areaBorders = (points[i * 4 + 3] & AREA_BORDER) != (points[ii * 4 + 3] & AREA_BORDER);
+					bool differentRegions = (points[i].RegionId & CONTOUR_REG_MASK) != (points[ii].RegionId & CONTOUR_REG_MASK);
+					bool areaBorders = (points[i].RegionId & AREA_BORDER) != (points[ii].RegionId & AREA_BORDER);
 					
 					if (differentRegions || areaBorders)
 					{
-						simplified.Add(points[i * 4 + 0]);
-						simplified.Add(points[i * 4 + 1]);
-						simplified.Add(points[i * 4 + 2]);
+						simplified.Add(points[i].X);
+						simplified.Add(points[i].Y);
+						simplified.Add(points[i].Z);
 						simplified.Add(i);
 					}
 				}
@@ -562,29 +559,29 @@ namespace SharpNav
 			if (simplified.Count == 0)
 			{
 				//find lower-left and upper-right vertices of contour
-				int lowerLeftX = points[0];
-				int lowerLeftY = points[1];
-				int lowerLeftZ = points[2];
+				int lowerLeftX = points[0].X;
+				int lowerLeftY = points[0].Y;
+				int lowerLeftZ = points[0].Z;
 				int lowerLeftI = 0;
 				
-				int upperRightX = points[0];
-				int upperRightY = points[1];
-				int upperRightZ = points[2];
+				int upperRightX = points[0].X;
+				int upperRightY = points[0].Y;
+				int upperRightZ = points[0].Z;
 				int upperRightI = 0;
 				
-				//iterate through points, make sure to skip 4 elements each time
-				for (int i = 0; i < points.Count; i += 4)
+				//iterate through points
+				for (int i = 0; i < points.Count; i++)
 				{
-					int x = points[i + 0];
-					int y = points[i + 1];
-					int z = points[i + 2];
+					int x = points[i].X;
+					int y = points[i].Y;
+					int z = points[i].Z;
 					
 					if (x < lowerLeftX || (x == lowerLeftX && z < lowerLeftZ))
 					{
 						lowerLeftX = x;
 						lowerLeftY = y;
 						lowerLeftZ = z;
-						lowerLeftI = i / 4;
+						lowerLeftI = i;
 					}
 					
 					if (x > upperRightX || (x == upperRightX && z > upperRightZ))
@@ -592,7 +589,7 @@ namespace SharpNav
 						upperRightX = x;
 						upperRightY = y;
 						upperRightZ = z;
-						upperRightI = i / 4;
+						upperRightI = i;
 					}
 				}
 				
@@ -609,7 +606,7 @@ namespace SharpNav
 			}
 
 			//add points until all points are within erorr tolerance of simplified slope
-			int numPoints = points.Count / 4;
+			int numPoints = points.Count;
 			for (int i = 0; i < simplified.Count / 4; )
 			{
 				int ii = (i + 1) % (simplified.Count / 4);
@@ -642,12 +639,12 @@ namespace SharpNav
 				}
 
 				//tessellate only outer edges or edges between areas
-				if ((points[ci * 4 + 3] & CONTOUR_REG_MASK) == 0 || (points[ci * 4 + 3] & AREA_BORDER) != 0)
+				if ((points[ci].RegionId & CONTOUR_REG_MASK) == 0 || (points[ci].RegionId & AREA_BORDER) != 0)
 				{
 					//find the maximum deviation
 					while (ci != endi)
 					{
-						float deviation = DistancePointSegment(points[ci * 4 + 0], points[ci * 4 + 2], ax, az, bx, bz);
+						float deviation = DistancePointSegment(points[ci].X, points[ci].Z, ax, az, bx, bz);
 						
 						if (deviation > maxDeviation)
 						{
@@ -677,9 +674,9 @@ namespace SharpNav
 					}
 
 					//add point 
-					simplified[(i + 1) * 4 + 0] = points[maxi * 4 + 0];
-					simplified[(i + 1) * 4 + 1] = points[maxi * 4 + 1];
-					simplified[(i + 1) * 4 + 2] = points[maxi * 4 + 2];
+					simplified[(i + 1) * 4 + 0] = points[maxi].X;
+					simplified[(i + 1) * 4 + 1] = points[maxi].Y;
+					simplified[(i + 1) * 4 + 2] = points[maxi].Z;
 					simplified[(i + 1) * 4 + 3] = maxi;
 				}
 				else
@@ -712,11 +709,11 @@ namespace SharpNav
 					bool tess = false;
 
 					//wall edges
-					if ((buildFlags & CONTOUR_TESS_WALL_EDGES) != 0 && (points[ci * 4 + 3] & CONTOUR_REG_MASK) == 0)
+					if ((buildFlags & CONTOUR_TESS_WALL_EDGES) != 0 && (points[ci].RegionId & CONTOUR_REG_MASK) == 0)
 						tess = true;
 
 					//edges between areas
-					if ((buildFlags & CONTOUR_TESS_AREA_EDGES) != 0 && (points[ci * 4 + 3] & AREA_BORDER) != 0)
+					if ((buildFlags & CONTOUR_TESS_AREA_EDGES) != 0 && (points[ci].RegionId & AREA_BORDER) != 0)
 						tess = true;
 
 					if (tess)
@@ -757,9 +754,9 @@ namespace SharpNav
 						}
 
 						//add point
-						simplified[(i + 1) * 4 + 0] = points[maxi * 4 + 0];
-						simplified[(i + 1) * 4 + 1] = points[maxi * 4 + 1];
-						simplified[(i + 1) * 4 + 2] = points[maxi * 4 + 2];
+						simplified[(i + 1) * 4 + 0] = points[maxi].X;
+						simplified[(i + 1) * 4 + 1] = points[maxi].Y;
+						simplified[(i + 1) * 4 + 2] = points[maxi].Z;
 						simplified[(i + 1) * 4 + 3] = maxi;
 					}
 					else
@@ -776,7 +773,7 @@ namespace SharpNav
 				int bi = simplified[i * 4 + 3];
 
 				//save new region id
-				simplified[i * 4 + 3] = (points[ai * 4 + 3] & (CONTOUR_REG_MASK | AREA_BORDER)) | (points[bi * 4 + 3] & BORDER_VERTEX);
+				simplified[i * 4 + 3] = (points[ai].RegionId & (CONTOUR_REG_MASK | AREA_BORDER)) | (points[bi].RegionId & BORDER_VERTEX);
 			}
 		}
 
@@ -965,11 +962,27 @@ namespace SharpNav
 			public int NumVerts;
 
 			//similar to vertices (simplified), except last element stores region id
-			public int [] RawVertices;
+			public RawVertex [] RawVertices;
 			public int NumRawVerts;
 
 			public int RegionId;
 			public AreaFlags Area;
+		}
+
+		public class RawVertex
+		{
+			public int X;
+			public int Y;
+			public int Z;
+			public int RegionId;
+
+			public RawVertex(int x, int y, int z, int r)
+			{
+				this.X = x;
+				this.Y = y;
+				this.Z = z;
+				this.RegionId = r;
+			}
 		}
 	}
 }
