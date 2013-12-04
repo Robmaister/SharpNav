@@ -42,6 +42,13 @@ namespace SharpNav
 		}
 		private TrisInfo[] tris;
 
+		public class EdgeInfo
+		{
+			public int[] EndPts;
+			public int LeftFace;
+			public int RightFace;
+		}
+
 		/// <summary>
 		/// Use the CompactHeightfield data to add the height detail to the mesh. 
 		/// Triangulate the added detail to form a complete navigation mesh.
@@ -57,7 +64,7 @@ namespace SharpNav
 
 			Vector3 origin = mesh.Bounds.Min;
 
-			List<int> edges = new List<int>(64);
+			List<EdgeInfo> edges = new List<EdgeInfo>(64);
 			List<int> tris = new List<int>(512);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
@@ -522,7 +529,7 @@ namespace SharpNav
 
 
 		private void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
-			float[] verts, ref int nverts, List<int> tris, List<int> edges, List<int> samples)
+			float[] verts, ref int nverts, List<int> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -850,33 +857,44 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh.
+		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh. 
+		/// 
+		/// The definition of Delaunay traingulation:
+		/// "For a set S of points in the Euclidean plane, the unique triangulation DT(S) of S such that no point in S 
+		/// is inside the circumcircle of any triangle in DT(S)." (Dictionary.com)
 		/// </summary>
-		/// <param name="npts"></param>
-		/// <param name="pts"></param>
-		/// <param name="nhull"></param>
-		/// <param name="hull"></param>
-		/// <param name="tris"></param>
-		/// <param name="edges"></param>
-		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<int> edges)
+		/// <param name="npts">Number of vertices</param>
+		/// <param name="pts">Vertex data (each vertex has 3 elements x,y,z)</param>
+		/// <param name="nhull">?</param>
+		/// <param name="hull">?</param>
+		/// <param name="tris">The triangles formed.</param>
+		/// <param name="edges">The edge connections formed.</param>
+		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
 			int nedges = 0;
 			int maxEdges = npts * 10;
-			edges = new List<int>(maxEdges * 4);
-			for (int i = 0; i < maxEdges * 4; i++) //HACK should be an array, or algorithm should add edges as it goes
-				edges.Add(0);
-
+			edges = new List<EdgeInfo>(maxEdges);
+			for (int i = 0; i < maxEdges; i++) //HACK should be an array, or algorithm should add edges as it goes
+			{
+				EdgeInfo e = new EdgeInfo();
+				e.EndPts = new int[2];
+				e.EndPts[0] = 0;
+				e.EndPts[1] = 0;
+				e.LeftFace = 0;
+				e.RightFace = 0;
+				edges.Add(e);
+			}
 			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
 				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.HULL, (int)EdgeValues.UNDEF);
 
 			int currentEdge = 0;
 			while (currentEdge < nedges)
 			{
-				if (edges[currentEdge * 4 + 2] == (int)EdgeValues.UNDEF)
+				if (edges[currentEdge].LeftFace == (int)EdgeValues.UNDEF)
 					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
 				
-				if (edges[currentEdge * 4 + 3] == (int)EdgeValues.UNDEF)
+				if (edges[currentEdge].RightFace == (int)EdgeValues.UNDEF)
 					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
 				
 				currentEdge++;
@@ -889,24 +907,23 @@ namespace SharpNav
 
 			for (int i = 0; i < nedges; i++)
 			{
-				int edgePos = i * 4;
-				if (edges[edgePos + 3] >= 0)
+				if (edges[i].RightFace >= 0)
 				{
 					//left face
-					int t = edges[edgePos + 3] * 4;
+					int t = edges[i].RightFace * 4;
 					
 					if (tris[t + 0] == -1)
 					{
-						tris[t + 0] = edges[edgePos + 0];
-						tris[t + 1] = edges[edgePos + 1];
+						tris[t + 0] = edges[i].EndPts[0];
+						tris[t + 1] = edges[i].EndPts[1];
 					}
-					else if (tris[t + 0] == edges[edgePos + 1])
+					else if (tris[t + 0] == edges[i].EndPts[1])
 					{
-						tris[t + 2] = edges[edgePos + 0];
+						tris[t + 2] = edges[i].EndPts[0];
 					}
-					else if (tris[t + 1] == edges[edgePos + 0])
+					else if (tris[t + 1] == edges[i].EndPts[0])
 					{
-						tris[t + 2] = edges[edgePos + 1];
+						tris[t + 2] = edges[i].EndPts[1];
 					}
 				}
 			}
@@ -926,23 +943,23 @@ namespace SharpNav
 			}
 		}
 
-		private void CompleteFacet(float[] pts, int npts, List<int> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
+		private void CompleteFacet(float[] pts, int npts, List<EdgeInfo> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
 		{
 			const float EPS = 1e-5f;
-			
-			int edgePos = e * 4;
+
+			int edgePos = e; 
 
 			//cache s and t
 			int s, t;
-			if (edges[edgePos + 2] == (int)EdgeValues.UNDEF)
+			if (edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
 			{
-				s = edges[edgePos + 0];
-				t = edges[edgePos + 1];
+				s = edges[edgePos].EndPts[0];
+				t = edges[edgePos].EndPts[1];
 			}
-			else if (edges[edgePos + 3] == (int)EdgeValues.UNDEF)
+			else if (edges[edgePos].RightFace == (int)EdgeValues.UNDEF)
 			{
-				s = edges[edgePos + 1];
-				t = edges[edgePos + 0];
+				s = edges[edgePos].EndPts[1];
+				t = edges[edgePos].EndPts[0];
 			}
 			else
 			{
@@ -1004,29 +1021,29 @@ namespace SharpNav
 			//add new triangle or update edge if s-t on hull
 			if (pt < npts)
 			{
-				UpdateLeftFace(edges, e * 4, s, t, nfaces);
+				UpdateLeftFace(edges, e, s, t, nfaces);
 
 				e = FindEdge(edges, nedges, pt, s);
 				if (e == (int)EdgeValues.UNDEF)
 					AddEdge(edges, ref nedges, maxEdges, pt, s, nfaces, (int)EdgeValues.UNDEF);
 				else
-					UpdateLeftFace(edges, e * 4, pt, s, nfaces);
+					UpdateLeftFace(edges, e, pt, s, nfaces);
 
 				e = FindEdge(edges, nedges, t, pt);
 				if (e == (int)EdgeValues.UNDEF)
 					AddEdge(edges, ref nedges, maxEdges, t, pt, nfaces, (int)EdgeValues.UNDEF);
 				else
-					UpdateLeftFace(edges, e * 4, t, pt, nfaces);
+					UpdateLeftFace(edges, e, t, pt, nfaces);
 
 				nfaces++;
 			}
 			else
 			{
-				UpdateLeftFace(edges, e * 4, s, t, (int)EdgeValues.HULL);
+				UpdateLeftFace(edges, e, s, t, (int)EdgeValues.HULL);
 			}
 		}
 
-		private int AddEdge(List<int> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
+		private int AddEdge(List<EdgeInfo> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
 		{
 			if (nedges >= maxEdges)
 			{
@@ -1037,11 +1054,11 @@ namespace SharpNav
 			int e = FindEdge(edges, nedges, s, t);
 			if (e == (int)EdgeValues.UNDEF)
 			{
-				int edge = nedges * 4;
-				edges[edge + 0] = s;
-				edges[edge + 1] = t;
-				edges[edge + 2] = l;
-				edges[edge + 3] = r;
+				int edge = nedges;
+				edges[edge].EndPts[0] = s;
+				edges[edge].EndPts[1] = t;
+				edges[edge].LeftFace = l;
+				edges[edge].RightFace = r;
 				return nedges++;
 			}
 			else
@@ -1050,24 +1067,23 @@ namespace SharpNav
 			}
 		}
 
-		private int FindEdge(List<int> edges, int nedges, int s, int t)
+		private int FindEdge(List<EdgeInfo> edges, int nedges, int s, int t)
 		{
 			for (int i = 0; i < nedges; i++)
 			{
-				int e = i * 4;
-				if ((edges[e + 0] == s && edges[e + 1] == t) || (edges[e + 0] == t && edges[e + 1] == s))
+				if ((edges[i].EndPts[0] == s && edges[i].EndPts[1] == t) || (edges[i].EndPts[0] == t && edges[i].EndPts[1] == s))
 					return i;
 			}
 
 			return (int)EdgeValues.UNDEF;
 		}
 
-		private bool OverlapEdges(float[] pts, List<int> edges, int nedges, int s1, int t1)
+		private bool OverlapEdges(float[] pts, List<EdgeInfo> edges, int nedges, int s1, int t1)
 		{
 			for (int i = 0; i < nedges; i++)
 			{
-				int s0 = edges[i * 4 + 0];
-				int t0 = edges[i * 4 + 1];
+				int s0 = edges[i].EndPts[0];
+				int t0 = edges[i].EndPts[1];
 
 				//same or connected edges do not overlap
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
@@ -1080,12 +1096,12 @@ namespace SharpNav
 			return false;
 		}
 
-		private void UpdateLeftFace(List<int> edges, int edgePos, int s, int t, int f)
+		private void UpdateLeftFace(List<EdgeInfo> edges, int edgePos, int s, int t, int f)
 		{
-			if (edges[edgePos + 0] == s && edges[edgePos + 1] == t && edges[edgePos + 2] == (int)EdgeValues.UNDEF)
-				edges[edgePos + 2] = f;
-			else if (edges[edgePos + 1] == s && edges[edgePos + 0] == t && edges[edgePos + 2] == (int)EdgeValues.UNDEF)
-				edges[edgePos + 3] = f;
+			if (edges[edgePos].EndPts[0] == s && edges[edgePos].EndPts[1] == t && edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
+				edges[edgePos].LeftFace = f;
+			else if (edges[edgePos].EndPts[1] == s && edges[edgePos].EndPts[0] == t && edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
+				edges[edgePos].RightFace = f;
 		}
 
 		private bool CircumCircle(float[] pts, int p1, int p2, int p3, float[] c, ref float r)
