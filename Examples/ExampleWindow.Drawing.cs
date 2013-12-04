@@ -450,8 +450,8 @@ namespace Examples
 					for (int i = 0; i < c.NumVerts; i++)
 					{
 						int ni = (i + 1) % c.NumVerts;
-						GL.Vertex3(c.Vertices[i * 4 + 0], c.Vertices[i * 4 + 1], c.Vertices[i * 4 + 2]);
-						GL.Vertex3(c.Vertices[ni * 4 + 0], c.Vertices[ni * 4 + 1], c.Vertices[ni * 4 + 2]);
+						GL.Vertex3(c.Vertices[i].X, c.Vertices[i].Y, c.Vertices[i].Z);
+						GL.Vertex3(c.Vertices[ni].X, c.Vertices[ni].Y, c.Vertices[ni].Z);
 					}
 				}
 				else

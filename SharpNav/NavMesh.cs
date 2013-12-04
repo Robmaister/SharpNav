@@ -153,13 +153,13 @@ namespace SharpNav
 				//add and merge vertices
 				for (int j = 0; j < cont.NumVerts; j++)
 				{
-					int v = j * 4;
+					int v = j;
 
 					//save the hash code for each vertex
-					indices[j] = AddVertex(cont.Vertices[v + 0], cont.Vertices[v + 1], cont.Vertices[v + 2], 
+					indices[j] = AddVertex(cont.Vertices[v].X, cont.Vertices[v].Y, cont.Vertices[v].Z, 
 						this.verts, firstVert, nextVert, ref this.nverts);
 
-					if ((cont.Vertices[v + 3] & ContourSet.BORDER_VERTEX) != 0)
+					if ((cont.Vertices[v].RawVertexIndex & ContourSet.BORDER_VERTEX) != 0)
 					{
 						//the vertex should be removed
 						vFlags[indices[j]] = 1;
@@ -332,7 +332,7 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private int Triangulate(int n, int[] verts, int[] indices, Tris[] tris)
+		private int Triangulate(int n, ContourSet.SimplifiedVertex[] verts, int[] indices, Tris[] tris)
 		{
 			int ntris = 0;
 			Tris[] dst = tris;
@@ -363,11 +363,11 @@ namespace SharpNav
 					
 					if ((indices[i1] & 0x80000000) != 0)
 					{
-						int p0 = (indices[i] & 0x0fffffff) * 4;
-						int p2 = (indices[Next(i1, n)] & 0x0fffffff) * 4;
+						int p0 = (indices[i] & 0x0fffffff);
+						int p2 = (indices[Next(i1, n)] & 0x0fffffff);
 
-						int dx = verts[p2 + 0] - verts[p0 + 0];
-						int dy = verts[p2 + 2] - verts[p0 + 2];
+						int dx = verts[p2].X - verts[p0].X;
+						int dy = verts[p2].Z - verts[p0].Z;
 						int len = dx * dx + dy * dy;
 
 						if (minLen < 0 || len < minLen)
@@ -873,17 +873,17 @@ namespace SharpNav
 			}
 
 			Tris[] tris = new Tris[nhole];
-			int[] tverts = new int[nhole * 4];
+			ContourSet.SimplifiedVertex[] tverts = new ContourSet.SimplifiedVertex[nhole];
 			int[] thole = new int[nhole];
 
 			//generate temp vertex array for triangulation
 			for (int i = 0; i < nhole; i++)
 			{
 				int pi = hole[i];
-				tverts[i * 4 + 0] = (int)this.verts[pi].X;
-				tverts[i * 4 + 1] = (int)this.verts[pi].Y;
-				tverts[i * 4 + 2] = (int)this.verts[pi].Z;
-				tverts[i * 4 + 3] = 0;
+				tverts[i].X = (int)this.verts[pi].X;
+				tverts[i].Y = (int)this.verts[pi].Y;
+				tverts[i].Z = (int)this.verts[pi].Z;
+				tverts[i].RawVertexIndex = 0;
 				thole[i] = i;
 			}
 
@@ -1150,7 +1150,7 @@ namespace SharpNav
 		///<summary>
 		///true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
 		///</summary>
-		private bool Diagonal(int i, int j, int n, int[] verts, int[] indices)
+		private bool Diagonal(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
 			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
 		}
@@ -1159,12 +1159,12 @@ namespace SharpNav
 		///true if and only if diagonal (i, j) is strictly internal to polygon 
 		///in neighborhood of i endpoint
 		///</summary>
-		private bool InCone(int i, int j, int n, int[] verts, int[] indices)
+		private bool InCone(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
-			int pi = (indices[i] & 0x0fffffff) * 4;
-			int pj = (indices[j] & 0x0fffffff) * 4;
-			int pi1 = (indices[Next(i, n)] & 0x0fffffff) * 4;
-			int pin1 = (indices[Prev(i, n)] & 0x0fffffff) * 4;
+			int pi = (indices[i] & 0x0fffffff);
+			int pj = (indices[j] & 0x0fffffff);
+			int pi1 = (indices[Next(i, n)] & 0x0fffffff);
+			int pin1 = (indices[Prev(i, n)] & 0x0fffffff);
 
 			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
 			if (LeftOn(verts, pin1, pi, pi1))
@@ -1178,10 +1178,10 @@ namespace SharpNav
 		///true if and only if (v[i], v[j]) is internal or external diagonal
 		///ignoring edges incident to v[i] or v[j]
 		///</summary>
-		private bool Diagonalie(int i, int j, int n, int[] verts, int[] indices)
+		private bool Diagonalie(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
-			int d0 = (indices[i] & 0x0fffffff) * 4;
-			int d1 = (indices[j] & 0x0fffffff) * 4;
+			int d0 = (indices[i] & 0x0fffffff);
+			int d1 = (indices[j] & 0x0fffffff);
 
 			//for each edge (k, k + 1)
 			for (int k = 0; k < n; k++)
@@ -1191,8 +1191,8 @@ namespace SharpNav
 				//skip edges incident to i or j
 				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
 				{
-					int p0 = (indices[k] & 0x0fffffff) * 4;
-					int p1 = (indices[k1] & 0x0fffffff) * 4;
+					int p0 = (indices[k] & 0x0fffffff);
+					int p1 = (indices[k1] & 0x0fffffff);
 
 					if (VEqual(verts, d0, p0) || VEqual(verts, d1, p0) || VEqual(verts, d0, p1) || VEqual(verts, d1, p1))
 						continue;
@@ -1205,36 +1205,36 @@ namespace SharpNav
 			return true;
 		}
 
-		private bool Left(int[] verts, int a, int b, int c)
+		private bool Left(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) < 0;
 		}
 
-		private bool LeftOn(int[] verts, int a, int b, int c)
+		private bool LeftOn(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) <= 0;
 		}
 
-		private bool Collinear(int[] verts, int a, int b, int c)
+		private bool Collinear(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
 		{
 			return Area2(verts, a, b, c) == 0;
 		}
 
-		private int Area2(int[] verts, int a, int b, int c)
+		private int Area2(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
 		{
-			return (verts[b + 0] - verts[a + 0]) * (verts[c + 2] - verts[a + 2]) -
-				(verts[c + 0] - verts[a + 0]) * (verts[b + 2] - verts[a + 2]);
+			return (verts[b].X - verts[a].X) * (verts[c].Z - verts[a].Z) -
+				(verts[c].X - verts[a].X) * (verts[b].Z - verts[a].Z);
 		}
 
-		private bool VEqual(int[] verts, int a, int b)
+		private bool VEqual(ContourSet.SimplifiedVertex[] verts, int a, int b)
 		{
-			return verts[a + 0] == verts[b + 0] && verts[a + 2] == verts[b + 2];
+			return verts[a].X == verts[b].X && verts[a].Z == verts[b].Z;
 		}
 
 		/// <summary>
 		/// True if and only if segments AB and CD intersect, properly or improperyl
 		/// </summary>
-		private bool Intersect(int[] verts, int a, int b, int c, int d)
+		private bool Intersect(ContourSet.SimplifiedVertex[] verts, int a, int b, int c, int d)
 		{
 			if (IntersectProp(verts, a, b, c, d))
 				return true;
@@ -1248,7 +1248,7 @@ namespace SharpNav
 		/// <summary>
 		/// Intersect properly: share a point interior to both segments. properness determined by strict leftness
 		/// </summary>
-		private bool IntersectProp(int[] verts, int a, int b, int c, int d)
+		private bool IntersectProp(ContourSet.SimplifiedVertex[] verts, int a, int b, int c, int d)
 		{
 			//eliminate improper cases
 			if (Collinear(verts, a, b, c) || Collinear(verts, a, b, d) ||
@@ -1273,17 +1273,17 @@ namespace SharpNav
 		/// <summary>
 		/// True if and only if (A, B, C) are collinear and point C lies on closed segment AB
 		/// </summary>
-		private bool Between(int[] verts, int a, int b, int c)
+		private bool Between(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
 		{
 			if (!Collinear(verts, a, b, c))
 				return false;
 
-			if (verts[a + 0] != verts[b + 0])
-				return ((verts[a + 0] <= verts[c + 0]) && (verts[c + 0] <= verts[b + 0])) ||
-					((verts[a + 0] >= verts[c + 0]) && (verts[c + 0] >= verts[b + 0]));
+			if (verts[a].X != verts[b].X)
+				return ((verts[a].X <= verts[c].X) && (verts[c].X <= verts[b].X)) ||
+					((verts[a].X >= verts[c].X) && (verts[c].X >= verts[b].X));
 			else
-				return ((verts[a + 2] <= verts[c + 2]) && (verts[c + 2] <= verts[b + 2])) ||
-					((verts[a + 2] >= verts[c + 2]) && (verts[c + 2] >= verts[b + 2]));
+				return ((verts[a].Z <= verts[c].Z) && (verts[c].Z <= verts[b].Z)) ||
+					((verts[a].Z >= verts[c].Z) && (verts[c].Z >= verts[b].Z));
 		}
 	}
 }

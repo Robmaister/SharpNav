@@ -119,11 +119,11 @@ namespace SharpNav
 				}
 			}
 
-			//Points are in format (each point takes up 4 array elements): 
+			//Points are in format 
 			//	(x, y, z) coordinates
-			//	region id
+			//	region id (if raw) / raw vertex index (if simplified)
 			List<RawVertex> verts = new List<RawVertex>();
-			List<int> simplified = new List<int>();
+			List<SimplifiedVertex> simplified = new List<SimplifiedVertex>();
 
 			int numContours = 0;
 			for (int y = 0; y < openField.Length; y++)
@@ -159,13 +159,13 @@ namespace SharpNav
 						SimplifyContour(verts, simplified, maxError, maxEdgeLen, buildFlags);
 						RemoveDegenerateSegments(simplified);
 
-						if (simplified.Count / 4 >= 3)
+						if (simplified.Count >= 3)
 						{
 							Contour cont = new Contour();
 							
 							//Save all the simplified and raw data in the Contour
-							cont.NumVerts = simplified.Count / 4;
-							cont.Vertices = new int[cont.NumVerts * 4];
+							cont.NumVerts = simplified.Count;
+							cont.Vertices = new SimplifiedVertex[cont.NumVerts];
 							for (int j = 0; j < cont.Vertices.Length; j++)
 								cont.Vertices[j] = simplified[j];
 
@@ -174,8 +174,8 @@ namespace SharpNav
 								//remove offset
 								for (int j = 0; j < cont.NumVerts; j++)
 								{
-									cont.Vertices[j * 4 + 0] -= borderSize;
-									cont.Vertices[j * 4 + 2] -= borderSize;
+									cont.Vertices[j].X -= borderSize;
+									cont.Vertices[j].Z -= borderSize;
 								}
 							}
 
@@ -522,7 +522,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
-		private void SimplifyContour(List<RawVertex> points, List<int> simplified, float maxError, int maxEdgeLen, int buildFlags)
+		private void SimplifyContour(List<RawVertex> points, List<SimplifiedVertex> simplified, float maxError, int maxEdgeLen, int buildFlags)
 		{
 			//add initial points
 			bool hasConnections = false;
@@ -547,10 +547,7 @@ namespace SharpNav
 					
 					if (differentRegions || areaBorders)
 					{
-						simplified.Add(points[i].X);
-						simplified.Add(points[i].Y);
-						simplified.Add(points[i].Z);
-						simplified.Add(i);
+						simplified.Add(new SimplifiedVertex(points[i].X, points[i].Y, points[i].Z, i));
 					}
 				}
 			}
@@ -594,31 +591,24 @@ namespace SharpNav
 				}
 				
 				//save the points
-				simplified.Add(lowerLeftX);
-				simplified.Add(lowerLeftY);
-				simplified.Add(lowerLeftZ);
-				simplified.Add(lowerLeftI);
-
-				simplified.Add(upperRightX);
-				simplified.Add(upperRightY);
-				simplified.Add(upperRightZ);
-				simplified.Add(upperRightI);
+				simplified.Add(new SimplifiedVertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
+				simplified.Add(new SimplifiedVertex(upperRightX, upperRightY, upperRightZ, upperRightI));
 			}
 
 			//add points until all points are within erorr tolerance of simplified slope
 			int numPoints = points.Count;
-			for (int i = 0; i < simplified.Count / 4; )
+			for (int i = 0; i < simplified.Count; )
 			{
-				int ii = (i + 1) % (simplified.Count / 4);
+				int ii = (i + 1) % simplified.Count;
 
 				//obtain (x, z) coordinates, along with region id
-				int ax = simplified[i * 4 + 0];
-				int az = simplified[i * 4 + 2];
-				int ai = simplified[i * 4 + 3];
+				int ax = simplified[i].X;
+				int az = simplified[i].Z;
+				int ai = simplified[i].RawVertexIndex;
 
-				int bx = simplified[ii * 4 + 0];
-				int bz = simplified[ii * 4 + 2];
-				int bi = simplified[ii * 4 + 3];
+				int bx = simplified[ii].X;
+				int bz = simplified[ii].Z;
+				int bi = simplified[ii].RawVertexIndex;
 
 				float maxDeviation = 0;
 				int maxi = -1;
@@ -660,24 +650,23 @@ namespace SharpNav
 				if (maxi != -1 && maxDeviation > (maxError * maxError))
 				{
 					//add extra space to list
-					for (int j = 0; j < 4; j++)
-						simplified.Add(new int());
+					simplified.Add(new SimplifiedVertex(0, 0, 0, 0));
 
 					//make space for new point by shifting elements to the right
 					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
-					for (int j = simplified.Count / 4 - 1; j > i; j--)
+					for (int j = simplified.Count - 1; j > i; j--)
 					{
-						simplified[j * 4 + 0] = simplified[(j - 1) * 4 + 0];
-						simplified[j * 4 + 1] = simplified[(j - 1) * 4 + 1];
-						simplified[j * 4 + 2] = simplified[(j - 1) * 4 + 2];
-						simplified[j * 4 + 3] = simplified[(j - 1) * 4 + 3];
+						simplified[j].X = simplified[j - 1].X;
+						simplified[j].Y = simplified[j - 1].Y;
+						simplified[j].Z = simplified[j - 1].Z;
+						simplified[j].RawVertexIndex = simplified[j - 1].RawVertexIndex;
 					}
 
 					//add point 
-					simplified[(i + 1) * 4 + 0] = points[maxi].X;
-					simplified[(i + 1) * 4 + 1] = points[maxi].Y;
-					simplified[(i + 1) * 4 + 2] = points[maxi].Z;
-					simplified[(i + 1) * 4 + 3] = maxi;
+					simplified[i + 1].X = points[maxi].X;
+					simplified[i + 1].Y = points[maxi].Y;
+					simplified[i + 1].Z = points[maxi].Z;
+					simplified[i + 1].RawVertexIndex = maxi;
 				}
 				else
 				{
@@ -688,18 +677,18 @@ namespace SharpNav
 			//split too long edges
 			if (maxEdgeLen > 0 && (buildFlags & (CONTOUR_TESS_WALL_EDGES | CONTOUR_TESS_AREA_EDGES)) != 0)
 			{
-				for (int i = 0; i < simplified.Count / 4; )
+				for (int i = 0; i < simplified.Count; )
 				{
-					int ii = (i + 1) % (simplified.Count / 4);
+					int ii = (i + 1) % (simplified.Count);
 
 					//get (x, z) coordinates along with region id
-					int ax = simplified[i * 4 + 0];
-					int az = simplified[i * 4 + 2];
-					int ai = simplified[i * 4 + 3];
+					int ax = simplified[i].X;
+					int az = simplified[i].Z;
+					int ai = simplified[i].RawVertexIndex;
 
-					int bx = simplified[ii * 4 + 0];
-					int bz = simplified[ii * 4 + 2];
-					int bi = simplified[ii * 4 + 3];
+					int bx = simplified[ii].X;
+					int bz = simplified[ii].Z;
+					int bi = simplified[ii].RawVertexIndex;
 
 					//find maximum deviation from segment
 					int maxi = -1;
@@ -740,24 +729,23 @@ namespace SharpNav
 					if (maxi != -1)
 					{
 						//add extra space to list
-						for (int j = 0; j < 4; j++)
-							simplified.Add(new int());
+						simplified.Add(new SimplifiedVertex(0, 0, 0, 0));
 
 						//make space for new point by shifting elements to the right
 						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
-						for (int j = simplified.Count / 4 - 1; j > i; j--)
+						for (int j = simplified.Count - 1; j > i; j--)
 						{
-							simplified[j * 4 + 0] = simplified[(j - 1) * 4 + 0];
-							simplified[j * 4 + 1] = simplified[(j - 1) * 4 + 1];
-							simplified[j * 4 + 2] = simplified[(j - 1) * 4 + 2];
-							simplified[j * 4 + 3] = simplified[(j - 1) * 4 + 3];
+							simplified[j].X = simplified[j - 1].X;
+							simplified[j].Y = simplified[j - 1].Y;
+							simplified[j].Z = simplified[j - 1].Z;
+							simplified[j].RawVertexIndex = simplified[j - 1].RawVertexIndex;
 						}
 
 						//add point
-						simplified[(i + 1) * 4 + 0] = points[maxi].X;
-						simplified[(i + 1) * 4 + 1] = points[maxi].Y;
-						simplified[(i + 1) * 4 + 2] = points[maxi].Z;
-						simplified[(i + 1) * 4 + 3] = maxi;
+						simplified[i + 1].X = points[maxi].X;
+						simplified[i + 1].Y = points[maxi].Y;
+						simplified[i + 1].Z = points[maxi].Z;
+						simplified[i + 1].RawVertexIndex = maxi;
 					}
 					else
 					{
@@ -766,14 +754,14 @@ namespace SharpNav
 				}
 			}
 
-			for (int i = 0; i < simplified.Count / 4; i++)
+			for (int i = 0; i < simplified.Count; i++)
 			{
 				//take edge vertex flag from current raw point and neighbor region from next raw point
-				int ai = (simplified[i * 4 + 3] + 1) % numPoints;
-				int bi = simplified[i * 4 + 3];
+				int ai = (simplified[i].RawVertexIndex + 1) % numPoints;
+				int bi = simplified[i].RawVertexIndex;
 
 				//save new region id
-				simplified[i * 4 + 3] = (points[ai].RegionId & (CONTOUR_REG_MASK | AREA_BORDER)) | (points[bi].RegionId & BORDER_VERTEX);
+				simplified[i].RawVertexIndex = (points[ai].RegionId & (CONTOUR_REG_MASK | AREA_BORDER)) | (points[bi].RegionId & BORDER_VERTEX);
 			}
 		}
 
@@ -818,27 +806,27 @@ namespace SharpNav
 		/// Clean up the simplified segments
 		/// </summary>
 		/// <param name="simplified"></param>
-		private void RemoveDegenerateSegments(List<int> simplified)
+		private void RemoveDegenerateSegments(List<SimplifiedVertex> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
-			for (int i = 0; i < simplified.Count / 4; i++)
+			for (int i = 0; i < simplified.Count; i++)
 			{
 				int ni = i + 1;
-				if (ni >= simplified.Count / 4)
+				if (ni >= simplified.Count)
 					ni = 0;
 
-				if (simplified[i * 4 + 0] == simplified[ni * 4 + 0] &&
-					simplified[i * 4 + 2] == simplified[ni * 4 + 2])
+				if (simplified[i].X == simplified[ni].X &&
+					simplified[i].Z == simplified[ni].Z)
 				{
 					//remove degenerate segment
-					for (int j = i; j < simplified.Count / 4 - 1; j++)
+					for (int j = i; j < simplified.Count - 1; j++)
 					{
-						simplified[j * 4 + 0] = simplified[(j + 1) * 4 + 0];
-						simplified[j * 4 + 1] = simplified[(j + 1) * 4 + 1];
-						simplified[j * 4 + 2] = simplified[(j + 1) * 4 + 2];
-						simplified[j * 4 + 3] = simplified[(j + 1) * 4 + 3];
+						simplified[j].X = simplified[j + 1].X;
+						simplified[j].Y = simplified[j + 1].Y;
+						simplified[j].Z = simplified[j + 1].Z;
+						simplified[j].RawVertexIndex = simplified[j + 1].RawVertexIndex;
 					}
-					simplified.RemoveRange(simplified.Count - 4, 4);
+					simplified.RemoveAt(simplified.Count - 1);
 				}
 			}
 		}
@@ -848,12 +836,12 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">The vertex data</param>
 		/// <returns></returns>
-		private int CalcAreaOfPolygon2D(int[] verts, int numVerts)
+		private int CalcAreaOfPolygon2D(SimplifiedVertex[] verts, int numVerts)
 		{
 			int area = 0;
 			for (int i = 0, j = numVerts - 1; i < numVerts; j = i++)
 			{
-				area += verts[i * 4 + 0] * verts[j * 4 + 2] - verts[j * 4 + 0] * verts[i * 4 + 2];
+				area += verts[i].X * verts[j].Z - verts[j].X * verts[i].Z;
 			}
 			return (area + 1) / 2; 
 		}
@@ -865,7 +853,7 @@ namespace SharpNav
 		/// <param name="vertsB">Second set of vertices</param>
 		/// <param name="ia">First index</param>
 		/// <param name="ib">Second index</param>
-		private void GetClosestIndices(int[] vertsA, int numVertsA, int[] vertsB, int numVertsB, ref int ia, ref int ib)
+		private void GetClosestIndices(SimplifiedVertex[] vertsA, int numVertsA, SimplifiedVertex[] vertsB, int numVertsB, ref int ia, ref int ib)
 		{
 			int closestDistance = 0xfffffff;
 			ia = -1;
@@ -874,19 +862,19 @@ namespace SharpNav
 			{
 				int iN = (i + 1) % numVertsA;
 				int iP = (i + numVertsA - 1) % numVertsA;
-				int va = i * 4; //vertsA
-				int vaN = iN * 4; //vertsA
-				int vaP = iP * 4; //vertsA
+				int va = i; //vertsA
+				int vaN = iN; //vertsA
+				int vaP = iP; //vertsA
 
 				for (int j = 0; j < numVertsB; j++)
 				{
-					int vb = j * 4; //vertsB
+					int vb = j; //vertsB
 					
 					//vb must be infront of va
 					if (ILeft(vertsA, vertsB, vaP, va, vb) && ILeft(vertsA, vertsB, va, vaN, vb))
 					{
-						int dx = vertsB[vb + 0] - vertsA[va + 0];
-						int dz = vertsB[vb + 2] - vertsA[va + 2];
+						int dx = vertsB[vb].X - vertsA[va].X;
+						int dz = vertsB[vb].Z - vertsA[va].Z;
 						int d = dx * dx + dz * dz;
 						if (d < closestDistance)
 						{
@@ -908,28 +896,28 @@ namespace SharpNav
 		/// <param name="b">Second location in vertsA</param>
 		/// <param name="c">First location is vertsB</param>
 		/// <returns></returns>
-		private bool ILeft(int[] vertsA, int[] vertsB, int a, int b, int c)
+		private bool ILeft(SimplifiedVertex[] vertsA, SimplifiedVertex[] vertsB, int a, int b, int c)
 		{
-			return (vertsA[b + 0] - vertsA[a + 0]) * (vertsB[c + 2] - vertsA[a + 2])
-				- (vertsB[c + 0] - vertsA[a + 0]) * (vertsA[b + 2] - vertsA[a + 2]) <= 0;
+			return (vertsA[b].X - vertsA[a].X) * (vertsB[c].Z - vertsA[a].Z)
+				- (vertsB[c].X - vertsA[a].X) * (vertsA[b].Z - vertsA[a].Z) <= 0;
 		}
 
 		private void MergeContours(ref Contour contA, Contour contB, int ia, int ib)
 		{
 			int maxVerts = contA.NumVerts + contB.NumVerts + 2;
-			int[] newVerts = new int[maxVerts * 4];
+			SimplifiedVertex[] newVerts = new SimplifiedVertex[maxVerts];
 			int nv = 0;
 
 			//copy contour A
 			for (int i = 0; i <= contA.NumVerts; i++)
 			{
-				int dst = nv * 4; //newVerts
-				int src = ((ia + 1) % contA.NumVerts) * 4; //contA
+				int dst = nv; //newVerts
+				int src = (ia + 1) % contA.NumVerts; //contA
 
-				newVerts[dst + 0] = contA.Vertices[src + 0];
-				newVerts[dst + 1] = contA.Vertices[src + 1];
-				newVerts[dst + 2] = contA.Vertices[src + 2];
-				newVerts[dst + 3] = contA.Vertices[src + 3];
+				newVerts[dst].X = contA.Vertices[src].X;
+				newVerts[dst].Y = contA.Vertices[src].Y;
+				newVerts[dst].Z = contA.Vertices[src].Z;
+				newVerts[dst].RawVertexIndex = contA.Vertices[src].RawVertexIndex;
 
 				nv++;
 			}
@@ -937,13 +925,13 @@ namespace SharpNav
 			//add contour B (other contour) to contour A (this contour)
 			for (int i = 0; i <= contB.NumVerts; i++)
 			{
-				int dst = nv * 4; //newVerts
-				int src = ((ib + i) % contB.NumVerts) * 4; //contB
+				int dst = nv; //newVerts
+				int src = (ib + i) % contB.NumVerts; //contB
 
-				newVerts[dst + 0] = contB.Vertices[src + 0];
-				newVerts[dst + 1] = contB.Vertices[src + 1];
-				newVerts[dst + 2] = contB.Vertices[src + 2];
-				newVerts[dst + 3] = contB.Vertices[src + 3];
+				newVerts[dst].X = contB.Vertices[src].X;
+				newVerts[dst].Y = contB.Vertices[src].Y;
+				newVerts[dst].Z = contB.Vertices[src].Z;
+				newVerts[dst].RawVertexIndex = contB.Vertices[src].RawVertexIndex;
 
 				nv++;
 			}
@@ -957,11 +945,11 @@ namespace SharpNav
 		/// </summary>
 		public class Contour
 		{
-			//In a group of 4 elements, first 3 store x,y,z coordinates. last one stores index of raw vertex group
-			public int [] Vertices;
+			//simplified vertices have much less edges
+			public SimplifiedVertex [] Vertices;
 			public int NumVerts;
 
-			//similar to vertices (simplified), except last element stores region id
+			//raw vertices derived directly from CompactHeightfield
 			public RawVertex [] RawVertices;
 			public int NumRawVerts;
 
@@ -976,12 +964,28 @@ namespace SharpNav
 			public int Z;
 			public int RegionId;
 
-			public RawVertex(int x, int y, int z, int r)
+			public RawVertex(int x, int y, int z, int region)
 			{
 				this.X = x;
 				this.Y = y;
 				this.Z = z;
-				this.RegionId = r;
+				this.RegionId = region;
+			}
+		}
+
+		public class SimplifiedVertex
+		{
+			public int X;
+			public int Y;
+			public int Z;
+			public int RawVertexIndex;
+
+			public SimplifiedVertex(int x, int y, int z, int rawVertex)
+			{
+				this.X = x;
+				this.Y = y;
+				this.Z = z;
+				this.RawVertexIndex = rawVertex;
 			}
 		}
 	}
