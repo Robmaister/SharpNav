@@ -34,11 +34,11 @@ namespace SharpNav
 		public int detailTriCount;
 
 		//Off-Mesh Connection Attributes (OPTIONAL)
-		public float[] offMeshConVerts; //(ax, ay, az, bx, by, bz)
+		public Vector3[] offMeshConVerts; //(endpoint A, endpoint B)
 		public float[] offMeshConRadii;
 		public int[] offMeshConFlags;
 		public int[] offMeshConAreas;
-		public int[] offMeshConDir;
+		public int[] offMeshConDir; //0 = travel only in one direction, 1 = bidirectional
 		public uint[] offMeshConUserID;
 		public int offMeshConCount;
 

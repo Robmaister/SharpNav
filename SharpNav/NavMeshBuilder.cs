@@ -20,8 +20,11 @@ namespace SharpNav
 		private const int NAVMESH_VERSION = 7;
 
 		private const int EXT_LINK = 0x8000; //entity links to external entity
-		
+
+		private const int OFFMESH_CON_BIDIR = 1; //bidirectional
+
 		private const int DT_POLTYPE_GROUND = 0;
+		private const int DT_POLTYPE_OFFMESH_CONNECTION = 1;
 
 		//convert NavMesh and NavMeshDetail into a different data structure suited for pathfinding
 		private MeshHeader header;
@@ -30,6 +33,7 @@ namespace SharpNav
 		private PolyDetail[] navDMeshes;
 		private Vector3[] navDVerts;
 		private NavMeshDetail.TrisInfo[] navDTris;
+		private OffMeshConnection[] offMeshCons;
 
 		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
 		{
@@ -45,14 +49,12 @@ namespace SharpNav
 			int nvp = parameters.numVertsPerPoly;
 
 			//classify off-mesh connection points
-			int[] offMeshConClass;
+			int[] offMeshConClass = new int[parameters.offMeshConCount * 2];
 			int storedOffMeshConCount = 0;
 			int offMeshConLinkCount = 0;
 
 			if (parameters.offMeshConCount > 0)
 			{
-				offMeshConClass = new int[parameters.offMeshConCount * 2];
-
 				//find height bounds
 				float hmin = float.MaxValue;
 				float hmax = -float.MinValue;
@@ -82,8 +84,30 @@ namespace SharpNav
 				bounds.Min.Y = hmin;
 				bounds.Max.Y = hmax;
 
-				//actual classification process
-				//...
+				for (int i = 0; i < parameters.offMeshConCount; i++)
+				{
+					Vector3 p0 = parameters.offMeshConVerts[i * 2 + 0];
+					Vector3 p1 = parameters.offMeshConVerts[i * 2 + 1];
+
+					offMeshConClass[i * 2 + 0] = classifyOffMeshPoint(p0, bounds);
+					offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(p1, bounds);
+
+					//off-mesh start position isn't touching mesh
+					if (offMeshConClass[i * 2 + 0] == 0xff)
+					{
+						if (p0.Y < bounds.Min.Y || p0.Y > bounds.Max.Y)
+							offMeshConClass[i * 2 + 0] = 0;
+					}
+
+					//count number of links to allocate
+					if (offMeshConClass[i * 2 + 0] == 0xff)
+						offMeshConLinkCount++;
+					if (offMeshConClass[i * 2 + 1] == 0xff)
+						offMeshConLinkCount++;
+
+					if (offMeshConClass[i * 2 + 0] == 0xff)
+						storedOffMeshConCount++;
+				}
 			}
 
 			//off-mesh connections stored as polygons, adjust values
@@ -190,7 +214,17 @@ namespace SharpNav
 				navVerts[i].Z = parameters.bounds.Min.Z + iv.Z * parameters.cellSize;
 			}
 			//off-mesh link vertices
-			//...
+			int n = 0;
+			for (int i = 0; i < parameters.offMeshConCount; i++)
+			{
+				//only store connections which start from this tile
+				if (offMeshConClass[i * 2 + 0] == 0xff)
+				{
+					navVerts[offMeshVertsBase + (n * 2 + 0)] = parameters.offMeshConVerts[i * 2 + 0];
+					navVerts[offMeshVertsBase + (n * 2 + 1)] = parameters.offMeshConVerts[i * 2 + 1];
+					n++;
+				}
+			}
 
 			//store polygons
 			navPolys = new Poly[totPolyCount];
@@ -234,7 +268,22 @@ namespace SharpNav
 				}
 			}
 			//off-mesh connection vertices
-			//...
+			n = 0;
+			for (int i = 0; i < parameters.offMeshConCount; i++)
+			{
+				//only store connections which start from this tile
+				if (offMeshConClass[i * 2 + 0] == 0xff)
+				{
+					navPolys[offMeshPolyBase + n].vertCount = 2;
+					navPolys[offMeshPolyBase + n].verts = new int[nvp];
+					navPolys[offMeshPolyBase + n].verts[0] = offMeshVertsBase + (n * 2 + 0);
+					navPolys[offMeshPolyBase + n].verts[1] = offMeshVertsBase + (n * 2 + 1);
+					navPolys[offMeshPolyBase + n].flags = parameters.offMeshConFlags[i];
+					navPolys[offMeshPolyBase + n].setArea(parameters.offMeshConAreas[i]);
+					navPolys[offMeshPolyBase + n].setType(DT_POLTYPE_OFFMESH_CONNECTION);
+					n++;
+				}
+			}
 
 			//store detail meshes and vertices
 			navDMeshes = new PolyDetail[parameters.polyCount];
@@ -307,7 +356,72 @@ namespace SharpNav
 			}
 
 			//store off-mesh connections
-			//...
+			n = 0;
+			offMeshCons = new OffMeshConnection[storedOffMeshConCount];
+			for (int i = 0; i < parameters.offMeshConCount; i++)
+			{
+				//only store connections which start from this tile
+				if (offMeshConClass[i * 2 + 0] == 0xff)
+				{
+					offMeshCons[n].poly = offMeshPolyBase + n;
+
+					//copy connection end points
+					offMeshCons[n].pos = new Vector3[2];
+					offMeshCons[n].pos[0] = parameters.offMeshConVerts[i * 2 + 0];
+					offMeshCons[n].pos[1] = parameters.offMeshConVerts[i * 2 + 1];
+
+					offMeshCons[n].radius = parameters.offMeshConRadii[i];
+					offMeshCons[n].flags = (parameters.offMeshConDir[i] != 0) ? OFFMESH_CON_BIDIR : 0;
+					offMeshCons[n].side = offMeshConClass[i * 2 + 1];
+					if (parameters.offMeshConUserID.Length != 0)
+						offMeshCons[n].userId = parameters.offMeshConUserID[i];
+
+					n++;
+				}
+			}
+		}
+
+		public int classifyOffMeshPoint(Vector3 pt, BBox3 bounds)
+		{
+			const int XP = 1 << 0; //x plus
+			const int ZP = 1 << 1; //z plus 
+			const int XM = 1 << 2; //x minus
+			const int ZM = 1 << 3; //z minus
+
+			int outcode = 0;
+			outcode |= (pt.X >= bounds.Max.X) ? XP : 0;
+			outcode |= (pt.Z >= bounds.Max.Z) ? ZP : 0;
+			outcode |= (pt.X < bounds.Min.X) ? XM : 0;
+			outcode |= (pt.Z < bounds.Min.Z) ? ZM : 0;
+
+			switch (outcode)
+			{
+				case XP:
+					return 0;
+
+				case XP | ZP:
+					return 1;
+
+				case ZP:
+					return 2;
+
+				case XM | ZP:
+					return 3;
+
+				case XM:
+					return 4;
+
+				case XM | ZM:
+					return 5;
+
+				case ZM:
+					return 6;
+
+				case XP | ZM:
+					return 7;
+			}
+
+			return 0xff;
 		}
 
 		public class MeshHeader
@@ -363,6 +477,16 @@ namespace SharpNav
 			public uint triBase; //offset of triangles in some array
 			public int vertCount;
 			public int triCount;
+		}
+
+		public class OffMeshConnection
+		{
+			public Vector3[] pos; //the endpoints of the connection
+			public float radius;
+			public int poly;
+			public int flags; //assigned flag from Poly
+			public int side; //endpoint side
+			public uint userId; //id of offmesh connection
 		}
 	}
 }
