@@ -34,6 +34,7 @@ namespace SharpNav
 		private Vector3[] navDVerts;
 		private NavMeshDetail.TrisInfo[] navDTris;
 		private OffMeshConnection[] offMeshCons;
+		private BVNode[] navBvTree;
 
 		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
 		{
@@ -89,8 +90,8 @@ namespace SharpNav
 					Vector3 p0 = parameters.offMeshConVerts[i * 2 + 0];
 					Vector3 p1 = parameters.offMeshConVerts[i * 2 + 1];
 
-					offMeshConClass[i * 2 + 0] = classifyOffMeshPoint(p0, bounds);
-					offMeshConClass[i * 2 + 1] = classifyOffMeshPoint(p1, bounds);
+					offMeshConClass[i * 2 + 0] = ClassifyOffMeshPoint(p0, bounds);
+					offMeshConClass[i * 2 + 1] = ClassifyOffMeshPoint(p1, bounds);
 
 					//off-mesh start position isn't touching mesh
 					if (offMeshConClass[i * 2 + 0] == 0xff)
@@ -349,10 +350,11 @@ namespace SharpNav
 			}
 
 			//store and create BV tree
+			navBvTree = new BVNode[parameters.polyCount * 2];
 			if (parameters.buildBvTree)
 			{
 				//build tree
-				//....
+				CreateBVTree(parameters.verts, parameters.polys, parameters.polyCount, nvp, parameters.cellSize, parameters.cellHeight, navBvTree);
 			}
 
 			//store off-mesh connections
@@ -381,7 +383,7 @@ namespace SharpNav
 			}
 		}
 
-		public int classifyOffMeshPoint(Vector3 pt, BBox3 bounds)
+		public int ClassifyOffMeshPoint(Vector3 pt, BBox3 bounds)
 		{
 			const int XP = 1 << 0; //x plus
 			const int ZP = 1 << 1; //z plus 
@@ -424,6 +426,176 @@ namespace SharpNav
 			return 0xff;
 		}
 
+		public int CreateBVTree(Vector3[] verts, NavMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
+		{
+			//build bounding volume tree
+			BVNode[] items = new BVNode[npolys];
+			for (int i = 0; i < npolys; i++)
+			{
+				items[i].index = i;
+
+				//calcuate polygon bounds
+				items[i].bounds.Min = items[i].bounds.Max = verts[polys[i].Vertices[0]];
+
+				for (int j = 1; j < nvp; j++)
+				{
+					if (polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+						break;
+
+					Vector3 v = verts[polys[i].Vertices[j]];
+					float x = v.X, y = v.Y, z = v.Z;
+
+					if (x < items[i].bounds.Min.X) items[i].bounds.Min.X = x;
+					if (y < items[i].bounds.Min.Y) items[i].bounds.Min.Y = y;
+					if (z < items[i].bounds.Min.Z) items[i].bounds.Min.Z = z;
+
+					if (x > items[i].bounds.Max.X) items[i].bounds.Max.X = x;
+					if (y > items[i].bounds.Max.Y) items[i].bounds.Max.Y = y;
+					if (z > items[i].bounds.Max.Z) items[i].bounds.Max.Z = z;
+
+					//remap y
+					items[i].bounds.Min.Y = (int)Math.Floor((float)items[i].bounds.Min.Y * cellHeight / cellSize);
+					items[i].bounds.Max.Y = (int)Math.Ceiling((float)items[i].bounds.Max.Y * cellHeight / cellSize);
+				}
+			}
+
+			int curNode = 0;
+			Subdivide(items, npolys, 0, npolys, ref curNode, nodes);
+
+			return curNode;
+		}
+
+		public void Subdivide(BVNode[] items, int nitems, int imin, int imax, ref int curNode, BVNode[] nodes)
+		{
+			int inum = imax - imin;
+			int icur = curNode;
+
+			int oldNode = curNode;
+			BVNode node = nodes[curNode++];
+
+			if (inum == 1)
+			{
+				//leaf
+				nodes[oldNode].bounds = items[imin].bounds;
+				nodes[oldNode].index = items[imin].index;
+			}
+			else
+			{
+				//split
+				CalcExtends(items, imin, imax, ref node.bounds);
+
+				BBox3 b = nodes[oldNode].bounds;
+				int axis = LongestAxis((int)(b.Max.X - b.Min.X), (int)(b.Max.Y - b.Min.Y), (int)(b.Max.Z - b.Min.Z));
+
+				if (axis == 0)
+				{
+					//sort along x-axis
+					CompareItemX compX = new CompareItemX();
+					Array.Sort(items, imin, inum, compX);
+				}
+				else if (axis == 1)
+				{
+					//sort along y-axis
+					CompareItemY compY = new CompareItemY();
+					Array.Sort(items, imin, inum, compY);
+				}
+				else if (axis == 2)
+				{
+					CompareItemZ compZ = new CompareItemZ();
+					Array.Sort(items, imin, inum, compZ);
+				}
+
+				int isplit = imin + inum / 2;
+
+				//left 
+				Subdivide(items, nitems, imin, isplit, ref curNode, nodes);
+
+				//right
+				Subdivide(items, nitems, isplit, imax, ref curNode, nodes);
+
+				int iescape = curNode - icur;
+				nodes[oldNode].index = -iescape; //negative index means escape
+			}
+		}
+
+		public void CalcExtends(BVNode[] items, int imin, int imax, ref BBox3 bounds)
+		{
+			bounds = items[imin].bounds;
+
+			for (int i = imin + 1; i < imax; i++)
+			{
+				if (items[i].bounds.Min.X < bounds.Min.X) bounds.Min.X = items[i].bounds.Min.X;
+				if (items[i].bounds.Min.Y < bounds.Min.Y) bounds.Min.Y = items[i].bounds.Min.Y;
+				if (items[i].bounds.Min.Z < bounds.Min.Z) bounds.Min.Z = items[i].bounds.Min.Z;
+
+				if (items[i].bounds.Max.X > bounds.Min.X) bounds.Max.X = items[i].bounds.Max.X;
+				if (items[i].bounds.Max.Y > bounds.Min.Y) bounds.Max.Y = items[i].bounds.Max.Y;
+				if (items[i].bounds.Max.Z > bounds.Min.Z) bounds.Max.Z = items[i].bounds.Max.Z;
+			}
+		}
+
+		public int LongestAxis(int x, int y, int z)
+		{
+			int axis = 0;
+			int maxVal = x;
+
+			if (y > maxVal)
+			{
+				axis = 1;
+				maxVal = y;
+			}
+
+			if (z > maxVal)
+			{
+				axis = 2;
+				maxVal = z;
+			}
+
+			return axis;
+		}
+
+		private class CompareItemX : IComparer<BVNode>
+		{
+			public int Compare(BVNode a, BVNode b)
+			{
+				if (a.bounds.Min.X < b.bounds.Min.X)
+					return -1;
+
+				if (a.bounds.Min.X > b.bounds.Min.X)
+					return 1;
+
+				return 0;
+			}
+
+		}
+
+		private class CompareItemY : IComparer<BVNode>
+		{
+			public int Compare(BVNode a, BVNode b)
+			{
+				if (a.bounds.Min.Y < b.bounds.Min.Y)
+					return -1;
+
+				if (a.bounds.Min.Y > b.bounds.Min.Y)
+					return 1;
+
+				return 0;
+			}
+		}
+
+		private class CompareItemZ : IComparer<BVNode>
+		{
+			public int Compare(BVNode a, BVNode b)
+			{
+				if (a.bounds.Min.Z < b.bounds.Min.Z)
+					return -1;
+
+				if (a.bounds.Min.Z > b.bounds.Min.Z)
+					return 1;
+
+				return 0;
+			}
+		}
 		public class MeshHeader
 		{
 			public int magic; //tile magic number (used to identify data format)
@@ -487,6 +659,12 @@ namespace SharpNav
 			public int flags; //assigned flag from Poly
 			public int side; //endpoint side
 			public uint userId; //id of offmesh connection
+		}
+
+		public class BVNode
+		{
+			public BBox3 bounds;
+			public int index;
 		}
 	}
 }
