@@ -612,19 +612,19 @@ namespace SharpNav
 
 				float maxDeviation = 0;
 				int maxi = -1;
-				int ci, cinc, endi;
+				int ci, cIncrement, endi;
 
 				//traverse segment in lexilogical order (try to go from smallest to largest coordinates?)
 				if (bx > ax || (bx == ax && bz > az))
 				{
-					cinc = 1;
-					ci = (ai + cinc) % numPoints;
+					cIncrement = 1;
+					ci = (ai + cIncrement) % numPoints;
 					endi = bi;
 				}
 				else
 				{
-					cinc = numPoints - 1;
-					ci = (bi + cinc) % numPoints;
+					cIncrement = numPoints - 1;
+					ci = (bi + cIncrement) % numPoints;
 					endi = ai;
 				}
 
@@ -641,8 +641,8 @@ namespace SharpNav
 							maxDeviation = deviation;
 							maxi = ci;
 						}
-						
-						ci = (ci + cinc) % numPoints;
+
+						ci = (ci + cIncrement) % numPoints;
 					}
 				}
 
@@ -656,17 +656,11 @@ namespace SharpNav
 					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
 					for (int j = simplified.Count - 1; j > i; j--)
 					{
-						simplified[j].X = simplified[j - 1].X;
-						simplified[j].Y = simplified[j - 1].Y;
-						simplified[j].Z = simplified[j - 1].Z;
-						simplified[j].RawVertexIndex = simplified[j - 1].RawVertexIndex;
+						simplified[j] = simplified[j - 1];
 					}
 
 					//add point 
-					simplified[i + 1].X = points[maxi].X;
-					simplified[i + 1].Y = points[maxi].Y;
-					simplified[i + 1].Z = points[maxi].Z;
-					simplified[i + 1].RawVertexIndex = maxi;
+					simplified[i + 1] = new SimplifiedVertex(points[maxi], maxi);
 				}
 				else
 				{
@@ -735,17 +729,11 @@ namespace SharpNav
 						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
 						for (int j = simplified.Count - 1; j > i; j--)
 						{
-							simplified[j].X = simplified[j - 1].X;
-							simplified[j].Y = simplified[j - 1].Y;
-							simplified[j].Z = simplified[j - 1].Z;
-							simplified[j].RawVertexIndex = simplified[j - 1].RawVertexIndex;
+							simplified[j] = simplified[j - 1];
 						}
 
 						//add point
-						simplified[i + 1].X = points[maxi].X;
-						simplified[i + 1].Y = points[maxi].Y;
-						simplified[i + 1].Z = points[maxi].Z;
-						simplified[i + 1].RawVertexIndex = maxi;
+						simplified[i + 1] = new SimplifiedVertex(points[maxi], maxi);
 					}
 					else
 					{
@@ -819,14 +807,7 @@ namespace SharpNav
 					simplified[i].Z == simplified[ni].Z)
 				{
 					//remove degenerate segment
-					for (int j = i; j < simplified.Count - 1; j++)
-					{
-						simplified[j].X = simplified[j + 1].X;
-						simplified[j].Y = simplified[j + 1].Y;
-						simplified[j].Z = simplified[j + 1].Z;
-						simplified[j].RawVertexIndex = simplified[j + 1].RawVertexIndex;
-					}
-					simplified.RemoveAt(simplified.Count - 1);
+					simplified.RemoveAt(i);
 				}
 			}
 		}
@@ -853,34 +834,33 @@ namespace SharpNav
 		/// <param name="vertsB">Second set of vertices</param>
 		/// <param name="ia">First index</param>
 		/// <param name="ib">Second index</param>
-		private void GetClosestIndices(SimplifiedVertex[] vertsA, int numVertsA, SimplifiedVertex[] vertsB, int numVertsB, ref int ia, ref int ib)
+		private void GetClosestIndices(SimplifiedVertex[] vertsA, int numVertsA, SimplifiedVertex[] vertsB, int numVertsB, ref int indexA, ref int indexB)
 		{
 			int closestDistance = 0xfffffff;
-			ia = -1;
-			ib = -1;
+			indexA = -1;
+			indexB = -1;
+			
 			for (int i = 0; i < numVertsA; i++)
 			{
-				int iN = (i + 1) % numVertsA;
-				int iP = (i + numVertsA - 1) % numVertsA;
-				int va = i; //vertsA
-				int vaN = iN; //vertsA
-				int vaP = iP; //vertsA
+				int vertA = i; 
+				int vertANext = (i + 1) % numVertsA; 
+				int vertAPrev = (i + numVertsA - 1) % numVertsA; 
 
 				for (int j = 0; j < numVertsB; j++)
 				{
-					int vb = j; //vertsB
+					int vertB = j; 
 					
-					//vb must be infront of va
-					if (ILeft(vertsA, vertsB, vaP, va, vb) && ILeft(vertsA, vertsB, va, vaN, vb))
+					//vertB must be infront of vertA
+					if (ILeft(vertsA, vertsB, vertAPrev, vertA, vertB) && ILeft(vertsA, vertsB, vertA, vertANext, vertB))
 					{
-						int dx = vertsB[vb].X - vertsA[va].X;
-						int dz = vertsB[vb].Z - vertsA[va].Z;
-						int d = dx * dx + dz * dz;
-						if (d < closestDistance)
+						int dx = vertsB[vertB].X - vertsA[vertA].X;
+						int dz = vertsB[vertB].Z - vertsA[vertA].Z;
+						int tempDist = dx * dx + dz * dz;
+						if (tempDist < closestDistance)
 						{
-							ia = i;
-							ib = j;
-							closestDistance = d;
+							indexA = i;
+							indexB = j;
+							closestDistance = tempDist;
 						}
 					}
 				}
@@ -914,10 +894,7 @@ namespace SharpNav
 				int dst = nv; //newVerts
 				int src = (ia + 1) % contA.NumVerts; //contA
 
-				newVerts[dst].X = contA.Vertices[src].X;
-				newVerts[dst].Y = contA.Vertices[src].Y;
-				newVerts[dst].Z = contA.Vertices[src].Z;
-				newVerts[dst].RawVertexIndex = contA.Vertices[src].RawVertexIndex;
+				newVerts[dst] = contA.Vertices[src];
 
 				nv++;
 			}
@@ -928,10 +905,7 @@ namespace SharpNav
 				int dst = nv; //newVerts
 				int src = (ib + i) % contB.NumVerts; //contB
 
-				newVerts[dst].X = contB.Vertices[src].X;
-				newVerts[dst].Y = contB.Vertices[src].Y;
-				newVerts[dst].Z = contB.Vertices[src].Z;
-				newVerts[dst].RawVertexIndex = contB.Vertices[src].RawVertexIndex;
+				newVerts[dst] = contB.Vertices[src];
 
 				nv++;
 			}
@@ -986,6 +960,14 @@ namespace SharpNav
 				this.Y = y;
 				this.Z = z;
 				this.RawVertexIndex = rawVertex;
+			}
+
+			public SimplifiedVertex(RawVertex rawVert, int index)
+			{
+				this.X = rawVert.X;
+				this.Y = rawVert.Y;
+				this.Z = rawVert.Z;
+				this.RawVertexIndex = index;
 			}
 		}
 	}

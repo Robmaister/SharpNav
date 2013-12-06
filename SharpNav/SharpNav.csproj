@@ -41,6 +41,8 @@
     <Compile Include="CompactSpan.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="NavMesh.cs" />
+    <Compile Include="NavMeshBuilder.cs" />
+    <Compile Include="NavMeshCreateParams.cs" />
     <Compile Include="NavMeshDetail.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
