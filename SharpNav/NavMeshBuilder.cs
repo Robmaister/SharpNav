@@ -13,20 +13,22 @@ namespace SharpNav
 {
 	public class NavMeshBuilder
 	{
-		//constants
+		//public constants
+		public const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V';
+		public const int NAVMESH_VERSION = 7;
+
+		public const int EXT_LINK = 0x8000; //entity links to external entity
+
+		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
+
+		public const int DT_POLTYPE_GROUND = 0;
+		public const int DT_POLTYPE_OFFMESH_CONNECTION = 1;
+
+	
 		private const int MAX_VERTS_PER_POLYGON = 6;
 
-		private const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V';
-		private const int NAVMESH_VERSION = 7;
-
-		private const int EXT_LINK = 0x8000; //entity links to external entity
-
-		private const int OFFMESH_CON_BIDIR = 1; //bidirectional
-
-		private const int DT_POLTYPE_GROUND = 0;
-		private const int DT_POLTYPE_OFFMESH_CONNECTION = 1;
-
 		//convert NavMesh and NavMeshDetail into a different data structure suited for pathfinding
+		//This class will create tiled data.
 		private MeshHeader header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
@@ -35,6 +37,8 @@ namespace SharpNav
 		private NavMeshDetail.TrisInfo[] navDTris;
 		private OffMeshConnection[] offMeshCons;
 		private BVNode[] navBvTree;
+
+		public MeshHeader Header { get { return header; } }
 
 		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
 		{
@@ -596,7 +600,8 @@ namespace SharpNav
 				return 0;
 			}
 		}
-		public class MeshHeader
+
+		public struct MeshHeader
 		{
 			public int magic; //tile magic number (used to identify data format)
 			public int version;
@@ -643,7 +648,7 @@ namespace SharpNav
 			}
 		}
 
-		public class PolyDetail
+		public struct PolyDetail
 		{
 			public uint vertBase; //offset of vertices in some array
 			public uint triBase; //offset of triangles in some array
@@ -651,7 +656,7 @@ namespace SharpNav
 			public int triCount;
 		}
 
-		public class OffMeshConnection
+		public struct OffMeshConnection
 		{
 			public Vector3[] pos; //the endpoints of the connection
 			public float radius;
@@ -661,7 +666,7 @@ namespace SharpNav
 			public uint userId; //id of offmesh connection
 		}
 
-		public class BVNode
+		public struct BVNode
 		{
 			public BBox3 bounds;
 			public int index;
