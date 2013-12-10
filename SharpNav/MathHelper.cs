@@ -92,5 +92,28 @@ namespace SharpNav
 		{
 			val = val < min ? min : (val > max ? max : val);
 		}
+
+		/// <summary>
+		/// Clamps an integer value to be within a specified range.
+		/// </summary>
+		/// <param name="val">The value to clamp.</param>
+		/// <param name="min">The inclusive minimum of the range.</param>
+		/// <param name="max">The inclusive maximum of the range.</param>
+		/// <returns>The clamped value.</returns>
+		internal static float Clamp(float val, float min, float max)
+		{
+			return val < min ? min : (val > max ? max : val);
+		}
+
+		/// <summary>
+		/// Clamps an integer value to be within a specified range.
+		/// </summary>
+		/// <param name="val">The value to clamp.</param>
+		/// <param name="min">The inclusive minimum of the range.</param>
+		/// <param name="max">The inclusive maximum of the range.</param>
+		internal static void Clamp(ref float val, float min, float max)
+		{
+			val = val < min ? min : (val > max ? max : val);
+		}
 	}
 }

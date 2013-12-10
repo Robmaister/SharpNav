@@ -21,11 +21,10 @@ namespace SharpNav
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
-		public const int DT_POLTYPE_GROUND = 0;
-		public const int DT_POLTYPE_OFFMESH_CONNECTION = 1;
+		public const int POLTYPE_GROUND = 0;
+		public const int POLTYPE_OFFMESH_CONNECTION = 1;
 
-	
-		private const int MAX_VERTS_PER_POLYGON = 6;
+		public const int VERTS_PER_POLYGON = 6;
 
 		//convert NavMesh and NavMeshDetail into a different data structure suited for pathfinding
 		//This class will create tiled data.
@@ -39,10 +38,17 @@ namespace SharpNav
 		private BVNode[] navBvTree;
 
 		public MeshHeader Header { get { return header; } }
+		public Vector3[] NavVerts { get { return navVerts; } }
+		public Poly[] NavPolys { get { return navPolys; } }
+		public PolyDetail[] NavDMeshes { get { return navDMeshes; } }
+		public Vector3[] NavDVerts { get { return navDVerts; } }
+		public NavMeshDetail.TrisInfo[] NavDTris { get { return navDTris; } }
+		public BVNode[] NavBvTree { get { return navBvTree; } }
+		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
 		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
 		{
-			if (parameters.numVertsPerPoly > MAX_VERTS_PER_POLYGON)
+			if (parameters.numVertsPerPoly > VERTS_PER_POLYGON)
 				return;
 			if (parameters.vertCount >= 0xffff)
 				return;
@@ -237,8 +243,8 @@ namespace SharpNav
 			{
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
-				navPolys[i].setArea((int)parameters.polyAreas[i]);
-				navPolys[i].setType(DT_POLTYPE_GROUND);
+				navPolys[i].SetArea((int)parameters.polyAreas[i]);
+				navPolys[i].SetType(POLTYPE_GROUND);
 
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];
@@ -284,8 +290,8 @@ namespace SharpNav
 					navPolys[offMeshPolyBase + n].verts[0] = offMeshVertsBase + (n * 2 + 0);
 					navPolys[offMeshPolyBase + n].verts[1] = offMeshVertsBase + (n * 2 + 1);
 					navPolys[offMeshPolyBase + n].flags = parameters.offMeshConFlags[i];
-					navPolys[offMeshPolyBase + n].setArea(parameters.offMeshConAreas[i]);
-					navPolys[offMeshPolyBase + n].setType(DT_POLTYPE_OFFMESH_CONNECTION);
+					navPolys[offMeshPolyBase + n].SetArea(parameters.offMeshConAreas[i]);
+					navPolys[offMeshPolyBase + n].SetType(POLTYPE_OFFMESH_CONNECTION);
 					n++;
 				}
 			}
@@ -601,7 +607,7 @@ namespace SharpNav
 			}
 		}
 
-		public struct MeshHeader
+		public class MeshHeader
 		{
 			public int magic; //tile magic number (used to identify data format)
 			public int version;
@@ -637,14 +643,24 @@ namespace SharpNav
 			public int vertCount;
 			public int areaAndtype; //bit packed area id and polygon type
 
-			public void setArea(int a)
+			public void SetArea(int a)
 			{
 				areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f); 
 			}
 
-			public void setType(int t)
+			public void SetType(int t)
 			{
 				areaAndtype = (areaAndtype & 0x3f) | (t << 6); 
+			}
+
+			public int GetArea()
+			{
+				return areaAndtype & 0x3f;
+			}
+
+			public int GetType()
+			{
+				return areaAndtype >> 6;
 			}
 		}
 
