@@ -13,42 +13,29 @@ namespace SharpNav
 {
 	public class NavMeshBuilder
 	{
-		//public constants
-		public const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V';
-		public const int NAVMESH_VERSION = 7;
-
-		public const int EXT_LINK = 0x8000; //entity links to external entity
-
-		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
-
-		public const int POLTYPE_GROUND = 0;
-		public const int POLTYPE_OFFMESH_CONNECTION = 1;
-
-		public const int VERTS_PER_POLYGON = 6;
-
 		//convert NavMesh and NavMeshDetail into a different data structure suited for pathfinding
 		//This class will create tiled data.
-		private MeshHeader header;
+		private PathfinderCommon.MeshHeader header;
 		private Vector3[] navVerts;
-		private Poly[] navPolys;
-		private PolyDetail[] navDMeshes;
+		private PathfinderCommon.Poly[] navPolys;
+		private PathfinderCommon.PolyDetail[] navDMeshes;
 		private Vector3[] navDVerts;
 		private NavMeshDetail.TrisInfo[] navDTris;
-		private OffMeshConnection[] offMeshCons;
-		private BVNode[] navBvTree;
+		private PathfinderCommon.OffMeshConnection[] offMeshCons;
+		private PathfinderCommon.BVNode[] navBvTree;
 
-		public MeshHeader Header { get { return header; } }
+		public PathfinderCommon.MeshHeader Header { get { return header; } }
 		public Vector3[] NavVerts { get { return navVerts; } }
-		public Poly[] NavPolys { get { return navPolys; } }
-		public PolyDetail[] NavDMeshes { get { return navDMeshes; } }
+		public PathfinderCommon.Poly[] NavPolys { get { return navPolys; } }
+		public PathfinderCommon.PolyDetail[] NavDMeshes { get { return navDMeshes; } }
 		public Vector3[] NavDVerts { get { return navDVerts; } }
 		public NavMeshDetail.TrisInfo[] NavDTris { get { return navDTris; } }
-		public BVNode[] NavBvTree { get { return navBvTree; } }
-		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
+		public PathfinderCommon.BVNode[] NavBvTree { get { return navBvTree; } }
+		public PathfinderCommon.OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
 		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
 		{
-			if (parameters.numVertsPerPoly > VERTS_PER_POLYGON)
+			if (parameters.numVertsPerPoly > PathfinderCommon.VERTS_PER_POLYGON)
 				return;
 			if (parameters.vertCount >= 0xffff)
 				return;
@@ -191,8 +178,9 @@ namespace SharpNav
 			}
 
 			//store header
-			header.magic = NAVMESH_MAGIC;
-			header.version = NAVMESH_VERSION;
+			header = new PathfinderCommon.MeshHeader();
+			header.magic = PathfinderCommon.NAVMESH_MAGIC;
+			header.version = PathfinderCommon.NAVMESH_VERSION;
 			header.x = parameters.tileX;
 			header.y = parameters.tileY;
 			header.layer = parameters.tileLayer;
@@ -238,13 +226,13 @@ namespace SharpNav
 			}
 
 			//store polygons
-			navPolys = new Poly[totPolyCount];
+			navPolys = new PathfinderCommon.Poly[totPolyCount];
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
 				navPolys[i].SetArea((int)parameters.polyAreas[i]);
-				navPolys[i].SetType(POLTYPE_GROUND);
+				navPolys[i].SetType(PathfinderCommon.POLTYPE_GROUND);
 
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];
@@ -261,13 +249,13 @@ namespace SharpNav
 						if (dir == 0xf) //border
 							navPolys[i].neis[j] = 0;
 						else if (dir == 0) //portal x-
-							navPolys[i].neis[j] = EXT_LINK | 4;
+							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 4;
 						else if (dir == 1) //portal z+
-							navPolys[i].neis[j] = EXT_LINK | 2;
+							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 2;
 						else if (dir == 2) //portal x+
-							navPolys[i].neis[j] = EXT_LINK | 0;
+							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 0;
 						else if (dir == 3) //portal z-
-							navPolys[i].neis[j] = EXT_LINK | 6;
+							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 6;
 					}
 					else
 					{
@@ -291,13 +279,13 @@ namespace SharpNav
 					navPolys[offMeshPolyBase + n].verts[1] = offMeshVertsBase + (n * 2 + 1);
 					navPolys[offMeshPolyBase + n].flags = parameters.offMeshConFlags[i];
 					navPolys[offMeshPolyBase + n].SetArea(parameters.offMeshConAreas[i]);
-					navPolys[offMeshPolyBase + n].SetType(POLTYPE_OFFMESH_CONNECTION);
+					navPolys[offMeshPolyBase + n].SetType(PathfinderCommon.POLTYPE_OFFMESH_CONNECTION);
 					n++;
 				}
 			}
 
 			//store detail meshes and vertices
-			navDMeshes = new PolyDetail[parameters.polyCount];
+			navDMeshes = new PathfinderCommon.PolyDetail[parameters.polyCount];
 			navDVerts = new Vector3[uniqueDetailVertCount];
 			navDTris = new NavMeshDetail.TrisInfo[detailTriCount];
 			if (parameters.detailMeshes.Length != 0)
@@ -360,7 +348,7 @@ namespace SharpNav
 			}
 
 			//store and create BV tree
-			navBvTree = new BVNode[parameters.polyCount * 2];
+			navBvTree = new PathfinderCommon.BVNode[parameters.polyCount * 2];
 			if (parameters.buildBvTree)
 			{
 				//build tree
@@ -369,7 +357,7 @@ namespace SharpNav
 
 			//store off-mesh connections
 			n = 0;
-			offMeshCons = new OffMeshConnection[storedOffMeshConCount];
+			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
 			for (int i = 0; i < parameters.offMeshConCount; i++)
 			{
 				//only store connections which start from this tile
@@ -383,7 +371,7 @@ namespace SharpNav
 					offMeshCons[n].pos[1] = parameters.offMeshConVerts[i * 2 + 1];
 
 					offMeshCons[n].radius = parameters.offMeshConRadii[i];
-					offMeshCons[n].flags = (parameters.offMeshConDir[i] != 0) ? OFFMESH_CON_BIDIR : 0;
+					offMeshCons[n].flags = (parameters.offMeshConDir[i] != 0) ? PathfinderCommon.OFFMESH_CON_BIDIR : 0;
 					offMeshCons[n].side = offMeshConClass[i * 2 + 1];
 					if (parameters.offMeshConUserID.Length != 0)
 						offMeshCons[n].userId = parameters.offMeshConUserID[i];
@@ -436,10 +424,10 @@ namespace SharpNav
 			return 0xff;
 		}
 
-		public int CreateBVTree(Vector3[] verts, NavMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
+		public int CreateBVTree(Vector3[] verts, NavMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, PathfinderCommon.BVNode[] nodes)
 		{
 			//build bounding volume tree
-			BVNode[] items = new BVNode[npolys];
+			PathfinderCommon.BVNode[] items = new PathfinderCommon.BVNode[npolys];
 			for (int i = 0; i < npolys; i++)
 			{
 				items[i].index = i;
@@ -475,13 +463,13 @@ namespace SharpNav
 			return curNode;
 		}
 
-		public void Subdivide(BVNode[] items, int nitems, int imin, int imax, ref int curNode, BVNode[] nodes)
+		public void Subdivide(PathfinderCommon.BVNode[] items, int nitems, int imin, int imax, ref int curNode, PathfinderCommon.BVNode[] nodes)
 		{
 			int inum = imax - imin;
 			int icur = curNode;
 
 			int oldNode = curNode;
-			BVNode node = nodes[curNode++];
+			PathfinderCommon.BVNode node = nodes[curNode++];
 
 			if (inum == 1)
 			{
@@ -528,7 +516,7 @@ namespace SharpNav
 			}
 		}
 
-		public void CalcExtends(BVNode[] items, int imin, int imax, ref BBox3 bounds)
+		public void CalcExtends(PathfinderCommon.BVNode[] items, int imin, int imax, ref BBox3 bounds)
 		{
 			bounds = items[imin].bounds;
 
@@ -564,9 +552,9 @@ namespace SharpNav
 			return axis;
 		}
 
-		private class CompareItemX : IComparer<BVNode>
+		private class CompareItemX : IComparer<PathfinderCommon.BVNode>
 		{
-			public int Compare(BVNode a, BVNode b)
+			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
 			{
 				if (a.bounds.Min.X < b.bounds.Min.X)
 					return -1;
@@ -579,9 +567,9 @@ namespace SharpNav
 
 		}
 
-		private class CompareItemY : IComparer<BVNode>
+		private class CompareItemY : IComparer<PathfinderCommon.BVNode>
 		{
-			public int Compare(BVNode a, BVNode b)
+			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
 			{
 				if (a.bounds.Min.Y < b.bounds.Min.Y)
 					return -1;
@@ -593,9 +581,9 @@ namespace SharpNav
 			}
 		}
 
-		private class CompareItemZ : IComparer<BVNode>
+		private class CompareItemZ : IComparer<PathfinderCommon.BVNode>
 		{
-			public int Compare(BVNode a, BVNode b)
+			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
 			{
 				if (a.bounds.Min.Z < b.bounds.Min.Z)
 					return -1;
@@ -605,87 +593,6 @@ namespace SharpNav
 
 				return 0;
 			}
-		}
-
-		public class MeshHeader
-		{
-			public int magic; //tile magic number (used to identify data format)
-			public int version;
-			public int x;
-			public int y;
-			public int layer;
-			public uint userId;
-			public int polyCount;
-			public int vertCount;
-			public int maxLinkCount;
-			public int detailMeshCount;
-
-			public int detailVertCount;
-
-			public int detailTriCount;
-			public int bvNodeCount;
-			public int offMeshConCount;
-			public int offMeshBase; //index of first polygon which is off-mesh connection
-			public float walkableHeight;
-			public float walkableRadius;
-			public float walkableClimb;
-			public BBox3 bounds;
-
-			public float bvQuantFactor; //bounding volume quantization facto
-		}
-
-		public class Poly
-		{
-			public uint firstLink; //index to first link in linked list
-			public int[] verts; //indices of polygon's vertices
-			public int[] neis; //packed data representing neighbor polygons references and flags for each edge
-			public int flags; //user defined polygon flags
-			public int vertCount;
-			public int areaAndtype; //bit packed area id and polygon type
-
-			public void SetArea(int a)
-			{
-				areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f); 
-			}
-
-			public void SetType(int t)
-			{
-				areaAndtype = (areaAndtype & 0x3f) | (t << 6); 
-			}
-
-			public int GetArea()
-			{
-				return areaAndtype & 0x3f;
-			}
-
-			public int GetType()
-			{
-				return areaAndtype >> 6;
-			}
-		}
-
-		public struct PolyDetail
-		{
-			public uint vertBase; //offset of vertices in some array
-			public uint triBase; //offset of triangles in some array
-			public int vertCount;
-			public int triCount;
-		}
-
-		public struct OffMeshConnection
-		{
-			public Vector3[] pos; //the endpoints of the connection
-			public float radius;
-			public int poly;
-			public int flags; //assigned flag from Poly
-			public int side; //endpoint side
-			public uint userId; //id of offmesh connection
-		}
-
-		public struct BVNode
-		{
-			public BBox3 bounds;
-			public int index;
 		}
 	}
 }
