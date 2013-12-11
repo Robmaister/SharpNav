@@ -123,7 +123,8 @@ namespace SharpNav
 			public uint next; //index of next link
 			public int edge; //index of polygon edge
 			public int side;
-			public BBox3 bounds;
+			public int bmin;
+			public int bmax;
 		}
 
 		public class MeshTile

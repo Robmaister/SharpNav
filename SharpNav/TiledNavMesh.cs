@@ -11,7 +11,7 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	class TiledNavMesh
+	public class TiledNavMesh
 	{
 		private PathfinderCommon.NavMeshParams m_params;
 		private Vector3 m_origin;
@@ -209,8 +209,8 @@ namespace SharpNav
 			tile.data = data;
 			tile.flags = flags;
 
-			ConnectIntLinks(tile);
-			BaseOffMeshLinks(tile);
+			ConnectIntLinks(ref tile);
+			BaseOffMeshLinks(ref tile);
 
 			//create connections with neighbor tiles
 			const int MAX_NEIS = 32;
@@ -218,13 +218,36 @@ namespace SharpNav
 			int nneis;
 
 			//connect with layers in current tile
-			//...
+			nneis = GetTilesAt(header.x, header.y, neis, MAX_NEIS);
+			for (int j = 0; j < nneis; j++)
+			{
+				if (neis[j] != tile)
+				{
+					ConnectExtLinks(ref tile, ref neis[j], -1);
+					ConnectExtLinks(ref neis[j], ref tile, -1);
+				}
+
+				ConnectExtOffMeshLinks(ref tile, ref neis[j], -1);
+				ConnectExtOffMeshLinks(ref neis[j], ref tile, -1);
+			}
 
 			//connect with neighbour tiles
-			//...
+			for (int i = 0; i < 8; i++)
+			{
+				nneis = GetNeighbourTilesAt(header.x, header.y, i, neis, MAX_NEIS);
+				for (int j = 0; j < nneis; j++)
+				{
+					ConnectExtLinks(ref tile, ref neis[j], i);
+					ConnectExtLinks(ref neis[j], ref tile, OppositeTile(i));
+					ConnectExtOffMeshLinks(ref tile, ref neis[j], i);
+					ConnectExtOffMeshLinks(ref neis[j], ref tile, OppositeTile(i));
+				}
+			}
+
+			result = GetTileRef(tile);
 		}
 
-		public void ConnectIntLinks(PathfinderCommon.MeshTile tile)
+		public void ConnectIntLinks(ref PathfinderCommon.MeshTile tile)
 		{
 			if (tile == null)
 				return;
@@ -252,7 +275,7 @@ namespace SharpNav
 						tile.links[idx].reference = polyBase | (uint)(tile.polys[i].neis[j] - 1);
 						tile.links[idx].edge = j;
 						tile.links[idx].side = 0xff;
-						tile.links[idx].bounds = new BBox3();
+						tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
 						//add to linked list
 						tile.links[idx].next = tile.polys[i].firstLink;
@@ -262,7 +285,7 @@ namespace SharpNav
 			}
 		}
 
-		public void BaseOffMeshLinks(PathfinderCommon.MeshTile tile)
+		public void BaseOffMeshLinks(ref PathfinderCommon.MeshTile tile)
 		{
 			if (tile == null)
 				return;
@@ -299,7 +322,7 @@ namespace SharpNav
 					tile.links[idx].reference = reference;
 					tile.links[idx].edge = 0;
 					tile.links[idx].side = 0xff;
-					tile.links[idx].bounds = new BBox3();
+					tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
 					//add to linked list
 					tile.links[idx].next = tile.polys[poly].firstLink;
@@ -314,13 +337,305 @@ namespace SharpNav
 					tile.links[idx].reference = polyBase | (uint)(tile.offMeshCons[con].poly);
 					tile.links[idx].edge = 0xff;
 					tile.links[idx].side = 0xff;
-					tile.links[idx].bounds = new BBox3();
+					tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
 					//add to linked list
 					tile.links[idx].next = tile.polys[landPolyIdx].firstLink;
 					tile.polys[landPolyIdx].firstLink = tidx;
 				}
 			}
+		}
+
+		public void ConnectExtLinks(ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.MeshTile target, int side)
+		{
+			if (tile == null)
+				return;
+
+			//connect border links
+			for (int i = 0; i < tile.header.polyCount; i++)
+			{
+				int nv = tile.polys[i].vertCount;
+
+				for (int j = 0; j < nv; j++)
+				{
+					//skip non-portal edges
+					if ((tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) == 0)
+						continue;
+
+					int dir = tile.polys[i].neis[j] & 0xff;
+					if (side != -1 && dir != side)
+						continue;
+
+					//create new links
+					Vector3 va = tile.verts[tile.polys[i].verts[j]];
+					Vector3 vb = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
+					uint[] nei = new uint[4];
+					float[] neia = new float[4 * 2];
+					int nnei = FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia, 4);
+
+					for (int k = 0; k < nnei; k++)
+					{
+						uint idx = AllocLink(tile);
+
+						if (idx != PathfinderCommon.NULL_LINK)
+						{
+							tile.links[idx].reference = nei[k];
+							tile.links[idx].edge = j;
+							tile.links[idx].side = dir;
+
+							tile.links[idx].next = tile.polys[i].firstLink;
+							tile.polys[i].firstLink = idx;
+
+							//compress portal limits to a value
+							if (dir == 0 || dir == 4)
+							{
+								float tmin = (neia[k * 2 + 0] - va.Z) / (vb.Z - va.Z);
+								float tmax = (neia[k * 2 + 1] - va.Z) / (vb.Z - va.Z);
+
+								if (tmin > tmax)
+								{
+									float temp = tmin;
+									tmin = tmax;
+									tmax = temp;
+								}
+
+								tile.links[idx].bmin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+								tile.links[idx].bmax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+							}
+							else if (dir == 2 || dir == 6)
+							{
+								float tmin = (neia[k * 2 + 0] - va.X) / (vb.X - va.X);
+								float tmax = (neia[k * 2 + 1] - va.X) / (vb.X - va.X);
+
+								if (tmin > tmax)
+								{
+									float temp = tmin;
+									tmin = tmax;
+									tmax = temp;
+								}
+
+								tile.links[idx].bmin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+								tile.links[idx].bmax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		public void ConnectExtOffMeshLinks(ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.MeshTile target, int side)
+		{
+			if (tile == null)
+				return;
+
+			//connect off-mesh links, specifically links which land from target tile to this tile
+			int oppositeSide = (side == -1) ? 0xff : OppositeTile(side);
+
+			for (int i = 0; i < target.header.offMeshConCount; i++)
+			{
+				PathfinderCommon.OffMeshConnection targetCon = target.offMeshCons[i];
+				if (targetCon.side != oppositeSide)
+					continue;
+
+				PathfinderCommon.Poly targetPoly = target.polys[targetCon.poly];
+
+				//skip off-mesh connections which start location could not be connected at all
+				if (targetPoly.firstLink == PathfinderCommon.NULL_LINK)
+					continue;
+
+				Vector3 ext = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
+
+				//find polygon to connect to
+				Vector3 p = targetCon.pos[1];
+				Vector3 nearestPt = new Vector3();
+				uint reference = FindNearestPolyInTile(tile, p, ext, ref nearestPt);
+				if (reference == 0)
+					continue;
+
+				//further check
+				if ((nearestPt.X - p.X) * (nearestPt.X - p.X) + (nearestPt.Z - p.Z) * (nearestPt.Z - p.Z) >
+					(targetCon.radius * targetCon.radius))
+					continue;
+
+				//make sure the location is on the current mesh
+				target.verts[targetPoly.verts[1]] = nearestPt;
+
+				//link off-mesh connection to target poly
+				uint idx = AllocLink(target);
+				if (idx != PathfinderCommon.NULL_LINK)
+				{
+					target.links[idx].reference = reference;
+					target.links[idx].edge = i;
+					target.links[idx].side = oppositeSide;
+					target.links[idx].bmin = target.links[idx].bmax = 0;
+
+					//add to linked list
+					target.links[idx].next = target.polys[i].firstLink;
+					target.polys[i].firstLink = idx;
+				}
+
+				//link target poly to off-mesh connection
+				if ((targetCon.flags & PathfinderCommon.OFFMESH_CON_BIDIR) != 0)
+				{
+					uint tidx = AllocLink(tile);
+					if (tidx != PathfinderCommon.NULL_LINK)
+					{
+						int landPolyIdx = (int)DecodePolyIdPoly(reference);
+						tile.links[tidx].reference = GetPolyRefBase(target) | (uint)(targetCon.poly);
+						tile.links[tidx].edge = 0xff;
+						tile.links[tidx].side = (side == -1) ? 0xff : side;
+						tile.links[tidx].bmin = tile.links[tidx].bmax = 0;
+
+						//add to linked list
+						tile.links[tidx].next = tile.polys[landPolyIdx].firstLink;
+						tile.polys[landPolyIdx].firstLink = tidx;
+					}
+				}
+			}
+		}
+
+		public int OppositeTile(int side)
+		{
+			return (side + 4) & 0x7;
+		}
+
+		public int FindConnectingPolys(Vector3 va, Vector3 vb, PathfinderCommon.MeshTile tile, int side, uint[] con, float[] conarea, int maxcon)
+		{
+			if (tile == null)
+				return 0;
+
+			float[] amin = new float[2];
+			float[] amax = new float[2];
+			CalcSlabEndPoints(va, vb, amin, amax, side);
+			float apos = GetSlabCoord(va, side);
+
+			//remove links pointing to 'side' and compact the links array
+			float[] bmin = new float[2];
+			float[] bmax = new float[2];
+			int m = PathfinderCommon.EXT_LINK | side;
+			int n = 0;
+
+			uint polyBase = GetPolyRefBase(tile);
+
+			for (int i = 0; i < tile.header.polyCount; i++)
+			{
+				int nv = tile.polys[i].vertCount;
+
+				for (int j = 0; j < nv; j++)
+				{
+					//skip edges which do not point to the right side
+					if (tile.polys[i].neis[j] != m)
+						continue;
+
+					Vector3 vc = tile.verts[tile.polys[i].verts[j]];
+					Vector3 vd = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
+					float bpos = GetSlabCoord(vc, side);
+
+					//segments are not close enough
+					if (Math.Abs(apos - bpos) > 0.01f)
+						continue;
+
+					//check if the segments touch
+					CalcSlabEndPoints(vc, vd, bmin, bmax, side);
+
+					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.header.walkableClimb))
+						continue;
+
+					//add return value
+					if (n < maxcon)
+					{
+						conarea[n * 2 + 0] = Math.Max(amin[0], bmin[0]);
+						conarea[n * 2 + 1] = Math.Min(amax[0], bmax[0]);
+						con[n] = polyBase | (uint)i;
+						n++;
+					}
+
+					break;
+				}
+			}
+
+			return n;
+		}
+
+		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, float[] bmin, float[] bmax, int side)
+		{
+			if (side == 0 || side == 4)
+			{
+				if (va.Z < vb.Z)
+				{
+					bmin[0] = va.Z;
+					bmin[1] = va.Y;
+					bmax[0] = vb.Z;
+					bmax[1] = vb.Y;
+				}
+				else
+				{
+					bmin[0] = vb.Z;
+					bmin[1] = vb.Y;
+					bmax[0] = va.Z;
+					bmax[1] = va.Y;
+				}
+			}
+			else if (side == 2 || side == 6)
+			{
+				if (va.X < vb.X)
+				{
+					bmin[0] = va.X;
+					bmin[1] = va.Y;
+					bmax[0] = vb.X;
+					bmax[1] = vb.Y;
+				}
+				else
+				{
+					bmin[0] = vb.X;
+					bmin[1] = vb.Y;
+					bmax[0] = va.X;
+					bmax[1] = va.Y;
+				}
+			}
+		}
+
+		public float GetSlabCoord(Vector3 va, int side)
+		{
+			if (side == 0 || side == 4)
+				return va.X;
+			else if (side == 2 || side == 6)
+				return va.Z;
+			
+			return 0;
+		}
+
+		public bool OverlapSlabs(float[] amin, float[] amax, float[] bmin, float[] bmax, float px, float py)
+		{
+			//check for horizontal overlap
+			//segment shrunk a little so that slabs which touch at endpoints aren't connected
+			float minx = Math.Max(amin[0] + px, bmin[0] + px);
+			float maxx = Math.Min(amax[0] - px, bmax[0] - px);
+			if (minx > maxx)
+				return false;
+
+			//check vertical overlap
+			float ad = (amax[1] - amin[1]) / (amax[0] - amin[0]);
+			float ak = amin[1] - ad * amin[0];
+			float bd = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
+			float bk = bmin[1] - bd * bmin[0];
+			float aminy = ad * minx + ak;
+			float amaxy = ad * maxx + ak;
+			float bminy = bd * minx + bk;
+			float bmaxy = bd * maxx + bk;
+			float dmin = bminy - aminy;
+			float dmax = bmaxy - amaxy;
+
+			//crossing segments always overlap
+			if (dmin * dmax < 0)
+				return true;
+
+			//check for overlap at endpoints
+			float thr = (py * 2) * (py * 2);
+			if (dmin * dmin <= thr || dmax * dmax <= thr)
+				return true;
+
+			return false;
 		}
 
 		public uint FindNearestPolyInTile(PathfinderCommon.MeshTile tile, Vector3 center, Vector3 extents, ref Vector3 nearestPt)
@@ -620,11 +935,29 @@ namespace SharpNav
 			return link;
 		}
 
+		public uint GetTileRef(PathfinderCommon.MeshTile tile)
+		{
+			if (tile == null)
+				return 0;
+
+			uint it = 0;
+			for (int i = 0; i < m_tiles.Length; i++)
+			{
+				if (m_tiles[i] == tile)
+				{
+					it = (uint)i;
+					break;
+				}
+			}
+			return EncodePolyId(tile.salt, it, 0);
+		}
+
 		public PathfinderCommon.MeshTile GetTileAt(int x, int y, int layer)
 		{
 			//find tile based off hash
 			int h = ComputeTileHash(x, y, m_tileLutMask);
 			PathfinderCommon.MeshTile tile = m_posLookup[h];
+			
 			while (tile != null)
 			{
 				if (tile.header != null && tile.header.x == x && tile.header.y == y && tile.header.layer == layer)
@@ -632,7 +965,74 @@ namespace SharpNav
 
 				tile = tile.next;
 			}
+			
 			return null;
+		}
+
+		public int GetTilesAt(int x, int y, PathfinderCommon.MeshTile[] tiles, int maxTiles)
+		{
+			int n = 0;
+
+			//find tile based on hash
+			int h = ComputeTileHash(x, y, m_tileLutMask);
+			PathfinderCommon.MeshTile tile = m_posLookup[h];
+			
+			while (tile != null)
+			{
+				if (tile.header != null && tile.header.x == x && tile.header.y == y)
+				{
+					if (n < maxTiles)
+						tiles[n++] = tile;
+				}
+				tile = tile.next;
+			}
+
+			return n;
+		}
+
+		public int GetNeighbourTilesAt(int x, int y, int side, PathfinderCommon.MeshTile[] tiles, int maxTiles)
+		{
+			int nx = x, ny = y;
+			switch (side)
+			{
+				case 0:
+					nx++;
+					break;
+
+				case 1:
+					nx++;
+					ny++;
+					break;
+
+				case 2:
+					ny++;
+					break;
+
+				case 3:
+					nx--;
+					ny++;
+					break;
+
+				case 4:
+					nx--;
+					break;
+
+				case 5:
+					nx--;
+					ny--;
+					break;
+
+				case 6:
+					ny--;
+					break;
+
+				case 7:
+					nx++;
+					ny--;
+					break;
+			}
+
+			return GetTilesAt(nx, ny, tiles, maxTiles);
 		}
 
 		public int ComputeTileHash(int x, int y, int mask)
