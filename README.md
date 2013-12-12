@@ -22,3 +22,5 @@ automatic.
 Once the library is mostly done I'll also start working on on a standalone
 editor to make adding off-mesh links and tweaking a navmesh a simple and
 visual process.
+
+SharpNav is proudly an [RCOS](http://rcos.rpi.edu/) project.
