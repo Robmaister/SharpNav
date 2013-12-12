@@ -44,7 +44,10 @@
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="NavMeshCreateParams.cs" />
     <Compile Include="NavMeshDetail.cs" />
+    <Compile Include="NavMeshQuery.cs" />
+    <Compile Include="NodeCommon.cs" />
     <Compile Include="PathfinderCommon.cs" />
+    <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />

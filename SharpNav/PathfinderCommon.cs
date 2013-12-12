@@ -22,6 +22,8 @@ namespace SharpNav
 		public const int EXT_LINK = 0x8000; //entity links to external entity
 		public const uint NULL_LINK = 0xffffffff; //doesn't link to anything
 
+		public const int MAX_AREAS = 64; //max number of user defined area ids
+
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
 		public const int POLTYPE_GROUND = 0; //part of mesh surface
@@ -148,6 +150,19 @@ namespace SharpNav
 			public NavMeshBuilder data;
 			public int flags;
 			public MeshTile next;
+		}
+
+		public static uint NextPow2(uint v)
+		{
+			v--;
+			v |= v >> 1;
+			v |= v >> 2;
+			v |= v >> 4;
+			v |= v >> 8;
+			v |= v >> 16;
+			v++;
+
+			return v;
 		}
 	}
 }
