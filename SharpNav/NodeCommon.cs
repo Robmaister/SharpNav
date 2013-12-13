@@ -11,6 +11,11 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// Node class: Every polygon becomes a Node, which contains a position and cost.
+	/// NodePool: Link all nodes together. Store indices in hash map.
+	/// NodeQueue: Use a priority queue (heap) to determine which node is more important.
+	/// </summary>
 	public class NodeCommon
 	{
 		public const int NODE_OPEN = 0x01;

@@ -761,7 +761,7 @@ namespace SharpNav
 				float d0 = (new Vector3(pos - v0)).Length;
 				float d1 = (new Vector3(pos - v1)).Length;
 				float u = d0 / (d0 + d1);
-				VectorLinearInterpolation(ref closest, v0, v1, u);
+				PathfinderCommon.VectorLinearInterpolation(ref closest, v0, v1, u);
 				return;
 			}
 
@@ -793,7 +793,7 @@ namespace SharpNav
 
 				Vector3 va = verts[imin];
 				Vector3 vb = verts[(imin + 1) % nv];
-				VectorLinearInterpolation(ref closest, va, vb, edget[imin]);
+				PathfinderCommon.VectorLinearInterpolation(ref closest, va, vb, edget[imin]);
 			}
 
 			//find height at the location
@@ -826,14 +826,6 @@ namespace SharpNav
 			overlap = (amin.Y > bmax.Y || amax.Y < bmin.Y) ? false : overlap;
 			overlap = (amin.Z > bmax.Z || amax.Z < bmin.Z) ? false : overlap;
 			return overlap;
-		}
-
-		public void VectorLinearInterpolation(ref Vector3 dest, Vector3 v1, Vector3 v2, float t)
-		{
-			dest = new Vector3();
-			dest.X = v1.X + (v2.X - v1.X) * t;
-			dest.Y = v1.Y + (v2.Y - v1.Y) * t;
-			dest.Z = v1.Z + (v2.Z - v1.Z) * t;
 		}
 
 		public bool DistancePointPolyEdgesSquare(Vector3 pt, Vector3[] verts, int nverts, float[] ed, float[] et)
@@ -1047,6 +1039,51 @@ namespace SharpNav
 				}
 			}
 			return EncodePolyId(tile.salt, it, 0);
+		}
+
+		/// <summary>
+		/// Only use this function if it is known that the provided polygon reference is valid.
+		/// </summary>
+		/// <param name="reference"></param>
+		/// <param name="tile"></param>
+		/// <param name="poly"></param>
+		public void GetTileAndPolyByRefUnsafe(uint reference, ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.Poly poly)
+		{
+			uint salt = 0, indexTile = 0, indexPoly = 0;
+			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
+			tile = m_tiles[indexTile];
+			poly = m_tiles[indexTile].polys[indexPoly];
+		}
+
+		public bool IsValidPolyRef(uint reference)
+		{
+			if (reference == 0)
+				return false;
+
+			uint salt = 0, indexTile = 0, indexPoly = 0;
+			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
+
+			if (indexTile >= m_maxTiles)
+				return false;
+
+			if (m_tiles[indexTile].salt != salt || m_tiles[indexTile].header == null)
+				return false;
+
+			if (indexPoly >= m_tiles[indexTile].header.polyCount)
+				return false;
+
+			return true;
+		}
+
+		//decode a standard polygon reference
+		public void DecodePolyId(uint reference, ref uint salt, ref uint indexTile, ref uint indexPoly)
+		{
+			uint saltMask = (uint)(1 << (int)m_saltBits) - 1;
+			uint tileMask = (uint)(1 << (int)m_tileBits) - 1;
+			uint polyMask = (uint)(1 << (int)m_polyBits) - 1;
+			salt = (reference >> (int)(m_polyBits + m_tileBits)) & saltMask;
+			indexTile = (reference >> (int)m_polyBits) & tileMask;
+			indexPoly = reference & polyMask;
 		}
 
 		//extract a tile's salt value from the specified polygon reference

@@ -11,10 +11,11 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	///<summary>
+	///Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
+	/// </summary>
 	public class NavMeshCreateParams
 	{
-		//Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
-
 		//NavMesh Attributes
 		//Used to create base navigation graph
 		public Vector3[] verts;

@@ -11,6 +11,9 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// Store constants, structs, methods in this single class so that other classes can access this information.
+	/// </summary>
 	public class PathfinderCommon
 	{
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
@@ -119,7 +122,7 @@ namespace SharpNav
 			public int maxPolys;
 		}
 
-		public struct Link
+		public class Link
 		{
 			public uint reference; //neighbor reference (the one it's linked to)
 			public uint next; //index of next link
@@ -163,6 +166,14 @@ namespace SharpNav
 			v++;
 
 			return v;
+		}
+
+		public static void VectorLinearInterpolation(ref Vector3 dest, Vector3 v1, Vector3 v2, float t)
+		{
+			dest = new Vector3();
+			dest.X = v1.X + (v2.X - v1.X) * t;
+			dest.Y = v1.Y + (v2.Y - v1.Y) * t;
+			dest.Z = v1.Z + (v2.Z - v1.Z) * t;
 		}
 	}
 }

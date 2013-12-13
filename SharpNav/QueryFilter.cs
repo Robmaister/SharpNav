@@ -11,6 +11,9 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// Define polygon filtering and modify the costs depending on area type
+	/// </summary>
 	public class QueryFilter
 	{
 		public float[] m_areaCost; //cost per area type
