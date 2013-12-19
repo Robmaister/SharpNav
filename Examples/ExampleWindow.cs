@@ -24,6 +24,7 @@ using SharpNav.Geometry;
 
 using Key = OpenTK.Input.Key;
 using GwenKey = Gwen.Key;
+using System.Diagnostics;
 
 namespace Examples
 {
@@ -271,6 +272,9 @@ namespace Examples
 
 		private void GenerateNavMesh()
 		{
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
 			BBox3 bounds = level.GetBounds();
 			heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
 			heightfield.RasterizeTriangles(level.GetTriangles());
@@ -293,6 +297,11 @@ namespace Examples
 			navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, settings.SampleDistance, settings.MaxSmapleError);
 
 			hasGenerated = true;
+
+			sw.Stop();
+
+			Label l = (Label)statusBar.FindChildByName("GenTime");
+			l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 		}
 	}
 }

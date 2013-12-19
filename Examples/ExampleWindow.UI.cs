@@ -12,6 +12,7 @@ namespace Examples
 	public partial class ExampleWindow
 	{
 		private GenSettings settings;
+		private StatusBar statusBar;
 
 		private void InitializeUI()
 		{
@@ -21,6 +22,13 @@ namespace Examples
 			dock.Dock = Pos.Fill;
 			dock.SetSize(Width, Height);
 			dock.RightDock.Width = 280;
+
+			statusBar = new StatusBar(gwenCanvas);
+
+			Label genTime = new Label(statusBar);
+			genTime.Name = "GenTime";
+			genTime.Text = "Generation Time: 0ms";
+			genTime.Dock = Pos.Left;
 
 			Base genBase = new Base(dock);
 			dock.RightDock.TabControl.AddPage("NavMesh Generation", genBase);
