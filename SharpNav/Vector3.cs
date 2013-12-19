@@ -22,6 +22,8 @@ SOFTWARE.
  */
 #endregion
 
+#if !MONOGAME && !OPENTK && !SHARPDX && !XNA
+
 using System;
 using System.Runtime.InteropServices;
 
@@ -230,12 +232,9 @@ namespace SharpNav
 		/// </summary>
 		/// <see cref="LengthFast"/>
 		/// <seealso cref="LengthSquared"/>
-		public float Length
+		public float Length()
 		{
-			get
-			{
-				return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z);
-			}
+			return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z);
 		}
 
 		#endregion
@@ -251,12 +250,9 @@ namespace SharpNav
 		/// </remarks>
 		/// <see cref="Length"/>
 		/// <seealso cref="LengthFast"/>
-		public float LengthSquared
+		public float LengthSquared()
 		{
-			get
-			{
-				return X * X + Y * Y + Z * Z;
-			}
+			return X * X + Y * Y + Z * Z;
 		}
 
 		#endregion
@@ -278,7 +274,7 @@ namespace SharpNav
 		/// </summary>
 		public void Normalize()
 		{
-			float scale = 1.0f / this.Length;
+			float scale = 1.0f / this.Length();
 			X *= scale;
 			Y *= scale;
 			Z *= scale;
@@ -694,7 +690,7 @@ namespace SharpNav
 		/// <returns>The minimum Vector3</returns>
 		public static Vector3 Min(Vector3 left, Vector3 right)
 		{
-			return left.LengthSquared < right.LengthSquared ? left : right;
+			return left.LengthSquared() < right.LengthSquared() ? left : right;
 		}
 
 		#endregion
@@ -709,7 +705,7 @@ namespace SharpNav
 		/// <returns>The minimum Vector3</returns>
 		public static Vector3 Max(Vector3 left, Vector3 right)
 		{
-			return left.LengthSquared >= right.LengthSquared ? left : right;
+			return left.LengthSquared() >= right.LengthSquared() ? left : right;
 		}
 
 		#endregion
@@ -756,7 +752,7 @@ namespace SharpNav
 		/// <returns>The normalized vector</returns>
 		public static Vector3 Normalize(Vector3 vec)
 		{
-			float scale = 1.0f / vec.Length;
+			float scale = 1.0f / vec.Length();
 			vec.X *= scale;
 			vec.Y *= scale;
 			vec.Z *= scale;
@@ -770,7 +766,7 @@ namespace SharpNav
 		/// <param name="result">The normalized vector</param>
 		public static void Normalize(ref Vector3 vec, out Vector3 result)
 		{
-			float scale = 1.0f / vec.Length;
+			float scale = 1.0f / vec.Length();
 			result.X = vec.X * scale;
 			result.Y = vec.Y * scale;
 			result.Z = vec.Z * scale;
@@ -919,7 +915,7 @@ namespace SharpNav
 		/// <remarks>Note that the returned angle is never bigger than the constant Pi.</remarks>
 		public static float CalculateAngle(Vector3 first, Vector3 second)
 		{
-			return (float)System.Math.Acos((Vector3.Dot(first, second)) / (first.Length * second.Length));
+			return (float)System.Math.Acos((Vector3.Dot(first, second)) / (first.Length() * second.Length()));
 		}
 
 		/// <summary>Calculates the angle (in radians) between two vectors.</summary>
@@ -931,7 +927,7 @@ namespace SharpNav
 		{
 			float temp;
 			Vector3.Dot(ref first, ref second, out temp);
-			result = (float)System.Math.Acos(temp / (first.Length * second.Length));
+			result = (float)System.Math.Acos(temp / (first.Length() * second.Length()));
 		}
 
 		#endregion
@@ -1147,3 +1143,5 @@ namespace SharpNav
 		#endregion
 	}
 }
+
+#endif

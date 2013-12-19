@@ -9,6 +9,14 @@ using System;
 using System.Collections.Generic;
 using SharpNav.Geometry;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	public class TiledNavMesh
@@ -645,7 +653,7 @@ namespace SharpNav
 				uint reference = polys[i];
 				Vector3 closestPtPoly = new Vector3();
 				ClosestPointOnPolyInTile(tile, DecodePolyIdPoly(reference), center, ref closestPtPoly);
-				float d = (new Vector3(center - closestPtPoly)).LengthSquared;
+				float d = (center - closestPtPoly).LengthSquared();
 				if (d < nearestDistanceSqr)
 				{
 					nearestPt = closestPtPoly;
@@ -758,8 +766,8 @@ namespace SharpNav
 			{
 				Vector3 v0 = tile.verts[poly.verts[0]];
 				Vector3 v1 = tile.verts[poly.verts[1]];
-				float d0 = (new Vector3(pos - v0)).Length;
-				float d1 = (new Vector3(pos - v1)).Length;
+				float d0 = (pos - v0).Length();
+				float d1 = (pos - v1).Length();
 				float u = d0 / (d0 + d1);
 				PathfinderCommon.VectorLinearInterpolation(ref closest, v0, v1, u);
 				return;

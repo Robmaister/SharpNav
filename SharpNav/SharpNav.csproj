@@ -21,18 +21,60 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+	<SignAssembly>true</SignAssembly>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Standalone\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+	<SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
+    <OutputPath>bin\OpenTK\</OutputPath>
+    <DefineConstants>TRACE;OPENTK</DefineConstants>
+    <Optimize>true</Optimize>
+	<SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
+    <OutputPath>bin\SharpDX\</OutputPath>
+    <DefineConstants>TRACE;SHARPDX</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
+    <OutputPath>bin\MonoGame\</OutputPath>
+    <DefineConstants>TRACE;MONOGAME</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
+    <OutputPath>bin\XNA\</OutputPath>
+    <DefineConstants>TRACE;MONOGAME</DefineConstants>
+    <Optimize>true</Optimize>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('MONOGAME'))">
+    <Reference Include="MonoGame.Framework" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('OPENTK'))">
+    <Reference Include="OpenTK">
+      <HintPath>..\Binaries\OpenTK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('SHARPDX'))">
+    <Reference Include="SharpDX" />
+  </ItemGroup>
+  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+    <Reference Include="Microsoft.Xna.Framework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AreaFlags.cs" />
@@ -60,8 +102,11 @@
     <Compile Include="Vector3.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="Vector3Extensions.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="SharpNav.snk" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -9,6 +9,14 @@ using System;
 using System.Collections.Generic;
 using SharpNav.Geometry;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	/// <summary>
@@ -37,7 +45,7 @@ namespace SharpNav
 
 		public float GetCost(Vector3 pa, Vector3 pb, PathfinderCommon.Poly curPoly)
 		{
-			return (new Vector3(pa - pb).Length) * m_areaCost[curPoly.GetArea()];
+			return (pa - pb).Length() * m_areaCost[curPoly.GetArea()];
 		}
 	}
 }

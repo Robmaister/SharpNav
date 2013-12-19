@@ -9,6 +9,14 @@ using System;
 using System.Collections.Generic;
 using SharpNav.Geometry;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	/// <summary>
@@ -68,7 +76,7 @@ namespace SharpNav
 			startNode.pos = startPos;
 			startNode.pidx = 0;
 			startNode.cost = 0;
-			startNode.total = (new Vector3(startPos - endPos).Length) * H_SCALE;
+			startNode.total = (startPos - endPos).Length() * H_SCALE;
 			startNode.id = startRef;
 			startNode.flags = NodeCommon.NODE_OPEN;
 			m_openList.Push(startNode);
@@ -151,7 +159,7 @@ namespace SharpNav
 						float curCost = filter.GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
 						
 						cost = bestNode.cost + curCost;
-						heuristic = (new Vector3(neighbourNode.pos - endPos).Length) * H_SCALE; 
+						heuristic = (neighbourNode.pos - endPos).Length() * H_SCALE; 
 					}
 
 					float total = cost + heuristic;

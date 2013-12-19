@@ -11,6 +11,12 @@ using OpenTK.Graphics.OpenGL;
 using SharpNav;
 using SharpNav.Geometry;
 
+//Prevents name collision under the Standalone configuration
+#if !OPENTK
+using Vector3 = OpenTK.Vector3;
+using SVector3 = SharpNav.Vector3;
+#endif
+
 namespace Examples
 {
 	public partial class ExampleWindow
@@ -103,7 +109,7 @@ namespace Examples
 			level = new ObjModel("nav_test.obj");
 
 			var bounds = level.GetBounds().Center;
-			cam.Position = new OpenTK.Vector3(bounds.X, bounds.Y, bounds.Z);
+			cam.Position = new Vector3(bounds.X, bounds.Y, bounds.Z);
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
@@ -213,7 +219,7 @@ namespace Examples
 			{
 				for (int j = 0; j < heightfield.Width; j++)
 				{
-					SharpNav.Vector3 cellLoc = new SharpNav.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+					var cellLoc = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 					var cell = heightfield[j, i];
 
 					foreach (var span in cell.Spans)
@@ -257,14 +263,14 @@ namespace Examples
 			var halfCellSize = cellSize * 0.5f;
 
 			Matrix4 squareScale, squareTrans;
-			OpenTK.Vector3 squarePos;
+			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
 			for (int i = 0; i < openHeightfield.Length; i++)
 			{
 				for (int j = 0; j < openHeightfield.Width; j++)
 				{
-					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
 					var cell = openHeightfield[j, i];
 
@@ -318,14 +324,14 @@ namespace Examples
 			var halfCellSize = cellSize * 0.5f;
 
 			Matrix4 squareScale, squareTrans;
-			OpenTK.Vector3 squarePos;
+			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
 			for (int i = 0; i < openHeightfield.Length; i++)
 			{
 				for (int j = 0; j < openHeightfield.Width; j++)
 				{
-					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
 					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
 
@@ -374,7 +380,7 @@ namespace Examples
 			var halfCellSize = cellSize * 0.5f;
 
 			Matrix4 squareScale, squareTrans;
-			OpenTK.Vector3 squarePos;
+			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
 			for (int i = 0; i < openHeightfield.Length; i++)
@@ -382,7 +388,7 @@ namespace Examples
 				for (int j = 0; j < openHeightfield.Width; j++)
 				{
 					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
-					squarePos = new OpenTK.Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
+					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
 					for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
 					{
@@ -504,7 +510,7 @@ namespace Examples
 					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1];
 					int vertIndex2 = navMesh.Polys[i].Vertices[j];
 					
-					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					var v = navMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
 					v = navMesh.Verts[vertIndex1];
@@ -539,7 +545,7 @@ namespace Examples
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
 					
-					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					var v = navMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
 					v = navMesh.Verts[vertIndex1];
@@ -567,7 +573,7 @@ namespace Examples
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
 					
-					SharpNav.Vector3 v = navMesh.Verts[vertIndex0];
+					var v = navMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
 					v = navMesh.Verts[vertIndex1];
@@ -581,7 +587,7 @@ namespace Examples
 			GL.Begin(BeginMode.Points);
 			for (int i = 0; i < navMesh.NVerts; i++)
 			{
-				SharpNav.Vector3 v = navMesh.Verts[i];
+				var v = navMesh.Verts[i];
 				GL.Vertex3(v.X, v.Y + 1, v.Z);
 			}
 
@@ -612,7 +618,7 @@ namespace Examples
 				{
 					var t = navMeshDetail.Tris[triIndex + j];
 
-					SharpNav.Vector3 v = navMeshDetail.Verts[vertIndex + t.VertexHash[0]];
+					var v = navMeshDetail.Verts[vertIndex + t.VertexHash[0]];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
 					v = navMeshDetail.Verts[vertIndex + t.VertexHash[1]];

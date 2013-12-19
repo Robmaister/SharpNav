@@ -9,6 +9,14 @@ using System;
 using System.Collections.Generic;
 using SharpNav.Geometry;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	public class NavMeshDetail
@@ -153,16 +161,16 @@ namespace SharpNav
 				//more detail verts
 				for (int j = 0; j < nverts; j++)
 				{
-					verts[j * 3 + 0] += origin[0];
-					verts[j * 3 + 1] += origin[1] + openField.CellHeight;
-					verts[j * 3 + 2] += origin[2];
+					verts[j * 3 + 0] += origin.X;
+					verts[j * 3 + 1] += origin.Y + openField.CellHeight;
+					verts[j * 3 + 2] += origin.Z;
 				}
 
 				for (int j = 0; j < npoly; j++)
 				{
-					poly[j * 3 + 0] += origin[0];
-					poly[j * 3 + 1] += origin[1];
-					poly[j * 3 + 2] += origin[2];
+					poly[j * 3 + 0] += origin.X;
+					poly[j * 3 + 1] += origin.Y;
+					poly[j * 3 + 2] += origin.Z;
 				}
 
 				//save data

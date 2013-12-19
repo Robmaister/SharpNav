@@ -11,6 +11,14 @@ using System.Runtime.InteropServices;
 
 using SharpNav.Geometry;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	/// <summary>

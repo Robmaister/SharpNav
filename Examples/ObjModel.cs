@@ -12,9 +12,13 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using OpenTK;
+
 using SharpNav;
 using SharpNav.Geometry;
+
+#if OPENTK
+using OpenTK;
+#endif
 
 namespace Examples
 {

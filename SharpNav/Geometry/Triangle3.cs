@@ -8,6 +8,14 @@
 using System;
 using System.Runtime.InteropServices;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav.Geometry
 {
 	/// <summary>
@@ -140,7 +148,7 @@ namespace SharpNav.Geometry
 		{
 			get
 			{
-				return Vector3.Cross(AB, AC).Length * 0.5f;
+				return Vector3.Cross(AB, AC).Length() * 0.5f;
 			}
 		}
 
@@ -151,7 +159,7 @@ namespace SharpNav.Geometry
 		{
 			get
 			{
-				return AB.Length + AC.Length + BC.Length;
+				return AB.Length() + AC.Length() + BC.Length();
 			}
 		}
 
