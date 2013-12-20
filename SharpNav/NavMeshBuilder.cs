@@ -29,8 +29,8 @@ namespace SharpNav
 		private PathfinderCommon.PolyDetail[] navDMeshes;
 		private Vector3[] navDVerts;
 		private NavMeshDetail.TrisInfo[] navDTris;
-		private PathfinderCommon.OffMeshConnection[] offMeshCons;
 		private PathfinderCommon.BVNode[] navBvTree;
+		private PathfinderCommon.OffMeshConnection[] offMeshCons;
 
 		public PathfinderCommon.MeshHeader Header { get { return header; } }
 		public Vector3[] NavVerts { get { return navVerts; } }
@@ -63,7 +63,7 @@ namespace SharpNav
 			{
 				//find height bounds
 				float hmin = float.MaxValue;
-				float hmax = -float.MinValue;
+				float hmax = -float.MaxValue;
 
 				if (parameters.detailVerts.Length != 0 && parameters.detailVertsCount != 0)
 				{
@@ -185,8 +185,17 @@ namespace SharpNav
 				}
 			}
 
-			//store header
+			//allocate data
 			header = new PathfinderCommon.MeshHeader();
+			navVerts = new Vector3[totVertCount];
+			navPolys = new PathfinderCommon.Poly[totPolyCount];
+			navDMeshes = new PathfinderCommon.PolyDetail[parameters.polyCount];
+			navDVerts = new Vector3[uniqueDetailVertCount];
+			navDTris = new NavMeshDetail.TrisInfo[detailTriCount];
+			navBvTree = new PathfinderCommon.BVNode[parameters.polyCount * 2];
+			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
+
+			//store header
 			header.magic = PathfinderCommon.NAVMESH_MAGIC;
 			header.version = PathfinderCommon.NAVMESH_VERSION;
 			header.x = parameters.tileX;
@@ -212,7 +221,6 @@ namespace SharpNav
 			int offMeshPolyBase = parameters.polyCount;
 
 			//store vertices
- 			navVerts = new Vector3[totVertCount];
 			for (int i = 0; i < parameters.vertCount; i++)
 			{
 				Vector3 iv = parameters.verts[i];
@@ -234,7 +242,6 @@ namespace SharpNav
 			}
 
 			//store polygons
-			navPolys = new PathfinderCommon.Poly[totPolyCount];
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
 				navPolys[i].vertCount = 0;
@@ -293,9 +300,6 @@ namespace SharpNav
 			}
 
 			//store detail meshes and vertices
-			navDMeshes = new PathfinderCommon.PolyDetail[parameters.polyCount];
-			navDVerts = new Vector3[uniqueDetailVertCount];
-			navDTris = new NavMeshDetail.TrisInfo[detailTriCount];
 			if (parameters.detailMeshes.Length != 0)
 			{
 				int vbase = 0;
@@ -356,7 +360,6 @@ namespace SharpNav
 			}
 
 			//store and create BV tree
-			navBvTree = new PathfinderCommon.BVNode[parameters.polyCount * 2];
 			if (parameters.buildBvTree)
 			{
 				//build tree
@@ -365,7 +368,6 @@ namespace SharpNav
 
 			//store off-mesh connections
 			n = 0;
-			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
 			for (int i = 0; i < parameters.offMeshConCount; i++)
 			{
 				//only store connections which start from this tile
@@ -477,7 +479,7 @@ namespace SharpNav
 			int icur = curNode;
 
 			int oldNode = curNode;
-			PathfinderCommon.BVNode node = nodes[curNode++];
+			curNode++;
 
 			if (inum == 1)
 			{
@@ -488,7 +490,7 @@ namespace SharpNav
 			else
 			{
 				//split
-				CalcExtends(items, imin, imax, ref node.bounds);
+				CalcExtends(items, imin, imax, ref nodes[oldNode].bounds);
 
 				BBox3 b = nodes[oldNode].bounds;
 				int axis = LongestAxis((int)(b.Max.X - b.Min.X), (int)(b.Max.Y - b.Min.Y), (int)(b.Max.Z - b.Min.Z));
@@ -534,9 +536,9 @@ namespace SharpNav
 				if (items[i].bounds.Min.Y < bounds.Min.Y) bounds.Min.Y = items[i].bounds.Min.Y;
 				if (items[i].bounds.Min.Z < bounds.Min.Z) bounds.Min.Z = items[i].bounds.Min.Z;
 
-				if (items[i].bounds.Max.X > bounds.Min.X) bounds.Max.X = items[i].bounds.Max.X;
-				if (items[i].bounds.Max.Y > bounds.Min.Y) bounds.Max.Y = items[i].bounds.Max.Y;
-				if (items[i].bounds.Max.Z > bounds.Min.Z) bounds.Max.Z = items[i].bounds.Max.Z;
+				if (items[i].bounds.Max.X > bounds.Max.X) bounds.Max.X = items[i].bounds.Max.X;
+				if (items[i].bounds.Max.Y > bounds.Max.Y) bounds.Max.Y = items[i].bounds.Max.Y;
+				if (items[i].bounds.Max.Z > bounds.Max.Z) bounds.Max.Z = items[i].bounds.Max.Z;
 			}
 		}
 
