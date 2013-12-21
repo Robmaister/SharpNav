@@ -176,12 +176,101 @@ namespace SharpNav
 			return v;
 		}
 
+		public static uint Ilog2(uint v)
+		{
+			uint r;
+			int shift;
+			r = (uint)((v > 0xffff) ? 1 << 4 : 0 << 4); v >>= (int)r;
+			shift = (v > 0xff) ? 1 << 3 : 0 << 3; v >>= shift; r |= (uint)shift;
+			shift = (v > 0xf) ? 1 << 2 : 0 << 2; v >>= shift; r |= (uint)shift;
+			shift = (v > 0x3) ? 1 << 1 : 0 << 1; v >>= shift; r |= (uint)shift;
+			r |= (v >> 1);
+			return r;
+		}
+
+		public static float VectorDot2D(Vector3 u, Vector3 v)
+		{
+			return u.X * v.X + u.Z * v.Z;
+		}
+
 		public static void VectorLinearInterpolation(ref Vector3 dest, Vector3 v1, Vector3 v2, float t)
 		{
 			dest = new Vector3();
 			dest.X = v1.X + (v2.X - v1.X) * t;
 			dest.Y = v1.Y + (v2.Y - v1.Y) * t;
 			dest.Z = v1.Z + (v2.Z - v1.Z) * t;
+		}
+
+		public static bool DistancePointPolyEdgesSquare(Vector3 pt, Vector3[] verts, int nverts, float[] ed, float[] et)
+		{
+			bool c = false;
+
+			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+			{
+				Vector3 vi = verts[i];
+				Vector3 vj = verts[j];
+				if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
+					(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
+				{
+					c = !c;
+				}
+
+				ed[j] = DistancePointSegmentSquare2D(pt, vj, vi, ref et[j]);
+			}
+
+			return c;
+		}
+
+		public static float DistancePointSegmentSquare2D(Vector3 pt, Vector3 p, Vector3 q, ref float t)
+		{
+			float pqx = q.X - p.X;
+			float pqz = q.Z - p.Z;
+			float dx = pt.X - p.X;
+			float dz = pt.Z - p.Z;
+			float d = pqx * pqx + pqz * pqz;
+			t = pqx * dx + pqz * dz;
+
+			if (d > 0)
+				t /= d;
+
+			if (t < 0)
+				t = 0;
+			else if (t > 1)
+				t = 1;
+
+			dx = p.X + t * pqx - pt.X;
+			dz = p.Z + t * pqz - pt.Z;
+
+			return dx * dx + dz * dz;
+		}
+
+		public static bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
+		{
+			Vector3 v0 = c - a;
+			Vector3 v1 = b - a;
+			Vector3 v2 = p - a;
+
+			float dot00 = VectorDot2D(v0, v0);
+			float dot01 = VectorDot2D(v0, v1);
+			float dot02 = VectorDot2D(v0, v2);
+			float dot11 = VectorDot2D(v1, v1);
+			float dot12 = VectorDot2D(v1, v2);
+
+			//computer barycentric coordinates
+			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+			float EPS = 1E-4f;
+
+			//if point lies inside triangle, return interpolated y-coordinate
+			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
+			{
+				h = a.Y + v0.Y * u + v1.Y * v;
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

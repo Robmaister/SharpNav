@@ -29,7 +29,7 @@ namespace SharpNav
 		private int m_tileLutMask; //tile hash lookup mask
 
 		private PathfinderCommon.MeshTile[] m_posLookup; //tile hash lookup
-		private PathfinderCommon.MeshTile[] m_nextFree; //freelist of tiles
+		private PathfinderCommon.MeshTile m_nextFree; //freelist of tiles
 		private PathfinderCommon.MeshTile[] m_tiles; //list of tiles
 
 		private uint m_saltBits; //number of salt bits in ID
@@ -48,7 +48,7 @@ namespace SharpNav
 			PathfinderCommon.NavMeshParams parameters;
 			parameters.origin = data.Header.bounds.Min;
 			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
-			parameters.tileHeight = data.Header.bounds.Max.Y - data.Header.bounds.Min.Y;
+			parameters.tileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
 			parameters.maxTiles = 1;
 			parameters.maxPolys = data.Header.polyCount;
 
@@ -81,19 +81,17 @@ namespace SharpNav
 				m_posLookup[i] = null;
 
 			//create a linked list of tiles
-			m_nextFree = new PathfinderCommon.MeshTile[m_maxTiles];
-			m_nextFree[0] = null;
+			m_nextFree = null;
 			for (int i = m_maxTiles - 1; i >= 0; i--)
 			{
-				int endIndex = m_nextFree.Length - 1;
 				m_tiles[i].salt = 1;
-				m_tiles[i].next = m_nextFree[endIndex];
-				m_nextFree[endIndex] = m_tiles[i];
+				m_tiles[i].next = m_nextFree;
+				m_nextFree = m_tiles[i];
 			}
 
 			//init ID generator values
-			m_tileBits = Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxTiles));
-			m_polyBits = Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxPolys));
+			m_tileBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxTiles));
+			m_polyBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxPolys));
 
 			//only allow 31 salt bits, since salt mask is calculated using 32-bit uint and it will overflow
 			m_saltBits = Math.Min(31, 32 - m_tileBits - m_polyBits);
@@ -101,19 +99,6 @@ namespace SharpNav
 				return false;
 
 			return true;
-		}
-
-
-		public uint Ilog2(uint v)
-		{
-			uint r;
-			int shift;
-			r = (uint)((v > 0xffff) ? 1 << 4 : 0 << 4); v >>= (int)r;
-			shift = (v > 0xff) ? 1 << 3 : 0 << 3; v >>= shift; r |= (uint)shift;
-			shift = (v > 0xf) ? 1 << 2 : 0 << 2; v >>= shift; r |= (uint)shift;
-			shift = (v > 0x3) ? 1 << 1 : 0 << 1; v >>= shift; r |= (uint)shift;
-			r |= (v >> 1);
-			return r;
 		}
 
 		public void AddTile(NavMeshBuilder data, int flags, uint lastRef, ref uint result)
@@ -133,11 +118,10 @@ namespace SharpNav
 			PathfinderCommon.MeshTile tile = null;
 			if (lastRef == 0)
 			{
-				int endIndex = m_nextFree.Length - 1;
-				if (m_nextFree[endIndex] != null)
+				if (m_nextFree != null)
 				{
-					tile = m_nextFree[endIndex];
-					m_nextFree[endIndex] = tile.next;
+					tile = m_nextFree;
+					m_nextFree = tile.next;
 					tile.next = null;
 				}
 			}
@@ -151,8 +135,7 @@ namespace SharpNav
 				//try to find specific tile id from free list
 				PathfinderCommon.MeshTile target = m_tiles[tileIndex];
 				PathfinderCommon.MeshTile prev = null;
-				int endIndex = m_nextFree.Length - 1;
-				tile = m_nextFree[endIndex];
+				tile = m_nextFree;
 				while (tile != null && tile != target)
 				{
 					prev = tile;
@@ -165,7 +148,7 @@ namespace SharpNav
 
 				//remove from freelist
 				if (prev == null)
-					m_nextFree[endIndex] = tile.next;
+					m_nextFree = tile.next;
 				else
 					prev.next = tile.next;
 
@@ -561,6 +544,7 @@ namespace SharpNav
 				{
 					bmin[0] = va.Z;
 					bmin[1] = va.Y;
+					
 					bmax[0] = vb.Z;
 					bmax[1] = vb.Y;
 				}
@@ -568,6 +552,7 @@ namespace SharpNav
 				{
 					bmin[0] = vb.Z;
 					bmin[1] = vb.Y;
+					
 					bmax[0] = va.Z;
 					bmax[1] = va.Y;
 				}
@@ -578,6 +563,7 @@ namespace SharpNav
 				{
 					bmin[0] = va.X;
 					bmin[1] = va.Y;
+					
 					bmax[0] = vb.X;
 					bmax[1] = vb.Y;
 				}
@@ -585,6 +571,7 @@ namespace SharpNav
 				{
 					bmin[0] = vb.X;
 					bmin[1] = vb.Y;
+					
 					bmax[0] = va.X;
 					bmax[1] = va.Y;
 				}
@@ -784,7 +771,7 @@ namespace SharpNav
 				verts[i] = tile.verts[poly.verts[i]];
 
 			closest = pos;
-			if (!DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
+			if (!PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
 			{
 				//point is outside polygon so clamp to nearest edge
 				float dmin = float.MaxValue;
@@ -819,7 +806,7 @@ namespace SharpNav
 				}
 
 				float h = 0;
-				if (ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
+				if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
 				{
 					closest.Y = h;
 					break;
@@ -836,82 +823,7 @@ namespace SharpNav
 			return overlap;
 		}
 
-		public bool DistancePointPolyEdgesSquare(Vector3 pt, Vector3[] verts, int nverts, float[] ed, float[] et)
-		{
-			bool c = false;
-
-			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
-			{
-				Vector3 vi = verts[i];
-				Vector3 vj = verts[j];
-				if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
-					(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
-				{
-					c = !c;
-				}
-
-				ed[j] = DistancePointSegmentSquare2D(pt, vj, vi, ref et[j]);
-			}
-
-			return c;
-		}
-
-		public float DistancePointSegmentSquare2D(Vector3 pt, Vector3 p, Vector3 q, ref float t)
-		{
-			float pqx = q.X - p.X;
-			float pqz = q.Z - p.Z;
-			float dx = pt.X - p.X;
-			float dz = pt.Z - p.Z;
-			float d = pqx * pqx + pqz * pqz;
-			t = pqx * dx + pqz * dz;
-			
-			if (d > 0)
-				t /= d;
-
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = p.X + t * pqx - pt.X;
-			dz = p.Z + t * pqz - pt.Z;
-
-			return dx * dx + dz * dz;
-		}
-
-		public bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
-		{
-			Vector3 v0 = c - a;
-			Vector3 v1 = b - a;
-			Vector3 v2 = p - a;
-
-			float dot00 = VDot2D(v0, v0);
-			float dot01 = VDot2D(v0, v1);
-			float dot02 = VDot2D(v0, v2);
-			float dot11 = VDot2D(v1, v1);
-			float dot12 = VDot2D(v1, v2);
-
-			//computer barycentric coordinates
-			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
-			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-			float EPS = 1E-4f;
-
-			//if point lies inside triangle, return interpolated y-coordinate
-			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
-			{
-				h = a.Y + v0.Y * u + v1.Y * v;
-				return true;
-			}
-
-			return false;
-		}
-
-		public float VDot2D(Vector3 u, Vector3 v)
-		{
-			return u.X * v.X + u.Z * v.Z;
-		}
+		
 
 		public uint AllocLink(PathfinderCommon.MeshTile tile)
 		{
@@ -1049,12 +961,31 @@ namespace SharpNav
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
+		public bool GetTileAndPolyByRef(uint reference, ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.Poly poly)
+		{
+			if (reference == 0)
+				return false;
+
+			uint salt = 0, indexTile = 0, indexPoly = 0;
+			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
+			
+			if (indexTile >= m_maxTiles)
+				return false;
+
+			if (m_tiles[indexTile].salt != salt || m_tiles[indexTile].header == null)
+				return false;
+
+			if (indexPoly >= m_tiles[indexTile].header.polyCount)
+				return false;
+
+			tile = m_tiles[indexTile];
+			poly = m_tiles[indexTile].polys[indexPoly];
+			return true;
+		}
+
 		/// <summary>
 		/// Only use this function if it is known that the provided polygon reference is valid.
 		/// </summary>
-		/// <param name="reference"></param>
-		/// <param name="tile"></param>
-		/// <param name="poly"></param>
 		public void GetTileAndPolyByRefUnsafe(uint reference, ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.Poly poly)
 		{
 			uint salt = 0, indexTile = 0, indexPoly = 0;
