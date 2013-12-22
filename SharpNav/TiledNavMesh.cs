@@ -36,6 +36,8 @@ namespace SharpNav
 		private uint m_tileBits; //number of tile bits in ID
 		private uint m_polyBits; //number of poly bits in ID
 
+		public int GetMaxTiles() { return m_maxTiles; }
+		public PathfinderCommon.MeshTile GetTile(int i) { return m_tiles[i]; }
 
 		public TiledNavMesh(NavMeshBuilder data, int flags)
 		{
@@ -688,7 +690,7 @@ namespace SharpNav
 				
 				while (node < end)
 				{
-					bool overlap = OverlapQuantBounds(bmin, bmax, tile.bvTree[node].bounds.Min, tile.bvTree[node].bounds.Max);
+					bool overlap = PathfinderCommon.OverlapQuantBounds(bmin, bmax, tile.bvTree[node].bounds.Min, tile.bvTree[node].bounds.Max);
 					bool isLeafNode = tile.bvTree[node].index >= 0;
 
 					if (isLeafNode && overlap)
@@ -733,7 +735,7 @@ namespace SharpNav
 						bmax = Vector3.Min(bmax, tile.verts[tile.polys[i].verts[j]]);
 					}
 
-					if (OverlapQuantBounds(qmin, qmax, bmin, bmax))
+					if (PathfinderCommon.OverlapQuantBounds(qmin, qmax, bmin, bmax))
 					{
 						if (n < maxPolys)
 							polys[n++] = polyBase | (uint)i;
@@ -813,17 +815,6 @@ namespace SharpNav
 				}
 			}
 		}
-
-		public bool OverlapQuantBounds(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax)
-		{
-			bool overlap = true;
-			overlap = (amin.X > bmax.X || amax.X < bmin.X) ? false : overlap;
-			overlap = (amin.Y > bmax.Y || amax.Y < bmin.Y) ? false : overlap;
-			overlap = (amin.Z > bmax.Z || amax.Z < bmin.Z) ? false : overlap;
-			return overlap;
-		}
-
-		
 
 		public uint AllocLink(PathfinderCommon.MeshTile tile)
 		{

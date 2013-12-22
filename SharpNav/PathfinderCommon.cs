@@ -201,6 +201,24 @@ namespace SharpNav
 			dest.Z = v1.Z + (v2.Z - v1.Z) * t;
 		}
 
+		public static float TriangleArea2D(Vector3 a, Vector3 b, Vector3 c)
+		{
+			float abx = b.X - a.X;
+			float abz = b.Z - a.Z;
+			float acx = c.X - a.X;
+			float acz = c.Z - a.Z;
+			return acx * abz - abx * acz;
+		}
+
+		public static bool OverlapQuantBounds(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax)
+		{
+			bool overlap = true;
+			overlap = (amin.X > bmax.X || amax.X < bmin.X) ? false : overlap;
+			overlap = (amin.Y > bmax.Y || amax.Y < bmin.Y) ? false : overlap;
+			overlap = (amin.Z > bmax.Z || amax.Z < bmin.Z) ? false : overlap;
+			return overlap;
+		}
+
 		public static bool DistancePointPolyEdgesSquare(Vector3 pt, Vector3[] verts, int nverts, float[] ed, float[] et)
 		{
 			bool c = false;
@@ -271,6 +289,47 @@ namespace SharpNav
 			}
 
 			return false;
+		}
+
+		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, ref Vector3 pt)
+		{
+			//calculate triangle areas
+			float areaSum = 0.0f;
+			for (int i = 2; i < npts; i++)
+			{
+				areas[i] = TriangleArea2D(pts[0], pts[i - 1], pts[i]);
+				areaSum += Math.Max(0.001f, areas[i]);
+			}
+
+			//find sub triangle weighted by area
+			float thr = s * areaSum;
+			float acc = 0.0f;
+			float u = 0.0f;
+			int tri = 0;
+			for (int i = 2; i < npts; i++)
+			{
+				float dacc = areas[i];
+				if (thr >= acc && thr < (acc + dacc))
+				{
+					u = (thr - acc) / dacc;
+					tri = i;
+					break;
+				}
+				acc += dacc;
+			}
+
+			float v = (float)Math.Sqrt(t);
+
+			float a = 1 - v;
+			float b = (1 - u) * v;
+			float c = u * v;
+			Vector3 pa = pts[0];
+			Vector3 pb = pts[tri - 1];
+			Vector3 pc = pts[tri];
+
+			pt.X = a * pa.X + b * pb.X + c * pc.X;
+			pt.Y = a * pa.Y + b * pb.Y + c * pc.Y;
+			pt.Z = a * pa.Z + b * pb.Z + c * pc.Z;
 		}
 	}
 }
