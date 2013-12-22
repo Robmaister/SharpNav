@@ -51,6 +51,10 @@ namespace Examples
 		private ContourSet contourSet;
 		private NavMesh navMesh;
 		private NavMeshDetail navMeshDetail;
+		private NavMeshCreateParams parameters;
+		private NavMeshBuilder buildData;
+		private TiledNavMesh tileMesh;
+		private NavMeshQuery navQuery;
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -295,6 +299,40 @@ namespace Examples
 
 			navMesh = new NavMesh(contourSet, settings.VertsPerPoly);
 			navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+
+			parameters = new NavMeshCreateParams();
+			parameters.verts = navMesh.Verts;
+			parameters.vertCount = navMesh.NVerts;
+			parameters.polys = navMesh.Polys;
+			parameters.polyAreas = navMesh.Areas;
+			parameters.polyFlags = navMesh.Flags;
+			parameters.polyCount = navMesh.NPolys;
+			parameters.numVertsPerPoly = navMesh.NumVertsPerPoly;
+			parameters.detailMeshes = navMeshDetail.Meshes;
+			parameters.detailVerts = navMeshDetail.Verts;
+			parameters.detailVertsCount = navMeshDetail.NVerts;
+			parameters.detailTris = navMeshDetail.Tris;
+			parameters.detailTriCount = navMeshDetail.NTris;
+			//no support for offmesh connections
+			parameters.offMeshConVerts = null;
+			parameters.offMeshConRadii = null;
+			parameters.offMeshConDir = null;
+			parameters.offMeshConAreas = null;
+			parameters.offMeshConFlags = null;
+			parameters.offMeshConUserID = null;
+			parameters.offMeshConCount = 0; 
+			parameters.walkableHeight = settings.MaxHeight;
+			parameters.walkableRadius = 1; //not really used, but set a default value anyway
+			parameters.walkableClimb = settings.MaxClimb;
+			parameters.bounds = navMesh.Bounds;
+			parameters.cellSize = navMesh.CellSize;
+			parameters.cellHeight = navMesh.CellHeight;
+			parameters.buildBvTree = true;
+
+			buildData = new NavMeshBuilder(parameters);
+
+			tileMesh = new TiledNavMesh(buildData, PathfinderCommon.TILE_FREE_DATA);
+			navQuery = new NavMeshQuery(tileMesh, 2048);
 
 			hasGenerated = true;
 

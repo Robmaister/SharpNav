@@ -41,7 +41,7 @@ namespace SharpNav
 		public PathfinderCommon.BVNode[] NavBvTree { get { return navBvTree; } }
 		public PathfinderCommon.OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
-		public NavMeshBuilder(NavMeshCreateParams parameters, int[] outData, ref int outDataSize)
+		public NavMeshBuilder(NavMeshCreateParams parameters)
 		{
 			if (parameters.numVertsPerPoly > PathfinderCommon.VERTS_PER_POLYGON)
 				return;
@@ -244,11 +244,12 @@ namespace SharpNav
 			//store polygons
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
+				navPolys[i] = new PathfinderCommon.Poly();
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
 				navPolys[i].SetArea((int)parameters.polyAreas[i]);
 				navPolys[i].SetType(PathfinderCommon.POLTYPE_GROUND);
-
+				
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
@@ -298,7 +299,7 @@ namespace SharpNav
 					n++;
 				}
 			}
-
+			
 			//store detail meshes and vertices
 			if (parameters.detailMeshes.Length != 0)
 			{
@@ -358,7 +359,7 @@ namespace SharpNav
 					}
 				}
 			}
-
+			
 			//store and create BV tree
 			if (parameters.buildBvTree)
 			{

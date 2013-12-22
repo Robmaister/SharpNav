@@ -78,7 +78,7 @@ namespace SharpNav
 			m_tiles = new PathfinderCommon.MeshTile[m_maxTiles];
 			m_posLookup = new PathfinderCommon.MeshTile[m_tileLutSize];
 			for (int i = 0; i < m_tiles.Length; i++)
-				m_tiles[i] = null;
+				m_tiles[i] = new PathfinderCommon.MeshTile();
 			for (int i = 0; i < m_posLookup.Length; i++)
 				m_posLookup[i] = null;
 
@@ -90,7 +90,7 @@ namespace SharpNav
 				m_tiles[i].next = m_nextFree;
 				m_nextFree = m_tiles[i];
 			}
-
+			
 			//init ID generator values
 			m_tileBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxTiles));
 			m_polyBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxPolys));
@@ -180,7 +180,11 @@ namespace SharpNav
 			tile.offMeshCons = data.OffMeshCons;
 
 			//build links freelist
-			tile.linkesFreeList = 0;
+			tile.linksFreeList = 0;
+			tile.links = new PathfinderCommon.Link[header.maxLinkCount];
+			for (int i = 0; i < header.maxLinkCount; i++)
+				tile.links[i] = new PathfinderCommon.Link();
+
 			tile.links[header.maxLinkCount - 1].next = PathfinderCommon.NULL_LINK;
 			for (int i = 0; i < header.maxLinkCount - 1; i++)
 				tile.links[i].next = (uint)i + 1;
@@ -818,11 +822,11 @@ namespace SharpNav
 
 		public uint AllocLink(PathfinderCommon.MeshTile tile)
 		{
-			if (tile.linkesFreeList == PathfinderCommon.NULL_LINK)
+			if (tile.linksFreeList == PathfinderCommon.NULL_LINK)
 				return PathfinderCommon.NULL_LINK;
 
-			uint link = tile.linkesFreeList;
-			tile.linkesFreeList = tile.links[link].next;
+			uint link = tile.linksFreeList;
+			tile.linksFreeList = tile.links[link].next;
 			return link;
 		}
 

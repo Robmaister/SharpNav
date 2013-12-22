@@ -47,6 +47,7 @@ namespace SharpNav
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
 		public Vector3[] Verts { get { return verts; } }
 		public Polygon[] Polys { get { return polys; } }
+		public int[] Flags { get { return flags; } }
 		public AreaFlags[] Areas { get { return areas; } }
 
 		public BBox3 Bounds { get { return bounds; } }

@@ -37,6 +37,8 @@ namespace SharpNav
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
+		public const int TILE_FREE_DATA = 0x01; //tiled mesh owns tile memory
+
 		public const int POLTYPE_GROUND = 0; //part of mesh surface
 		public const int POLTYPE_OFFMESH_CONNECTION = 1; //off-mesh connection consisting of two vertices
 
@@ -74,7 +76,7 @@ namespace SharpNav
 			public int[] neis; //packed data representing neighbor polygons references and flags for each edge
 			public int flags; //user defined polygon flags
 			public int vertCount;
-			public int areaAndtype; //bit packed area id and polygon type
+			public int areaAndtype = 0; //bit packed area id and polygon type
 
 			public void SetArea(int a)
 			{
@@ -144,7 +146,7 @@ namespace SharpNav
 		{
 			public uint salt; //counter describing modifications to the tile
 
-			public uint linkesFreeList; //index to the next free link
+			public uint linksFreeList; //index to the next free link
 			public PathfinderCommon.MeshHeader header;
 			public PathfinderCommon.Poly[] polys;
 			public Vector3[] verts;
