@@ -40,7 +40,8 @@ namespace Examples
 			Contours,
 			SimplifiedContours,
 			NavMesh,
-			NavMeshDetail
+			NavMeshDetail,
+			Pathfinding
 		}
 
 		private Camera cam;
@@ -53,9 +54,13 @@ namespace Examples
 		private NavMeshDetail navMeshDetail;
 		private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
-		private TiledNavMesh tileMesh;
-		private NavMeshQuery navQuery;
+		private TiledNavMesh tiledNavMesh;
+		private NavMeshQuery navMeshQuery;
 
+		private SharpNav.Vector3 startPos;
+		private SharpNav.Vector3 endPos;
+		private int pathCount;
+		private uint[] path;
 		private bool hasGenerated;
 		private bool displayLevel;
 		private DisplayMode displayMode;
@@ -237,6 +242,9 @@ namespace Examples
 					case DisplayMode.NavMeshDetail:
 						DrawNavMeshDetail();
 						break;
+					case DisplayMode.Pathfinding:
+						DrawPathfinding();
+						break;
 				}
 			}
 
@@ -331,9 +339,23 @@ namespace Examples
 
 			buildData = new NavMeshBuilder(parameters);
 
-			tileMesh = new TiledNavMesh(buildData, PathfinderCommon.TILE_FREE_DATA);
-			navQuery = new NavMeshQuery(tileMesh, 2048);
+			tiledNavMesh = new TiledNavMesh(buildData, PathfinderCommon.TILE_FREE_DATA);
+			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
+			
+			QueryFilter filter = new QueryFilter();
+			uint startRef = 0;
+			startPos = new SharpNav.Vector3();
+			navMeshQuery.FindRandomPoint(ref filter, ref startRef, ref startPos);
 
+			uint endRef = 0;
+			endPos = new SharpNav.Vector3();
+			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
+			
+			int MAX_POLYS = 256;
+			path = new uint[MAX_POLYS];
+			pathCount = 0;
+			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
+			
 			hasGenerated = true;
 
 			sw.Stop();

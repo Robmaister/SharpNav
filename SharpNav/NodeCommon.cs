@@ -105,10 +105,12 @@ namespace SharpNav
 			{
 				uint bucket = HashRef(id) & ((uint)m_hashSize - 1);
 				int i = m_first[bucket];
-				Node node = null;
 
 				while (i != NULL_IDX)
 				{
+					if (m_nodes[i] == null)
+						break;
+
 					if (m_nodes[i].id == id)
 						return m_nodes[i];
 
@@ -121,14 +123,13 @@ namespace SharpNav
 				i = m_nodeCount;
 				m_nodeCount++;
 
-				node = m_nodes[i];
-				node.pidx = 0;
-				node.cost = 0;
-				node.total = 0;
-				node.id = id;
-				node.flags = 0;
-				m_nodes[i] = node;
-
+				m_nodes[i] = new Node();
+				m_nodes[i].pidx = 0;
+				m_nodes[i].cost = 0;
+				m_nodes[i].total = 0;
+				m_nodes[i].id = id;
+				m_nodes[i].flags = 0;
+				
 				m_next[i] = m_first[bucket];
 				m_first[bucket] = i;
 
@@ -151,6 +152,9 @@ namespace SharpNav
 
 			public Node GetNodeAtIdx(int idx)
 			{
+				if (idx <= 0 || idx > m_maxNodes)
+					return null;
+
 				return m_nodes[idx - 1];
 			}
 

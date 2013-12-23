@@ -79,9 +79,10 @@ namespace Examples
 			displayModes.AddItem("Simplified Contours", "", DisplayMode.SimplifiedContours);
 			displayModes.AddItem("Navigation Mesh", "", DisplayMode.NavMesh);
 			displayModes.AddItem("Navigation Mesh Detail", "", DisplayMode.NavMeshDetail);
+			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 
-			displayModes.SelectByUserData(DisplayMode.NavMesh);
+			displayModes.SelectByUserData(DisplayMode.Pathfinding);
 
 			displayModeBase.SizeToChildren();
 			displayModeBase.Height += 4; //accounts for the padding, GWEN.NET should do this

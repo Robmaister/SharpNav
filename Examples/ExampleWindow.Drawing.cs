@@ -592,7 +592,7 @@ namespace Examples
 			}
 
 			GL.End();
-
+			
 			GL.DepthMask(true);
 
 			GL.PopMatrix();
@@ -630,6 +630,84 @@ namespace Examples
 			}
 
 			GL.End();
+
+			GL.PopMatrix();
+		}
+
+		private void DrawPathfinding()
+		{
+			GL.PushMatrix();
+
+			Color4 color = Color4.Cyan;
+
+			GL.Begin(BeginMode.Triangles);
+			for (int i = 0; i < pathCount; i++)
+			{
+				if (i == 0)
+					color = Color4.Cyan;
+				else if (i == pathCount - 1)
+					color = Color4.PaleVioletRed;
+				else
+					color = Color4.LightYellow;
+				GL.Color4(color);
+
+				uint polyRef = path[i];
+				PathfinderCommon.MeshTile tile = null;
+				PathfinderCommon.Poly poly = null;
+				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
+			
+				for (int j = 2; j < poly.vertCount; j++)
+				{
+					int vertIndex0 = poly.verts[0];
+					int vertIndex1 = poly.verts[j - 1];
+					int vertIndex2 = poly.verts[j];
+
+					var v = tile.verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.verts[vertIndex2];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+			GL.End();
+
+			GL.DepthMask(false);
+
+			//neighbor edges
+			GL.LineWidth(1.5f);
+			GL.Begin(BeginMode.Lines);
+			for (int i = 0; i < pathCount; i++)
+			{
+				if (i == 0)
+					color = Color4.Blue;
+				else if (i == pathCount - 1)
+					color = Color4.Red;
+				else
+					color = Color4.Yellow;
+				GL.Color4(color);
+
+				uint polyRef = path[i];
+				PathfinderCommon.MeshTile tile = null;
+				PathfinderCommon.Poly poly = null;
+				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
+
+				for (int j = 0; j < poly.vertCount; j++)
+				{
+					int vertIndex0 = poly.verts[j];
+					int vertIndex1 = poly.verts[(j + 1) % poly.vertCount];
+
+					var v = tile.verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+			GL.End();
+			GL.DepthMask(true);
 
 			GL.PopMatrix();
 		}

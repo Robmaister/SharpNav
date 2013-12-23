@@ -85,10 +85,10 @@ namespace SharpNav
 				if (p.GetType() != PathfinderCommon.POLTYPE_GROUND)
 					continue;
 
-				//must pass filter
+				//NOTE: polygon flags are never set so the filter will remove all polygons
 				uint reference = polyBase | (uint)i;
-				if (filter.PassFilter(p) == false)
-					continue;
+				//if (filter.PassFilter(p) == false)
+				//	continue;
 
 				//calculate area of polygon
 				float polyArea = 0.0f;
@@ -156,12 +156,12 @@ namespace SharpNav
 				return false;
 
 			Random randObj = new Random();
-
 			PathfinderCommon.MeshTile startTile = null;
 			PathfinderCommon.Poly startPoly = null;
 			m_nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
-			if (filter.PassFilter(startPoly) == false)
-				return false;
+			//NOTE: DON'T USE FILTER!
+			//if (filter.PassFilter(startPoly) == false)
+			//	return false;
 
 			m_nodePool.Clear();
 			m_openList.Clear();
@@ -241,8 +241,8 @@ namespace SharpNav
 					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
 					//do not advance if polygon is excluded by filter
-					if (filter.PassFilter(neighbourPoly) == false)
-						continue;
+					//if (filter.PassFilter(neighbourPoly) == false)
+					//	continue;
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
@@ -315,7 +315,7 @@ namespace SharpNav
 
 			randomPt = pt;
 			randomRef = randomPolyRef;
-
+			
 			return true;
 		}
 
@@ -404,8 +404,8 @@ namespace SharpNav
 					PathfinderCommon.Poly neighbourPoly = null;
 					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
-					if (!filter.PassFilter(neighbourPoly))
-						continue;
+					//if (!filter.PassFilter(neighbourPoly))
+					//	continue;
 
 					NodeCommon.Node neighbourNode = m_nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
@@ -488,7 +488,7 @@ namespace SharpNav
 				prev = node;
 				node = next;
 			} while (node != null);
-
+			
 			//store path
 			node = prev;
 			int n = 0;
@@ -503,7 +503,7 @@ namespace SharpNav
 			} while (node != null);
 
 			pathCount = n;
-
+			
 			return true;
 		}
 
