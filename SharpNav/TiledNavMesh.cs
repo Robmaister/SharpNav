@@ -233,6 +233,10 @@ namespace SharpNav
 			result = GetTileRef(tile);
 		}
 
+		/// <summary>
+		/// Allocate links for each of the tile's polygons' vertices
+		/// </summary>
+		/// <param name="tile"></param>
 		public void ConnectIntLinks(ref PathfinderCommon.MeshTile tile)
 		{
 			if (tile == null)
@@ -482,7 +486,7 @@ namespace SharpNav
 
 		public int OppositeTile(int side)
 		{
-			return (side + 4) & 0x7;
+			return (side + 4) % 8;
 		}
 
 		public int FindConnectingPolys(Vector3 va, Vector3 vb, PathfinderCommon.MeshTile tile, int side, uint[] con, float[] conarea, int maxcon)

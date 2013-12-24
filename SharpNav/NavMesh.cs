@@ -602,7 +602,7 @@ namespace SharpNav
 			int[] temp = new int[numA + numB];
 
 			//merge
-			for (int i = 0; i < temp.Length; i++)
+			for (int i = 0; i < numVertsPerPoly; i++)
 				temp[i] = MESH_NULL_IDX;
 
 			int n = 0;
@@ -616,7 +616,8 @@ namespace SharpNav
 				temp[n++] = polys[polyB + (edgeB + 1 + i) % numB];
 
 			//save merged data to new polygon
-			polys = temp;
+			for (int i = 0; i < numVertsPerPoly; i++)
+				polys[polyA + i] = temp[i];
 		}
 
 		///<summary>
