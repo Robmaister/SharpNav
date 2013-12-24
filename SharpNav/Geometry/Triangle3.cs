@@ -235,7 +235,11 @@ namespace SharpNav.Geometry
 		/// <param name="bbox">The triangle's bounding box.</param>
 		public static void GetBoundingBox(ref Triangle3 tri, out BBox3 bbox)
 		{
-			Vector3 a = tri.A, b = tri.B, c = tri.C;
+			GetBoundingBox(ref tri.A, ref tri.B, ref tri.C, out bbox);
+		}
+
+		public static void GetBoundingBox(ref Vector3 a, ref Vector3 b, ref Vector3 c, out BBox3 bbox)
+		{
 			Vector3 min = a, max = a;
 
 			if (b.X < min.X) min.X = b.X;

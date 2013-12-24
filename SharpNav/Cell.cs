@@ -64,7 +64,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// 
+		/// Gets the number of spans that don't have their area flags set to <see cref="AreaFlags.Null"/>.
 		/// </summary>
 		public int NonNullSpanCount
 		{
@@ -123,6 +123,8 @@ namespace SharpNav
 		/// <param name="span">A span.</param>
 		public void AddSpan(Span span)
 		{
+			//TODO propogate areaflags when merging cells.
+
 			//clamp the span to the cell's range of [0, maxHeight]
 			MathHelper.Clamp(ref span.Minimum, 0, height);
 			MathHelper.Clamp(ref span.Maximum, 0, height);

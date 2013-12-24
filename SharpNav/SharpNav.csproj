@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-	<SignAssembly>true</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,13 +30,13 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-	<SignAssembly>true</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
     <OutputPath>bin\OpenTK\</OutputPath>
     <DefineConstants>TRACE;OPENTK</DefineConstants>
     <Optimize>true</Optimize>
-	<SignAssembly>true</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
     <OutputPath>bin\SharpDX\</OutputPath>
@@ -82,6 +82,7 @@
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />
     <Compile Include="ContourSet.cs" />
+    <Compile Include="Internal\HeightfieldHelper.cs" />
     <Compile Include="NavMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="NavMeshCreateParams.cs" />
@@ -107,6 +108,7 @@
   <ItemGroup>
     <None Include="SharpNav.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -51,6 +51,12 @@
     <DefineConstants>XNA</DefineConstants>
     <Optimize>true</Optimize>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>SharpNavTests.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -60,18 +66,18 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('MONOGAME'))">
-      <Reference Include="MonoGame.Framework" />
+    <Reference Include="MonoGame.Framework" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('OPENTK'))">
-      <Reference Include="OpenTK">
-          <HintPath>..\Binaries\OpenTK.dll</HintPath>
-      </Reference>
+    <Reference Include="OpenTK">
+      <HintPath>..\Binaries\OpenTK.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('SHARPDX'))">
-      <Reference Include="SharpDX" />
+    <Reference Include="SharpDX" />
   </ItemGroup>
   <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
-      <Reference Include="Microsoft.Xna.Framework" />
+    <Reference Include="Microsoft.Xna.Framework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RegionTests.cs" />
@@ -84,6 +90,9 @@
       <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
       <Name>SharpNav</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SharpNavTests.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
