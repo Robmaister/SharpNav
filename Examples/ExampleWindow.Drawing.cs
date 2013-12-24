@@ -1,8 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿#region License
+/**
+ * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System;
 
 using OpenTK;
 using OpenTK.Graphics;
@@ -15,6 +18,8 @@ using SharpNav.Geometry;
 #if !OPENTK
 using Vector3 = OpenTK.Vector3;
 using SVector3 = SharpNav.Vector3;
+#else
+
 #endif
 
 namespace Examples

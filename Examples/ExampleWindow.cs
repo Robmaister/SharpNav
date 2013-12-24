@@ -6,12 +6,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
-using Gwen;
 using Gwen.Control;
 
 using OpenTK;
@@ -23,8 +19,14 @@ using SharpNav;
 using SharpNav.Geometry;
 
 using Key = OpenTK.Input.Key;
-using GwenKey = Gwen.Key;
-using System.Diagnostics;
+
+//Prevents name collision under the Standalone configuration
+#if !OPENTK
+using Vector3 = OpenTK.Vector3;
+using SVector3 = SharpNav.Vector3;
+#else
+using SVector3 = OpenTK.Vector3;
+#endif
 
 namespace Examples
 {
@@ -57,8 +59,8 @@ namespace Examples
 		private TiledNavMesh tiledNavMesh;
 		private NavMeshQuery navMeshQuery;
 
-		private SharpNav.Vector3 startPos;
-		private SharpNav.Vector3 endPos;
+		private SVector3 startPos;
+		private SVector3 endPos;
 		private int pathCount;
 		private uint[] path;
 		private bool hasGenerated;
@@ -344,11 +346,11 @@ namespace Examples
 			
 			QueryFilter filter = new QueryFilter();
 			uint startRef = 0;
-			startPos = new SharpNav.Vector3();
+			startPos = new SVector3();
 			navMeshQuery.FindRandomPoint(ref filter, ref startRef, ref startPos);
 
 			uint endRef = 0;
-			endPos = new SharpNav.Vector3();
+			endPos = new SVector3();
 			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
 			
 			int MAX_POLYS = 256;
