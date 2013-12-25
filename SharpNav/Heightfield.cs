@@ -221,6 +221,14 @@ namespace SharpNav
 			}
 		}
 
+		public void RasterizeTrianglesWithAreas(Triangle3[] tris, AreaFlags[] areas)
+		{
+			for (int i = 0; i < tris.Length; i++)
+			{
+				RasterizeTriangle(ref tris[i], areas[i]); 
+			}
+		}
+
 		/// <summary>
 		/// Rasterizes several triangles at once from an indexed array.
 		/// </summary>

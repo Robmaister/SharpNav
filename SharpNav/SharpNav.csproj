@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AreaFlags.cs" />
+    <Compile Include="AreaFlagsGenerator.cs" />
     <Compile Include="Cell.cs" />
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />

@@ -290,7 +290,11 @@ namespace Examples
 			sw.Start();
 
 			BBox3 bounds = level.GetBounds();
+			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).Where(bbox => bbox.Min.Y > 0).IsWalkable().Create();
+			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).IsWalkable().Create();
+
 			heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
+			//heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
 			heightfield.RasterizeTriangles(level.GetTriangles());
 			heightfield.FilterLedgeSpans(settings.MaxHeight, settings.MaxClimb);
 			heightfield.FilterLowHangingWalkableObstacles(settings.MaxClimb);
