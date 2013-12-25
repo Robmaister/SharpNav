@@ -806,7 +806,7 @@ namespace SharpNav
 			int ntris = tris.Count / 4;
 			if (ntris > MAX_TRIS)
 			{
-				tris.RemoveRange(MAX_TRIS + 1, ntris - MAX_TRIS - 1);
+				tris.RemoveRange((MAX_TRIS * 4) + 1, tris.Count - (MAX_TRIS * 4));
 			}
 
 			return;
@@ -917,9 +917,9 @@ namespace SharpNav
 			}
 
 			//create triangles
-			tris = new List<int>(nfaces * 4);
-			for (int i = 0; i < tris.Count; i++)
-				tris[i] = -1;
+			tris = new List<int>();
+			for (int i = 0; i < nfaces * 4; i++)
+				tris.Add(-1);
 
 			for (int i = 0; i < nedges; i++)
 			{
@@ -942,6 +942,26 @@ namespace SharpNav
 						tris[t + 2] = edges[i].EndPts[1];
 					}
 				}
+
+				if (edges[i].LeftFace >= 0)
+				{
+					//right
+					int t = edges[i].LeftFace * 4;
+					
+					if (tris[t + 0] == -1)
+					{
+						tris[t + 0] = edges[i].EndPts[1];
+						tris[t + 1] = edges[i].EndPts[0];
+					}
+					else if (tris[t + 0] == edges[i].EndPts[0])
+					{
+						tris[t + 2] = edges[i].EndPts[1];
+					}
+					else if (tris[t + 1] == edges[i].EndPts[1])
+					{
+						tris[t + 2] = edges[i].EndPts[0];
+					}
+				}
 			}
 
 			for (int i = 0; i < tris.Count / 4; i++)
@@ -949,6 +969,7 @@ namespace SharpNav
 				int t = i * 4;
 				if (tris[t + 0] == -1 || tris[t + 1] == -1 || tris[t + 2] == -1)
 				{
+					//remove dangling face
 					tris[t + 0] = tris[tris.Count - 4];
 					tris[t + 1] = tris[tris.Count - 3];
 					tris[t + 2] = tris[tris.Count - 2];
