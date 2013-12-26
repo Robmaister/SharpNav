@@ -71,8 +71,8 @@ namespace SharpNav
 
 			Vector3 origin = mesh.Bounds.Min;
 
-			List<EdgeInfo> edges = new List<EdgeInfo>(64);
-			List<int> tris = new List<int>(512);
+			List<EdgeInfo> edges = new List<EdgeInfo>(16);
+			List<TrisInfo> tris = new List<TrisInfo>(128);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
 			float[] verts = new float[256 * 3];
@@ -175,7 +175,7 @@ namespace SharpNav
 				}
 
 				//save data
-				int ntris = tris.Count / 4;
+				int ntris = tris.Count;
 
 				this.meshes[i].OldNumVerts = this.nverts;
 				this.meshes[i].NewNumVerts = nverts;
@@ -229,12 +229,12 @@ namespace SharpNav
 				//store triangles
 				for (int j = 0; j < ntris; j++)
 				{
-					int t = j * 4;
+					int t = j;
 					this.tris[this.ntris].VertexHash = new int[3];
-					this.tris[this.ntris].VertexHash[0] = tris[t + 0];
-					this.tris[this.ntris].VertexHash[1] = tris[t + 1];
-					this.tris[this.ntris].VertexHash[2] = tris[t + 2];
-					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t + 0] * 3, tris[t + 1] * 3, tris[t + 2] * 3, poly, npoly);
+					this.tris[this.ntris].VertexHash[0] = tris[t].VertexHash[0];
+					this.tris[this.ntris].VertexHash[1] = tris[t].VertexHash[1];
+					this.tris[this.ntris].VertexHash[2] = tris[t].VertexHash[2];
+					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t].VertexHash[0] * 3, tris[t].VertexHash[1] * 3, tris[t].VertexHash[2] * 3, poly, npoly);
 					this.ntris++;
 				}
 			}
@@ -536,12 +536,10 @@ namespace SharpNav
 					stack.Add(ai);
 				}
 			}
-
 		}
 
-
 		private void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
-			float[] verts, ref int nverts, List<int> tris, List<EdgeInfo> edges, List<int> samples)
+			float[] verts, ref int nverts, List<TrisInfo> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -698,10 +696,13 @@ namespace SharpNav
 				//add default data
 				for (int i = 2; i < nverts; i++)
 				{
-					tris.Add(0);
-					tris.Add(i - 1);
-					tris.Add(i);
-					tris.Add(0);
+					TrisInfo newTris = new TrisInfo();
+					newTris.VertexHash = new int[3];
+					newTris.VertexHash[0] = 0;
+					newTris.VertexHash[1] = i - 1;
+					newTris.VertexHash[2] = i;
+					newTris.Flag = 0;
+					tris.Add(newTris);
 				}
 
 				return;
@@ -771,7 +772,7 @@ namespace SharpNav
 						pt[0] = samples[s + 0] * sampleDist + GetJitterX(i) * openField.CellSize * 0.1f;
 						pt[1] = samples[s + 1] * openField.CellHeight;
 						pt[2] = samples[s + 2] * sampleDist + GetJitterY(i) * openField.CellSize * 0.1f;
-						float d = DistanceToTriMesh(pt, verts, tris, tris.Count / 4);
+						float d = DistanceToTriMesh(pt, verts, tris);
 
 						if (d < 0)
 							continue;
@@ -803,10 +804,10 @@ namespace SharpNav
 				}
 			}
 
-			int ntris = tris.Count / 4;
+			int ntris = tris.Count;
 			if (ntris > MAX_TRIS)
 			{
-				tris.RemoveRange((MAX_TRIS * 4) + 1, tris.Count - (MAX_TRIS * 4));
+				tris.RemoveRange(MAX_TRIS + 1, tris.Count - MAX_TRIS);
 			}
 
 			return;
@@ -825,12 +826,12 @@ namespace SharpNav
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
 		/// </summary>
-		/// <param name="fx"></param>
-		/// <param name="fy"></param>
-		/// <param name="fz"></param>
-		/// <param name="invCellSize"></param>
-		/// <param name="cellHeight"></param>
-		/// <param name="hp"></param>
+		/// <param name="fx">Location X</param>
+		/// <param name="fy">Location Y</param>
+		/// <param name="fz">Location Z</param>
+		/// <param name="invCellSize">Reciprocal of cell size</param>
+		/// <param name="cellHeight">Cell height</param>
+		/// <param name="hp">Height patch</param>
 		private float GetHeight(float fx, float fy, float fz, float invCellSize, float cellHeight, HeightPatch hp)
 		{
 			int ix = (int)Math.Floor(fx * invCellSize + 0.01f);
@@ -885,7 +886,7 @@ namespace SharpNav
 		/// <param name="hull">?</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
-		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<int> tris, List<EdgeInfo> edges)
+		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<TrisInfo> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
 			int nedges = 0;
@@ -917,64 +918,69 @@ namespace SharpNav
 			}
 
 			//create triangles
-			tris = new List<int>();
-			for (int i = 0; i < nfaces * 4; i++)
-				tris.Add(-1);
+			tris = new List<TrisInfo>();
+			for (int i = 0; i < nfaces; i++)
+			{
+				TrisInfo newTris = new TrisInfo();
+				newTris.VertexHash = new int[3];
+				newTris.VertexHash[0] = -1;
+				newTris.VertexHash[1] = -1;
+				newTris.VertexHash[2] = -1;
+				newTris.Flag = -1;
+				tris.Add(newTris);
+			}
 
 			for (int i = 0; i < nedges; i++)
 			{
 				if (edges[i].RightFace >= 0)
 				{
 					//left face
-					int t = edges[i].RightFace * 4;
+					int t = edges[i].RightFace;
 					
-					if (tris[t + 0] == -1)
+					if (tris[t].VertexHash[0] == -1)
 					{
-						tris[t + 0] = edges[i].EndPts[0];
-						tris[t + 1] = edges[i].EndPts[1];
+						tris[t].VertexHash[0] = edges[i].EndPts[0];
+						tris[t].VertexHash[1] = edges[i].EndPts[1];
 					}
-					else if (tris[t + 0] == edges[i].EndPts[1])
+					else if (tris[t].VertexHash[0] == edges[i].EndPts[1])
 					{
-						tris[t + 2] = edges[i].EndPts[0];
+						tris[t].VertexHash[2] = edges[i].EndPts[0];
 					}
-					else if (tris[t + 1] == edges[i].EndPts[0])
+					else if (tris[t].VertexHash[1] == edges[i].EndPts[0])
 					{
-						tris[t + 2] = edges[i].EndPts[1];
+						tris[t].VertexHash[2] = edges[i].EndPts[1];
 					}
 				}
 
 				if (edges[i].LeftFace >= 0)
 				{
 					//right
-					int t = edges[i].LeftFace * 4;
+					int t = edges[i].LeftFace;
 					
-					if (tris[t + 0] == -1)
+					if (tris[t].VertexHash[0] == -1)
 					{
-						tris[t + 0] = edges[i].EndPts[1];
-						tris[t + 1] = edges[i].EndPts[0];
+						tris[t].VertexHash[0] = edges[i].EndPts[1];
+						tris[t].VertexHash[1] = edges[i].EndPts[0];
 					}
-					else if (tris[t + 0] == edges[i].EndPts[0])
+					else if (tris[t].VertexHash[0] == edges[i].EndPts[0])
 					{
-						tris[t + 2] = edges[i].EndPts[1];
+						tris[t].VertexHash[2] = edges[i].EndPts[1];
 					}
-					else if (tris[t + 1] == edges[i].EndPts[1])
+					else if (tris[t].VertexHash[1] == edges[i].EndPts[1])
 					{
-						tris[t + 2] = edges[i].EndPts[0];
+						tris[t].VertexHash[2] = edges[i].EndPts[0];
 					}
 				}
 			}
 
-			for (int i = 0; i < tris.Count / 4; i++)
+			for (int i = 0; i < tris.Count; i++)
 			{
-				int t = i * 4;
-				if (tris[t + 0] == -1 || tris[t + 1] == -1 || tris[t + 2] == -1)
+				int t = i;
+				if (tris[t].VertexHash[0] == -1 || tris[t].VertexHash[1] == -1 || tris[t].VertexHash[2] == -1)
 				{
 					//remove dangling face
-					tris[t + 0] = tris[tris.Count - 4];
-					tris[t + 1] = tris[tris.Count - 3];
-					tris[t + 2] = tris[tris.Count - 2];
-					tris[t + 3] = tris[tris.Count - 1];
-					tris.RemoveRange(tris.Count - 4, 4);
+					tris[t] = tris[tris.Count - 1];
+					tris.RemoveAt(tris.Count - 1);
 					--i;
 				}
 			}
@@ -1168,15 +1174,15 @@ namespace SharpNav
 			return false;
 		}
 
-		private float DistanceToTriMesh(float[] p, float[] verts, List<int> tris, int ntris)
+		private float DistanceToTriMesh(float[] p, float[] verts, List<TrisInfo> tris)
 		{
 			float dmin = float.MaxValue;
 
-			for (int i = 0; i < ntris; i++)
+			for (int i = 0; i < tris.Count; i++)
 			{
-				int va = tris[i * 4 + 0] * 3;
-				int vb = tris[i * 4 + 1] * 3;
-				int vc = tris[i * 4 + 2] * 3;
+				int va = tris[i].VertexHash[0] * 3;
+				int vb = tris[i].VertexHash[1] * 3;
+				int vc = tris[i].VertexHash[2] * 3;
 				float d = DistancePointTri(p, verts, va, vb, vc);
 				if (d < dmin)
 					dmin = d;
