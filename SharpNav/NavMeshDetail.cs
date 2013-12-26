@@ -75,12 +75,12 @@ namespace SharpNav
 			List<TrisInfo> tris = new List<TrisInfo>(128);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
-			float[] verts = new float[256 * 3];
+			Vector3[] verts = new Vector3[256];
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
 
 			int[] bounds = new int[mesh.NPolys * 4];
-			float[] poly = new float[mesh.NumVertsPerPoly * 3]; 
+			Vector3[] poly = new Vector3[mesh.NumVertsPerPoly]; 
 
 			//find max size for polygon area
 			for (int i = 0; i < mesh.NPolys; i++)
@@ -143,9 +143,9 @@ namespace SharpNav
 						break;
 
 					int v = mesh.Polys[i].Vertices[j];
-					poly[j * 3 + 0] = mesh.Verts[v].X * mesh.CellSize;
-					poly[j * 3 + 1] = mesh.Verts[v].Y * mesh.CellHeight;
-					poly[j * 3 + 2] = mesh.Verts[v].Z * mesh.CellSize;
+					poly[j].X = mesh.Verts[v].X * mesh.CellSize;
+					poly[j].Y = mesh.Verts[v].Y * mesh.CellHeight;
+					poly[j].Z = mesh.Verts[v].Z * mesh.CellSize;
 					npoly++;
 				}
 
@@ -162,16 +162,16 @@ namespace SharpNav
 				//more detail verts
 				for (int j = 0; j < nverts; j++)
 				{
-					verts[j * 3 + 0] += origin.X;
-					verts[j * 3 + 1] += origin.Y + openField.CellHeight;
-					verts[j * 3 + 2] += origin.Z;
+					verts[j].X += origin.X;
+					verts[j].Y += origin.Y + openField.CellHeight;
+					verts[j].Z += origin.Z;
 				}
 
 				for (int j = 0; j < npoly; j++)
 				{
-					poly[j * 3 + 0] += origin.X;
-					poly[j * 3 + 1] += origin.Y;
-					poly[j * 3 + 2] += origin.Z;
+					poly[j].X += origin.X;
+					poly[j].Y += origin.Y;
+					poly[j].Z += origin.Z;
 				}
 
 				//save data
@@ -203,9 +203,7 @@ namespace SharpNav
 				//save new vertices
 				for (int j = 0; j < nverts; j++)
 				{
-					this.verts[this.nverts].X = verts[j * 3 + 0];
-					this.verts[this.nverts].Y = verts[j * 3 + 1];
-					this.verts[this.nverts].Z = verts[j * 3 + 2];
+					this.verts[this.nverts] = verts[j];
 					this.nverts++;
 				}
 
@@ -231,10 +229,8 @@ namespace SharpNav
 				{
 					int t = j;
 					this.tris[this.ntris].VertexHash = new int[3];
-					this.tris[this.ntris].VertexHash[0] = tris[t].VertexHash[0];
-					this.tris[this.ntris].VertexHash[1] = tris[t].VertexHash[1];
-					this.tris[this.ntris].VertexHash[2] = tris[t].VertexHash[2];
-					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t].VertexHash[0] * 3, tris[t].VertexHash[1] * 3, tris[t].VertexHash[2] * 3, poly, npoly);
+					this.tris[this.ntris].VertexHash = tris[t].VertexHash;
+					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t].VertexHash[0], tris[t].VertexHash[1], tris[t].VertexHash[2], poly, npoly);
 					this.ntris++;
 				}
 			}
@@ -263,7 +259,7 @@ namespace SharpNav
 		/// <param name="vpoly">Polygon vertex data</param>
 		/// <param name="npoly">Number of polygons</param>
 		/// <returns></returns>
-		private int GetTriFlags(float[] verts, int va, int vb, int vc, float[] vpoly, int npoly)
+		private int GetTriFlags(Vector3[] verts, int va, int vb, int vc, Vector3[] vpoly, int npoly)
 		{
 			int flags = 0;
 
@@ -286,18 +282,18 @@ namespace SharpNav
 		/// <param name="vpoly">Polygon vertex data</param>
 		/// <param name="npoly">Number of polygons</param>
 		/// <returns></returns>
-		private int GetEdgeFlags(float[] verts, int va, int vb, float[] vpoly, int npoly)
+		private int GetEdgeFlags(Vector3[] verts, int va, int vb, Vector3[] vpoly, int npoly)
 		{
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
 
 			for (int i = 0, j = npoly - 1; i < npoly; j = i++)
 			{
-				float[] pt1 = { verts[va + 0], verts[va + 1], verts[va + 2] };
-				float[] pt2 = { verts[vb + 0], verts[vb + 1], verts[vb + 2] };
+				Vector3 pt1 = verts[va];
+				Vector3 pt2 = verts[vb];
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (DistancePointSegment2d(pt1 , vpoly, j * 3, i * 3) < thrSqr && DistancePointSegment2d(pt2, vpoly, j * 3, i * 3) < thrSqr)
+				if (DistancePointSegment2d(pt1 , vpoly, j, i) < thrSqr && DistancePointSegment2d(pt2, vpoly, j, i) < thrSqr)
 					return 1;
 			}
 
@@ -538,13 +534,13 @@ namespace SharpNav
 			}
 		}
 
-		private void BuildPolyDetail(float[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
-			float[] verts, ref int nverts, List<TrisInfo> tris, List<EdgeInfo> edges, List<int> samples)
+		private void BuildPolyDetail(Vector3[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
+			Vector3[] verts, ref int nverts, List<TrisInfo> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
 			const int MAX_VERTS_PER_EDGE = 32;
-			float[] edge = new float[(MAX_VERTS_PER_EDGE + 1) * 3];
+			Vector3[] edge = new Vector3[MAX_VERTS_PER_EDGE + 1];
 			float[] hull = new float [MAX_VERTS];
 			int nhull = 0;
 
@@ -553,9 +549,7 @@ namespace SharpNav
 			//fill up vertex array
 			for (int i = 0; i < nin_; ++i)
 			{
-				verts[i * 3 + 0] = in_[i * 3 + 0];
-				verts[i * 3 + 1] = in_[i * 3 + 1];
-				verts[i * 3 + 2] = in_[i * 3 + 2];
+				verts[i] = in_[i];
 			}
 			nverts = nin_;
 
@@ -567,36 +561,36 @@ namespace SharpNav
 			{
 				for (int i = 0, j = nin_ - 1; i < nin_; j = i++)
 				{
-					int vj = j * 3;
-					int vi = i * 3;
+					int vj = j;
+					int vi = i;
 					bool swapped = false;
 
 					//make sure order is correct, otherwise swap data
-					if (Math.Abs(in_[vj + 0] - in_[vi + 0]) < 1E-06f)
+					if (Math.Abs(in_[vj].X - in_[vi].X) < 1E-06f)
 					{
-						if (in_[vj + 2] > in_[vi + 2])
+						if (in_[vj].Z > in_[vi].Z)
 						{
-							float temp = in_[vj + 2];
-							in_[vj + 2] = in_[vi + 2];
-							in_[vi + 2] = temp;
+							float temp = in_[vj].Z;
+							in_[vj].Z = in_[vi].Z;
+							in_[vi].Z = temp;
 							swapped = true;
 						}
 					}
 					else
 					{
-						if (in_[vj + 0] > in_[vi + 0])
+						if (in_[vj].X > in_[vi].X)
 						{
-							float temp = in_[vj + 0];
-							in_[vj + 0] = in_[vi + 0];
-							in_[vi + 0] = temp;
+							float temp = in_[vj].X;
+							in_[vj].X = in_[vi].X;
+							in_[vi].X = temp;
 							swapped = true;
 						}
 					}
 
 					//create samples along the edge
-					float dx = in_[vi + 0] - in_[vj + 0];
-					float dy = in_[vi + 1] - in_[vj + 1];
-					float dz = in_[vi + 2] - in_[vj + 2];
+					float dx = in_[vi].X - in_[vj].X;
+					float dy = in_[vi].Y - in_[vj].Y;
+					float dz = in_[vi].Z - in_[vj].Z;
 					float d = (float)Math.Sqrt(dx * dx + dz * dz);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
 					if (nverts + nn >= MAX_VERTS)
@@ -605,14 +599,14 @@ namespace SharpNav
 					for (int k = 0; k <= nn; k++)
 					{
 						float u = (float)k / (float)nn;
-						int pos = k * 3;
+						int pos = k;
 						
 						//edge seems to store vertex data
-						edge[pos + 0] = in_[vj + 0] + dx * u;
-						edge[pos + 1] = in_[vj + 1] + dy * u;
-						edge[pos + 2] = in_[vj + 2] + dz * u;
+						edge[pos].X = in_[vj].X + dx * u;
+						edge[pos].Y = in_[vj].Y + dy * u;
+						edge[pos].Z = in_[vj].Z + dz * u;
 
-						edge[pos + 1] = GetHeight(edge[pos + 0], edge[pos + 1], edge[pos + 2], ics, openField.CellHeight, hp) * openField.CellHeight;
+						edge[pos].Y = GetHeight(edge[pos], ics, openField.CellHeight, hp) * openField.CellHeight;
 					}
 
 					//simplify samples
@@ -625,15 +619,15 @@ namespace SharpNav
 					{
 						int a = idx[k];
 						int b = idx[k + 1];
-						int va = a * 3;
-						int vb = b * 3;
+						int va = a;
+						int vb = b;
 
 						//find maximum deviation along segment
 						float maxd = 0;
 						int maxi = 0;
 						for (int m = a + 1; m < b; m++)
 						{
-							float dev = DistancePointSegment(edge, m * 3, va, vb);
+							float dev = DistancePointSegment(edge, m, va, vb);
 							if (dev > maxd)
 							{
 								maxd = dev;
@@ -664,9 +658,7 @@ namespace SharpNav
 					{
 						for (int k = nidx - 2; k > 0; k--)
 						{
-							verts[nverts * 3 + 0] = edge[idx[k] * 3 + 0];
-							verts[nverts * 3 + 1] = edge[idx[k] * 3 + 1];
-							verts[nverts * 3 + 2] = edge[idx[k] * 3 + 2];
+							verts[nverts] = edge[idx[k]];
 							hull[nhull++] = nverts;
 							nverts++;
 						}
@@ -675,9 +667,7 @@ namespace SharpNav
 					{
 						for (int k = 1; k < nidx - 1; k++)
 						{
-							verts[nverts * 3 + 0] = edge[idx[k] * 3 + 0];
-							verts[nverts * 3 + 1] = edge[idx[k] * 3 + 1];
-							verts[nverts * 3 + 2] = edge[idx[k] * 3 + 2];
+							verts[nverts] = edge[idx[k]];
 							hull[nhull++] = nverts;
 							nverts++;
 						}
@@ -711,14 +701,14 @@ namespace SharpNav
 			if (sampleDist > 0)
 			{
 				//create sample locations
-				BBox3 bounds;
-				bounds.Min = new Vector3(in_[0], in_[1], in_[2]);
-				bounds.Max = new Vector3(in_[0], in_[1], in_[2]);
+				BBox3 bounds = new BBox3();
+				bounds.Min = in_[0];
+				bounds.Max = in_[0];
 
 				for (int i = 1; i < nin_; i++)
 				{
-					bounds.Min = Vector3.Min(bounds.Min, new Vector3(in_[i * 3 + 0], in_[i * 3 + 1], in_[i * 3 + 2]));
-					bounds.Max = Vector3.Max(bounds.Max, new Vector3(in_[i * 3 + 0], in_[i * 3 + 1], in_[i * 3 + 2])); 
+					bounds.Min = Vector3.Min(bounds.Min, in_[i]);
+					bounds.Max = Vector3.Max(bounds.Max, in_[i]); 
 				}
 
 				int x0 = (int)Math.Floor(bounds.Min.X / sampleDist);
@@ -732,17 +722,17 @@ namespace SharpNav
 				{
 					for (int x = x0; x < x1; x++)
 					{
-						float[] pt = new float[3];
-						pt[0] = x * sampleDist;
-						pt[1] = (bounds.Max.Y + bounds.Min.Y) * 0.5f;
-						pt[2] = z * sampleDist;
+						Vector3 pt = new Vector3();
+						pt.X = x * sampleDist;
+						pt.Y = (bounds.Max.Y + bounds.Min.Y) * 0.5f;
+						pt.Z = z * sampleDist;
 
 						//make sure samples aren't too close to edge
 						if (DistanceToPoly(nin_, in_, pt) > -sampleDist / 2)
 							continue;
 
 						samples.Add(x);
-						samples.Add((int)GetHeight(pt[0], pt[1], pt[2], ics, openField.CellHeight, hp));
+						samples.Add((int)GetHeight(pt, ics, openField.CellHeight, hp));
 						samples.Add(z);
 						samples.Add(0); //not added
 					}
@@ -756,7 +746,7 @@ namespace SharpNav
 						break;
 
 					//find sample with most error
-					float[] bestpt = { 0, 0, 0 };
+					Vector3 bestpt = new Vector3();
 					float bestd = 0;
 					int besti = -1;
 
@@ -766,12 +756,12 @@ namespace SharpNav
 						if (samples[s + 3] != 0)
 							continue;
 
-						float[] pt = new float[3];
+						Vector3 pt = new Vector3();
 
 						//jitter sample location to remove effects of bad triangulation
-						pt[0] = samples[s + 0] * sampleDist + GetJitterX(i) * openField.CellSize * 0.1f;
-						pt[1] = samples[s + 1] * openField.CellHeight;
-						pt[2] = samples[s + 2] * sampleDist + GetJitterY(i) * openField.CellSize * 0.1f;
+						pt.X = samples[s + 0] * sampleDist + GetJitterX(i) * openField.CellSize * 0.1f;
+						pt.Y = samples[s + 1] * openField.CellHeight;
+						pt.Z = samples[s + 2] * sampleDist + GetJitterY(i) * openField.CellSize * 0.1f;
 						float d = DistanceToTriMesh(pt, verts, tris);
 
 						if (d < 0)
@@ -781,9 +771,7 @@ namespace SharpNav
 						{
 							bestd = d;
 							besti = i;
-							bestpt[0] = pt[0];
-							bestpt[1] = pt[1];
-							bestpt[2] = pt[2];
+							bestpt = pt;
 						}
 					}
 
@@ -792,9 +780,7 @@ namespace SharpNav
 
 					samples[besti * 4 + 3] = 1;
 
-					verts[nverts * 3 + 0] = bestpt[0];
-					verts[nverts * 3 + 1] = bestpt[1];
-					verts[nverts * 3 + 2] = bestpt[2];
+					verts[nverts] = bestpt;
 					nverts++;
 
 					//create new triangulation
@@ -826,16 +812,14 @@ namespace SharpNav
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
 		/// </summary>
-		/// <param name="fx">Location X</param>
-		/// <param name="fy">Location Y</param>
-		/// <param name="fz">Location Z</param>
+		/// <param name="loc">Location</param>
 		/// <param name="invCellSize">Reciprocal of cell size</param>
 		/// <param name="cellHeight">Cell height</param>
 		/// <param name="hp">Height patch</param>
-		private float GetHeight(float fx, float fy, float fz, float invCellSize, float cellHeight, HeightPatch hp)
+		private float GetHeight(Vector3 loc, float invCellSize, float cellHeight, HeightPatch hp)
 		{
-			int ix = (int)Math.Floor(fx * invCellSize + 0.01f);
-			int iz = (int)Math.Floor(fz * invCellSize + 0.01f);
+			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
+			int iz = (int)Math.Floor(loc.Z * invCellSize + 0.01f);
 			ix = MathHelper.Clamp(ix - hp.xmin, 0, hp.width - 1);
 			iz = MathHelper.Clamp(iz - hp.ymin, 0, hp.height - 1);
 			int h = hp.Data[ix + iz * hp.width];
@@ -861,7 +845,7 @@ namespace SharpNav
 					if (nh == UNSET_HEIGHT)
 						continue;
 
-					float d = Math.Abs(nh * cellHeight - fy);
+					float d = Math.Abs(nh * cellHeight - loc.Y);
 					if (d < dmin)
 					{
 						h = nh;
@@ -886,7 +870,7 @@ namespace SharpNav
 		/// <param name="hull">?</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
-		private void DelaunayHull(int npts, float[] pts, int nhull, float[] hull, List<TrisInfo> tris, List<EdgeInfo> edges)
+		private void DelaunayHull(int npts, Vector3[] pts, int nhull, float[] hull, List<TrisInfo> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
 			int nedges = 0;
@@ -986,7 +970,7 @@ namespace SharpNav
 			}
 		}
 
-		private void CompleteFacet(float[] pts, int npts, List<EdgeInfo> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
+		private void CompleteFacet(Vector3[] pts, int npts, List<EdgeInfo> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
 		{
 			const float EPS = 1e-5f;
 
@@ -1012,25 +996,25 @@ namespace SharpNav
 
 			//find best point on left edge
 			int pt = npts;
-			float[] c = { 0, 0, 0 };
+			Vector3 c = new Vector3();
 			float r = -1;
 			for (int u = 0; u < npts; u++)
 			{
 				if (u == s || u == t)
 					continue;
 
-				if (VCross2(pts, s * 3, t * 3, u * 3) > EPS)
+				if (VCross2(pts, s, t, u) > EPS)
 				{
 					if (r < 0)
 					{
 						//update circle now
 						pt = u;
-						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+						CircumCircle(pts, s, t, u, c, ref r);
 						continue;
 					}
 
-					float dx = c[0] - pts[u * 3 + 0];
-					float dy = c[2] - pts[u * 3 + 2];
+					float dx = c.X - pts[u].X;
+					float dy = c.Z - pts[u].Z;
 					float d = (float)Math.Sqrt(dx * dx + dy * dy);
 					float tol = 0.001f;
 
@@ -1043,7 +1027,7 @@ namespace SharpNav
 					{
 						//inside circumcircle, update
 						pt = u;
-						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+						CircumCircle(pts, s, t, u, c, ref r);
 					}
 					else
 					{
@@ -1056,7 +1040,7 @@ namespace SharpNav
 
 						//edge is valid
 						pt = u;
-						CircumCircle(pts, s * 3, t * 3, u * 3, c, ref r);
+						CircumCircle(pts, s, t, u, c, ref r);
 					}
 				}
 			}
@@ -1121,7 +1105,7 @@ namespace SharpNav
 			return (int)EdgeValues.UNDEF;
 		}
 
-		private bool OverlapEdges(float[] pts, List<EdgeInfo> edges, int nedges, int s1, int t1)
+		private bool OverlapEdges(Vector3[] pts, List<EdgeInfo> edges, int nedges, int s1, int t1)
 		{
 			for (int i = 0; i < nedges; i++)
 			{
@@ -1132,7 +1116,7 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (OverlapSegSeg2d(pts, s0 * 3, t0 * 3, s1 * 3, t1 * 3) == true)
+				if (OverlapSegSeg2d(pts, s0, t0, s1, t1) == true)
 					return true;
 			}
 
@@ -1147,7 +1131,7 @@ namespace SharpNav
 				edges[edgePos].RightFace = f;
 		}
 
-		private bool CircumCircle(float[] pts, int p1, int p2, int p3, float[] c, ref float r)
+		private bool CircumCircle(Vector3[] pts, int p1, int p2, int p3, Vector3 c, ref float r)
 		{
 			float EPS = 1e-6f;
 			float cp = VCross2(pts, p1, p2, p3);
@@ -1155,34 +1139,34 @@ namespace SharpNav
 			if (Math.Abs(cp) > EPS)
 			{
 				//find magnitude of each point
-				float p1Sq = VDot2(pts, p1, pts, p1);
-				float p2Sq = VDot2(pts, p2, pts, p2);
-				float p3Sq = VDot2(pts, p3, pts, p3);
+				float p1Sq = VDot2(pts[p1], pts[p1]);
+				float p2Sq = VDot2(pts[p2], pts[p2]);
+				float p3Sq = VDot2(pts[p3], pts[p3]);
 
-				c[0] = (p1Sq * (pts[p2 + 2] - pts[p3 + 2]) + p2Sq * (pts[p3 + 2] - pts[p1 + 2]) + p3Sq * (pts[p1 + 2] - pts[p2 + 2])) / (2 * cp);
-				c[2] = (p1Sq * (pts[p2 + 0] - pts[p3 + 0]) + p2Sq * (pts[p3 + 0] - pts[p1 + 0]) + p3Sq * (pts[p1 + 0] - pts[p2 + 0])) / (2 * cp);
+				c.X = (p1Sq * (pts[p2].Z - pts[p3].Z) + p2Sq * (pts[p3].Z - pts[p1].Z) + p3Sq * (pts[p1].Z - pts[p2].Z)) / (2 * cp);
+				c.Z = (p1Sq * (pts[p2].X - pts[p3].X) + p2Sq * (pts[p3].X - pts[p1].X) + p3Sq * (pts[p1].X - pts[p2].X)) / (2 * cp);
 
-				float dx = c[0] - pts[p1 + 0];
-				float dy = c[2] - pts[p1 + 2];
+				float dx = c.X - pts[p1].X;
+				float dy = c.Z - pts[p1].Z;
 				r = (float)Math.Sqrt(dx * dx + dy * dy);
 				return true;
 			}
 
-			c[0] = pts[p1 + 0];
-			c[2] = pts[p1 + 2];
+			c.X = pts[p1].X;
+			c.Z = pts[p1].Z;
 			r = 0;
 			return false;
 		}
 
-		private float DistanceToTriMesh(float[] p, float[] verts, List<TrisInfo> tris)
+		private float DistanceToTriMesh(Vector3 p, Vector3[] verts, List<TrisInfo> tris)
 		{
 			float dmin = float.MaxValue;
 
 			for (int i = 0; i < tris.Count; i++)
 			{
-				int va = tris[i].VertexHash[0] * 3;
-				int vb = tris[i].VertexHash[1] * 3;
-				int vc = tris[i].VertexHash[2] * 3;
+				int va = tris[i].VertexHash[0];
+				int vb = tris[i].VertexHash[1];
+				int vc = tris[i].VertexHash[2];
 				float d = DistancePointTri(p, verts, va, vb, vc);
 				if (d < dmin)
 					dmin = d;
@@ -1194,27 +1178,21 @@ namespace SharpNav
 			return dmin;
 		}
 
-		private float DistancePointTri(float[] p, float[] verts, int a, int b, int c)
+		private float DistancePointTri(Vector3 p, Vector3[] verts, int a, int b, int c)
 		{
-			float[] v0 = new float[3];
-			float[] v1 = new float[3];
-			float[] v2 = new float[3];
+			Vector3 v0 = new Vector3();
+			Vector3 v1 = new Vector3();
+			Vector3 v2 = new Vector3();
 
-			v0[0] = verts[c + 0] - verts[a + 0];
-			v0[1] = verts[c + 1] - verts[a + 1];
-			v0[2] = verts[c + 2] - verts[a + 2];
-			v1[0] = verts[b + 0] - verts[a + 0];
-			v1[1] = verts[b + 1] - verts[a + 1];
-			v1[2] = verts[b + 2] - verts[a + 2];
-			v2[0] = p[0] - verts[a + 0];
-			v2[1] = p[1] - verts[a + 1];
-			v2[2] = p[2] - verts[a + 2];
+			v0 = verts[c] - verts[a];
+			v1 = verts[b] - verts[a];
+			v2 = p - verts[a];
 
-			float dot00 = VDot2(v0, 0, v0, 0);
-			float dot01 = VDot2(v0, 0, v1, 0);
-			float dot02 = VDot2(v0, 0, v2, 0);
-			float dot11 = VDot2(v1, 0, v1, 0);
-			float dot12 = VDot2(v1, 0, v2, 0);
+			float dot00 = VDot2(v0, v0);
+			float dot01 = VDot2(v0, v1);
+			float dot02 = VDot2(v0, v2);
+			float dot11 = VDot2(v1, v1);
+			float dot12 = VDot2(v1, v2);
 
 			//compute barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
@@ -1225,25 +1203,25 @@ namespace SharpNav
 			float EPS = 1E-4f;
 			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
 			{
-				float y = verts[a + 1] + v0[1] * u + v1[1] * v;
+				float y = verts[a].Y + v0.Y * u + v1.Y * v;
 				return Math.Abs(y - p[1]);
 			}
 
 			return float.MaxValue;
 		}
 
-		private float DistanceToPoly(int nvert, float[] verts, float[] p)
+		private float DistanceToPoly(int nvert, Vector3[] verts, Vector3 p)
 		{
 			float dmin = float.MaxValue;
 			bool c = false;
 
 			for (int i = 0, j = nvert - 1; i < nvert; j = i++)
 			{
-				int vi = i * 3;
-				int vj = j * 3;
+				int vi = i;
+				int vj = j;
 
-				if (((verts[vi + 2] > p[2]) != (verts[vj + 2] > p[2])) &&
-					(p[0] < (verts[vj + 0] - verts[vi + 0]) * (p[2] - verts[vi + 2]) / (verts[vj + 2] - verts[vi + 2]) + verts[vi + 0]))
+				if (((verts[vi].Z > p.Z) != (verts[vj].Z > p.Z)) &&
+					(p.X < (verts[vj].X - verts[vi].X) * (p.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
 				{
 					c = !c;
 				}
@@ -1262,20 +1240,18 @@ namespace SharpNav
 		/// <param name="p">One end of a segment</param>
 		/// <param name="q">Other end of segment</param>
 		/// <returns></returns>
-		private float DistancePointSegment(float[] verts, int pt, int p, int q)
+		private float DistancePointSegment(Vector3[] verts, int pt, int p, int q)
 		{
 			//distance from P to Q
-			float pqx = verts[q + 0] - verts[p + 0];
-			float pqy = verts[q + 1] - verts[p + 1];
-			float pqz = verts[q + 2] - verts[p + 2];
+			Vector3 pq = verts[q] - verts[p];
 
 			//disance from P to the lone point
-			float dx = verts[pt + 0] - verts[p + 0];
-			float dy = verts[pt + 1] - verts[p + 1];
-			float dz = verts[pt + 2] - verts[p + 2];
+			float dx = verts[pt].X - verts[p].X;
+			float dy = verts[pt].Y - verts[p].Y;
+			float dz = verts[pt].Z - verts[p].Z;
 		
-			float segmentMagnitude = pqx * pqx + pqy * pqy + pqz * pqz;
-			float t = pqx * dx + pqy * dy + pqz * dz;
+			float segmentMagnitude = pq.LengthSquared();
+			float t = pq.X * dx + pq.Y * dy + pq.Z * dz;
 
 			if (segmentMagnitude > 0)
 				t /= segmentMagnitude;
@@ -1286,9 +1262,9 @@ namespace SharpNav
 			else if (t > 1)
 				t = 1;
 
-			dx = verts[p + 0] + t * pqx - verts[pt + 0];
-			dy = verts[p + 1] + t * pqy - verts[pt + 1];
-			dz = verts[p + 2] + t * pqz - verts[pt + 2];
+			dx = verts[p].X + t * pq.X - verts[pt].X;
+			dy = verts[p].Y + t * pq.Y - verts[pt].Y;
+			dz = verts[p].Z + t * pq.Z - verts[pt].Z;
 
 			return dx * dx + dy * dy + dz * dz;
 		}
@@ -1301,15 +1277,15 @@ namespace SharpNav
 		/// <param name="p">First vertex</param>
 		/// <param name="q">Second vertex</param>
 		/// <returns></returns>
-		private float DistancePointSegment2d(float[] pt, float[] verts, int p, int q)
+		private float DistancePointSegment2d(Vector3 pt, Vector3[] verts, int p, int q)
 		{
 			//distance from P to Q in the xz plane
-			float pqx = verts[q + 0] - verts[p + 0];
-			float pqz = verts[q + 2] - verts[p + 2];
+			float pqx = verts[q].X - verts[p].X;
+			float pqz = verts[q].Z - verts[p].Z;
 
 			//distance from P to lone point in xz plane
-			float dx = pt[0] - verts[p + 0];
-			float dz = pt[2] - verts[p + 2];
+			float dx = pt.X - verts[p].X;
+			float dz = pt.Z - verts[p].Z;
 
 			float segmentMagnitude = pqx * pqx + pqz * pqz;
 			float t = pqx * dx + pqz * dz;
@@ -1323,13 +1299,13 @@ namespace SharpNav
 			else if (t > 1)
 				t = 1;
 
-			dx = verts[p + 0] + t * pqx - pt[0];
-			dz = verts[p + 2] + t * pqz - pt[2];
+			dx = verts[p].X + t * pqx - pt.X;
+			dz = verts[p].Z + t * pqz - pt.Z;
 
 			return dx * dx + dz * dz;
 		}
 
-		private bool OverlapSegSeg2d(float[] pts, int a, int b, int c, int d)
+		private bool OverlapSegSeg2d(Vector3[] pts, int a, int b, int c, int d)
 		{
 			float a1 = VCross2(pts, a, b, d);
 			float a2 = VCross2(pts, a, b, c);
@@ -1346,20 +1322,20 @@ namespace SharpNav
 			return false;
 		}
 
-		private float VCross2(float[] pts, int p1, int p2, int p3)
+		private float VCross2(Vector3[] pts, int p1, int p2, int p3)
 		{
-			float u1 = pts[p2 + 0] - pts[p1 + 0];
-			float v1 = pts[p2 + 2] - pts[p1 + 2];
-			float u2 = pts[p3 + 0] - pts[p1 + 0];
-			float v2 = pts[p3 + 2] - pts[p1 + 2];
+			float u1 = pts[p2].X - pts[p1].X;
+			float v1 = pts[p2].Z - pts[p1].Z;
+			float u2 = pts[p3].X - pts[p1].X;
+			float v2 = pts[p3].Z - pts[p1].Z;
 
 			return u1 * v2 - v1 * u2;
 		}
 
-		private float VDot2(float[] pts1, int a, float[] pts2, int b)
+		private float VDot2(Vector3 v1, Vector3 v2)
 		{
 			//dot product of (x1, z1) and (x2, z2) is x1 * x2 + z1 * z2 
-			return pts1[a + 0] * pts2[b + 0] + pts1[a + 2] * pts2[b + 2];
+			return v1.X * v2.X + v1.Z * v2.Z;
 		}
 
 		/// <summary>
