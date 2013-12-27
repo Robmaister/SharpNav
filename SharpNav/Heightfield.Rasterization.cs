@@ -23,7 +23,7 @@ namespace SharpNav
 	public partial class Heightfield
 	{
 		/// <summary>
-		/// Rasterizes several triangles at once from an indexed array.
+		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
@@ -34,7 +34,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once from an indexed array.
+		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
@@ -78,7 +78,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once from an indexed array.
+		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
@@ -89,7 +89,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once from an indexed array.
+		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
@@ -146,13 +146,18 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Rasterizes several triangles at once with per-triangle area flags.
+		/// </summary>
+		/// <param name="tris">An array of triangles.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
 		public void RasterizeTrianglesWithAreas(Triangle3[] tris, AreaFlags[] areas)
 		{
 			RasterizeTrianglesWithAreas(tris, 0, tris.Length, areas);
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once.
+		/// Rasterizes several triangles at once with per-triangle area flags.
 		/// </summary>
 		/// <param name="tris">An array of triangles.</param>
 		/// <param name="triOffset">An offset into the array.</param>
@@ -182,7 +187,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once.
+		/// Rasterizes several triangles at once with per-triangle area flags.
 		/// </summary>
 		/// <remarks>
 		/// If the length of the array is not a multiple of 3, the extra vertices at the end will be skipped.
@@ -195,7 +200,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once.
+		/// Rasterizes several triangles at once with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="vertOffset">An offset into the array.</param>
@@ -231,7 +236,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once.
+		/// Rasterizes several triangles at once with per-triangle area flags.
 		/// </summary>
 		/// <remarks>
 		/// If the length of the array is not a multiple of 9, the extra floats at the end will be skipped.
@@ -244,7 +249,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Rasterizes several triangles at once.
+		/// Rasterizes several triangles at once with per-triangle area flags.
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="floatOffset">An offset into the array.</param>
