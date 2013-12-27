@@ -221,11 +221,278 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Rasterizes several triangles at once from an indexed array.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="inds">An array of indices.</param>
+		/// <param name="area">The area flags for all the triangles.</param>
+		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, AreaFlags[] areas)
+		{
+			RasterizeTrianglesIndexedWithAreas(verts, inds, 0, 1, 0, inds.Length / 3, areas);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once from an indexed array.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="inds">An array of indices.</param>
+		/// <param name="vertOffset">An offset into the vertex array.</param>
+		/// <param name="vertStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (one Vector3 per vertex).</param>
+		/// <param name="indexOffset">An offset into the index array.</param>
+		/// <param name="triCount">The number of triangles to rasterize.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaFlags[] areas)
+		{
+			int indexEnd = triCount * 3 + indexOffset;
+
+			if (verts == null)
+				throw new ArgumentNullException("verts");
+
+			if (inds == null)
+				throw new ArgumentNullException("inds");
+
+			if (indexEnd > inds.Length)
+				throw new ArgumentOutOfRangeException("indexCount", "The specified index offset and length end outside the provided index array.");
+
+			if (vertOffset < 0)
+				throw new ArgumentOutOfRangeException("vertOffset", "vertOffset must be greater than or equal to 0.");
+
+			if (vertStride < 0)
+				throw new ArgumentOutOfRangeException("vertStride", "vertStride must be greater than or equal to 0.");
+			else if (vertStride == 0)
+				vertStride = 1;
+
+			if (areas.Length < triCount)
+				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
+
+			for (int i = indexOffset, j = 0; i < indexEnd; i += 3, j++)
+			{
+				int indA = inds[i] * vertStride + vertOffset;
+				int indB = inds[i + 1] * vertStride + vertOffset;
+				int indC = inds[i + 2] * vertStride + vertOffset;
+
+				RasterizeTriangle(ref verts[indA], ref verts[indB], ref verts[indC], areas[j]);
+			}
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once from an indexed array.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="inds">An array of indices.</param>
+		/// <param name="area">The area flags for all the triangles.</param>
+		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, AreaFlags[] areas)
+		{
+			RasterizeTrianglesIndexedWithAreas(verts, inds, 0, 3, 0, inds.Length / 3, areas);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once from an indexed array.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="inds">An array of indices.</param>
+		/// <param name="floatOffset">An offset into the vertex array.</param>
+		/// <param name="floatStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (3 floats per vertex).</param>
+		/// <param name="indexOffset">An offset into the index array.</param>
+		/// <param name="triCount">The number of triangles to rasterize.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaFlags[] areas)
+		{
+			int indexEnd = triCount * 3 + indexOffset;
+
+			if (verts == null)
+				throw new ArgumentNullException("verts");
+
+			if (inds == null)
+				throw new ArgumentNullException("inds");
+
+			if (indexEnd > inds.Length)
+				throw new ArgumentOutOfRangeException("indexCount", "The specified index offset and length end outside the provided index array.");
+
+			if (floatOffset < 0)
+				throw new ArgumentOutOfRangeException("floatOffset", "floatOffset must be greater than or equal to 0.");
+
+			if (floatStride < 0)
+				throw new ArgumentOutOfRangeException("floatStride", "floatStride must be greater than or equal to 0.");
+			else if (floatStride == 0)
+				floatStride = 3;
+
+			if (areas.Length < triCount)
+				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
+
+			Vector3 a, b, c;
+
+			for (int i = indexOffset, j = 0; i < indexEnd; i += 3, j++)
+			{
+				int indA = inds[i] * floatStride + floatOffset;
+				int indB = inds[i + 1] * floatStride + floatOffset;
+				int indC = inds[i + 2] * floatStride + floatOffset;
+
+				a.X = verts[indA];
+				a.Y = verts[indA + 1];
+				a.Z = verts[indA + 2];
+
+				b.X = verts[indB];
+				b.Y = verts[indB + 1];
+				b.Z = verts[indB + 2];
+
+				c.X = verts[indC];
+				c.Y = verts[indC + 1];
+				c.Z = verts[indC + 2];
+
+				RasterizeTriangle(ref a, ref b, ref c, areas[j]);
+			}
+		}
+
 		public void RasterizeTrianglesWithAreas(Triangle3[] tris, AreaFlags[] areas)
 		{
-			for (int i = 0; i < tris.Length; i++)
+			RasterizeTrianglesWithAreas(tris, 0, tris.Length, areas);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="tris">An array of triangles.</param>
+		/// <param name="triOffset">An offset into the array.</param>
+		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		private void RasterizeTrianglesWithAreas(Triangle3[] tris, int triOffset, int triCount, AreaFlags[] areas)
+		{
+			int triEnd = triOffset + triCount;
+
+			if (tris == null)
+				throw new ArgumentNullException("verts");
+
+			if (triOffset < 0)
+				throw new ArgumentOutOfRangeException("triOffset", "triOffset must be greater than or equal to 0.");
+
+			if (triCount < 0)
+				throw new ArgumentOutOfRangeException("triCount", "triCount must be greater than or equal to 0.");
+
+			if (triEnd > tris.Length)
+				throw new ArgumentOutOfRangeException("triCount", "The specified offset and count end outside the bounds of the provided array.");
+
+			if (areas.Length < triCount)
+				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
+
+			for (int i = triCount, j = 0; i < triEnd; i++, j++)
+				RasterizeTriangle(ref tris[i].A, ref tris[i].B, ref tris[i].C, areas[j]);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <remarks>
+		/// If the length of the array is not a multiple of 3, the extra vertices at the end will be skipped.
+		/// </remarks>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesWithAreas(Vector3[] verts, AreaFlags[] areas)
+		{
+			RasterizeTrianglesWithAreas(verts, 0, 1, verts.Length / 3, areas);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="vertOffset">An offset into the array.</param>
+		/// <param name="vertStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (1 Vector3 per vertex).</param>
+		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesWithAreas(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaFlags[] areas)
+		{
+			if (verts == null)
+				throw new ArgumentNullException("verts");
+
+			if (vertOffset < 0)
+				throw new ArgumentOutOfRangeException("vertOffset", "vertOffset must be greater than or equal to 0.");
+
+			if (triCount < 0)
+				throw new ArgumentOutOfRangeException("triCount", "triCount must be greater than or equal to 0.");
+
+			if (vertStride < 0)
+				throw new ArgumentOutOfRangeException("vertStride", "vertStride must be greater than or equal to 0.");
+			else if (vertStride == 0)
+				vertStride = 1;
+
+			int vertEnd = triCount * vertStride + vertOffset;
+
+			if (vertEnd > verts.Length)
+				throw new ArgumentOutOfRangeException("triCount", "The specified offset, count, and stride end outside the bounds of the provided array.");
+
+			if (areas.Length < triCount)
+				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
+
+			for (int i = vertOffset, j = 0; i < vertEnd; i += vertStride * 3, j++)
+				RasterizeTriangle(ref verts[i], ref verts[i + vertStride], ref verts[i + vertStride * 2], areas[j]);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <remarks>
+		/// If the length of the array is not a multiple of 9, the extra floats at the end will be skipped.
+		/// </remarks>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesWithAreas(float[] verts, AreaFlags[] areas)
+		{
+			RasterizeTrianglesWithAreas(verts, 0, 3, verts.Length / 9, areas);
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="verts">An array of vertices.</param>
+		/// <param name="floatOffset">An offset into the array.</param>
+		/// <param name="floatStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (3 floats per vertex).</param>
+		/// <param name="triCount">The number of triangles to rasterize.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTrianglesWithAreas(float[] verts, int floatOffset, int floatStride, int triCount, AreaFlags[] areas)
+		{
+			if (verts == null)
+				throw new ArgumentNullException("verts");
+
+			if (floatOffset < 0)
+				throw new ArgumentOutOfRangeException("floatOffset", "floatOffset must be greater than or equal to 0.");
+
+			if (triCount < 0)
+				throw new ArgumentOutOfRangeException("triCount", "triCount must be greater than or equal to 0.");
+
+			if (floatStride < 0)
+				throw new ArgumentOutOfRangeException("floatStride", "floatStride must be a positive integer.");
+			else if (floatStride == 0)
+				floatStride = 3;
+
+			int floatEnd = triCount * floatStride + floatOffset;
+
+			if (floatEnd > verts.Length)
+				throw new ArgumentOutOfRangeException("triCount", "The specified offset, count, and stride end outside the bounds of the provided array.");
+
+			if (areas.Length < triCount)
+				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
+
+			Vector3 a, b, c;
+
+			for (int i = floatOffset, j = 0; i < floatEnd; i += floatStride * 3, j++)
 			{
-				RasterizeTriangle(ref tris[i], areas[i]); 
+				int floatStride2 = floatStride * 2;
+
+				a.X = verts[i];
+				a.Y = verts[i + 1];
+				a.Z = verts[i + 2];
+
+				b.X = verts[i + floatStride];
+				b.Y = verts[i + floatStride + 1];
+				b.Z = verts[i + floatStride + 2];
+
+				c.X = verts[i + floatStride2];
+				c.Y = verts[i + floatStride2 + 1];
+				c.Z = verts[i + floatStride2 + 2];
+
+				RasterizeTriangle(ref a, ref b, ref c, areas[j]);
 			}
 		}
 
