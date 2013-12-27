@@ -15,14 +15,10 @@ namespace SharpNav
 	[Flags]
 	public enum AreaFlags : byte
 	{
-		/// <summary>
-		/// The null area, unwalkable.
-		/// </summary>
+		/// <summary>The null area, unwalkable.</summary>
 		Null = 0,
 
-		/// <summary>
-		/// A walkable area.
-		/// </summary>
-		Walkable = 1
+		/// <summary>A walkable area.</summary>
+		Walkable = 0xff
 	}
 }

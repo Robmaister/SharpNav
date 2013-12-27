@@ -56,24 +56,6 @@ namespace SharpNav
 		public float CellHeight { get { return cellHeight; } }
 		public int BorderSize { get { return borderSize; } }
 
-		public struct Polygon
-		{
-			public int[] Vertices; //"numVertsPerPoly" elements
-			public int[] ExtraInfo; //"numVertsPerPoly" elements (contains flags, other polys)
-		}
-
-		private struct Tris
-		{
-			public int [] VertexHash; //make sure only 3 vertices
-		}
-		
-		private struct Edge
-		{
-			public int[] vert;
-			public int[] polyEdge;
-			public int[] poly;
-		}
-
 		/// <summary>
 		/// Create polygons out of a set of contours
 		/// </summary>
@@ -93,13 +75,15 @@ namespace SharpNav
 			int maxVertsPerCont = 0;
 			for (int i = 0; i < contSet.Contours.Count; i++)
 			{
+				int vertCount = contSet.Contours[i].Vertices.Length;
+
 				//skip null contours
-				if (contSet.Contours[i].NumVerts < 3) 
+				if (vertCount < 3) 
 					continue;
-				
-				maxVertices += contSet.Contours[i].NumVerts;
-				maxTris += contSet.Contours[i].NumVerts - 2;
-				maxVertsPerCont = Math.Max(maxVertsPerCont, contSet.Contours[i].NumVerts);
+
+				maxVertices += vertCount;
+				maxTris += vertCount - 2;
+				maxVertsPerCont = Math.Max(maxVertsPerCont, vertCount);
 			}
 
 			//vertex flags
@@ -145,23 +129,23 @@ namespace SharpNav
 			//extract contour data
 			for (int i = 0; i < contSet.Contours.Count; i++)
 			{
-				ContourSet.Contour cont = contSet.Contours[i];
+				Contour cont = contSet.Contours[i];
 
 				//skip null contours
-				if (cont.NumVerts < 3)
+				if (cont.Vertices.Length < 3)
 					continue;
 
 				//triangulate contours
-				for (int j = 0; j < cont.NumVerts; j++)
+				for (int j = 0; j < cont.Vertices.Length; j++)
 					indices[j] = j;
 
 				//Form triangles inside the area bounded by the contours
-				int ntris = Triangulate(cont.NumVerts, cont.Vertices, indices, tris);
+				int ntris = Triangulate(cont.Vertices.Length, cont.Vertices, indices, tris);
 				if (ntris <= 0) //TODO notify user when this happens. Logging?
 					ntris = -ntris;
 
 				//add and merge vertices
-				for (int j = 0; j < cont.NumVerts; j++)
+				for (int j = 0; j < cont.Vertices.Length; j++)
 				{
 					int v = j;
 
@@ -206,7 +190,7 @@ namespace SharpNav
 				//merge polygons
 				if (numVertsPerPoly > 3)
 				{
-					for ( ; ; )
+					for (;;)
 					{
 						//find best polygons
 						int bestMergeVal = 0;
@@ -245,6 +229,7 @@ namespace SharpNav
 								for (int k = 0; k < numVertsPerPoly; k++)
 									polys[pb + k] = polys[lastPoly + k];
 							}
+
 							npolys--;
 						}
 						else
@@ -373,8 +358,8 @@ namespace SharpNav
 					
 					if ((indices[i1] & 0x80000000) != 0)
 					{
-						int p0 = (indices[i] & 0x0fffffff);
-						int p2 = (indices[Next(i1, n)] & 0x0fffffff);
+						int p0 = indices[i] & 0x0fffffff;
+						int p2 = indices[Next(i1, n)] & 0x0fffffff;
 
 						int dx = verts[p2].X - verts[p0].X;
 						int dy = verts[p2].Z - verts[p0].Z;
@@ -620,9 +605,9 @@ namespace SharpNav
 				polys[polyA + i] = temp[i];
 		}
 
-		///<summary>
+		/// <summary>
 		/// If vertex can't be removed, there is no need to spend time deleting it.
-		///</summary>
+		/// </summary>
 		private bool CanRemoveVertex(int remove)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
@@ -645,6 +630,7 @@ namespace SharpNav
 						numTouchedVerts++;
 						numRemoved++;
 					}
+
 					numVerts++;
 				}
 
@@ -791,7 +777,8 @@ namespace SharpNav
 					{
 						this.polys[i].Vertices[j] = this.polys[this.npolys - 1].Vertices[j];
 						this.polys[i].ExtraInfo[j] = MESH_NULL_IDX;
-					} 
+					}
+
 					this.regionIds[i] = this.regionIds[this.npolys - 1];
 					this.areas[i] = this.areas[this.npolys - 1];
 					this.npolys--;
@@ -806,6 +793,7 @@ namespace SharpNav
 				this.verts[i * 3 + 1] = this.verts[(i + 1) * 3 + 1];
 				this.verts[i * 3 + 2] = this.verts[(i + 1) * 3 + 2];
 			}
+
 			this.nverts--;
 
 			//adjust indices
@@ -927,13 +915,14 @@ namespace SharpNav
 					npolys++;
 				}
 			}
+
 			if (npolys == 0)
 				return;
 
 			//merge polygons
 			if (numVertsPerPoly > 3)
 			{
-				for (; ; )
+				for (;;)
 				{
 					//find best polygons
 					int bestMergeVal = 0;
@@ -1101,7 +1090,6 @@ namespace SharpNav
 			}
 		}
 
-
 		/// <summary>
 		/// Count the number of vertices per polygon
 		/// </summary>
@@ -1158,24 +1146,24 @@ namespace SharpNav
 		private int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 		private int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 		
-		///<summary>
-		///true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
-		///</summary>
+		/// <summary>
+		/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
+		/// </summary>
 		private bool Diagonal(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
 			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
 		}
 
-		///<summary>
-		///true if and only if diagonal (i, j) is strictly internal to polygon 
-		///in neighborhood of i endpoint
-		///</summary>
+		/// <summary>
+		/// true if and only if diagonal (i, j) is strictly internal to polygon 
+		/// in neighborhood of i endpoint
+		/// </summary>
 		private bool InCone(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
-			int pi = (indices[i] & 0x0fffffff);
-			int pj = (indices[j] & 0x0fffffff);
-			int pi1 = (indices[Next(i, n)] & 0x0fffffff);
-			int pin1 = (indices[Prev(i, n)] & 0x0fffffff);
+			int pi = indices[i] & 0x0fffffff;
+			int pj = indices[j] & 0x0fffffff;
+			int pi1 = indices[Next(i, n)] & 0x0fffffff;
+			int pin1 = indices[Prev(i, n)] & 0x0fffffff;
 
 			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
 			if (LeftOn(verts, pin1, pi, pi1))
@@ -1185,14 +1173,14 @@ namespace SharpNav
 			return !(LeftOn(verts, pi, pj, pi1) && LeftOn(verts, pj, pi, pin1));
 		}
 
-		///<summary>
-		///true if and only if (v[i], v[j]) is internal or external diagonal
-		///ignoring edges incident to v[i] or v[j]
-		///</summary>
+		/// <summary>
+		/// true if and only if (v[i], v[j]) is internal or external diagonal
+		/// ignoring edges incident to v[i] or v[j]
+		/// </summary>
 		private bool Diagonalie(int i, int j, int n, ContourSet.SimplifiedVertex[] verts, int[] indices)
 		{
-			int d0 = (indices[i] & 0x0fffffff);
-			int d1 = (indices[j] & 0x0fffffff);
+			int d0 = indices[i] & 0x0fffffff;
+			int d1 = indices[j] & 0x0fffffff;
 
 			//for each edge (k, k + 1)
 			for (int k = 0; k < n; k++)
@@ -1202,8 +1190,8 @@ namespace SharpNav
 				//skip edges incident to i or j
 				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
 				{
-					int p0 = (indices[k] & 0x0fffffff);
-					int p1 = (indices[k1] & 0x0fffffff);
+					int p0 = indices[k] & 0x0fffffff;
+					int p1 = indices[k1] & 0x0fffffff;
 
 					if (VEqual(verts, d0, p0) || VEqual(verts, d1, p0) || VEqual(verts, d0, p1) || VEqual(verts, d1, p1))
 						continue;
@@ -1295,6 +1283,24 @@ namespace SharpNav
 			else
 				return ((verts[a].Z <= verts[c].Z) && (verts[c].Z <= verts[b].Z)) ||
 					((verts[a].Z >= verts[c].Z) && (verts[c].Z >= verts[b].Z));
+		}
+
+		public struct Polygon
+		{
+			public int[] Vertices; //"numVertsPerPoly" elements
+			public int[] ExtraInfo; //"numVertsPerPoly" elements (contains flags, other polys)
+		}
+
+		private struct Tris
+		{
+			public int[] VertexHash; //make sure only 3 vertices
+		}
+
+		private struct Edge
+		{
+			public int[] vert;
+			public int[] polyEdge;
+			public int[] poly;
 		}
 	}
 }

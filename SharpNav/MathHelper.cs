@@ -5,6 +5,14 @@
  */
 #endregion
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
+
 namespace SharpNav
 {
 	/// <summary>
@@ -108,6 +116,82 @@ namespace SharpNav
 		internal static void Clamp(ref float val, float min, float max)
 		{
 			val = val < min ? min : (val > max ? max : val);
+		}
+
+		/// <summary>
+		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
+		/// </summary>
+		/// <param name="inVertices">The input array of vertices.</param>
+		/// <param name="outVertices">The output array of vertices.</param>
+		/// <param name="numVerts">The number of vertices to read from the arrays.</param>
+		/// <param name="planeX">The clip plane's X component.</param>
+		/// <param name="planeZ">The clip plane's Z component.</param>
+		/// <param name="planeD">The clip plane's D component.</param>
+		/// <returns>The number of vertices stored in outVertices.</returns>
+		internal static int ClipPolygonToPlane(Vector3[] inVertices, Vector3[] outVertices, int numVerts, float planeX, float planeZ, float planeD)
+		{
+			float[] distances = new float[12];
+			for (int i = 0; i < numVerts; i++)
+				distances[i] = planeX * inVertices[i].X + planeZ * inVertices[i].Z + planeD;
+
+			int m = 0;
+			for (int i = 0, j = numVerts - 1; i < numVerts; j = i, i++)
+			{
+				bool inj = distances[j] >= 0;
+				bool ini = distances[i] >= 0;
+
+				if (inj != ini)
+				{
+					float s = distances[j] / (distances[j] - distances[i]);
+					outVertices[m].X = inVertices[j].X + (inVertices[i].X - inVertices[j].X) * s;
+					outVertices[m].Y = inVertices[j].Y + (inVertices[i].Y - inVertices[j].Y) * s;
+					outVertices[m].Z = inVertices[j].Z + (inVertices[i].Z - inVertices[j].Z) * s;
+					m++;
+				}
+
+				if (ini)
+				{
+					outVertices[m] = inVertices[i];
+					m++;
+				}
+			}
+
+			return m;
+		}
+
+		/// <summary>
+		/// Find the 2d distance between a point (x, z) and a segment PQ, where P is (px, pz) and Q is (qx, qz).
+		/// </summary>
+		/// <param name="x">The X coordinate of the point.</param>
+		/// <param name="z">The Z coordinate of the point.</param>
+		/// <param name="px">The X coordinate of point P in the segment PQ.</param>
+		/// <param name="pz">The Z coordinate of point P in the segment PQ.</param>
+		/// <param name="qx">The X coordinate of point Q in the segment PQ.</param>
+		/// <param name="qz">The Z coordinate of point Q in the segment PQ.</param>
+		/// <returns>The distance between the point and the segment.</returns>
+		internal static float DistanceFromPointToSegment(int x, int z, int px, int pz, int qx, int qz)
+		{
+			float segmentDeltaX = qx - px;
+			float segmentDeltaZ = qz - pz;
+			float dx = x - px;
+			float dz = z - pz;
+			float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
+			float t = segmentDeltaX * dx + segmentDeltaZ * dz;
+
+			//normalize?
+			if (segmentMagnitudeSquared > 0)
+				t /= segmentMagnitudeSquared;
+
+			//0 < t < 1
+			if (t < 0)
+				t = 0;
+			else if (t > 1)
+				t = 1;
+
+			dx = px + t * segmentDeltaX - x;
+			dz = pz + t * segmentDeltaZ - z;
+
+			return dx * dx + dz * dz;
 		}
 	}
 }

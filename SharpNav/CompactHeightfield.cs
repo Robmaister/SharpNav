@@ -17,7 +17,10 @@ namespace SharpNav
 	/// </summary>
 	public class CompactHeightfield
 	{
-		public const int BORDER_REG = 0x8000; //HACK: Heightfield border flag. Unwalkable
+		/// <summary>
+		/// The border region flag.
+		/// </summary>
+		public const int BORDER_REG = unchecked((int)0x80000000); //HACK: Heightfield border flag. Unwalkable
 
 		private BBox3 bounds;
 
@@ -215,6 +218,10 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the maximum distance to a border based on the distance field. This value is undefined prior to
+		/// calling <see cref="BuildDistanceField"/>.
+		/// </summary>
 		public int MaxDistance
 		{
 			get
@@ -223,6 +230,10 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets an array of distances from a span to the nearest border. This value is undefined prior to calling
+		/// <see cref="BuildDistanceField"/>.
+		/// </summary>
 		public int[] Distances
 		{
 			get
@@ -231,6 +242,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the size of the border.
+		/// </summary>
 		public int BorderSize
 		{
 			get
@@ -239,6 +253,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the maximum number of allowed regions.
+		/// </summary>
 		public int MaxRegions
 		{
 			get
@@ -348,15 +365,16 @@ namespace SharpNav
 		/// <returns></returns>
 		public bool BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
 		{
+			if (distances == null)
+				throw new InvalidOperationException("BuildRegions requires a distance field to be created first. Call BuildDistanceField() first.");
+
 			int[] srcReg = new int[spans.Length];
 			int[] srcDist = new int[spans.Length];
 			int[] dstReg = new int[spans.Length];
 			int[] dstDist = new int[spans.Length];
 
-			//BuildDistanceField();
-
 			int regionId = 1;
-			int level = ((maxDistance + 1) & ~1); //find a better way to compute this
+			int level = (maxDistance + 1) & ~1; //HACK find a better way to compute this
 
 			const int ExpandIters = 8;
 
@@ -381,7 +399,7 @@ namespace SharpNav
 
 			while (level > 0)
 			{
-				level = (level >= 2 ? level - 2 : 0);
+				level = level >= 2 ? level - 2 : 0;
 
 				//expand current regions until no new empty connected cells found
 				if (ExpandRegions(ExpandIters, level, srcReg, srcDist, dstReg, dstDist) != srcReg)
@@ -572,7 +590,6 @@ namespace SharpNav
 						regions[trace[j]].Id = 0;
 					}
 				}
-
 			}
 
 			//Merge too small regions to neighbor regions
@@ -630,6 +647,7 @@ namespace SharpNav
 								//replace current region with new one if current region is neighbor
 								regions[j].ReplaceNeighbour(oldId, mergeId);
 							}
+
 							mergeCount++;
 						}
 					}
@@ -680,7 +698,6 @@ namespace SharpNav
 		/// A distance field estimates how far each span is from its nearest border span. This data is needed for region generation.
 		/// </summary>
 		/// <param name="src">Array of values, each corresponding to an individual span</param>
-		/// <param name="maxDist">The maximum value of the src array</param>
 		private void CalculateDistanceField(int[] src)
 		{
 			//initialize distance and points
@@ -980,7 +997,6 @@ namespace SharpNav
 						dstReg[i] = r;
 						dstDist[i] = d2;
 					}
-
 					else
 					{
 						failed++;
@@ -1082,7 +1098,6 @@ namespace SharpNav
 							if (nr2 != 0 && nr2 != r)
 								ar = nr2;
 						}
-
 					}
 				}
 
@@ -1232,7 +1247,7 @@ namespace SharpNav
 			//remove adjacent duplicates
 			if (cont.Count > 1)
 			{
-				for (int j = 0; j < cont.Count; )
+				for (int j = 0; j < cont.Count;)
 				{
 					//next element
 					int nj = (j + 1) % cont.Count;

@@ -85,6 +85,7 @@ namespace SharpNav
 						hmax = Math.Max(hmax, h);
 					}
 				}
+
 				hmin -= parameters.walkableClimb;
 				hmax += parameters.walkableClimb;
 				BBox3 bounds = parameters.bounds;
@@ -163,6 +164,7 @@ namespace SharpNav
 
 						nv++;
 					}
+
 					ndv -= nv;
 					uniqueDetailVertCount += ndv;
 				}
@@ -182,6 +184,7 @@ namespace SharpNav
 
 						nv++;
 					}
+
 					uniqueDetailVertCount += nv - 2;
 				}
 			}
@@ -322,6 +325,7 @@ namespace SharpNav
 						{
 							navDVerts[vbase + j] = parameters.detailVerts[vb + nv + j];
 						}
+
 						vbase += ndv - nv;
 					}
 				}
@@ -352,9 +356,9 @@ namespace SharpNav
 						//bit for each edge that belongs to the poly boundary
 						navDTris[tbase].Flag = 1 << 2;
 						if (j == 2) 
-							navDTris[tbase].Flag |= (1 << 0);
+							navDTris[tbase].Flag |= 1 << 0;
 						if (j == nv - 1)
-							navDTris[tbase].Flag |= (1 << 4);
+							navDTris[tbase].Flag |= 1 << 4;
 						
 						tbase++;
 					}
@@ -576,7 +580,6 @@ namespace SharpNav
 
 				return 0;
 			}
-
 		}
 
 		private class CompareItemY : IComparer<PathfinderCommon.BVNode>

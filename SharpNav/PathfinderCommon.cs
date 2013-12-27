@@ -187,7 +187,7 @@ namespace SharpNav
 			shift = (v > 0xff) ? 1 << 3 : 0 << 3; v >>= shift; r |= (uint)shift;
 			shift = (v > 0xf) ? 1 << 2 : 0 << 2; v >>= shift; r |= (uint)shift;
 			shift = (v > 0x3) ? 1 << 1 : 0 << 1; v >>= shift; r |= (uint)shift;
-			r |= (v >> 1);
+			r |= v >> 1;
 			return r;
 		}
 
@@ -318,6 +318,7 @@ namespace SharpNav
 					tri = i;
 					break;
 				}
+
 				acc += dacc;
 			}
 

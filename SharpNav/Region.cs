@@ -68,6 +68,7 @@ namespace SharpNav
 		}
 
 		public List<int> FloorRegions { get { return floors; } }
+
 		public List<int> Connections { get { return connections; } }
 
 		/// <summary>
@@ -76,7 +77,7 @@ namespace SharpNav
 		public void RemoveAdjacentNeighbours()
 		{
 			// Remove adjacent duplicates.
-			for (int i = 0; i < connections.Count && connections.Count > 1; )
+			for (int i = 0; i < connections.Count && connections.Count > 1;)
 			{
 				//get the next i
 				int ni = (i + 1) % connections.Count;
@@ -193,6 +194,7 @@ namespace SharpNav
 					break;
 				}
 			}
+
 			if (insertInThis == -1)
 				return false;
 
@@ -206,6 +208,7 @@ namespace SharpNav
 					break;
 				}
 			}
+
 			if (insertInOther == -1)
 				return false;
 
@@ -241,6 +244,7 @@ namespace SharpNav
 				if (connections[i] == 0)
 					return true;
 			}
+
 			return false;
 		}
 	}

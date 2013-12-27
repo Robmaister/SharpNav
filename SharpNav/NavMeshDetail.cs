@@ -36,6 +36,7 @@ namespace SharpNav
 			public int OldNumTris;
 			public int NewNumTris;
 		}
+
 		private MeshInfo[] meshes;
 		
 		//each vertex is basically a vector3 (has x, y, z coordinates)
@@ -44,9 +45,10 @@ namespace SharpNav
 		//triangle info contains three vertex hashes and a flag
 		public struct TrisInfo
 		{
-			public int [] VertexHash;
+			public int[] VertexHash;
 			public int Flag; //indicates which 3 vertices are part of the polygon
 		}
+
 		private TrisInfo[] tris;
 
 		private class EdgeInfo
@@ -248,7 +250,6 @@ namespace SharpNav
 
 		public TrisInfo[] Tris { get { return tris; } }
 
-
 		/// <summary>
 		/// Determine which edges of the triangle are part of the polygon
 		/// </summary>
@@ -293,7 +294,7 @@ namespace SharpNav
 				Vector3 pt2 = verts[vb];
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (DistancePointSegment2d(pt1 , vpoly, j, i) < thrSqr && DistancePointSegment2d(pt2, vpoly, j, i) < thrSqr)
+				if (DistancePointSegment2d(pt1, vpoly, j, i) < thrSqr && DistancePointSegment2d(pt2, vpoly, j, i) < thrSqr)
 					return 1;
 			}
 
@@ -317,9 +318,9 @@ namespace SharpNav
 			List<int> stack = new List<int>();
 
 			//9 x 2
-			int [] offset = { 0,0, -1,-1, 0,-1, 
+			int[] offset = { 0,0, -1,-1, 0,-1, 
 								1,-1, 1,0, 1,1, 
-								0,1, -1,1, -1,0};
+								0,1, -1,1, -1,0 };
 
 			//use poly vertices as seed points
 			for (int j = 0; j < numVertsPerPoly; j++)
@@ -376,6 +377,7 @@ namespace SharpNav
 				pcx += (int)verts[poly[polyStartIndex].Vertices[j]].X;
 				pcz += (int)verts[poly[polyStartIndex].Vertices[j]].Z;
 			}
+
 			pcx /= numVertsPerPoly;
 			pcz /= numVertsPerPoly;
 
@@ -541,7 +543,7 @@ namespace SharpNav
 			const int MAX_TRIS = 255;
 			const int MAX_VERTS_PER_EDGE = 32;
 			Vector3[] edge = new Vector3[MAX_VERTS_PER_EDGE + 1];
-			float[] hull = new float [MAX_VERTS];
+			float[] hull = new float[MAX_VERTS];
 			int nhull = 0;
 
 			nverts = 0;
@@ -551,6 +553,7 @@ namespace SharpNav
 			{
 				verts[i] = in_[i];
 			}
+
 			nverts = nin_;
 
 			float cs = openField.CellSize;
@@ -615,7 +618,7 @@ namespace SharpNav
 					idx[1] = nn;
 					int nidx = 2;
 
-					for (int k = 0; k < nidx - 1; )
+					for (int k = 0; k < nidx - 1;)
 					{
 						int a = idx[k];
 						int b = idx[k + 1];
@@ -886,6 +889,7 @@ namespace SharpNav
 				e.RightFace = 0;
 				edges.Add(e);
 			}
+
 			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
 				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.HULL, (int)EdgeValues.UNDEF);
 

@@ -268,7 +268,6 @@ namespace SharpNav
 			{
 				for (int i = 0; i < triCount; i++)
 					yield return Tuple.Create(i, tris[triOffset + i]);
-
 			}
 
 			public override int Count

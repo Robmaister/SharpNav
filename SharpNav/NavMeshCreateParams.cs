@@ -20,8 +20,8 @@ using SharpDX;
 
 namespace SharpNav
 {
-	///<summary>
-	///Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
+	/// <summary>
+	/// Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
 	/// </summary>
 	public class NavMeshCreateParams
 	{

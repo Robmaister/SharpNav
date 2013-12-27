@@ -238,6 +238,13 @@ namespace SharpNav.Geometry
 			GetBoundingBox(ref tri.A, ref tri.B, ref tri.C, out bbox);
 		}
 
+		/// <summary>
+		/// Calculates the bounding box of a triangle from its vertices.
+		/// </summary>
+		/// <param name="a">The first vertex.</param>
+		/// <param name="b">The second vertex.</param>
+		/// <param name="c">The third vertex.</param>
+		/// <param name="bbox">The bounding box between the points.</param>
 		public static void GetBoundingBox(ref Vector3 a, ref Vector3 b, ref Vector3 c, out BBox3 bbox)
 		{
 			Vector3 min = a, max = a;

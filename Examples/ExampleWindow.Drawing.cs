@@ -458,18 +458,18 @@ namespace Examples
 
 				if (simplified)
 				{
-					for (int i = 0; i < c.NumVerts; i++)
+					for (int i = 0; i < c.Vertices.Length; i++)
 					{
-						int ni = (i + 1) % c.NumVerts;
+						int ni = (i + 1) % c.Vertices.Length;
 						GL.Vertex3(c.Vertices[i].X, c.Vertices[i].Y, c.Vertices[i].Z);
 						GL.Vertex3(c.Vertices[ni].X, c.Vertices[ni].Y, c.Vertices[ni].Z);
 					}
 				}
 				else
 				{
-					for (int i = 0; i < c.NumRawVerts; i++)
+					for (int i = 0; i < c.RawVertices.Length; i++)
 					{
-						int ni = (i + 1) % c.NumRawVerts;
+						int ni = (i + 1) % c.RawVertices.Length;
 						GL.Vertex3(c.RawVertices[i].X, c.RawVertices[i].Y, c.RawVertices[i].Z);
 						GL.Vertex3(c.RawVertices[ni].X, c.RawVertices[ni].Y, c.RawVertices[ni].Z);
 					}

@@ -324,7 +324,7 @@ namespace SharpNav
 				if (tidx != PathfinderCommon.NULL_LINK)
 				{
 					int landPolyIdx = (int)DecodePolyIdPoly(reference);
-					tile.links[idx].reference = polyBase | (uint)(tile.offMeshCons[con].poly);
+					tile.links[idx].reference = polyBase | (uint)tile.offMeshCons[con].poly;
 					tile.links[idx].edge = 0xff;
 					tile.links[idx].side = 0xff;
 					tile.links[idx].bmin = tile.links[idx].bmax = 0;
@@ -471,7 +471,7 @@ namespace SharpNav
 					if (tidx != PathfinderCommon.NULL_LINK)
 					{
 						int landPolyIdx = (int)DecodePolyIdPoly(reference);
-						tile.links[tidx].reference = GetPolyRefBase(target) | (uint)(targetCon.poly);
+						tile.links[tidx].reference = GetPolyRefBase(target) | (uint)targetCon.poly;
 						tile.links[tidx].edge = 0xff;
 						tile.links[tidx].side = (side == -1) ? 0xff : side;
 						tile.links[tidx].bmin = tile.links[tidx].bmax = 0;
@@ -849,6 +849,7 @@ namespace SharpNav
 					break;
 				}
 			}
+
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
@@ -884,6 +885,7 @@ namespace SharpNav
 					if (n < maxTiles)
 						tiles[n++] = tile;
 				}
+
 				tile = tile.next;
 			}
 
@@ -958,6 +960,7 @@ namespace SharpNav
 					break;
 				}
 			}
+
 			return EncodePolyId(tile.salt, it, 0);
 		}
 

@@ -17,12 +17,6 @@ namespace SharpNav
 	public struct CompactSpan
 	{
 		/// <summary>
-		/// A constant that means there is no connection for the values <see cref="ConnectionWest"/>,
-		/// <see cref="ConnectionNorth"/>, <see cref="ConnectionEast"/>, and <see cref="ConnectionSouth"/>.
-		/// </summary>
-		private const byte NotConnected = 0xff;
-
-		/// <summary>
 		/// The span minimum.
 		/// </summary>
 		public int Minimum;
@@ -56,6 +50,12 @@ namespace SharpNav
 		/// The region the span belongs to.
 		/// </summary>
 		public int Region;
+
+		/// <summary>
+		/// A constant that means there is no connection for the values <see cref="ConnectionWest"/>,
+		/// <see cref="ConnectionNorth"/>, <see cref="ConnectionEast"/>, and <see cref="ConnectionSouth"/>.
+		/// </summary>
+		private const byte NotConnected = 0xff;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CompactSpan"/> struct.

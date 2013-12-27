@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 
 using SharpNav.Geometry;
-using SharpNav.Internal;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

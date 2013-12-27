@@ -82,9 +82,10 @@
     <Compile Include="Cell.cs" />
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />
+    <Compile Include="Contour.cs" />
+    <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
-    <Compile Include="Internal\HeightfieldHelper.cs" />
     <Compile Include="NavMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="NavMeshCreateParams.cs" />

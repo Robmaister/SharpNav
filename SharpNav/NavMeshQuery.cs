@@ -275,7 +275,7 @@ namespace SharpNav
 						continue;
 
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = (neighbourNode.flags & ~NodeCommon.NODE_CLOSED);
+					neighbourNode.flags = neighbourNode.flags & ~NodeCommon.NODE_CLOSED;
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.total = total;
 
@@ -454,7 +454,7 @@ namespace SharpNav
 					//add or update the node
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = (neighbourNode.flags & ~NodeCommon.NODE_CLOSED);
+					neighbourNode.flags = neighbourNode.flags & ~NodeCommon.NODE_CLOSED;
 					neighbourNode.cost = cost;
 					neighbourNode.total = total;
 
@@ -497,14 +497,14 @@ namespace SharpNav
 			{
 				path[n++] = node.id;
 				if (n >= maxPath)
-				{
 					break;
-				}
+
 				node = m_nodePool.GetNodeAtIdx(node.pidx);
-			} while (node != null);
+			}
+			while (node != null);
 
 			pathCount = n;
-			
+
 			return true;
 		}
 
@@ -673,6 +673,5 @@ namespace SharpNav
 			public Vector3 startPos, endPos;
 			public QueryFilter filter;
 		}
-
 	}
 }

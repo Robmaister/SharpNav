@@ -17,6 +17,9 @@ using SharpDX;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A class that provides extension methods to fix discrepancies between Vector3 implementations.
+	/// </summary>
 	internal static class Vector3Extensions
 	{
 #if OPENTK
