@@ -420,7 +420,7 @@ namespace SharpNav
 				for (int dir = 0; dir < 4; dir++)
 				{
 					//skip if disconnected
-					if (CompactSpan.GetConnection(dir, ref cs) == CompactSpan.NotConnected)
+					if (!cs.IsConnected(dir))
 						continue;
 
 					//get neighbor
@@ -501,7 +501,7 @@ namespace SharpNav
 				for (int dir = 0; dir < 4; dir++)
 				{
 					//skip
-					if (CompactSpan.GetConnection(dir, ref cs) == CompactSpan.NotConnected)
+					if (!cs.IsConnected(dir))
 						continue;
 
 					int ax = cx + MathHelper.GetDirOffsetX(dir);

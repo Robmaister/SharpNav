@@ -106,7 +106,7 @@ namespace SharpNav
 
 						for (int dir = 0; dir < 4; dir++)
 						{
-							CompactSpan.SetConnection(dir, CompactSpan.NotConnected, ref spans[i]);
+							CompactSpan.UnsetConnection(dir, ref spans[i]);
 
 							int dx = x + MathHelper.GetDirOffsetX(dir);
 							int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -701,7 +701,7 @@ namespace SharpNav
 						int numConnections = 0;
 						for (int dir = 0; dir < 4; dir++)
 						{
-							if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+							if (s.IsConnected(dir))
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -727,7 +727,7 @@ namespace SharpNav
 					{
 						CompactSpan s = spans[i];
 
-						if (CompactSpan.GetConnection(0, ref s) != CompactSpan.NotConnected)
+						if (s.IsConnected(0))
 						{
 							//(-1, 0)
 							int dx = x + MathHelper.GetDirOffsetX(0);
@@ -738,7 +738,7 @@ namespace SharpNav
 								src[i] = src[di] + 2;
 
 							//(-1, -1)
-							if (CompactSpan.GetConnection(3, ref ds) != CompactSpan.NotConnected)
+							if (ds.IsConnected(3))
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(3);
 								int ddy = dy + MathHelper.GetDirOffsetY(3);
@@ -748,7 +748,7 @@ namespace SharpNav
 							}
 						}
 
-						if (CompactSpan.GetConnection(3, ref s) != CompactSpan.NotConnected)
+						if (s.IsConnected(3))
 						{
 							//(0, -1)
 							int dx = x + MathHelper.GetDirOffsetX(3);
@@ -759,7 +759,7 @@ namespace SharpNav
 								src[i] = src[di] + 2;
 
 							//(1, -1)
-							if (CompactSpan.GetConnection(2, ref ds) != CompactSpan.NotConnected)
+							if (ds.IsConnected(2))
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(2);
 								int ddy = dy + MathHelper.GetDirOffsetY(2);
@@ -782,7 +782,7 @@ namespace SharpNav
 					{
 						CompactSpan s = spans[i];
 
-						if (CompactSpan.GetConnection(2, ref s) != CompactSpan.NotConnected)
+						if (s.IsConnected(2))
 						{
 							//(1, 0)
 							int dx = x + MathHelper.GetDirOffsetX(2);
@@ -793,7 +793,7 @@ namespace SharpNav
 								src[i] = src[di] + 2;
 
 							//(1, 1)
-							if (CompactSpan.GetConnection(1, ref ds) != CompactSpan.NotConnected)
+							if (ds.IsConnected(1))
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(1);
 								int ddy = dy + MathHelper.GetDirOffsetY(1);
@@ -803,7 +803,7 @@ namespace SharpNav
 							}
 						}
 
-						if (CompactSpan.GetConnection(1, ref s) != CompactSpan.NotConnected)
+						if (s.IsConnected(1))
 						{
 							//(0, 1)
 							int dx = x + MathHelper.GetDirOffsetX(1);
@@ -814,7 +814,7 @@ namespace SharpNav
 								src[i] = src[di] + 2;
 
 							//(-1, 1)
-							if (CompactSpan.GetConnection(0, ref ds) != CompactSpan.NotConnected)
+							if (ds.IsConnected(0))
 							{
 								int ddx = dx + MathHelper.GetDirOffsetX(0);
 								int ddy = dy + MathHelper.GetDirOffsetY(0);
@@ -861,7 +861,7 @@ namespace SharpNav
 						for (int dir = 0; dir < 4; dir++)
 						{
 							//check neighbor span
-							if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+							if (s.IsConnected(dir))
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -871,7 +871,7 @@ namespace SharpNav
 								//check next span in next clockwise direction
 								CompactSpan ds = spans[di];
 								int dir2 = (dir + 1) % 4;
-								if (CompactSpan.GetConnection(dir2, ref ds) != CompactSpan.NotConnected)
+								if (ds.IsConnected(dir2))
 								{
 									int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
 									int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
@@ -954,7 +954,7 @@ namespace SharpNav
 
 					for (int dir = 0; dir < 4; dir++)
 					{
-						if (CompactSpan.GetConnection(dir, ref s) == CompactSpan.NotConnected)
+						if (!s.IsConnected(dir))
 							continue;
 
 						int dx = x + MathHelper.GetDirOffsetX(dir);
@@ -1052,7 +1052,7 @@ namespace SharpNav
 				for (int dir = 0; dir < 4; dir++)
 				{
 					//8 connected
-					if (CompactSpan.GetConnection(dir, ref cs) != CompactSpan.NotConnected)
+					if (cs.IsConnected(dir))
 					{
 						int dx = cx + MathHelper.GetDirOffsetX(dir);
 						int dy = cy + MathHelper.GetDirOffsetY(dir);
@@ -1069,7 +1069,7 @@ namespace SharpNav
 
 						CompactSpan ds = spans[di];
 						int dir2 = (dir + 1) % 4;
-						if (CompactSpan.GetConnection(dir2, ref ds) != CompactSpan.NotConnected)
+						if (ds.IsConnected(dir2))
 						{
 							int dx2 = dx + MathHelper.GetDirOffsetX(dir2);
 							int dy2 = dy + MathHelper.GetDirOffsetY(dir2);
@@ -1097,7 +1097,7 @@ namespace SharpNav
 				//expand neighbors
 				for (int dir = 0; dir < 4; dir++)
 				{
-					if (CompactSpan.GetConnection(dir, ref cs) != CompactSpan.NotConnected)
+					if (cs.IsConnected(dir))
 					{
 						int dx = cx + MathHelper.GetDirOffsetX(dir);
 						int dy = cy + MathHelper.GetDirOffsetY(dir);
@@ -1135,7 +1135,7 @@ namespace SharpNav
 			CompactSpan s = spans[i];
 			int r = 0;
 
-			if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+			if (s.IsConnected(dir))
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -1166,7 +1166,7 @@ namespace SharpNav
 			CompactSpan ss = spans[i];
 			int curReg = 0;
 
-			if (CompactSpan.GetConnection(dir, ref ss) != CompactSpan.NotConnected)
+			if (ss.IsConnected(dir))
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -1185,7 +1185,7 @@ namespace SharpNav
 				{
 					//choose the edge corner
 					int r = 0;
-					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+					if (s.IsConnected(dir))
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -1207,7 +1207,7 @@ namespace SharpNav
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
 
-					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+					if (s.IsConnected(dir))
 					{
 						CompactCell dc = cells[dx + dy * width];
 						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);

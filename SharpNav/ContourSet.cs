@@ -89,7 +89,7 @@ namespace SharpNav
 						{
 							//obtain region id
 							int r = 0;
-							if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+							if (s.IsConnected(dir))
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -363,7 +363,7 @@ namespace SharpNav
 
 					int r = 0;
 					CompactSpan s = openField.Spans[i];
-					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+					if (s.IsConnected(dir))
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
@@ -399,7 +399,7 @@ namespace SharpNav
 					int dy = y + MathHelper.GetDirOffsetY(dir);
 					
 					CompactSpan s = openField.Spans[i];
-					if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+					if (s.IsConnected(dir))
 					{
 						CompactCell dc = openField.Cells[dx + dy * openField.Width];
 						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);
@@ -445,7 +445,7 @@ namespace SharpNav
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
 			regs[0] = (uint)(openField.Spans[i].Region | ((byte)(openField.Areas[i]) << 16));
 
-			if (CompactSpan.GetConnection(dir, ref s) != CompactSpan.NotConnected)
+			if (s.IsConnected(dir))
 			{
 				//get neighbor span
 				int dx = x + MathHelper.GetDirOffsetX(dir);
@@ -457,7 +457,7 @@ namespace SharpNav
 				regs[1] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (CompactSpan.GetConnection(dirp, ref ds) != CompactSpan.NotConnected)
+				if (ds.IsConnected(dirp))
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dirp);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dirp);
@@ -470,7 +470,7 @@ namespace SharpNav
 			}
 
 			//get neighbor span
-			if (CompactSpan.GetConnection(dirp, ref s) != CompactSpan.NotConnected)
+			if (s.IsConnected(dirp))
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dirp);
 				int dy = y + MathHelper.GetDirOffsetY(dirp);
@@ -481,7 +481,7 @@ namespace SharpNav
 				regs[3] = (uint)(openField.Spans[di].Region | ((byte)(openField.Areas[di]) << 16));
 
 				//get neighbor of neighbor's span
-				if (CompactSpan.GetConnection(dir, ref ds) != CompactSpan.NotConnected)
+				if (ds.IsConnected(dir))
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dir);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dir);

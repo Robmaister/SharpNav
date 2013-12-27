@@ -16,7 +16,11 @@ namespace SharpNav
 	[StructLayout(LayoutKind.Sequential)]
 	public struct CompactSpan
 	{
-		public const byte NotConnected = 0xff; //TODO any clean way to do this without bloating up the struct?
+		/// <summary>
+		/// A constant that means there is no connection for the values <see cref="ConnectionWest"/>,
+		/// <see cref="ConnectionNorth"/>, <see cref="ConnectionEast"/>, and <see cref="ConnectionSouth"/>.
+		/// </summary>
+		private const byte NotConnected = 0xff;
 
 		/// <summary>
 		/// The span minimum.
@@ -29,11 +33,23 @@ namespace SharpNav
 		public int Height;
 
 		/// <summary>
-		/// An int (split into 4 bytes) containing span connection data to neighboring cells.
+		/// A byte representing the index of the connected span in the cell directly to the west.
 		/// </summary>
 		public byte ConnectionWest;
+
+		/// <summary>
+		/// A byte representing the index of the connected span in the cell directly to the north.
+		/// </summary>
 		public byte ConnectionNorth;
+
+		/// <summary>
+		/// A byte representing the index of the connected span in the cell directly to the east.
+		/// </summary>
 		public byte ConnectionEast;
+
+		/// <summary>
+		/// A byte representing the index of the connected span in the cell directly to the south.
+		/// </summary>
 		public byte ConnectionSouth;
 
 		/// <summary>
@@ -117,7 +133,7 @@ namespace SharpNav
 		/// <param name="s">The <see cref="CompactSpan"/> to set the data for.</param>
 		public static void SetConnection(int dir, int i, ref CompactSpan s)
 		{
-			if (i > NotConnected)
+			if (i >= NotConnected)
 				throw new ArgumentOutOfRangeException("Index of connecting span is too high to be stored. Try increasing cell height.", "i");
 
 			dir %= 4;
@@ -135,6 +151,32 @@ namespace SharpNav
 					break;
 				case 3:
 					s.ConnectionSouth = (byte)i;
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Un-sets connection data from a neighboring cell.
+		/// </summary>
+		/// <param name="dir">The direction of the cell.</param>
+		/// <param name="s">The <see cref="CompactSpan"/> to set the data for.</param>
+		public static void UnsetConnection(int dir, ref CompactSpan s)
+		{
+			dir %= 4;
+
+			switch (dir)
+			{
+				case 0:
+					s.ConnectionWest = NotConnected;
+					break;
+				case 1:
+					s.ConnectionNorth = NotConnected;
+					break;
+				case 2:
+					s.ConnectionEast = NotConnected;
+					break;
+				case 3:
+					s.ConnectionSouth = NotConnected;
 					break;
 			}
 		}
@@ -171,6 +213,29 @@ namespace SharpNav
 		public int GetConnection(int dir)
 		{
 			return GetConnection(dir, ref this);
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether the span is connected to another span in a specified direction.
+		/// </summary>
+		/// <param name="dir">The direction.</param>
+		/// <returns>A value indicating whether the specified direction has a connected span.</returns>
+		public bool IsConnected(int dir)
+		{
+			dir %= 4;
+
+			switch (dir)
+			{
+				case 0:
+					return ConnectionWest != NotConnected;
+				case 1:
+					return ConnectionNorth != NotConnected;
+				case 2:
+					return ConnectionEast != NotConnected;
+				case 3:
+				default:
+					return ConnectionSouth != NotConnected;
+			}
 		}
 	}
 }
