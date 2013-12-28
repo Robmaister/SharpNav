@@ -813,7 +813,7 @@ namespace SharpNav
 					int vertB = j; 
 					
 					//vertB must be infront of vertA
-					if (ILeft(vertsA, vertsB, vertAPrev, vertA, vertB) && ILeft(vertsA, vertsB, vertA, vertANext, vertB))
+					if (ILeft(vertsA[vertAPrev], vertsA[vertA], vertsB[vertB]) && ILeft(vertsA[vertA], vertsA[vertANext], vertsB[vertB]))
 					{
 						int dx = vertsB[vertB].X - vertsA[vertA].X;
 						int dz = vertsB[vertB].Z - vertsA[vertA].Z;
@@ -832,16 +832,10 @@ namespace SharpNav
 		/// <summary>
 		/// Helper method for GetClosestIndices function
 		/// </summary>
-		/// <param name="vertsA">First set of vertices</param>
-		/// <param name="vertsB">Second set of vertices</param>
-		/// <param name="a">First location in vertsA</param>
-		/// <param name="b">Second location in vertsA</param>
-		/// <param name="c">First location is vertsB</param>
-		/// <returns></returns>
-		private bool ILeft(SimplifiedVertex[] vertsA, SimplifiedVertex[] vertsB, int a, int b, int c)
+		private bool ILeft(SimplifiedVertex a, SimplifiedVertex b, SimplifiedVertex c)
 		{
-			return (vertsA[b].X - vertsA[a].X) * (vertsB[c].Z - vertsA[a].Z)
-				 - (vertsB[c].X - vertsA[a].X) * (vertsA[b].Z - vertsA[a].Z) <= 0;
+			return (b.X - a.X) * (c.Z - a.Z)
+				 - (c.X - a.X) * (b.Z - a.Z) <= 0;
 		}
 
 		private void MergeContours(Contour contA, Contour contB, int ia, int ib)

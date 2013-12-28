@@ -560,13 +560,13 @@ namespace SharpNav
 			vertA = polys[polyA + (edgeA + numVertsA - 1) % numVertsA];
 			vertB = polys[polyA + edgeA];
 			vertC = polys[polyB + (edgeB + 2) % numVertsB];
-			if (!ULeft(verts, vertA, vertB, vertC))
+			if (!ULeft(verts[vertA], verts[vertB], verts[vertC]))
 				return -1;
 
 			vertA = polys[polyB + (edgeB + numVertsB - 1) % numVertsB];
 			vertB = polys[polyB + edgeB];
 			vertC = polys[polyA + (edgeA + 2) % numVertsA];
-			if (!ULeft(verts, vertA, vertB, vertC))
+			if (!ULeft(verts[vertA], verts[vertB], verts[vertC]))
 				return -1;
 
 			vertA = polys[polyA + edgeA];
@@ -789,9 +789,7 @@ namespace SharpNav
 			//remove vertex
 			for (int i = remove; i < this.nverts; i++)
 			{
-				this.verts[i * 3 + 0] = this.verts[(i + 1) * 3 + 0];
-				this.verts[i * 3 + 1] = this.verts[(i + 1) * 3 + 1];
-				this.verts[i * 3 + 2] = this.verts[(i + 1) * 3 + 2];
+				this.verts[i] = this.verts[i + 1];
 			}
 
 			this.nverts--;
@@ -1137,10 +1135,10 @@ namespace SharpNav
 			an++;
 		}
 		
-		private bool ULeft(Vector3[] verts, int a, int b, int c)
+		private bool ULeft(Vector3 a, Vector3 b, Vector3 c)
 		{
-			return (verts[b].X - verts[a].X) * (verts[c].Z - verts[a].Z) -
-				(verts[c].X - verts[a].X) * (verts[b].Z - verts[a].Z) < 0;
+			return (b.X - a.X) * (c.Z - a.Z) -
+				(c.X - a.X) * (b.Z - a.Z) < 0;
 		}
 
 		private int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
@@ -1166,11 +1164,11 @@ namespace SharpNav
 			int pin1 = indices[Prev(i, n)] & 0x0fffffff;
 
 			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
-			if (LeftOn(verts, pin1, pi, pi1))
-				return Left(verts, pi, pj, pin1) && Left(verts, pj, pi, pi1);
+			if (LeftOn(verts[pin1], verts[pi], verts[pi1]))
+				return Left(verts[pi], verts[pj], verts[pin1]) && Left(verts[pj], verts[pi], verts[pi1]);
 
 			//assume (i - 1, i, i + 1) not collinear
-			return !(LeftOn(verts, pi, pj, pi1) && LeftOn(verts, pj, pi, pin1));
+			return !(LeftOn(verts[pi], verts[pj], verts[pi1]) && LeftOn(verts[pj], verts[pi], verts[pin1]));
 		}
 
 		/// <summary>
@@ -1193,10 +1191,10 @@ namespace SharpNav
 					int p0 = indices[k] & 0x0fffffff;
 					int p1 = indices[k1] & 0x0fffffff;
 
-					if (VEqual(verts, d0, p0) || VEqual(verts, d1, p0) || VEqual(verts, d0, p1) || VEqual(verts, d1, p1))
+					if (VEqual(verts[d0], verts[p0]) || VEqual(verts[d1], verts[p0]) || VEqual(verts[d0], verts[p1]) || VEqual(verts[d1], verts[p1]))
 						continue;
 
-					if (Intersect(verts, d0, d1, p0, p1))
+					if (Intersect(verts[d0], verts[d1], verts[p0], verts[p1]))
 						return false;
 				}
 			}
@@ -1204,41 +1202,41 @@ namespace SharpNav
 			return true;
 		}
 
-		private bool Left(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
+		private bool Left(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c)
 		{
-			return Area2(verts, a, b, c) < 0;
+			return Area2(a, b, c) < 0;
 		}
 
-		private bool LeftOn(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
+		private bool LeftOn(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c)
 		{
-			return Area2(verts, a, b, c) <= 0;
+			return Area2(a, b, c) <= 0;
 		}
 
-		private bool Collinear(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
+		private bool Collinear(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c)
 		{
-			return Area2(verts, a, b, c) == 0;
+			return Area2(a, b, c) == 0;
 		}
 
-		private int Area2(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
+		private int Area2(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c)
 		{
-			return (verts[b].X - verts[a].X) * (verts[c].Z - verts[a].Z) -
-				(verts[c].X - verts[a].X) * (verts[b].Z - verts[a].Z);
+			return (b.X - a.X) * (c.Z - a.Z) -
+				(c.X - a.X) * (b.Z - a.Z);
 		}
 
-		private bool VEqual(ContourSet.SimplifiedVertex[] verts, int a, int b)
+		private bool VEqual(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b)
 		{
-			return verts[a].X == verts[b].X && verts[a].Z == verts[b].Z;
+			return a.X == b.X && a.Z == b.Z;
 		}
 
 		/// <summary>
 		/// True if and only if segments AB and CD intersect, properly or improperyl
 		/// </summary>
-		private bool Intersect(ContourSet.SimplifiedVertex[] verts, int a, int b, int c, int d)
+		private bool Intersect(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c, ContourSet.SimplifiedVertex d)
 		{
-			if (IntersectProp(verts, a, b, c, d))
+			if (IntersectProp(a, b, c, d))
 				return true;
-			else if (Between(verts, a, b, c) || Between(verts, a, b, d) ||
-				Between(verts, c, d, a) || Between(verts, c, d, b))
+			else if (Between(a, b, c) || Between(a, b, d) ||
+				Between(c, d, a) || Between(c, d, b))
 				return true;
 			else
 				return false;
@@ -1247,23 +1245,21 @@ namespace SharpNav
 		/// <summary>
 		/// Intersect properly: share a point interior to both segments. properness determined by strict leftness
 		/// </summary>
-		private bool IntersectProp(ContourSet.SimplifiedVertex[] verts, int a, int b, int c, int d)
+		private bool IntersectProp(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c, ContourSet.SimplifiedVertex d)
 		{
 			//eliminate improper cases
-			if (Collinear(verts, a, b, c) || Collinear(verts, a, b, d) ||
-				Collinear(verts, c, d, a) || Collinear(verts, c, d, b))
+			if (Collinear(a, b, c) || Collinear(a, b, d) ||
+				Collinear(c, d, a) || Collinear(c, d, b))
 				return false;
 
-			return xorb(Left(verts, a, b, c), Left(verts, a, b, d)) && xorb(Left(verts, c, d, a), Left(verts, c, d, b));
+			return xorb(Left(a, b, c), Left(a, b, d)) 
+				&& xorb(Left(c, d, a), Left(c, d, b));
 		}
 
 		/// <summary>
 		/// Exclusive OR
 		/// True if and only if exactly one argument is true
 		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <returns></returns>
 		private bool xorb(bool x, bool y)
 		{
 			return !x ^ !y;
@@ -1272,17 +1268,17 @@ namespace SharpNav
 		/// <summary>
 		/// True if and only if (A, B, C) are collinear and point C lies on closed segment AB
 		/// </summary>
-		private bool Between(ContourSet.SimplifiedVertex[] verts, int a, int b, int c)
+		private bool Between(ContourSet.SimplifiedVertex a, ContourSet.SimplifiedVertex b, ContourSet.SimplifiedVertex c)
 		{
-			if (!Collinear(verts, a, b, c))
+			if (!Collinear(a, b, c))
 				return false;
 
-			if (verts[a].X != verts[b].X)
-				return ((verts[a].X <= verts[c].X) && (verts[c].X <= verts[b].X)) ||
-					((verts[a].X >= verts[c].X) && (verts[c].X >= verts[b].X));
+			if (a.X != b.X)
+				return ((a.X <= c.X) && (c.X <= b.X)) ||
+					((a.X >= c.X) && (c.X >= b.X));
 			else
-				return ((verts[a].Z <= verts[c].Z) && (verts[c].Z <= verts[b].Z)) ||
-					((verts[a].Z >= verts[c].Z) && (verts[c].Z >= verts[b].Z));
+				return ((a.Z <= c.Z) && (c.Z <= b.Z)) ||
+					((a.Z >= c.Z) && (c.Z >= b.Z));
 		}
 
 		public struct Polygon
