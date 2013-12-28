@@ -91,7 +91,10 @@
     <Compile Include="NavMeshCreateParams.cs" />
     <Compile Include="NavMeshDetail.cs" />
     <Compile Include="NavMeshQuery.cs" />
-    <Compile Include="NodeCommon.cs" />
+    <Compile Include="Node.cs" />
+    <Compile Include="NodePool.cs" />
+    <Compile Include="NodeFlags.cs" />
+    <Compile Include="NodeQueue.cs" />
     <Compile Include="PathfinderCommon.cs" />
     <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />
