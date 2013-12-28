@@ -191,19 +191,6 @@ namespace SharpNav
 			return r;
 		}
 
-		public static float VectorDot2D(Vector3 u, Vector3 v)
-		{
-			return u.X * v.X + u.Z * v.Z;
-		}
-
-		public static void VectorLinearInterpolation(ref Vector3 dest, Vector3 v1, Vector3 v2, float t)
-		{
-			dest = new Vector3();
-			dest.X = v1.X + (v2.X - v1.X) * t;
-			dest.Y = v1.Y + (v2.Y - v1.Y) * t;
-			dest.Z = v1.Z + (v2.Z - v1.Z) * t;
-		}
-
 		public static float TriangleArea2D(Vector3 a, Vector3 b, Vector3 c)
 		{
 			float abx = b.X - a.X;
@@ -271,11 +258,11 @@ namespace SharpNav
 			Vector3 v1 = b - a;
 			Vector3 v2 = p - a;
 
-			float dot00 = VectorDot2D(v0, v0);
-			float dot01 = VectorDot2D(v0, v1);
-			float dot02 = VectorDot2D(v0, v2);
-			float dot11 = VectorDot2D(v1, v1);
-			float dot12 = VectorDot2D(v1, v2);
+			float dot00 = Vector3.Dot2D(v0, v0);
+			float dot01 = Vector3.Dot2D(v0, v1);
+			float dot02 = Vector3.Dot2D(v0, v2);
+			float dot11 = Vector3.Dot2D(v1, v1);
+			float dot12 = Vector3.Dot2D(v1, v2);
 
 			//computer barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);

@@ -798,6 +798,17 @@ namespace SharpNav
 			result = left.X * right.X + left.Y * right.Y + left.Z * right.Z;
 		}
 
+		/// <summary>
+		/// Calculate the dot (scalar) product of two vectors in the two dimensional xz plane
+		/// </summary>
+		/// <param name="left">First operand</param>
+		/// <param name="right">Second operand</param>
+		/// <returns>The dot product of the two inputs</returns>
+		public static float Dot2D(Vector3 left, Vector3 right)
+		{
+			return left.X * right.X + left.Z * right.Z;
+		}
+
 		#endregion
 
 		#region Cross
@@ -842,10 +853,11 @@ namespace SharpNav
 		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
 		public static Vector3 Lerp(Vector3 a, Vector3 b, float blend)
 		{
-			a.X = blend * (b.X - a.X) + a.X;
-			a.Y = blend * (b.Y - a.Y) + a.Y;
-			a.Z = blend * (b.Z - a.Z) + a.Z;
-			return a;
+			Vector3 result = new Vector3();
+			result.X = blend * (b.X - a.X) + a.X;
+			result.Y = blend * (b.Y - a.Y) + a.Y;
+			result.Z = blend * (b.Z - a.Z) + a.Z;
+			return result;
 		}
 
 		/// <summary>

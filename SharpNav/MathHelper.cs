@@ -160,6 +160,77 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Find the 3D distance between a point (x, y, z) and a segment PQ
+		/// </summary>
+		/// <param name="pt">The coordinate of the point.</param>
+		/// <param name="p">The coordinate of point P in the segment PQ.</param>
+		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+		/// <returns>The distance between the point and the segment.</returns>
+		internal static float DistanceFromPointToSegment(Vector3 pt, Vector3 p, Vector3 q)
+		{
+			//distance from P to Q
+			Vector3 pq = q - p;
+
+			//disance from P to the lone point
+			float dx = pt.X - p.X;
+			float dy = pt.Y - p.Y;
+			float dz = pt.Z - p.Z;
+
+			float segmentMagnitudeSquared = pq.LengthSquared();
+			float t = pq.X * dx + pq.Y * dy + pq.Z * dz;
+
+			if (segmentMagnitudeSquared > 0)
+				t /= segmentMagnitudeSquared;
+
+			//keep t between 0 and 1
+			if (t < 0)
+				t = 0;
+			else if (t > 1)
+				t = 1;
+
+			dx = p.X + t * pq.X - pt.X;
+			dy = p.Y + t * pq.Y - pt.Y;
+			dz = p.Z + t * pq.Z - pt.Z;
+
+			return dx * dx + dy * dy + dz * dz;
+		}
+
+		/// <summary>
+		/// Find the 2d distance between a point and a segment PQ
+		/// </summary>
+		/// <param name="pt">The coordinate of the point.</param>
+		/// <param name="p">The coordinate of point P in the segment PQ.</param>
+		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+		/// <returns>The distance between the point and the segment.</returns>
+		internal static float DistanceFromPointToSegment2D(Vector3 pt, Vector3 p, Vector3 q)
+		{
+			//distance from P to Q in the xz plane
+			float segmentDeltaX = q.X - p.X;
+			float segmentDeltaZ = q.Z - p.Z;
+
+			//distance from P to lone point in xz plane
+			float dx = pt.X - p.X;
+			float dz = pt.Z - p.Z;
+
+			float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
+			float t = segmentDeltaX * dx + segmentDeltaZ * dz;
+
+			if (segmentMagnitudeSquared > 0)
+				t /= segmentMagnitudeSquared;
+
+			//keep t between 0 and 1
+			if (t < 0)
+				t = 0;
+			else if (t > 1)
+				t = 1;
+
+			dx = p.X + t * segmentDeltaX - pt.X;
+			dz = p.Z + t * segmentDeltaZ - pt.Z;
+
+			return dx * dx + dz * dz;
+		}
+
+		/// <summary>
 		/// Find the 2d distance between a point (x, z) and a segment PQ, where P is (px, pz) and Q is (qx, qz).
 		/// </summary>
 		/// <param name="x">The X coordinate of the point.</param>
@@ -169,7 +240,7 @@ namespace SharpNav
 		/// <param name="qx">The X coordinate of point Q in the segment PQ.</param>
 		/// <param name="qz">The Z coordinate of point Q in the segment PQ.</param>
 		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment(int x, int z, int px, int pz, int qx, int qz)
+		internal static float DistanceFromPointToSegment2D(int x, int z, int px, int pz, int qx, int qz)
 		{
 			float segmentDeltaX = qx - px;
 			float segmentDeltaZ = qz - pz;

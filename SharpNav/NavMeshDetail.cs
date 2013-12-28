@@ -267,9 +267,9 @@ namespace SharpNav
 			//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
 			//each bit stores whether two vertices are close enough to a polygon edge 
 			//since triangle has three vertices, there are three distinct pairs of vertices (va,vb), (vb,vc) and (vc,va)
-			flags |= GetEdgeFlags(verts, va, vb, vpoly, npoly) << 0;
-			flags |= GetEdgeFlags(verts, vb, vc, vpoly, npoly) << 2;
-			flags |= GetEdgeFlags(verts, vc, va, vpoly, npoly) << 4;
+			flags |= GetEdgeFlags(verts[va], verts[vb], vpoly, npoly) << 0;
+			flags |= GetEdgeFlags(verts[vb], verts[vc], vpoly, npoly) << 2;
+			flags |= GetEdgeFlags(verts[vc], verts[va], vpoly, npoly) << 4;
 			
 			return flags;
 		}
@@ -283,18 +283,18 @@ namespace SharpNav
 		/// <param name="vpoly">Polygon vertex data</param>
 		/// <param name="npoly">Number of polygons</param>
 		/// <returns></returns>
-		private int GetEdgeFlags(Vector3[] verts, int va, int vb, Vector3[] vpoly, int npoly)
+		private int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly, int npoly)
 		{
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
 
 			for (int i = 0, j = npoly - 1; i < npoly; j = i++)
 			{
-				Vector3 pt1 = verts[va];
-				Vector3 pt2 = verts[vb];
+				Vector3 pt1 = va;
+				Vector3 pt2 = vb;
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (DistancePointSegment2d(pt1, vpoly, j, i) < thrSqr && DistancePointSegment2d(pt2, vpoly, j, i) < thrSqr)
+				if (MathHelper.DistanceFromPointToSegment2D(pt1, vpoly[j], vpoly[i]) < thrSqr && MathHelper.DistanceFromPointToSegment2D(pt2, vpoly[j], vpoly[i]) < thrSqr)
 					return 1;
 			}
 
@@ -630,7 +630,7 @@ namespace SharpNav
 						int maxi = 0;
 						for (int m = a + 1; m < b; m++)
 						{
-							float dev = DistancePointSegment(edge, m, va, vb);
+							float dev = MathHelper.DistanceFromPointToSegment(edge[m], edge[va], edge[vb]);
 							if (dev > maxd)
 							{
 								maxd = dev;
@@ -1007,13 +1007,13 @@ namespace SharpNav
 				if (u == s || u == t)
 					continue;
 
-				if (VCross2(pts, s, t, u) > EPS)
+				if (VectorCross2D(pts[s], pts[t], pts[u]) > EPS)
 				{
 					if (r < 0)
 					{
 						//update circle now
 						pt = u;
-						CircumCircle(pts, s, t, u, c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
 						continue;
 					}
 
@@ -1031,7 +1031,7 @@ namespace SharpNav
 					{
 						//inside circumcircle, update
 						pt = u;
-						CircumCircle(pts, s, t, u, c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
 					}
 					else
 					{
@@ -1044,7 +1044,7 @@ namespace SharpNav
 
 						//edge is valid
 						pt = u;
-						CircumCircle(pts, s, t, u, c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
 					}
 				}
 			}
@@ -1120,7 +1120,7 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (OverlapSegSeg2d(pts, s0, t0, s1, t1) == true)
+				if (OverlapSegSeg2d(pts[s0], pts[t0], pts[s1], pts[t1]) == true)
 					return true;
 			}
 
@@ -1135,29 +1135,29 @@ namespace SharpNav
 				edges[edgePos].RightFace = f;
 		}
 
-		private bool CircumCircle(Vector3[] pts, int p1, int p2, int p3, Vector3 c, ref float r)
+		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 c, ref float r)
 		{
 			float EPS = 1e-6f;
-			float cp = VCross2(pts, p1, p2, p3);
+			float cp = VectorCross2D(p1, p2, p3);
 
 			if (Math.Abs(cp) > EPS)
 			{
 				//find magnitude of each point
-				float p1Sq = VDot2(pts[p1], pts[p1]);
-				float p2Sq = VDot2(pts[p2], pts[p2]);
-				float p3Sq = VDot2(pts[p3], pts[p3]);
+				float p1Sq = Vector3.Dot2D(p1, p1);
+				float p2Sq = Vector3.Dot2D(p2, p2);
+				float p3Sq = Vector3.Dot2D(p3, p3);
 
-				c.X = (p1Sq * (pts[p2].Z - pts[p3].Z) + p2Sq * (pts[p3].Z - pts[p1].Z) + p3Sq * (pts[p1].Z - pts[p2].Z)) / (2 * cp);
-				c.Z = (p1Sq * (pts[p2].X - pts[p3].X) + p2Sq * (pts[p3].X - pts[p1].X) + p3Sq * (pts[p1].X - pts[p2].X)) / (2 * cp);
+				c.X = (p1Sq * (p2.Z - p3.Z) + p2Sq * (p3.Z - p1.Z) + p3Sq * (p1.Z - p2.Z)) / (2 * cp);
+				c.Z = (p1Sq * (p2.X - p3.X) + p2Sq * (p3.X - p1.X) + p3Sq * (p1.X - p2.X)) / (2 * cp);
 
-				float dx = c.X - pts[p1].X;
-				float dy = c.Z - pts[p1].Z;
+				float dx = c.X - p1.X;
+				float dy = c.Z - p1.Z;
 				r = (float)Math.Sqrt(dx * dx + dy * dy);
 				return true;
 			}
 
-			c.X = pts[p1].X;
-			c.Z = pts[p1].Z;
+			c.X = p1.X;
+			c.Z = p1.Z;
 			r = 0;
 			return false;
 		}
@@ -1171,7 +1171,7 @@ namespace SharpNav
 				int va = tris[i].VertexHash[0];
 				int vb = tris[i].VertexHash[1];
 				int vc = tris[i].VertexHash[2];
-				float d = DistancePointTri(p, verts, va, vb, vc);
+				float d = DistancePointTri(p, verts[va], verts[vb], verts[vc]);
 				if (d < dmin)
 					dmin = d;
 			}
@@ -1182,21 +1182,17 @@ namespace SharpNav
 			return dmin;
 		}
 
-		private float DistancePointTri(Vector3 p, Vector3[] verts, int a, int b, int c)
+		private float DistancePointTri(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
 		{
-			Vector3 v0 = new Vector3();
-			Vector3 v1 = new Vector3();
-			Vector3 v2 = new Vector3();
+			Vector3 v0 = c - a;
+			Vector3 v1 = b - a;
+			Vector3 v2 = p - a;
 
-			v0 = verts[c] - verts[a];
-			v1 = verts[b] - verts[a];
-			v2 = p - verts[a];
-
-			float dot00 = VDot2(v0, v0);
-			float dot01 = VDot2(v0, v1);
-			float dot02 = VDot2(v0, v2);
-			float dot11 = VDot2(v1, v1);
-			float dot12 = VDot2(v1, v2);
+			float dot00 = Vector3.Dot2D(v0, v0);
+			float dot01 = Vector3.Dot2D(v0, v1);
+			float dot02 = Vector3.Dot2D(v0, v2);
+			float dot11 = Vector3.Dot2D(v1, v1);
+			float dot12 = Vector3.Dot2D(v1, v2);
 
 			//compute barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
@@ -1207,8 +1203,8 @@ namespace SharpNav
 			float EPS = 1E-4f;
 			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
 			{
-				float y = verts[a].Y + v0.Y * u + v1.Y * v;
-				return Math.Abs(y - p[1]);
+				float y = a.Y + v0.Y * u + v1.Y * v;
+				return Math.Abs(y - p.Y);
 			}
 
 			return float.MaxValue;
@@ -1230,93 +1226,20 @@ namespace SharpNav
 					c = !c;
 				}
 
-				dmin = Math.Min(dmin, DistancePointSegment2d(p, verts, vj, vi));
+				dmin = Math.Min(dmin, MathHelper.DistanceFromPointToSegment2D(p, verts[vj], verts[vi]));
 			}
 
 			return c ? -dmin : dmin;
 		}
-
-		/// <summary>
-		/// Finds the shortest distance between a point and a segment in the 3d plane.
-		/// </summary>
-		/// <param name="verts"></param>
-		/// <param name="pt">Individual point</param>
-		/// <param name="p">One end of a segment</param>
-		/// <param name="q">Other end of segment</param>
-		/// <returns></returns>
-		private float DistancePointSegment(Vector3[] verts, int pt, int p, int q)
+	
+		private bool OverlapSegSeg2d(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
 		{
-			//distance from P to Q
-			Vector3 pq = verts[q] - verts[p];
-
-			//disance from P to the lone point
-			float dx = verts[pt].X - verts[p].X;
-			float dy = verts[pt].Y - verts[p].Y;
-			float dz = verts[pt].Z - verts[p].Z;
-		
-			float segmentMagnitude = pq.LengthSquared();
-			float t = pq.X * dx + pq.Y * dy + pq.Z * dz;
-
-			if (segmentMagnitude > 0)
-				t /= segmentMagnitude;
-
-			//keep t between 0 and 1
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = verts[p].X + t * pq.X - verts[pt].X;
-			dy = verts[p].Y + t * pq.Y - verts[pt].Y;
-			dz = verts[p].Z + t * pq.Z - verts[pt].Z;
-
-			return dx * dx + dy * dy + dz * dz;
-		}
-
-		/// <summary>
-		/// Find the shortest distance between a point and a segment in the 2D xz-plane.
-		/// </summary>
-		/// <param name="pt">Lone point</param>
-		/// <param name="verts">Vertices that store P and Q</param>
-		/// <param name="p">First vertex</param>
-		/// <param name="q">Second vertex</param>
-		/// <returns></returns>
-		private float DistancePointSegment2d(Vector3 pt, Vector3[] verts, int p, int q)
-		{
-			//distance from P to Q in the xz plane
-			float pqx = verts[q].X - verts[p].X;
-			float pqz = verts[q].Z - verts[p].Z;
-
-			//distance from P to lone point in xz plane
-			float dx = pt.X - verts[p].X;
-			float dz = pt.Z - verts[p].Z;
-
-			float segmentMagnitude = pqx * pqx + pqz * pqz;
-			float t = pqx * dx + pqz * dz;
-
-			if (segmentMagnitude > 0)
-				t /= segmentMagnitude;
-
-			//keep t between 0 and 1
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = verts[p].X + t * pqx - pt.X;
-			dz = verts[p].Z + t * pqz - pt.Z;
-
-			return dx * dx + dz * dz;
-		}
-
-		private bool OverlapSegSeg2d(Vector3[] pts, int a, int b, int c, int d)
-		{
-			float a1 = VCross2(pts, a, b, d);
-			float a2 = VCross2(pts, a, b, c);
+			float a1 = VectorCross2D(a, b, d);
+			float a2 = VectorCross2D(a, b, c);
 
 			if (a1 * a2 < 0.0f)
 			{
-				float a3 = VCross2(pts, c, d, a);
+				float a3 = VectorCross2D(c, d, a);
 				float a4 = a3 + a2 - a1;
 				
 				if (a3 * a4 < 0.0f)
@@ -1326,20 +1249,14 @@ namespace SharpNav
 			return false;
 		}
 
-		private float VCross2(Vector3[] pts, int p1, int p2, int p3)
+		private float VectorCross2D(Vector3 p1, Vector3 p2, Vector3 p3)
 		{
-			float u1 = pts[p2].X - pts[p1].X;
-			float v1 = pts[p2].Z - pts[p1].Z;
-			float u2 = pts[p3].X - pts[p1].X;
-			float v2 = pts[p3].Z - pts[p1].Z;
+			float u1 = p2.X - p1.X;
+			float v1 = p2.Z - p1.Z;
+			float u2 = p3.X - p1.X;
+			float v2 = p3.Z - p1.Z;
 
 			return u1 * v2 - v1 * u2;
-		}
-
-		private float VDot2(Vector3 v1, Vector3 v2)
-		{
-			//dot product of (x1, z1) and (x2, z2) is x1 * x2 + z1 * z2 
-			return v1.X * v2.X + v1.Z * v2.Z;
 		}
 
 		/// <summary>

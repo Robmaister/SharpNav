@@ -767,7 +767,7 @@ namespace SharpNav
 				float d0 = (pos - v0).Length();
 				float d1 = (pos - v1).Length();
 				float u = d0 / (d0 + d1);
-				PathfinderCommon.VectorLinearInterpolation(ref closest, v0, v1, u);
+				closest = Vector3.Lerp(v0, v1, u);
 				return;
 			}
 
@@ -799,7 +799,7 @@ namespace SharpNav
 
 				Vector3 va = verts[imin];
 				Vector3 vb = verts[(imin + 1) % nv];
-				PathfinderCommon.VectorLinearInterpolation(ref closest, va, vb, edget[imin]);
+				closest = Vector3.Lerp(va, vb, edget[imin]);
 			}
 
 			//find height at the location

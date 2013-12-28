@@ -266,7 +266,7 @@ namespace SharpNav
 
 					//cost
 					if (neighbourNode.flags == 0)
-						PathfinderCommon.VectorLinearInterpolation(ref neighbourNode.pos, va, vb, 0.5f);
+						neighbourNode.pos = Vector3.Lerp(va, vb, 0.5f);
 
 					float total = bestNode.total + (bestNode.pos - neighbourNode.pos).Length();
 
@@ -593,8 +593,8 @@ namespace SharpNav
 					float s = 1.0f / 255.0f;
 					float tmin = link.bmin * s;
 					float tmax = link.bmax * s;
-					PathfinderCommon.VectorLinearInterpolation(ref left, fromTile.verts[v0], fromTile.verts[v1], tmin);
-					PathfinderCommon.VectorLinearInterpolation(ref right, fromTile.verts[v0], fromTile.verts[v1], tmax);
+					left = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmin);
+					right = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmax);
 				}
 			}
 
