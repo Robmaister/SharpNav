@@ -80,6 +80,8 @@
     <Compile Include="AreaFlags.cs" />
     <Compile Include="AreaFlagsGenerator.cs" />
     <Compile Include="Cell.cs" />
+    <Compile Include="Collections\Generic\IValueWithCost.cs" />
+    <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />
     <Compile Include="Contour.cs" />
@@ -94,7 +96,6 @@
     <Compile Include="Node.cs" />
     <Compile Include="NodePool.cs" />
     <Compile Include="NodeFlags.cs" />
-    <Compile Include="NodeQueue.cs" />
     <Compile Include="PathfinderCommon.cs" />
     <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />

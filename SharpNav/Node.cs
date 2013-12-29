@@ -6,8 +6,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 
+using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
 #if MONOGAME || XNA
@@ -23,7 +23,7 @@ namespace SharpNav
 	/// <summary>
 	/// Every polygon becomes a Node, which contains a position and cost.
 	/// </summary>
-	public class Node
+	public class Node : IValueWithCost
 	{
 		public Vector3 pos;
 		public float cost;
@@ -31,5 +31,7 @@ namespace SharpNav
 		public int pidx = 30; //index to parent node
 		public NodeFlags flags = 0; //node flags 0/open/closed
 		public uint id; //polygon ref the node corresponds to
+
+		public float Cost { get { return total; } }
 	}
 }

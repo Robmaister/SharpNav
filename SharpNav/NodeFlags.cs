@@ -19,11 +19,11 @@ namespace SharpNav
 		/// <summary>
 		/// Open list contains nodes to examine.
 		/// </summary>
-		NODE_OPEN = 0x01,
+		Open = 0x01,
 
 		/// <summary>
 		/// Closed list stores path.
 		/// </summary>
-		NODE_CLOSED = 0x02
+		Closed = 0x02
 	}
 }

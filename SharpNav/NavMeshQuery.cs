@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 
+using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
 #if MONOGAME || XNA
@@ -30,7 +31,7 @@ namespace SharpNav
 		private TiledNavMesh m_nav;
 		private NodePool m_tinyNodePool;
 		private NodePool m_nodePool;
-		private NodeQueue m_openList;
+		private PriorityQueue<Node> m_openList;
 		private QueryData m_query;
 
 		public NavMeshQuery(TiledNavMesh nav, int maxNodes)
@@ -39,7 +40,7 @@ namespace SharpNav
 
 			m_nodePool = new NodePool(maxNodes, (int)PathfinderCommon.NextPow2((uint)maxNodes / 4));
 			m_tinyNodePool = new NodePool(64, 32);
-			m_openList = new NodeQueue(maxNodes);
+			m_openList = new PriorityQueue<Node>(maxNodes);
 		}
 
 		public bool FindRandomPoint(ref QueryFilter filter, ref uint randomRef, ref Vector3 randomPt)
@@ -173,7 +174,7 @@ namespace SharpNav
 			startNode.cost = 0;
 			startNode.total = 0;
 			startNode.id = startRef;
-			startNode.flags = NodeFlags.NODE_OPEN;
+			startNode.flags = NodeFlags.Open;
 			m_openList.Push(startNode);
 
 			float radiusSqr = radius * radius;
@@ -183,11 +184,11 @@ namespace SharpNav
 			PathfinderCommon.Poly randomPoly = null;
 			uint randomPolyRef = 0;
 
-			while (m_openList.Empty() == false)
+			while (m_openList.Count > 0)
 			{
 				Node bestNode = m_openList.Pop();
-				bestNode.flags &= ~NodeFlags.NODE_OPEN;
-				bestNode.flags |= NodeFlags.NODE_CLOSED;
+				bestNode.flags &= ~NodeFlags.Open;
+				bestNode.flags |= NodeFlags.Closed;
 
 				//get poly and tile
 				uint bestRef = bestNode.id;
@@ -261,7 +262,7 @@ namespace SharpNav
 					if (neighbourNode == null)
 						continue;
 
-					if ((neighbourNode.flags & NodeFlags.NODE_CLOSED) != 0)
+					if ((neighbourNode.flags & NodeFlags.Closed) != 0)
 						continue;
 
 					//cost
@@ -271,21 +272,21 @@ namespace SharpNav
 					float total = bestNode.total + (bestNode.pos - neighbourNode.pos).Length();
 
 					//node is already in open list and new result is worse, so skip
-					if ((neighbourNode.flags & NodeFlags.NODE_OPEN) != 0 && total >= neighbourNode.total)
+					if ((neighbourNode.flags & NodeFlags.Open) != 0 && total >= neighbourNode.total)
 						continue;
 
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.NODE_CLOSED;
+					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.Closed;
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.total = total;
 
-					if ((neighbourNode.flags & NodeFlags.NODE_OPEN) != 0)
+					if ((neighbourNode.flags & NodeFlags.Open) != 0)
 					{
 						m_openList.Modify(neighbourNode);
 					}
 					else
 					{
-						neighbourNode.flags = NodeFlags.NODE_OPEN;
+						neighbourNode.flags = NodeFlags.Open;
 						m_openList.Push(neighbourNode);
 					}
 				}
@@ -357,18 +358,18 @@ namespace SharpNav
 			startNode.cost = 0;
 			startNode.total = (startPos - endPos).Length() * H_SCALE;
 			startNode.id = startRef;
-			startNode.flags = NodeFlags.NODE_OPEN;
+			startNode.flags = NodeFlags.Open;
 			m_openList.Push(startNode);
 
 			Node lastBestNode = startNode;
 			float lastBestTotalCost = startNode.total;
 
-			while (!m_openList.Empty())
+			while (m_openList.Count > 0)
 			{
 				//remove node from open list and put it in closed list
 				Node bestNode = m_openList.Pop();
-				bestNode.flags &= ~NodeFlags.NODE_OPEN;
-				bestNode.flags |= NodeFlags.NODE_CLOSED;
+				bestNode.flags &= ~NodeFlags.Open;
+				bestNode.flags |= NodeFlags.Closed;
 
 				//reached the goal. stop searching
 				if (bestNode.id == endRef)
@@ -444,21 +445,21 @@ namespace SharpNav
 					float total = cost + heuristic;
 
 					//the node is already in open list and new result is worse, skip
-					if ((neighbourNode.flags & NodeFlags.NODE_OPEN) != 0 && total >= neighbourNode.total)
+					if ((neighbourNode.flags & NodeFlags.Open) != 0 && total >= neighbourNode.total)
 						continue;
 
 					//the node is already visited and processesd, and the new result is worse, skip
-					if ((neighbourNode.flags & NodeFlags.NODE_CLOSED) != 0 && total >= neighbourNode.total)
+					if ((neighbourNode.flags & NodeFlags.Closed) != 0 && total >= neighbourNode.total)
 						continue;
 
 					//add or update the node
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.NODE_CLOSED;
+					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.Closed;
 					neighbourNode.cost = cost;
 					neighbourNode.total = total;
 
-					if ((neighbourNode.flags & NodeFlags.NODE_OPEN) != 0)
+					if ((neighbourNode.flags & NodeFlags.Open) != 0)
 					{
 						//already in open, update node location
 						m_openList.Modify(neighbourNode);
@@ -466,7 +467,7 @@ namespace SharpNav
 					else
 					{
 						//put the node in the open list
-						neighbourNode.flags |= NodeFlags.NODE_OPEN;
+						neighbourNode.flags |= NodeFlags.Open;
 						m_openList.Push(neighbourNode);
 					}
 
