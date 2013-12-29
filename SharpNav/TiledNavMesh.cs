@@ -71,7 +71,7 @@ namespace SharpNav
 
 			//init tiles
 			m_maxTiles = parameters.maxTiles;
-			m_tileLutSize = (int)PathfinderCommon.NextPow2((uint)parameters.maxTiles / 4);
+			m_tileLutSize = MathHelper.NextPowerOfTwo(parameters.maxTiles / 4);
 			if (m_tileLutSize == 0)
 				m_tileLutSize = 1;
 			m_tileLutMask = m_tileLutSize - 1;
@@ -93,8 +93,8 @@ namespace SharpNav
 			}
 			
 			//init ID generator values
-			m_tileBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxTiles));
-			m_polyBits = PathfinderCommon.Ilog2(PathfinderCommon.NextPow2((uint)parameters.maxPolys));
+			m_tileBits = (uint)MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxTiles));
+			m_polyBits = (uint)MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxPolys));
 
 			//only allow 31 salt bits, since salt mask is calculated using 32-bit uint and it will overflow
 			m_saltBits = Math.Min(31, 32 - m_tileBits - m_polyBits);

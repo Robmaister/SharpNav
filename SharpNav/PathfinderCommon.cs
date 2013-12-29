@@ -166,31 +166,6 @@ namespace SharpNav
 			public MeshTile next;
 		}
 
-		public static uint NextPow2(uint v)
-		{
-			v--;
-			v |= v >> 1;
-			v |= v >> 2;
-			v |= v >> 4;
-			v |= v >> 8;
-			v |= v >> 16;
-			v++;
-
-			return v;
-		}
-
-		public static uint Ilog2(uint v)
-		{
-			uint r;
-			int shift;
-			r = (uint)((v > 0xffff) ? 1 << 4 : 0 << 4); v >>= (int)r;
-			shift = (v > 0xff) ? 1 << 3 : 0 << 3; v >>= shift; r |= (uint)shift;
-			shift = (v > 0xf) ? 1 << 2 : 0 << 2; v >>= shift; r |= (uint)shift;
-			shift = (v > 0x3) ? 1 << 1 : 0 << 1; v >>= shift; r |= (uint)shift;
-			r |= v >> 1;
-			return r;
-		}
-
 		public static float TriangleArea2D(Vector3 a, Vector3 b, Vector3 c)
 		{
 			float abx = b.X - a.X;

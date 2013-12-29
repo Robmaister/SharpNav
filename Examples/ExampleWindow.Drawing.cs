@@ -401,8 +401,9 @@ namespace Examples
 						var span = openHeightfield.Spans[k];
 
 						int region = span.Region;
-						if ((region & 0x8000) == 0x8000)
-							region &= 0x7fff;
+						if (Region.IsBorder(region))
+							region = Region.RemoveBorderFlag(region);
+
 						Color4 col = regionColors[region];
 						GL.Color4(col);
 
@@ -450,8 +451,9 @@ namespace Examples
 			foreach (var c in contourSet.Contours)
 			{
 				int region = c.RegionId;
-				if ((region & 0x8000) == 0x8000) //HACK properly display border regions
-					region &= 0x7fff;
+
+				if (Region.IsBorder(region))
+					region = Region.RemoveBorderFlag(region);
 
 				Color4 col = regionColors[region];
 				GL.Color4(col);

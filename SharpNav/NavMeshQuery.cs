@@ -38,7 +38,7 @@ namespace SharpNav
 		{
 			m_nav = nav;
 
-			m_nodePool = new NodePool(maxNodes, (int)PathfinderCommon.NextPow2((uint)maxNodes / 4));
+			m_nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
 			m_tinyNodePool = new NodePool(64, 32);
 			m_openList = new PriorityQueue<Node>(maxNodes);
 		}

@@ -17,11 +17,6 @@ namespace SharpNav
 	/// </summary>
 	public class CompactHeightfield
 	{
-		/// <summary>
-		/// The border region flag.
-		/// </summary>
-		public const int BORDER_REG = unchecked((int)0x80000000); //HACK: Heightfield border flag. Unwalkable
-
 		private BBox3 bounds;
 
 		private int width, height, length;
@@ -122,19 +117,9 @@ namespace SharpNav
 							{
 								CompactSpan ds = spans[j];
 
-								int overlapBottom = Math.Max(s.Minimum, ds.Minimum);
-								int overlapTop;
-
-								//TODO clean this up. Maybe a custom min/max function that takes "infinite" spans into account.
-								//This is an issue here but not in Recast since the stored value goes up to int.MaxValue instead of a lower limit.
-								if (!s.HasUpperBound && !ds.HasUpperBound)
-									overlapTop = int.MaxValue;
-								else if (!s.HasUpperBound)
-									overlapTop = ds.Minimum + ds.Height;
-								else if (!ds.HasUpperBound)
-									overlapTop = s.Minimum + s.Height;
-								else
-									overlapTop = Math.Min(s.Minimum + s.Height, ds.Minimum + ds.Height);
+								int overlapBottom, overlapTop;
+								CompactSpan.OverlapMin(ref s, ref ds, out overlapBottom);
+								CompactSpan.OverlapMax(ref s, ref ds, out overlapTop);
 
 								if ((overlapTop - overlapBottom) >= walkableHeight && Math.Abs(ds.Minimum - s.Minimum) <= walkableClimb)
 								{
@@ -385,13 +370,13 @@ namespace SharpNav
 				int borderHeight = Math.Min(length, borderSize);
 
 				//paint regions
-				PaintRectRegion(0, borderWidth, 0, length, (ushort)(regionId | BORDER_REG), srcReg);
+				PaintRectRegion(0, borderWidth, 0, length, Region.IdWithBorderFlag(regionId), srcReg);
 				regionId++;
-				PaintRectRegion(width - borderWidth, width, 0, length, (ushort)(regionId | BORDER_REG), srcReg);
+				PaintRectRegion(width - borderWidth, width, 0, length, Region.IdWithBorderFlag(regionId), srcReg);
 				regionId++;
-				PaintRectRegion(0, width, 0, borderHeight, (ushort)(regionId | BORDER_REG), srcReg);
+				PaintRectRegion(0, width, 0, borderHeight, Region.IdWithBorderFlag(regionId), srcReg);
 				regionId++;
-				PaintRectRegion(0, width, length - borderHeight, length, (ushort)(regionId | BORDER_REG), srcReg);
+				PaintRectRegion(0, width, length - borderHeight, length, Region.IdWithBorderFlag(regionId), srcReg);
 				regionId++;
 
 				this.borderSize = borderSize;
@@ -480,8 +465,9 @@ namespace SharpNav
 					CompactCell c = cells[x + y * width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
+						//HACK since the border region flag makes r negative, I changed r == 0 to r <= 0. Figure out exactly what maxRegionId's purpose is and see if Region.IsBorderOrNull is all we need.
 						int r = srcReg[i];
-						if (r == 0 || r >= numRegions)
+						if (r <= 0 || r >= numRegions)
 							continue;
 
 						Region reg = regions[r];
@@ -530,11 +516,7 @@ namespace SharpNav
 			for (int i = 0; i < numRegions; i++)
 			{
 				Region reg = regions[i];
-				if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
-					continue;
-				if (reg.SpanCount == 0)
-					continue;
-				if (reg.Visited)
+				if (reg.IsBorderOrNull() || reg.SpanCount == 0 || reg.Visited)
 					continue;
 
 				//count the total size of all connected regions
@@ -560,16 +542,14 @@ namespace SharpNav
 
 					for (int j = 0; j < creg.Connections.Count; j++)
 					{
-						if ((creg.Connections[j] & BORDER_REG) != 0)
+						if (Region.IsBorder(creg.Connections[j]))
 						{
 							connectsToBorder = true;
 							continue;
 						}
 
 						Region neiReg = regions[creg.Connections[j]];
-						if (neiReg.Visited)
-							continue;
-						if (neiReg.Id == 0 || (neiReg.Id & BORDER_REG) != 0)
+						if (neiReg.Visited || neiReg.IsBorderOrNull())
 							continue;
 
 						//visit
@@ -600,9 +580,7 @@ namespace SharpNav
 				for (int i = 0; i < numRegions; i++)
 				{
 					Region reg = regions[i];
-					if (reg.Id == 0 || (reg.Id & BORDER_REG) != 0)
-						continue;
-					if (reg.SpanCount == 0)
+					if (reg.IsBorderOrNull() || reg.SpanCount == 0)
 						continue;
 
 					//check to see if region should be merged
@@ -615,9 +593,13 @@ namespace SharpNav
 					int mergeId = reg.Id;
 					for (int j = 0; j < reg.Connections.Count; j++)
 					{
-						if ((reg.Connections[j] & BORDER_REG) != 0) continue;
+						if (Region.IsBorder(reg.Connections[j]))
+							continue;
+
 						Region mreg = regions[reg.Connections[j]];
-						if (mreg.Id == 0 || (mreg.Id & BORDER_REG) != 0) continue;
+						if (mreg.IsBorderOrNull())
+							continue;
+
 						if (mreg.SpanCount < smallest && reg.CanMergeWithRegion(mreg) && mreg.CanMergeWithRegion(reg))
 						{
 							smallest = mreg.SpanCount;
@@ -637,7 +619,8 @@ namespace SharpNav
 							//fix regions pointing to current region
 							for (int j = 0; j < numRegions; j++)
 							{
-								if (regions[j].Id == 0 || (regions[j].Id & BORDER_REG) != 0) continue;
+								if (regions[j].IsBorderOrNull())
+									continue;
 
 								//if another regions was already merged into current region
 								//change the nid of the previous region too
@@ -659,8 +642,10 @@ namespace SharpNav
 			for (int i = 0; i < numRegions; i++)
 			{
 				regions[i].Remap = false;
-				if (regions[i].Id == 0) continue; //skip nil regions
-				if ((regions[i].Id & BORDER_REG) != 0) continue; //skip external regions
+
+				if (regions[i].IsBorderOrNull())
+					continue;
+
 				regions[i].Remap = true;
 			}
 
@@ -687,7 +672,7 @@ namespace SharpNav
 			//Remap regions
 			for (int i = 0; i < spans.Length; i++)
 			{
-				if ((srcReg[i] & BORDER_REG) == 0)
+				if (!Region.IsBorder(srcReg[i]))
 					srcReg[i] = regions[srcReg[i]].Id;
 			}
 
@@ -981,7 +966,7 @@ namespace SharpNav
 						if (areas[di] != area)
 							continue;
 
-						if (srcReg[di] > 0 && (srcReg[di] & BORDER_REG) == 0)
+						if (!Region.IsBorderOrNull(srcReg[di]))
 						{
 							if (srcDist[di] + 2 < d2)
 							{
@@ -1078,8 +1063,10 @@ namespace SharpNav
 							continue;
 
 						int nr = srcReg[di];
-						if ((nr & BORDER_REG) != 0) //skip borders
+
+						if (Region.IsBorder(nr)) //skip borders
 							continue;
+
 						if (nr != 0 && nr != r)
 							ar = nr;
 

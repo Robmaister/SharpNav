@@ -18,6 +18,11 @@ namespace SharpNav
 	/// </summary>
 	public class Region
 	{
+		/// <summary>
+		/// The border region flag.
+		/// </summary>
+		private const int BorderFlag = unchecked((int)0x80000000);
+
 		private int spanCount;
 		private int id;
 		private AreaFlags areaType;
@@ -70,6 +75,46 @@ namespace SharpNav
 		public List<int> FloorRegions { get { return floors; } }
 
 		public List<int> Connections { get { return connections; } }
+
+		public static int IdWithBorderFlag(int id)
+		{
+			return id | BorderFlag;
+		}
+
+		public static int RemoveBorderFlag(int id)
+		{
+			return id & ~BorderFlag;
+		}
+
+		public static bool IsBorder(int id)
+		{
+			return (id & BorderFlag) == BorderFlag;
+		}
+
+		public static bool IsNull(int id)
+		{
+			return id == 0;
+		}
+
+		public static bool IsBorderOrNull(int id)
+		{
+			return id == 0 || (id & BorderFlag) == BorderFlag;
+		}
+
+		public bool IsBorder()
+		{
+			return (id & BorderFlag) == BorderFlag;
+		}
+
+		public bool IsNull()
+		{
+			return id == 0;
+		}
+
+		public bool IsBorderOrNull()
+		{
+			return id == 0 || (id & BorderFlag) == BorderFlag;
+		}
 
 		/// <summary>
 		/// Remove adjacent connections if there is a duplicate

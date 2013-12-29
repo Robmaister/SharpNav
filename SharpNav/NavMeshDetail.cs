@@ -294,7 +294,7 @@ namespace SharpNav
 				Vector3 pt2 = vb;
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (MathHelper.DistanceFromPointToSegment2D(pt1, vpoly[j], vpoly[i]) < thrSqr && MathHelper.DistanceFromPointToSegment2D(pt2, vpoly[j], vpoly[i]) < thrSqr)
+				if (MathHelper.DistanceFromPointToSegment2D(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr && MathHelper.DistanceFromPointToSegment2D(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
 					return 1;
 			}
 
@@ -630,7 +630,7 @@ namespace SharpNav
 						int maxi = 0;
 						for (int m = a + 1; m < b; m++)
 						{
-							float dev = MathHelper.DistanceFromPointToSegment(edge[m], edge[va], edge[vb]);
+							float dev = MathHelper.DistanceFromPointToSegment(ref edge[m], ref edge[va], ref edge[vb]);
 							if (dev > maxd)
 							{
 								maxd = dev;
@@ -1230,7 +1230,7 @@ namespace SharpNav
 					c = !c;
 				}
 
-				dmin = Math.Min(dmin, MathHelper.DistanceFromPointToSegment2D(p, verts[vj], verts[vi]));
+				dmin = Math.Min(dmin, MathHelper.DistanceFromPointToSegment2D(ref p, ref verts[vj], ref verts[vi]));
 			}
 
 			return c ? -dmin : dmin;

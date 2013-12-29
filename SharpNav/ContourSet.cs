@@ -76,9 +76,8 @@ namespace SharpNav
 						byte res = 0;
 						CompactSpan s = compactField.Spans[i];
 
-						//if the region doesn't have an id (so default is 0?) or the region id satisfies border flag (so border flag returns 1?)
-						//then set the flag to 0
-						if (compactField.Spans[i].Region == 0 || (compactField.Spans[i].Region & CompactHeightfield.BORDER_REG) != 0)
+						//set the flag to 0 if the region is a border region or null.
+						if (Region.IsBorderOrNull(compactField.Spans[i].Region))
 						{
 							flags[i] = 0;
 							continue;
@@ -143,7 +142,7 @@ namespace SharpNav
 						}
 
 						int reg = compactField.Spans[i].Region;
-						if (reg == 0 || (reg & CompactHeightfield.BORDER_REG) != 0)
+						if (Region.IsBorderOrNull(reg))
 							continue;
 						
 						AreaFlags area = compactField.Areas[i];
@@ -331,11 +330,11 @@ namespace SharpNav
 				if ((flags[i] & (1 << dir)) != 0)
 				{
 					//choose the edge corner
-					bool isBorderVertex = false;
+					bool isBorderVertex;
 					bool isAreaBorder = false;
 
 					int px = x;
-					int py = GetCornerHeight(x, y, i, dir, openField, ref isBorderVertex);
+					int py = GetCornerHeight(x, y, i, dir, openField, out isBorderVertex);
 					int pz = y;
 
 					switch (dir)
@@ -427,8 +426,10 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="isBorderVertex">Determine whether the vertex is a border or not</param>
 		/// <returns></returns>
-		private int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, ref bool isBorderVertex)
+		private int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, out bool isBorderVertex)
 		{
+			isBorderVertex = false;
+
 			CompactSpan s = openField.Spans[i];
 			int cornerHeight = s.Minimum;
 			int dirp = (dir + 1) % 4; //new clockwise direction
@@ -497,8 +498,9 @@ namespace SharpNav
 
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
-				bool twoSameExteriors = (regs[a] & regs[b] & CompactHeightfield.BORDER_REG) != 0 && regs[a] == regs[b];
-				bool twoSameInteriors = ((regs[c] | regs[d]) & CompactHeightfield.BORDER_REG) == 0;
+
+				bool twoSameExteriors = Region.IsBorder((int)regs[a]) && Region.IsBorder((int)regs[b]) && regs[a] == regs[b];
+				bool twoSameInteriors = !Region.IsBorder((int)regs[c]) || !Region.IsBorder((int)regs[d]);
 				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
 				bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
 				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)
@@ -813,7 +815,7 @@ namespace SharpNav
 					int vertB = j; 
 					
 					//vertB must be infront of vertA
-					if (ILeft(vertsA[vertAPrev], vertsA[vertA], vertsB[vertB]) && ILeft(vertsA[vertA], vertsA[vertANext], vertsB[vertB]))
+					if (ILeft(ref vertsA[vertAPrev], ref vertsA[vertA], ref vertsB[vertB]) && ILeft(ref vertsA[vertA], ref vertsA[vertANext], ref vertsB[vertB]))
 					{
 						int dx = vertsB[vertB].X - vertsA[vertA].X;
 						int dz = vertsB[vertB].Z - vertsA[vertA].Z;
@@ -832,7 +834,7 @@ namespace SharpNav
 		/// <summary>
 		/// Helper method for GetClosestIndices function
 		/// </summary>
-		private bool ILeft(SimplifiedVertex a, SimplifiedVertex b, SimplifiedVertex c)
+		private bool ILeft(ref SimplifiedVertex a, ref SimplifiedVertex b, ref SimplifiedVertex c)
 		{
 			return (b.X - a.X) * (c.Z - a.Z)
 				 - (c.X - a.X) * (b.Z - a.Z) <= 0;

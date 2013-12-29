@@ -119,6 +119,92 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Calculates the next highest power of two.
+		/// </summary>
+		/// <param name="v">A value.</param>
+		/// <returns>The next power of two after the value.</returns>
+		public static int NextPowerOfTwo(int v)
+		{
+			v--;
+			v |= v >> 1;
+			v |= v >> 2;
+			v |= v >> 4;
+			v |= v >> 8;
+			v |= v >> 16;
+			v++;
+
+			return v;
+		}
+
+		/// <summary>
+		/// Calculates the next highest power of two.
+		/// </summary>
+		/// <param name="v">A value.</param>
+		/// <returns>The next power of two after the value.</returns>
+		public static uint NextPowerOfTwo(uint v)
+		{
+			v--;
+			v |= v >> 1;
+			v |= v >> 2;
+			v |= v >> 4;
+			v |= v >> 8;
+			v |= v >> 16;
+			v++;
+
+			return v;
+		}
+
+		public static int Log2(int v)
+		{
+			int r;
+			int shift;
+
+			r = (v > 0xffff) ? 1 << 4 : 0 << 4;
+			v >>= r;
+
+			shift = (v > 0xff) ? 1 << 3 : 0 << 3;
+			v >>= shift;
+			r |= shift;
+
+			shift = (v > 0xf) ? 1 << 2 : 0 << 2;
+			v >>= shift;
+			r |= shift;
+
+			shift = (v > 0x3) ? 1 << 1 : 0 << 1;
+			v >>= shift;
+			r |= shift;
+
+			r |= v >> 1;
+
+			return r;
+		}
+
+		public static uint Log2(uint v)
+		{
+			uint r;
+			int shift;
+
+			r = (uint)((v > 0xffff) ? 1 << 4 : 0 << 4);
+			v >>= (int)r;
+
+			shift = (v > 0xff) ? 1 << 3 : 0 << 3;
+			v >>= shift;
+			r |= (uint)shift;
+
+			shift = (v > 0xf) ? 1 << 2 : 0 << 2;
+			v >>= shift;
+			r |= (uint)shift;
+
+			shift = (v > 0x3) ? 1 << 1 : 0 << 1;
+			v >>= shift;
+			r |= (uint)shift;
+
+			r |= v >> 1;
+
+			return r;
+		}
+
+		/// <summary>
 		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
 		/// </summary>
 		/// <param name="inVertices">The input array of vertices.</param>
@@ -166,7 +252,7 @@ namespace SharpNav
 		/// <param name="p">The coordinate of point P in the segment PQ.</param>
 		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
 		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment(Vector3 pt, Vector3 p, Vector3 q)
+		internal static float DistanceFromPointToSegment(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
 		{
 			//distance from P to Q
 			Vector3 pq = q - p;
@@ -202,7 +288,7 @@ namespace SharpNav
 		/// <param name="p">The coordinate of point P in the segment PQ.</param>
 		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
 		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment2D(Vector3 pt, Vector3 p, Vector3 q)
+		internal static float DistanceFromPointToSegment2D(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
 		{
 			//distance from P to Q in the xz plane
 			float segmentDeltaX = q.X - p.X;

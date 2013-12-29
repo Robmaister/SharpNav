@@ -95,6 +95,23 @@ namespace SharpNav
 			}
 		}
 
+		public static void OverlapMin(ref CompactSpan left, ref CompactSpan right, out int min)
+		{
+			min = Math.Max(left.Minimum, right.Minimum);
+		}
+
+		public static void OverlapMax(ref CompactSpan left, ref CompactSpan right, out int max)
+		{
+			if (left.Height == int.MaxValue && right.Height == int.MaxValue)
+				max = int.MaxValue;
+			else if (left.Height == int.MaxValue)
+				max = right.Minimum + right.Height;
+			else if (right.Height == int.MaxValue)
+				max = left.Minimum + left.Height;
+			else
+				max = Math.Min(left.Minimum + left.Height, right.Minimum + right.Height);
+		}
+
 		/// <summary>
 		/// Creates a <see cref="CompactSpan"/> from a minimum boundary and a maximum boundary.
 		/// </summary>
