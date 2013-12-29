@@ -258,11 +258,13 @@ namespace SharpNav
 			Vector3 v1 = b - a;
 			Vector3 v2 = p - a;
 
-			float dot00 = Vector3.Dot2D(v0, v0);
-			float dot01 = Vector3.Dot2D(v0, v1);
-			float dot02 = Vector3.Dot2D(v0, v2);
-			float dot11 = Vector3.Dot2D(v1, v1);
-			float dot12 = Vector3.Dot2D(v1, v2);
+			float dot00, dot01, dot02, dot11, dot12;
+
+			Vector3Extensions.Dot2D(ref v0, ref v0, out dot00);
+			Vector3Extensions.Dot2D(ref v0, ref v1, out dot01);
+			Vector3Extensions.Dot2D(ref v0, ref v2, out dot02);
+			Vector3Extensions.Dot2D(ref v1, ref v1, out dot11);
+			Vector3Extensions.Dot2D(ref v1, ref v2, out dot12);
 
 			//compute barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);

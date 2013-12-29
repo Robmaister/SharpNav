@@ -798,17 +798,6 @@ namespace SharpNav
 			result = left.X * right.X + left.Y * right.Y + left.Z * right.Z;
 		}
 
-		/// <summary>
-		/// Calculate the dot (scalar) product of two vectors in the two dimensional xz plane
-		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <returns>The dot product of the two inputs</returns>
-		public static float Dot2D(Vector3 left, Vector3 right)
-		{
-			return left.X * right.X + left.Z * right.Z;
-		}
-
 		#endregion
 
 		#region Cross

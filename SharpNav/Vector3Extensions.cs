@@ -33,5 +33,16 @@ namespace SharpNav
 			return v.LengthSquared;
 		}
 #endif
+
+		/// <summary>
+		/// Calculate the dot (scalar) product of two vectors in the two dimensional xz plane
+		/// </summary>
+		/// <param name="left">First operand</param>
+		/// <param name="right">Second operand</param>
+		/// <returns>The dot product of the two inputs</returns>
+		internal static void Dot2D(ref Vector3 left, ref Vector3 right, out float result)
+		{
+			result = left.X * right.X + left.Z * right.Z;
+		}
 	}
 }

@@ -1143,9 +1143,11 @@ namespace SharpNav
 			if (Math.Abs(cp) > EPS)
 			{
 				//find magnitude of each point
-				float p1Sq = Vector3.Dot2D(p1, p1);
-				float p2Sq = Vector3.Dot2D(p2, p2);
-				float p3Sq = Vector3.Dot2D(p3, p3);
+				float p1Sq, p2Sq, p3Sq;
+
+				Vector3Extensions.Dot2D(ref p1, ref p1, out p1Sq);
+				Vector3Extensions.Dot2D(ref p2, ref p2, out p2Sq);
+				Vector3Extensions.Dot2D(ref p3, ref p3, out p3Sq);
 
 				c.X = (p1Sq * (p2.Z - p3.Z) + p2Sq * (p3.Z - p1.Z) + p3Sq * (p1.Z - p2.Z)) / (2 * cp);
 				c.Z = (p1Sq * (p2.X - p3.X) + p2Sq * (p3.X - p1.X) + p3Sq * (p1.X - p2.X)) / (2 * cp);
@@ -1188,11 +1190,13 @@ namespace SharpNav
 			Vector3 v1 = b - a;
 			Vector3 v2 = p - a;
 
-			float dot00 = Vector3.Dot2D(v0, v0);
-			float dot01 = Vector3.Dot2D(v0, v1);
-			float dot02 = Vector3.Dot2D(v0, v2);
-			float dot11 = Vector3.Dot2D(v1, v1);
-			float dot12 = Vector3.Dot2D(v1, v2);
+			float dot00, dot01, dot02, dot11, dot12;
+
+			Vector3Extensions.Dot2D(ref v0, ref v0, out dot00);
+			Vector3Extensions.Dot2D(ref v0, ref v1, out dot01);
+			Vector3Extensions.Dot2D(ref v0, ref v2, out dot02);
+			Vector3Extensions.Dot2D(ref v1, ref v1, out dot11);
+			Vector3Extensions.Dot2D(ref v1, ref v2, out dot12);
 
 			//compute barycentric coordinates
 			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
