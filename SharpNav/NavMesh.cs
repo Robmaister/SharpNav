@@ -153,7 +153,7 @@ namespace SharpNav
 					indices[j] = AddVertex(cont.Vertices[v].X, cont.Vertices[v].Y, cont.Vertices[v].Z, 
 						this.verts, firstVert, nextVert, ref this.nverts);
 
-					if ((cont.Vertices[v].RawVertexIndex & ContourSet.BORDER_VERTEX) != 0)
+					if (Contour.IsBorderVertex(cont.Vertices[v].RawVertexIndex))
 					{
 						//the vertex should be removed
 						vFlags[indices[j]] = 1;
