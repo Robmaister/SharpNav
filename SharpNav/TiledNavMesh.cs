@@ -40,6 +40,11 @@ namespace SharpNav
 		public int GetMaxTiles() { return m_maxTiles; }
 		public PathfinderCommon.MeshTile GetTile(int i) { return m_tiles[i]; }
 
+		public uint GetReference(uint polyBase, uint poly)
+		{
+			return polyBase | poly;
+		}
+
 		public TiledNavMesh(NavMeshBuilder data, int flags)
 		{
 			if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
@@ -262,7 +267,7 @@ namespace SharpNav
 					uint idx = AllocLink(tile);
 					if (idx != PathfinderCommon.NULL_LINK)
 					{
-						tile.links[idx].reference = polyBase | (uint)(tile.polys[i].neis[j] - 1);
+						tile.links[idx].reference = GetReference(polyBase, (uint)(tile.polys[i].neis[j] - 1)); 
 						tile.links[idx].edge = j;
 						tile.links[idx].side = 0xff;
 						tile.links[idx].bmin = tile.links[idx].bmax = 0;
@@ -289,7 +294,7 @@ namespace SharpNav
 				int poly = tile.offMeshCons[con].poly;
 
 				Vector3 ext = new Vector3(tile.offMeshCons[con].radius, tile.header.walkableClimb, tile.offMeshCons[con].radius);
-
+				
 				//find polygon to connect to
 				Vector3 p = tile.offMeshCons[con].pos[0];
 				Vector3 nearestPt = new Vector3();
@@ -324,7 +329,7 @@ namespace SharpNav
 				if (tidx != PathfinderCommon.NULL_LINK)
 				{
 					int landPolyIdx = (int)DecodePolyIdPoly(reference);
-					tile.links[idx].reference = polyBase | (uint)tile.offMeshCons[con].poly;
+					tile.links[idx].reference = GetReference(polyBase, (uint)tile.offMeshCons[con].poly);
 					tile.links[idx].edge = 0xff;
 					tile.links[idx].side = 0xff;
 					tile.links[idx].bmin = tile.links[idx].bmax = 0;
@@ -471,7 +476,7 @@ namespace SharpNav
 					if (tidx != PathfinderCommon.NULL_LINK)
 					{
 						int landPolyIdx = (int)DecodePolyIdPoly(reference);
-						tile.links[tidx].reference = GetPolyRefBase(target) | (uint)targetCon.poly;
+						tile.links[tidx].reference = GetReference(GetPolyRefBase(target), (uint)targetCon.poly);
 						tile.links[tidx].edge = 0xff;
 						tile.links[tidx].side = (side == -1) ? 0xff : side;
 						tile.links[tidx].bmin = tile.links[tidx].bmax = 0;
@@ -536,7 +541,7 @@ namespace SharpNav
 					{
 						conarea[n * 2 + 0] = Math.Max(amin[0], bmin[0]);
 						conarea[n * 2 + 1] = Math.Min(amax[0], bmax[0]);
-						con[n] = polyBase | (uint)i;
+						con[n] = GetReference(polyBase, (uint)i);
 						n++;
 					}
 
@@ -705,7 +710,7 @@ namespace SharpNav
 					if (isLeafNode && overlap)
 					{
 						if (n < maxPolys)
-							polys[n++] = polyBase | (uint)tile.bvTree[node].index;
+							polys[n++] = GetReference(polyBase, (uint)tile.bvTree[node].index);
 					}
 
 					if (overlap || isLeafNode)
@@ -747,7 +752,7 @@ namespace SharpNav
 					if (PathfinderCommon.OverlapQuantBounds(qmin, qmax, bmin, bmax))
 					{
 						if (n < maxPolys)
-							polys[n++] = polyBase | (uint)i;
+							polys[n++] = GetReference(polyBase, (uint)i);
 					}
 				}
 

@@ -510,7 +510,7 @@ namespace SharpNav
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
 
 				bool twoSameExteriors = Region.IsBorder((int)regs[a]) && Region.IsBorder((int)regs[b]) && regs[a] == regs[b];
-				bool twoSameInteriors = !Region.IsBorder((int)regs[c]) || !Region.IsBorder((int)regs[d]);
+				bool twoSameInteriors = !Region.IsBorder((int)regs[c]) && !Region.IsBorder((int)regs[d]);
 				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
 				bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
 				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)
