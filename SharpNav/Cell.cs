@@ -83,7 +83,7 @@ namespace SharpNav
 		/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
 		/// Should only be used for filtering in <see cref="Heightmap"/>.
 		/// </summary>
-		/// <value>A list of spans for modification</value>
+		/// <value>A list of spans for modification.</value>
 		internal List<Span> MutableSpans
 		{
 			get
@@ -123,8 +123,6 @@ namespace SharpNav
 		/// <param name="span">A span.</param>
 		public void AddSpan(Span span)
 		{
-			//TODO propogate areaflags when merging cells.
-
 			//clamp the span to the cell's range of [0, maxHeight]
 			MathHelper.Clamp(ref span.Minimum, 0, height);
 			MathHelper.Clamp(ref span.Maximum, 0, height);
@@ -136,8 +134,8 @@ namespace SharpNav
 
 			for (int i = 0; i < spans.Count; i++)
 			{
-				//check whether the current span is below, or overlapping existing spans.
-				//if the span is completely above the current span the loop will continue.
+				//Check whether the current span is below, or overlapping existing spans.
+				//If the span is completely above the current span the loop will continue.
 				Span cur = spans[i];
 				if (cur.Minimum > span.Maximum)
 				{
@@ -147,20 +145,32 @@ namespace SharpNav
 				}
 				else if (cur.Maximum >= span.Minimum)
 				{
-					//merge spans so that the span to add includes the current span.
+					//The new span is colliding with the current one, merge them together.
 					if (cur.Minimum < span.Minimum)
 						span.Minimum = cur.Minimum;
-					if (cur.Maximum > span.Maximum)
-						span.Maximum = cur.Maximum;
 
-					//remove the current span and adjust i.
-					//we do this to avoid duplicating the current span.
+					if (cur.Maximum == span.Maximum)
+					{
+						//In the case that both spans end at the same voxel, the area gets merged.
+						//The new span's area has priority if both spans are walkable, so the only
+						//case where the area gets set is when the new area is null but the old isn't.
+						if (span.Area == AreaFlags.Null && cur.Area != AreaFlags.Null)
+							span.Area = cur.Area;
+					}
+					else if (cur.Maximum > span.Maximum)
+					{
+						span.Maximum = cur.Maximum;
+						span.Area = cur.Area;
+					}
+
+					//Remove the current span and adjust i.
+					//We do this to avoid duplicating the current span.
 					spans.RemoveAt(i);
 					i--;
 				}
 			}
 
-			//if the span is not inserted, it is the highest span and will be added to the end.
+			//If the span is not inserted, it is the highest span and will be added to the end.
 			spans.Add(span);
 		}
 	}

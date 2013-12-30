@@ -26,40 +26,40 @@ namespace SharpNav
 		public AreaFlags Area;
 
 		//flags used in the build process
-		private const int BORDER_VERTEX = 0x10000;
-		private const int AREA_BORDER = 0x20000;
+		private const int VertexBorderFlag = 0x10000;
+		private const int AreaBorderFlag = 0x20000;
 
 		//applied to region id field of contour vertices in order to extract region id
-		private const int CONTOUR_REG_MASK = 0xffff;
+		private const int ContourRegionMask = 0xffff;
 
 		public static void SetBorderVertex(ref int region)
 		{
-			region |= BORDER_VERTEX;
+			region |= VertexBorderFlag;
 		}
 
 		public static void SetAreaBorder(ref int region)
 		{
-			region |= AREA_BORDER;
+			region |= AreaBorderFlag;
 		}
 
 		public static bool IsBorderVertex(int r)
 		{
-			return (r & BORDER_VERTEX) != 0;
+			return (r & VertexBorderFlag) != 0;
 		}
 
 		public static bool IsAreaBorder(int r)
 		{
-			return (r & AREA_BORDER) != 0;
+			return (r & AreaBorderFlag) != 0;
 		}
 
 		public static bool IsSameArea(int region1, int region2)
 		{
-			return (region1 & AREA_BORDER) == (region2 & AREA_BORDER);
+			return (region1 & AreaBorderFlag) == (region2 & AreaBorderFlag);
 		}
 
 		public static int ExtractRegionId(int r)
 		{
-			return r & CONTOUR_REG_MASK;
+			return r & ContourRegionMask;
 		}
 
 		public static bool IsSameRegion(int region1, int region2)
@@ -84,7 +84,7 @@ namespace SharpNav
 
 		public static int GetNewRegion(int region1, int region2)
 		{
-			return (region1 & (CONTOUR_REG_MASK | AREA_BORDER)) | (region2 & BORDER_VERTEX);
+			return (region1 & (ContourRegionMask | AreaBorderFlag)) | (region2 & VertexBorderFlag);
 		}
 	}
 }

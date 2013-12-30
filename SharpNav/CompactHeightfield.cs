@@ -124,9 +124,6 @@ namespace SharpNav
 								if ((overlapTop - overlapBottom) >= walkableHeight && Math.Abs(ds.Minimum - s.Minimum) <= walkableClimb)
 								{
 									int con = j - dc.StartIndex;
-									if (con < 0 || con >= 0xff)
-										throw new InvalidOperationException("The neighbor index is too high to store. Reduce the number of cells in the Y direction.");
-
 									CompactSpan.SetConnection(dir, con, ref spans[i]);
 									break;
 								}
@@ -347,8 +344,7 @@ namespace SharpNav
 		/// <param name="borderSize"></param>
 		/// <param name="minRegionArea">If smaller than this value, region will be null</param>
 		/// <param name="mergeRegionArea">Reduce unneccesarily small regions</param>
-		/// <returns></returns>
-		public bool BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
+		public void BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
 		{
 			if (distances == null)
 				throw new InvalidOperationException("BuildRegions requires a distance field to be created first. Call BuildDistanceField() first.");
@@ -429,33 +425,29 @@ namespace SharpNav
 			}
 
 			//filter out small regions
-			this.maxRegions = regionId;
-			if (!FilterSmallRegions(minRegionArea, mergeRegionArea, ref this.maxRegions, srcReg))
-				return false;
+			this.maxRegions = FilterSmallRegions(srcReg, minRegionArea, mergeRegionArea, regionId);
 
 			//write the result out
 			for (int i = 0; i < spans.Length; i++)
 				spans[i].Region = srcReg[i];
-
-			return true;
 		}
 
 		/// <summary>
 		/// Discards regions that are too small. 
 		/// </summary>
+		/// <param name="srcReg">region data</param>
 		/// <param name="minRegionArea"></param>
 		/// <param name="mergeRegionSize"></param>
 		/// <param name="maxRegionId">determines the number of regions available</param>
-		/// <param name="srcReg">region data</param>
-		/// <returns></returns>
-		private bool FilterSmallRegions(int minRegionArea, int mergeRegionSize, ref int maxRegionId, int[] srcReg)
+		/// <returns>The reduced number of regions.</returns>
+		private int FilterSmallRegions(int[] srcReg, int minRegionArea, int mergeRegionSize, int maxRegionId)
 		{
 			int numRegions = maxRegionId + 1;
 			Region[] regions = new Region[numRegions];
 
 			//construct regions
 			for (int i = 0; i < numRegions; i++)
-				regions[i] = new Region((ushort)i);
+				regions[i] = new Region(i);
 
 			//find edge of a region and find connections around a contour
 			for (int y = 0; y < length; y++)
@@ -589,7 +581,7 @@ namespace SharpNav
 
 					//small region with more than one connection or region which is not connected to border at all
 					//find smallest neighbor that connects to this one
-					int smallest = 0xfffffff;
+					int smallest = int.MaxValue;
 					int mergeId = reg.Id;
 					for (int j = 0; j < reg.Connections.Count; j++)
 					{
@@ -649,14 +641,14 @@ namespace SharpNav
 				regions[i].Remap = true;
 			}
 
-			ushort regIdGen = 0;
+			int regIdGen = 0;
 			for (int i = 0; i < numRegions; i++)
 			{
 				if (!regions[i].Remap)
 					continue;
 
 				int oldId = regions[i].Id;
-				ushort newId = ++regIdGen;
+				int newId = ++regIdGen;
 				for (int j = i; j < numRegions; j++)
 				{
 					if (regions[j].Id == oldId)
@@ -667,8 +659,6 @@ namespace SharpNav
 				}
 			}
 
-			maxRegionId = regIdGen;
-
 			//Remap regions
 			for (int i = 0; i < spans.Length; i++)
 			{
@@ -676,7 +666,7 @@ namespace SharpNav
 					srcReg[i] = regions[srcReg[i]].Id;
 			}
 
-			return true;
+			return regIdGen;
 		}
 
 		/// <summary>
@@ -950,7 +940,7 @@ namespace SharpNav
 					}
 
 					int r = srcReg[i];
-					ushort d2 = 0xffff;
+					int d2 = int.MaxValue;
 					AreaFlags area = areas[i];
 					CompactSpan s = spans[i];
 
@@ -971,7 +961,7 @@ namespace SharpNav
 							if (srcDist[di] + 2 < d2)
 							{
 								r = srcReg[di];
-								d2 = (ushort)(srcDist[di] + 2);
+								d2 = srcDist[di] + 2;
 							}
 						}
 					}
@@ -1034,7 +1024,7 @@ namespace SharpNav
 			srcReg[i] = r;
 			srcDist[i] = 0;
 
-			ushort lev = (ushort)(level >= 2 ? level - 2 : 0);
+			int lev = level >= 2 ? level - 2 : 0;
 			int count = 0;
 
 			while (stack.Count > 0)
@@ -1126,7 +1116,7 @@ namespace SharpNav
 		/// <summary>
 		/// A helper method for WalkContour
 		/// </summary>
-		/// <param name="srcReg">an array of ushort values</param>
+		/// <param name="srcReg">an array of region values</param>
 		/// <param name="x">cell x</param>
 		/// <param name="y">cell y</param>
 		/// <param name="i">index of span</param>
@@ -1154,7 +1144,7 @@ namespace SharpNav
 		/// <summary>
 		/// Try to visit all the spans. May be needed in filtering small regions. 
 		/// </summary>
-		/// <param name="srcReg">an array of ushort values</param>
+		/// <param name="srcReg">an array of region values</param>
 		/// <param name="x">cell x-coordinate</param>
 		/// <param name="y">cell y-coordinate</param>
 		/// <param name="i">index of span</param>
