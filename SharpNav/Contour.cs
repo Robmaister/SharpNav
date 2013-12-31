@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace SharpNav
 {
@@ -17,10 +18,10 @@ namespace SharpNav
 		//TODO properly encapsulate
 
 		//simplified vertices have much less edges
-		public ContourSet.SimplifiedVertex[] Vertices;
+		public SimplifiedVertex[] Vertices;
 
 		//raw vertices derived directly from CompactHeightfield
-		public ContourSet.RawVertex[] RawVertices;
+		public RawVertex[] RawVertices;
 
 		public int RegionId;
 		public AreaFlags Area;
@@ -85,6 +86,48 @@ namespace SharpNav
 		public static int GetNewRegion(int region1, int region2)
 		{
 			return (region1 & (ContourRegionMask | AreaBorderFlag)) | (region2 & VertexBorderFlag);
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct RawVertex
+		{
+			public int X;
+			public int Y;
+			public int Z;
+			public int RegionId;
+
+			public RawVertex(int x, int y, int z, int region)
+			{
+				this.X = x;
+				this.Y = y;
+				this.Z = z;
+				this.RegionId = region;
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct SimplifiedVertex
+		{
+			public int X;
+			public int Y;
+			public int Z;
+			public int RawVertexIndex;
+
+			public SimplifiedVertex(int x, int y, int z, int rawVertex)
+			{
+				this.X = x;
+				this.Y = y;
+				this.Z = z;
+				this.RawVertexIndex = rawVertex;
+			}
+
+			public SimplifiedVertex(RawVertex rawVert, int index)
+			{
+				this.X = rawVert.X;
+				this.Y = rawVert.Y;
+				this.Z = rawVert.Z;
+				this.RawVertexIndex = index;
+			}
 		}
 	}
 }

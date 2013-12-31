@@ -23,7 +23,7 @@ namespace SharpNav
 	/// <summary>
 	/// A Heightfield represents a "voxel" grid represented as a 2-dimensional grid of <see cref="Cell"/>s.
 	/// </summary>
-	public partial class Heightfield : IEnumerable<Cell>
+	public partial class Heightfield
 	{
 		private BBox3 bounds;
 
@@ -387,24 +387,6 @@ namespace SharpNav
 					}
 				}
 			}
-		}
-
-		/// <summary>
-		/// Enumerates over the heightfield row-by-row.
-		/// </summary>
-		/// <returns>The enumerator.</returns>
-		public IEnumerator<Cell> GetEnumerator()
-		{
-			return ((IEnumerable<Cell>)cells).GetEnumerator();
-		}
-
-		/// <summary>
-		/// Enumerates over the heightfield row-by-row.
-		/// </summary>
-		/// <returns>The enumerator.</returns>
-		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-		{
-			return cells.GetEnumerator();
 		}
 	}
 }
