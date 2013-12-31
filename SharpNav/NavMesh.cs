@@ -337,7 +337,7 @@ namespace SharpNav
 			{
 				int i1 = Next(i, n);
 				int i2 = Next(i1, n);
-				if (Diagonal(i, i2, n, verts, indices))
+				if (Contour.SimplifiedVertex.Diagonal(i, i2, n, verts, indices))
 				{
 					uint temp = (uint)indices[i1];
 					temp |= 0x80000000;
@@ -398,7 +398,7 @@ namespace SharpNav
 				mi = Prev(mi1, n);
 
 				//update diagonal flags
-				if (Diagonal(Prev(mi, n), mi1, n, verts, indices))
+				if (Contour.SimplifiedVertex.Diagonal(Prev(mi, n), mi1, n, verts, indices))
 				{
 					uint temp = (uint)indices[mi1];
 					temp |= 0x80000000;
@@ -409,7 +409,7 @@ namespace SharpNav
 					indices[mi] &= 0x0fffffff;
 				}
 
-				if (Diagonal(mi, Next(mi1, n), n, verts, indices))
+				if (Contour.SimplifiedVertex.Diagonal(mi, Next(mi1, n), n, verts, indices))
 				{
 					uint temp = (uint)indices[mi1];
 					temp |= 0x80000000;
@@ -1141,134 +1141,9 @@ namespace SharpNav
 				(c.X - a.X) * (b.Z - a.Z) < 0;
 		}
 
-		private int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
-		private int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
-		
-		/// <summary>
-		/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
-		/// </summary>
-		private bool Diagonal(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
-		{
-			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
-		}
-
-		/// <summary>
-		/// true if and only if diagonal (i, j) is strictly internal to polygon 
-		/// in neighborhood of i endpoint
-		/// </summary>
-		private bool InCone(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
-		{
-			int pi = indices[i] & 0x0fffffff;
-			int pj = indices[j] & 0x0fffffff;
-			int pi1 = indices[Next(i, n)] & 0x0fffffff;
-			int pin1 = indices[Prev(i, n)] & 0x0fffffff;
-
-			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
-			if (LeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
-				return Left(ref verts[pi], ref verts[pj], ref verts[pin1]) && Left(ref verts[pj], ref verts[pi], ref verts[pi1]);
-
-			//assume (i - 1, i, i + 1) not collinear
-			return !(LeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && LeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
-		}
-
-		/// <summary>
-		/// true if and only if (v[i], v[j]) is internal or external diagonal
-		/// ignoring edges incident to v[i] or v[j]
-		/// </summary>
-		private bool Diagonalie(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
-		{
-			int d0 = indices[i] & 0x0fffffff;
-			int d1 = indices[j] & 0x0fffffff;
-
-			//for each edge (k, k + 1)
-			for (int k = 0; k < n; k++)
-			{
-				int k1 = Next(k, n);
-
-				//skip edges incident to i or j
-				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
-				{
-					int p0 = indices[k] & 0x0fffffff;
-					int p1 = indices[k1] & 0x0fffffff;
-
-					if (VEqual(verts[d0], verts[p0]) || VEqual(verts[d1], verts[p0]) || VEqual(verts[d0], verts[p1]) || VEqual(verts[d1], verts[p1]))
-						continue;
-
-					if (Intersect(verts[d0], verts[d1], verts[p0], verts[p1]))
-						return false;
-				}
-			}
-
-			return true;
-		}
-
-		private bool Left(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
-		{
-			return Area2(ref a, ref b, ref c) < 0;
-		}
-
-		private bool LeftOn(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
-		{
-			return Area2(ref a, ref b, ref c) <= 0;
-		}
-
-		private bool Collinear(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
-		{
-			return Area2(ref a, ref b, ref c) == 0;
-		}
-
-		private int Area2(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
-		{
-			return (b.X - a.X) * (c.Z - a.Z) - (c.X - a.X) * (b.Z - a.Z);
-		}
-
-		private bool VEqual(Contour.SimplifiedVertex a, Contour.SimplifiedVertex b)
-		{
-			return a.X == b.X && a.Z == b.Z;
-		}
-
-		/// <summary>
-		/// True if and only if segments AB and CD intersect, properly or improperyl
-		/// </summary>
-		private bool Intersect(Contour.SimplifiedVertex a, Contour.SimplifiedVertex b, Contour.SimplifiedVertex c, Contour.SimplifiedVertex d)
-		{
-			if (IntersectProp(a, b, c, d))
-				return true;
-			else if (Between(a, b, c) || Between(a, b, d) || Between(c, d, a) || Between(c, d, b))
-				return true;
-			else
-				return false;
-		}
-
-		/// <summary>
-		/// Intersect properly: share a point interior to both segments. properness determined by strict leftness
-		/// </summary>
-		private bool IntersectProp(Contour.SimplifiedVertex a, Contour.SimplifiedVertex b, Contour.SimplifiedVertex c, Contour.SimplifiedVertex d)
-		{
-			//eliminate improper cases
-			if (Collinear(ref a, ref b, ref c)
-				|| Collinear(ref a, ref b, ref d)
-				|| Collinear(ref c, ref d, ref a)
-				|| Collinear(ref c, ref d, ref b))
-				return false;
-
-			return (Left(ref a, ref b, ref c) ^ Left(ref a, ref b, ref d))
-				&& (Left(ref c, ref d, ref a) ^ Left(ref c, ref d, ref b));
-		}
-
-		/// <summary>
-		/// True if and only if (A, B, C) are collinear and point C lies on closed segment AB
-		/// </summary>
-		private bool Between(Contour.SimplifiedVertex a, Contour.SimplifiedVertex b, Contour.SimplifiedVertex c)
-		{
-			if (!Collinear(ref a, ref b, ref c))
-				return false;
-
-			if (a.X != b.X)
-				return ((a.X <= c.X) && (c.X <= b.X)) || ((a.X >= c.X) && (c.X >= b.X));
-			else
-				return ((a.Z <= c.Z) && (c.Z <= b.Z)) || ((a.Z >= c.Z) && (c.Z >= b.Z));
-		}
+		//HACK this is also in Contour, find a good place to move.
+		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
+		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 
 		public struct Polygon
 		{
