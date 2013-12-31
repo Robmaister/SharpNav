@@ -339,9 +339,7 @@ namespace SharpNav
 				int i2 = Next(i1, n);
 				if (Contour.SimplifiedVertex.Diagonal(i, i2, n, verts, indices))
 				{
-					uint temp = (uint)indices[i1];
-					temp |= 0x80000000;
-					indices[i1] |= (int)temp;
+					SetDiagonalFlag(ref indices[i1]);
 				}
 			}
 
@@ -356,10 +354,10 @@ namespace SharpNav
 				{
 					int i1 = Next(i, n);
 					
-					if ((indices[i1] & 0x80000000) != 0)
+					if (IsDiagonalFlagOn(indices[i1]))
 					{
-						int p0 = indices[i] & 0x0fffffff;
-						int p2 = indices[Next(i1, n)] & 0x0fffffff;
+						int p0 = RemoveDiagonalFlag(indices[i]);
+						int p2 = RemoveDiagonalFlag(indices[Next(i1, n)]);
 
 						int dx = verts[p2].X - verts[p0].X;
 						int dy = verts[p2].Z - verts[p0].Z;
@@ -384,9 +382,9 @@ namespace SharpNav
 
 				dst[ntris] = new Tris();
 				dst[ntris].VertexHash = new int[3];
-				dst[ntris].VertexHash[0] = indices[mi] & 0x0fffffff; 
-				dst[ntris].VertexHash[1] = indices[mi1] & 0x0fffffff; 
-				dst[ntris].VertexHash[2] = indices[mi2] & 0x0fffffff; 
+				dst[ntris].VertexHash[0] = RemoveDiagonalFlag(indices[mi]); 
+				dst[ntris].VertexHash[1] = RemoveDiagonalFlag(indices[mi1]); 
+				dst[ntris].VertexHash[2] = RemoveDiagonalFlag(indices[mi2]); 
 				ntris++;
 
 				//remove P[i1]
@@ -400,33 +398,29 @@ namespace SharpNav
 				//update diagonal flags
 				if (Contour.SimplifiedVertex.Diagonal(Prev(mi, n), mi1, n, verts, indices))
 				{
-					uint temp = (uint)indices[mi1];
-					temp |= 0x80000000;
-					indices[mi1] = (int)temp;
+					SetDiagonalFlag(ref indices[mi]);
 				}
 				else
 				{
-					indices[mi] &= 0x0fffffff;
+					RemoveDiagonalFlag(ref indices[mi]);
 				}
 
 				if (Contour.SimplifiedVertex.Diagonal(mi, Next(mi1, n), n, verts, indices))
 				{
-					uint temp = (uint)indices[mi1];
-					temp |= 0x80000000;
-					indices[mi1] = (int)temp;
+					SetDiagonalFlag(ref indices[mi1]);
 				}
 				else
 				{
-					indices[mi1] &= 0x0fffffff;
+					RemoveDiagonalFlag(ref indices[mi1]);
 				}
 			}
 
 			//append remaining triangle
 			dst[ntris] = new Tris();
 			dst[ntris].VertexHash = new int[3];
-			dst[ntris].VertexHash[0] = indices[0] & 0x0fffffff; 
-			dst[ntris].VertexHash[1] = indices[1] & 0x0fffffff;
-			dst[ntris].VertexHash[2] = indices[2] & 0x0fffffff; 
+			dst[ntris].VertexHash[0] = RemoveDiagonalFlag(indices[0]); 
+			dst[ntris].VertexHash[1] = RemoveDiagonalFlag(indices[1]);
+			dst[ntris].VertexHash[2] = RemoveDiagonalFlag(indices[2]); 
 			ntris++;
 
 			//save triangle information
@@ -1112,9 +1106,9 @@ namespace SharpNav
 		/// <summary>
 		/// Shift all existing elements to the right and insert new element at index 0
 		/// </summary>
-		/// <param name="v"></param>
-		/// <param name="array"></param>
-		/// <param name="an"></param>
+		/// <param name="v">Value of new element</param>
+		/// <param name="array">Array of elements</param>
+		/// <param name="an">Number of elements</param>
 		private void PushFront(int v, int[] array, ref int an)
 		{
 			an++;
@@ -1126,9 +1120,9 @@ namespace SharpNav
 		/// <summary>
 		/// Append new element to the end of the list
 		/// </summary>
-		/// <param name="v"></param>
-		/// <param name="array"></param>
-		/// <param name="an"></param>
+		/// <param name="v">Value of new element</param>
+		/// <param name="array">Array of elements</param>
+		/// <param name="an">Number of elements</param>
 		private void PushBack(int v, int[] array, ref int an)
 		{
 			array[an] = v;
@@ -1140,8 +1134,26 @@ namespace SharpNav
 			return (b.X - a.X) * (c.Z - a.Z) -
 				(c.X - a.X) * (b.Z - a.Z) < 0;
 		}
+		
+		private void SetDiagonalFlag(ref int index)
+		{
+			uint temp = (uint)index;
+			temp |= 0x80000000;
+			index = (int)temp;
+		}
+
+		private void RemoveDiagonalFlag(ref int index)
+		{
+			index &= 0x0fffffff;
+		}
+
+		public bool IsDiagonalFlagOn(int index)
+		{
+			return (index & 0x80000000) != 0;
+		}
 
 		//HACK this is also in Contour, find a good place to move.
+		private static int RemoveDiagonalFlag(int index) { return index & 0x0fffffff; }
 		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 

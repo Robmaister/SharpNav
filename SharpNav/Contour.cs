@@ -257,10 +257,10 @@ namespace SharpNav
 			/// </summary>
 			public static bool InCone(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
 			{
-				int pi = indices[i] & 0x0fffffff;
-				int pj = indices[j] & 0x0fffffff;
-				int pi1 = indices[Next(i, n)] & 0x0fffffff;
-				int pin1 = indices[Prev(i, n)] & 0x0fffffff;
+				int pi = RemoveDiagonalFlag(indices[i]);
+				int pj = RemoveDiagonalFlag(indices[j]);
+				int pi1 = RemoveDiagonalFlag(indices[Next(i, n)]);
+				int pin1 = RemoveDiagonalFlag(indices[Prev(i, n)]);
 
 				//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
 				if (IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
@@ -276,8 +276,8 @@ namespace SharpNav
 			/// </summary>
 			public static bool Diagonalie(int i, int j, int n, SimplifiedVertex[] verts, int[] indices)
 			{
-				int d0 = indices[i] & 0x0fffffff;
-				int d1 = indices[j] & 0x0fffffff;
+				int d0 = RemoveDiagonalFlag(indices[i]);
+				int d1 = RemoveDiagonalFlag(indices[j]);
 
 				//for each edge (k, k + 1)
 				for (int k = 0; k < n; k++)
@@ -287,8 +287,8 @@ namespace SharpNav
 					//skip edges incident to i or j
 					if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
 					{
-						int p0 = indices[k] & 0x0fffffff;
-						int p1 = indices[k1] & 0x0fffffff;
+						int p0 = RemoveDiagonalFlag(indices[k]);
+						int p1 = RemoveDiagonalFlag(indices[k1]);
 
 						if (Equal2D(ref verts[d0], ref verts[p0]) || Equal2D(ref verts[d1], ref verts[p0]) || Equal2D(ref verts[d0], ref verts[p1]) || Equal2D(ref verts[d1], ref verts[p1]))
 							continue;
@@ -302,6 +302,7 @@ namespace SharpNav
 			}
 
 			//HACK this is also in NavMesh, find a good place to move.
+			private static int RemoveDiagonalFlag(int index) { return index & 0x0fffffff; }
 			private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 			private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 		}
