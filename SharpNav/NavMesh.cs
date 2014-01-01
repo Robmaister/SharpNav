@@ -25,6 +25,8 @@ namespace SharpNav
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
 		public const int MESH_NULL_IDX = -1;
 
+		private const int DiagonalFlag = unchecked((int)0x80000000);
+
 		private int nverts;
 		private int npolys;
 
@@ -37,7 +39,7 @@ namespace SharpNav
 		private int maxPolys;
 		private int numVertsPerPoly;
 
-		//copied data from OpenHeightfield
+		//copied data from CompactHeightfield
 		private BBox3 bounds;
 		private float cellSize;
 		private float cellHeight;
@@ -1137,26 +1139,25 @@ namespace SharpNav
 		
 		private void SetDiagonalFlag(ref int index)
 		{
-			uint temp = (uint)index;
-			temp |= 0x80000000;
-			index = (int)temp;
+			index |= DiagonalFlag;
 		}
 
 		private void RemoveDiagonalFlag(ref int index)
 		{
-			index &= 0x0fffffff;
+			index &= ~DiagonalFlag;
 		}
 
 		public bool IsDiagonalFlagOn(int index)
 		{
-			return (index & 0x80000000) != 0;
+			return (index & DiagonalFlag) == DiagonalFlag;
 		}
 
 		//HACK this is also in Contour, find a good place to move.
-		private static int RemoveDiagonalFlag(int index) { return index & 0x0fffffff; }
+		private static int RemoveDiagonalFlag(int index) { return index & ~DiagonalFlag; }
 		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 
+		//TODO arrays in mutable structs 
 		public struct Polygon
 		{
 			public int[] Vertices; //"numVertsPerPoly" elements

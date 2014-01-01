@@ -302,7 +302,7 @@ namespace SharpNav
 			}
 
 			//HACK this is also in NavMesh, find a good place to move.
-			private static int RemoveDiagonalFlag(int index) { return index & 0x0fffffff; }
+			private static int RemoveDiagonalFlag(int index) { return index & 0x7fffffff; }
 			private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 			private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 		}
