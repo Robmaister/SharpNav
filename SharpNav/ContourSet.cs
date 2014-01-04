@@ -1,21 +1,21 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+
 using SharpNav.Geometry;
 
 namespace SharpNav
 {
-	public class ContourSet /*: ICollection<Contour>*/
+	//TODO should this be ISet<Contour>? Are the extra methods useful?
+	public class ContourSet : ICollection<Contour>
 	{
 		private List<Contour> contours;
-		
 		private BBox3 bounds;
 		private float cellSize;
 		private float cellHeight;
@@ -32,7 +32,7 @@ namespace SharpNav
 		/// <param name="buildFlags">Settings for how contours should be built.</param>
 		public ContourSet(CompactHeightfield compactField, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
 		{
-			//copy the OpenHeightfield data into ContourSet
+			//copy the CompactHeightfield data into ContourSet
 			this.bounds = compactField.Bounds;
 
 			if (compactField.BorderSize > 0)
@@ -104,13 +104,9 @@ namespace SharpNav
 				}
 			}
 
-			//Points are in format 
-			//	(x, y, z) coordinates
-			//	region id (if raw) / raw vertex index (if simplified)
 			var verts = new List<Contour.RawVertex>();
-			var simplified = new List<Contour.SimplifiedVertex>();
+			var simplified = new List<Contour.Vertex>();
 
-			int numContours = 0;
 			for (int y = 0; y < compactField.Length; y++)
 			{
 				for (int x = 0; x < compactField.Width; x++)
@@ -145,65 +141,33 @@ namespace SharpNav
 						RemoveDegenerateSegments(simplified);
 
 						if (simplified.Count >= 3)
-						{
-							Contour cont = new Contour();
-							
-							//Save all the simplified and raw data in the Contour
-							cont.Vertices = simplified.ToArray();
-
-							if (borderSize > 0)
-							{
-								//remove offset
-								for (int j = 0; j < cont.Vertices.Length; j++)
-								{
-									cont.Vertices[j].X -= borderSize;
-									cont.Vertices[j].Z -= borderSize;
-								}
-							}
-
-							//copy raw data
-							cont.RawVertices = verts.ToArray();
-
-							if (borderSize > 0)
-							{
-								//remove offset
-								for (int j = 0; j < cont.RawVertices.Length; j++)
-								{
-									cont.RawVertices[j].X -= borderSize;
-									cont.RawVertices[j].Z -= borderSize;
-								}
-							}
-
-							cont.RegionId = reg;
-							cont.Area = area;
-
-							contours.Add(cont);
-							numContours++;
-						}
+							contours.Add(new Contour(simplified, verts, reg, area, borderSize));
 					}
 				}
 			}
 
 			//Check and merge holes
-			for (int i = 0; i < numContours; i++)
+			for (int i = 0; i < contours.Count; i++)
 			{
 				Contour cont = contours[i];
 
 				//check if contour is backwards
-				if (CalcAreaOfPolygon2D(cont.Vertices) < 0)
+				if (cont.Area2D < 0)
 				{
 					//find another contour with same region id
 					int mergeIdx = -1;
-					for (int j = 0; j < numContours; j++)
+					for (int j = 0; j < contours.Count; j++)
 					{
 						//don't compare to itself
 						if (i == j) continue;
 
+						Contour contj = contours[j];
+
 						//same region id
-						if (contours[j].Vertices.Length != 0 && contours[j].RegionId == cont.RegionId)
+						if (contj.Vertices.Length != 0 && contj.RegionId == cont.RegionId)
 						{
 							//make sure polygon is correctly oriented
-							if (CalcAreaOfPolygon2D(contours[j].Vertices) > 0)
+							if (contj.Area2D > 0)
 							{
 								mergeIdx = j;
 								break;
@@ -496,7 +460,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
-		private void SimplifyContour(List<Contour.RawVertex> points, List<Contour.SimplifiedVertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
+		private void SimplifyContour(List<Contour.RawVertex> points, List<Contour.Vertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
 		{
 			//add initial points
 			bool hasConnections = false;
@@ -521,7 +485,7 @@ namespace SharpNav
 					
 					if (differentRegions || areaBorders)
 					{
-						simplified.Add(new Contour.SimplifiedVertex(points[i].X, points[i].Y, points[i].Z, i));
+						simplified.Add(new Contour.Vertex(points[i].X, points[i].Y, points[i].Z, i));
 					}
 				}
 			}
@@ -565,8 +529,8 @@ namespace SharpNav
 				}
 				
 				//save the points
-				simplified.Add(new Contour.SimplifiedVertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
-				simplified.Add(new Contour.SimplifiedVertex(upperRightX, upperRightY, upperRightZ, upperRightI));
+				simplified.Add(new Contour.Vertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
+				simplified.Add(new Contour.Vertex(upperRightX, upperRightY, upperRightZ, upperRightI));
 			}
 
 			//add points until all points are within erorr tolerance of simplified slope
@@ -624,7 +588,7 @@ namespace SharpNav
 				if (maxi != -1 && maxDeviation > (maxError * maxError))
 				{
 					//add extra space to list
-					simplified.Add(new Contour.SimplifiedVertex(0, 0, 0, 0));
+					simplified.Add(new Contour.Vertex(0, 0, 0, 0));
 
 					//make space for new point by shifting elements to the right
 					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
@@ -634,7 +598,7 @@ namespace SharpNav
 					}
 
 					//add point 
-					simplified[i + 1] = new Contour.SimplifiedVertex(points[maxi], maxi);
+					simplified[i + 1] = new Contour.Vertex(points[maxi], maxi);
 				}
 				else
 				{
@@ -697,7 +661,7 @@ namespace SharpNav
 					if (maxi != -1)
 					{
 						//add extra space to list
-						simplified.Add(new Contour.SimplifiedVertex(0, 0, 0, 0));
+						simplified.Add(new Contour.Vertex(0, 0, 0, 0));
 
 						//make space for new point by shifting elements to the right
 						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
@@ -707,7 +671,7 @@ namespace SharpNav
 						}
 
 						//add point
-						simplified[i + 1] = new Contour.SimplifiedVertex(points[maxi], maxi);
+						simplified[i + 1] = new Contour.Vertex(points[maxi], maxi);
 					}
 					else
 					{
@@ -718,7 +682,7 @@ namespace SharpNav
 
 			for (int i = 0; i < simplified.Count; i++)
 			{
-				Contour.SimplifiedVertex sv = simplified[i];
+				Contour.Vertex sv = simplified[i];
 				//take edge vertex flag from current raw point and neighbor region from next raw point
 				int ai = (sv.RawVertexIndex + 1) % numPoints;
 				int bi = sv.RawVertexIndex;
@@ -734,7 +698,7 @@ namespace SharpNav
 		/// Clean up the simplified segments
 		/// </summary>
 		/// <param name="simplified"></param>
-		private void RemoveDegenerateSegments(List<Contour.SimplifiedVertex> simplified)
+		private void RemoveDegenerateSegments(List<Contour.Vertex> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
 			for (int i = 0; i < simplified.Count; i++)
@@ -753,27 +717,13 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determine whether a contour is going forwards (positive area) or backwards (negative area)
-		/// </summary>
-		/// <param name="verts">The vertex data</param>
-		/// <returns></returns>
-		private int CalcAreaOfPolygon2D(Contour.SimplifiedVertex[] verts)
-		{
-			int area = 0;
-			for (int i = 0, j = verts.Length - 1; i < verts.Length; j = i++)
-				area += verts[i].X * verts[j].Z - verts[j].X * verts[i].Z;
-
-			return (area + 1) / 2; 
-		}
-
-		/// <summary>
 		/// Required to find closest indices for merging.
 		/// </summary>
 		/// <param name="vertsA">First set of vertices</param>
 		/// <param name="vertsB">Second set of vertices</param>
 		/// <param name="indexA">First index</param>
 		/// <param name="indexB">Second index</param>
-		private void GetClosestIndices(Contour.SimplifiedVertex[] vertsA, Contour.SimplifiedVertex[] vertsB, out int indexA, out int indexB)
+		private static void GetClosestIndices(Contour.Vertex[] vertsA, Contour.Vertex[] vertsB, out int indexA, out int indexB)
 		{
 			int closestDistance = int.MaxValue;
 			int lengthA = vertsA.Length;
@@ -812,19 +762,19 @@ namespace SharpNav
 		/// <summary>
 		/// Helper method for GetClosestIndices function
 		/// </summary>
-		private bool ILeft(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
+		private static bool ILeft(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
 		{
 			return (b.X - a.X) * (c.Z - a.Z)
 				 - (c.X - a.X) * (b.Z - a.Z) <= 0;
 		}
 
-		private void MergeContours(Contour contA, Contour contB, int ia, int ib)
+		private static void MergeContours(Contour contA, Contour contB, int ia, int ib)
 		{
 			int lengthA = contA.Vertices.Length;
 			int lengthB = contB.Vertices.Length;
 
 			//create a list with the capacity set to the max number of possible verts to avoid expanding the list.
-			var newVerts = new List<Contour.SimplifiedVertex>(contA.Vertices.Length + contB.Vertices.Length + 2);
+			var newVerts = new List<Contour.Vertex>(contA.Vertices.Length + contB.Vertices.Length + 2);
 
 			//copy contour A
 			for (int i = 0; i <= lengthA; i++)
@@ -837,7 +787,7 @@ namespace SharpNav
 			contA.Vertices = newVerts.ToArray();
 		}
 
-		private void MarkInternalEdges(ref int flag, int dir)
+		private static void MarkInternalEdges(ref int flag, int dir)
 		{
 			//flag represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
 			//default is 0000
@@ -845,7 +795,7 @@ namespace SharpNav
 			flag |= 1 << dir;
 		}
 
-		private int FlipAllBits(int flag)
+		private static int FlipAllBits(int flag)
 		{
 			//flips all the bits in res
 			//0000 (completely internal) -> 1111
@@ -853,13 +803,13 @@ namespace SharpNav
 			return flag ^ 0xf;
 		}
 
-		private bool IsConnected(int flag, int dir)
+		private static bool IsConnected(int flag, int dir)
 		{
 			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
 			return (flag & (1 << dir)) != 0;
 		}
 
-		private void RemoveVisited(ref int flag, int dir)
+		private static void RemoveVisited(ref int flag, int dir)
 		{
 			//say flag = 0110
 			//dir = 2 (so 1 << dir = 0100)
@@ -867,6 +817,52 @@ namespace SharpNav
 			//flag &= ~dir
 			//flag = 0110 & 1011 = 0010
 			flag &= ~(1 << dir); // remove visited edges
+		}
+
+		//TODO support the extra ICollection methods later?
+		void ICollection<Contour>.Add(Contour item)
+		{
+			throw new InvalidOperationException();
+		}
+
+		void ICollection<Contour>.Clear()
+		{
+			throw new InvalidOperationException();
+		}
+
+		public bool Contains(Contour item)
+		{
+			return contours.Contains(item);
+		}
+
+		public void CopyTo(Contour[] array, int arrayIndex)
+		{
+			contours.CopyTo(array, arrayIndex);
+		}
+
+		public int Count
+		{
+			get { return contours.Count; }
+		}
+
+		bool ICollection<Contour>.IsReadOnly
+		{
+			get { return true; }
+		}
+
+		bool ICollection<Contour>.Remove(Contour item)
+		{
+			throw new InvalidOperationException();
+		}
+
+		public IEnumerator<Contour> GetEnumerator()
+		{
+			return contours.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
 		}
 	}
 }

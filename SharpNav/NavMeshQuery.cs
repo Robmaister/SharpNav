@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -84,22 +84,21 @@ namespace SharpNav
 				PathfinderCommon.Poly p = tile.polys[i];
 
 				//don't return off-mesh connection polygons
-				if (p.GetType() != PathfinderCommon.POLTYPE_GROUND)
+				if (p.GetPolyType() != PolygonType.Ground)
 					continue;
 
 				//NOTE: polygon flags are never set so the filter will remove all polygons
 				uint reference = polyBase | (uint)i;
-				//if (filter.PassFilter(p) == false)
+				//if (!filter.PassFilter(p))
 				//	continue;
 
 				//calculate area of polygon
 				float polyArea = 0.0f;
+				float area;
 				for (int j = 2; j < p.vertCount; j++)
 				{
-					Vector3 va = tile.verts[p.verts[0]];
-					Vector3 vb = tile.verts[p.verts[j - 1]];
-					Vector3 vc = tile.verts[p.verts[j]];
-					polyArea += PathfinderCommon.TriangleArea2D(va, vb, vc);
+					Triangle3.Area2D(ref tile.verts[p.verts[0]], ref tile.verts[p.verts[j - 1]], ref tile.verts[p.verts[j]], out area);
+					polyArea += area;
 				}
 
 				//choose random polygon weighted by area, usig resevoir sampling
@@ -130,7 +129,7 @@ namespace SharpNav
 			PathfinderCommon.RandomPointInConvexPoly(verts, poly.vertCount, areas, s, t1, ref pt);
 
 			float h = 0.0f;
-			if (GetPolyHeight(polyRef, pt, ref h) == false)
+			if (!GetPolyHeight(polyRef, pt, ref h))
 				return false;
 
 			pt.Y = h;
@@ -154,7 +153,7 @@ namespace SharpNav
 				return false;
 
 			//validate input
-			if (startRef == 0 || m_nav.IsValidPolyRef(startRef) == false)
+			if (startRef == 0 || !m_nav.IsValidPolyRef(startRef))
 				return false;
 
 			Random randObj = new Random();
@@ -162,7 +161,7 @@ namespace SharpNav
 			PathfinderCommon.Poly startPoly = null;
 			m_nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
 			//NOTE: DON'T USE FILTER!
-			//if (filter.PassFilter(startPoly) == false)
+			//if (!filter.PassFilter(startPoly))
 			//	return false;
 
 			m_nodePool.Clear();
@@ -197,16 +196,15 @@ namespace SharpNav
 				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
 
 				//place random locations on ground
-				if (bestPoly.GetType() == PathfinderCommon.POLTYPE_GROUND)
+				if (bestPoly.GetPolyType() == PolygonType.Ground)
 				{
 					//calculate area of polygon
 					float polyArea = 0.0f;
+					float area;
 					for (int j = 2; j < bestPoly.vertCount; j++)
 					{
-						Vector3 va = bestTile.verts[bestPoly.verts[0]];
-						Vector3 vb = bestTile.verts[bestPoly.verts[j - 1]];
-						Vector3 vc = bestTile.verts[bestPoly.verts[j]];
-						polyArea += PathfinderCommon.TriangleArea2D(va, vb, vc);
+						Triangle3.Area2D(ref bestTile.verts[bestPoly.verts[0]], ref bestTile.verts[bestPoly.verts[j - 1]], ref bestTile.verts[bestPoly.verts[j]], out area);
+						polyArea += area;
 					}
 
 					//choose random polygon weighted by area using resevoir sampling
@@ -243,13 +241,13 @@ namespace SharpNav
 					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
 					//do not advance if polygon is excluded by filter
-					//if (filter.PassFilter(neighbourPoly) == false)
+					//if (!filter.PassFilter(neighbourPoly))
 					//	continue;
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
 					Vector3 vb = new Vector3();
-					if (GetPortalPoints(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb) == false)
+					if (!GetPortalPoints(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb))
 						continue;
 
 				 	//if circle isn't touching next polygon, skip it
@@ -310,7 +308,7 @@ namespace SharpNav
 			PathfinderCommon.RandomPointInConvexPoly(verts, randomPoly.vertCount, areas, s, t, ref pt);
 
 			float h = 0.0f;
-			if (GetPolyHeight(randomPolyRef, pt, ref h) == false)
+			if (!GetPolyHeight(randomPolyRef, pt, ref h))
 				return false;
 
 			pt.Y = h;
@@ -545,7 +543,7 @@ namespace SharpNav
 				return false;
 
 			//handle off-mesh connections
-			if (fromPoly.GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+			if (fromPoly.GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
 				for (uint i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
@@ -562,7 +560,7 @@ namespace SharpNav
 				return false;
 			}
 
-			if (toPoly.GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+			if (toPoly.GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
 				for (uint i = toPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = toTile.links[i].next)
@@ -612,11 +610,11 @@ namespace SharpNav
 
 			PathfinderCommon.MeshTile tile = null;
 			PathfinderCommon.Poly poly = null;
-			if (m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			if (!m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly))
 				return false;
 
 			//off-mesh connections don't have detail polygons
-			if (poly.GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+			if (poly.GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				Vector3 v0 = tile.verts[poly.verts[0]];
 				Vector3 v1 = tile.verts[poly.verts[1]];

@@ -1,11 +1,13 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace SharpNav
@@ -15,16 +17,14 @@ namespace SharpNav
 	/// </summary>
 	public class Contour
 	{
-		//TODO properly encapsulate
-
 		//simplified vertices have much less edges
-		public SimplifiedVertex[] Vertices;
+		public Vertex[] Vertices;
 
 		//raw vertices derived directly from CompactHeightfield
 		public RawVertex[] RawVertices;
 
-		public int RegionId;
-		public AreaFlags Area;
+		private int regionId;
+		private AreaFlags area;
 
 		//flags used in the build process
 		private const int VertexBorderFlag = 0x10000;
@@ -32,6 +32,30 @@ namespace SharpNav
 
 		//applied to region id field of contour vertices in order to extract region id
 		private const int ContourRegionMask = 0xffff;
+
+		public Contour(IEnumerable<Vertex> simplified, IEnumerable<RawVertex> verts, int reg, AreaFlags area, int borderSize)
+		{
+			Vertices = simplified.ToArray();
+			RawVertices = verts.ToArray();
+			regionId = reg;
+			this.area = area;
+
+			//remove offset
+			if (borderSize > 0)
+			{
+				for (int j = 0; j < Vertices.Length; j++)
+				{
+					Vertices[j].X -= borderSize;
+					Vertices[j].Z -= borderSize;
+				}
+
+				for (int j = 0; j < RawVertices.Length; j++)
+				{
+					RawVertices[j].X -= borderSize;
+					RawVertices[j].Z -= borderSize;
+				}
+			}
+		}
 
 		public static void SetBorderVertex(ref int region)
 		{
@@ -88,6 +112,53 @@ namespace SharpNav
 			return (region1 & (ContourRegionMask | AreaBorderFlag)) | (region2 & VertexBorderFlag);
 		}
 
+		//TODO operator overload == and != with null?
+		public bool IsNull
+		{
+			get
+			{
+				if (Vertices.Length < 3)
+					return true;
+
+				return false;
+			}
+		}
+
+		public AreaFlags Area
+		{
+			get
+			{
+				return area;
+			}
+		}
+
+		public int RegionId
+		{
+			get
+			{
+				return regionId;
+			}
+		}
+
+		/// <summary>
+		/// Gets the 2D area of the contour. A positive area means the contour is going forwards, a negative
+		/// area maens it is going backwards.
+		/// </summary>
+		public int Area2D
+		{
+			get
+			{
+				int area = 0;
+				for (int i = 0, j = Vertices.Length - 1; i < Vertices.Length; j = i++)
+				{
+					Vertex vi = Vertices[i], vj = Vertices[j];
+					area += vi.X * vj.Z - vj.X * vi.Z;
+				}
+
+				return (area + 1) / 2; 
+			}
+		}
+
 		[StructLayout(LayoutKind.Sequential)]
 		public struct RawVertex
 		{
@@ -106,14 +177,14 @@ namespace SharpNav
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct SimplifiedVertex
+		public struct Vertex
 		{
 			public int X;
 			public int Y;
 			public int Z;
 			public int RawVertexIndex;
 
-			public SimplifiedVertex(int x, int y, int z, int rawVertex)
+			public Vertex(int x, int y, int z, int rawVertex)
 			{
 				this.X = x;
 				this.Y = y;
@@ -121,7 +192,7 @@ namespace SharpNav
 				this.RawVertexIndex = rawVertex;
 			}
 
-			public SimplifiedVertex(RawVertex rawVert, int index)
+			public Vertex(RawVertex rawVert, int index)
 			{
 				this.X = rawVert.X;
 				this.Y = rawVert.Y;
@@ -129,14 +200,14 @@ namespace SharpNav
 				this.RawVertexIndex = index;
 			}
 
-			public static bool IsLeft(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
+			public static bool IsLeft(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
 			{
 				int area;
 				Area2D(ref a, ref b, ref c, out area);
 				return area < 0;
 			}
 
-			public static bool IsLeftOn(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
+			public static bool IsLeftOn(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
 			{
 				int area;
 				Area2D(ref a, ref b, ref c, out area);
@@ -150,7 +221,7 @@ namespace SharpNav
 			/// <param name="b">Point B.</param>
 			/// <param name="c">Point C.</param>
 			/// <returns>A value indicating whether the points are collinear.</returns>
-			public static bool IsCollinear(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
+			public static bool IsCollinear(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
 			{
 				int area;
 				Area2D(ref a, ref b, ref c, out area);
@@ -164,7 +235,7 @@ namespace SharpNav
 			/// <param name="b">Point B of triangle ABC.</param>
 			/// <param name="c">Point C of triangle ABC.</param>
 			/// <param name="area">The 2D area of the triangle.</param>
-			public static void Area2D(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c, out int area)
+			public static void Area2D(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c, out int area)
 			{
 				area = (b.X - a.X) * (c.Z - a.Z) - (c.X - a.X) * (b.Z - a.Z);
 			}
@@ -175,7 +246,7 @@ namespace SharpNav
 			/// <param name="a">A vertex.</param>
 			/// <param name="b">Another vertex.</param>
 			/// <returns>A value indicating whether the X and Z components of both vertices are equal.</returns>
-			public static bool Equal2D(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b)
+			public static bool Equal2D(ref Contour.Vertex a, ref Contour.Vertex b)
 			{
 				return a.X == b.X && a.Z == b.Z;
 			}
@@ -188,7 +259,7 @@ namespace SharpNav
 			/// <param name="c">Point C of segment CD.</param>
 			/// <param name="d">Point D of segment CD.</param>
 			/// <returns>A value indicating whether segments AB and CD intersect.</returns>
-			public static bool Intersect(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c, ref Contour.SimplifiedVertex d)
+			public static bool Intersect(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c, ref Contour.Vertex d)
 			{
 				if (IntersectProp(ref a, ref b, ref c, ref d))
 					return true;
@@ -212,7 +283,7 @@ namespace SharpNav
 			/// <param name="c">Point C of segment CD.</param>
 			/// <param name="d">Point D of segment CD.</param>
 			/// <returns>A value indicating whether segements AB and CD are intersecting properly.</returns>
-			public static bool IntersectProp(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c, ref Contour.SimplifiedVertex d)
+			public static bool IntersectProp(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c, ref Contour.Vertex d)
 			{
 				//eliminate improper cases
 				if (IsCollinear(ref a, ref b, ref c)
@@ -232,7 +303,7 @@ namespace SharpNav
 			/// <param name="b">Point B of segment AB.</param>
 			/// <param name="c">Point C.</param>
 			/// <returns>A value indicating whether the three points are collinear with C in the middle.</returns>
-			public static bool IsBetween(ref Contour.SimplifiedVertex a, ref Contour.SimplifiedVertex b, ref Contour.SimplifiedVertex c)
+			public static bool IsBetween(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
 			{
 				if (!IsCollinear(ref a, ref b, ref c))
 					return false;
@@ -246,7 +317,7 @@ namespace SharpNav
 			/// <summary>
 			/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
 			/// </summary>
-			public static bool Diagonal(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
+			public static bool Diagonal(int i, int j, int n, Contour.Vertex[] verts, int[] indices)
 			{
 				return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
 			}
@@ -255,7 +326,7 @@ namespace SharpNav
 			/// true if and only if diagonal (i, j) is strictly internal to polygon 
 			/// in neighborhood of i endpoint
 			/// </summary>
-			public static bool InCone(int i, int j, int n, Contour.SimplifiedVertex[] verts, int[] indices)
+			public static bool InCone(int i, int j, int n, Contour.Vertex[] verts, int[] indices)
 			{
 				int pi = RemoveDiagonalFlag(indices[i]);
 				int pj = RemoveDiagonalFlag(indices[j]);
@@ -274,7 +345,7 @@ namespace SharpNav
 			/// true if and only if (v[i], v[j]) is internal or external diagonal
 			/// ignoring edges incident to v[i] or v[j]
 			/// </summary>
-			public static bool Diagonalie(int i, int j, int n, SimplifiedVertex[] verts, int[] indices)
+			public static bool Diagonalie(int i, int j, int n, Vertex[] verts, int[] indices)
 			{
 				int d0 = RemoveDiagonalFlag(indices[i]);
 				int d1 = RemoveDiagonalFlag(indices[j]);

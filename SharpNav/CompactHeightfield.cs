@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -284,6 +284,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="x">The x coordinate.</param>
 		/// <param name="y">The y coordinate.</param>
+		/// <returns>An <see cref="IEnumerable<CompactSpan>"/> of the spans contained in the cell at (x, y).</returns>
 		public IEnumerable<CompactSpan> this[int x, int y]
 		{
 			get
@@ -303,6 +304,7 @@ namespace SharpNav
 		/// Gets the <see cref="Heightfield.Cell"/> at the specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
+		/// <returns>An <see cref="IEnumerable<CompactSpan"/> of the spans contained in the cell at (x, y).</returns>
 		public IEnumerable<CompactSpan> this[int i]
 		{
 			get
@@ -329,7 +331,7 @@ namespace SharpNav
 				this.maxDistance = Math.Max(src[i], this.maxDistance);
 
 			//blur 
-			if (BoxBlur(1, src, dst) != src)
+			if (BoxBlur(src, dst, 1) != src)
 			{
 				src = dst;
 			}
@@ -823,11 +825,11 @@ namespace SharpNav
 		/// <summary>
 		/// Part of building the distance field. It may or may not return an array equal to src.
 		/// </summary>
-		/// <param name="thr">The threshold.</param>
+		/// <param name="threshold">The threshold.</param>
 		/// <returns></returns>
-		private int[] BoxBlur(int thr, int[] src, int[] dst)
+		private int[] BoxBlur(int[] src, int[] dst, int threshold)
 		{
-			thr *= 2;
+			threshold *= 2;
 
 			for (int y = 0; y < length; y++)
 			{
@@ -842,7 +844,7 @@ namespace SharpNav
 						//in constructor, thr = 1.
 						//in this method, thr *= 2, so thr = 2
 						//cd is either 0, 1, or 2 so set that to destination
-						if (cd <= thr)
+						if (cd <= threshold)
 						{
 							dst[i] = cd;
 							continue;

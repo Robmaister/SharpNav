@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -45,7 +45,7 @@ namespace SharpNav
 			return polyBase | poly;
 		}
 
-		public TiledNavMesh(NavMeshBuilder data, int flags)
+		public TiledNavMesh(NavMeshBuilder data)
 		{
 			if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
 				return;
@@ -60,14 +60,14 @@ namespace SharpNav
 			parameters.maxTiles = 1;
 			parameters.maxPolys = data.Header.polyCount;
 
-			if (initTileNavMesh(parameters) == false)
+			if (!InitTileNavMesh(parameters))
 				return;
 
 			uint tileRef = 0;
-			AddTile(data, flags, 0, ref tileRef);
+			AddTile(data, 0, ref tileRef);
 		}
 
-		public bool initTileNavMesh(PathfinderCommon.NavMeshParams parameters)
+		public bool InitTileNavMesh(PathfinderCommon.NavMeshParams parameters)
 		{
 			m_params = parameters;
 			m_origin = parameters.origin;
@@ -109,7 +109,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public void AddTile(NavMeshBuilder data, int flags, uint lastRef, ref uint result)
+		public void AddTile(NavMeshBuilder data, uint lastRef, ref uint result)
 		{
 			//make sure data is in right format
 			PathfinderCommon.MeshHeader header = data.Header;
@@ -198,7 +198,6 @@ namespace SharpNav
 			//init tile
 			tile.header = header;
 			tile.data = data;
-			tile.flags = flags;
 
 			ConnectIntLinks(ref tile);
 			BaseOffMeshLinks(ref tile);
@@ -253,7 +252,7 @@ namespace SharpNav
 			{
 				tile.polys[i].firstLink = PathfinderCommon.NULL_LINK;
 
-				if (tile.polys[i].GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+				if (tile.polys[i].GetPolyType() == PolygonType.OffMeshConnection)
 					continue;
 
 				//build edge links backwards so that the links will be in the linked list
@@ -736,7 +735,7 @@ namespace SharpNav
 				for (int i = 0; i < tile.header.polyCount; i++)
 				{	
 					//don't return off-mesh connection polygons
-					if (tile.polys[i].GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+					if (tile.polys[i].GetPolyType() == PolygonType.OffMeshConnection)
 						continue;
 
 					//calculate polygon bounds
@@ -765,7 +764,7 @@ namespace SharpNav
 			PathfinderCommon.Poly poly = tile.polys[indexPoly];
 
 			//off-mesh connections don't have detail polygons
-			if (tile.polys[indexPoly].GetType() == PathfinderCommon.POLTYPE_OFFMESH_CONNECTION)
+			if (tile.polys[indexPoly].GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				Vector3 v0 = tile.verts[poly.verts[0]];
 				Vector3 v1 = tile.verts[poly.verts[1]];

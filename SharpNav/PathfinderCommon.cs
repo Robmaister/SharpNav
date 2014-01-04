@@ -38,11 +38,6 @@ namespace SharpNav
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
-		public const int TILE_FREE_DATA = 0x01; //tiled mesh owns tile memory
-
-		public const int POLTYPE_GROUND = 0; //part of mesh surface
-		public const int POLTYPE_OFFMESH_CONNECTION = 1; //off-mesh connection consisting of two vertices
-
 		public class MeshHeader
 		{
 			public int magic; //tile magic number (used to identify data format)
@@ -84,9 +79,9 @@ namespace SharpNav
 				areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f);
 			}
 
-			public void SetType(int t)
+			public void SetType(PolygonType t)
 			{
-				areaAndtype = (areaAndtype & 0x3f) | (t << 6);
+				areaAndtype = (areaAndtype & 0x3f) | ((int)t << 6);
 			}
 
 			public int GetArea()
@@ -94,9 +89,9 @@ namespace SharpNav
 				return areaAndtype & 0x3f;
 			}
 
-			public int GetType()
+			public PolygonType GetPolyType()
 			{
-				return areaAndtype >> 6;
+				return (PolygonType)(areaAndtype >> 6);
 			}
 		}
 
@@ -162,17 +157,7 @@ namespace SharpNav
 			public PathfinderCommon.OffMeshConnection[] offMeshCons;
 
 			public NavMeshBuilder data;
-			public int flags;
 			public MeshTile next;
-		}
-
-		public static float TriangleArea2D(Vector3 a, Vector3 b, Vector3 c)
-		{
-			float abx = b.X - a.X;
-			float abz = b.Z - a.Z;
-			float acx = c.X - a.X;
-			float acz = c.Z - a.Z;
-			return acx * abz - abx * acz;
 		}
 
 		public static bool OverlapQuantBounds(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax)
@@ -262,10 +247,12 @@ namespace SharpNav
 		{
 			//calculate triangle areas
 			float areaSum = 0.0f;
+			float area;
 			for (int i = 2; i < npts; i++)
 			{
-				areas[i] = TriangleArea2D(pts[0], pts[i - 1], pts[i]);
-				areaSum += Math.Max(0.001f, areas[i]);
+				Triangle3.Area2D(ref pts[0], ref pts[i - 1], ref pts[i], out area);
+				areaSum += Math.Max(0.001f, area);
+				areas[i] = area;
 			}
 
 			//find sub triangle weighted by area

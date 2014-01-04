@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -345,7 +345,7 @@ namespace Examples
 
 			buildData = new NavMeshBuilder(parameters);
 
-			tiledNavMesh = new TiledNavMesh(buildData, PathfinderCommon.TILE_FREE_DATA);
+			tiledNavMesh = new TiledNavMesh(buildData);
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
 			
 			QueryFilter filter = new QueryFilter();
@@ -356,12 +356,12 @@ namespace Examples
 			uint endRef = 0;
 			endPos = new SVector3();
 			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
-			
+
 			int MAX_POLYS = 256;
 			path = new uint[MAX_POLYS];
 			pathCount = 0;
 			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
-			
+
 			hasGenerated = true;
 
 			sw.Stop();

@@ -267,6 +267,15 @@ namespace SharpNav.Geometry
 			bbox.Max = max;
 		}
 
+		public static void Area2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, out float area)
+		{
+			float abx = b.X - a.X;
+			float abz = b.Z - a.Z;
+			float acx = c.X - a.X;
+			float acz = c.Z - a.Z;
+			area = acx * abz - abx * acz;
+		}
+
 		/// <summary>
 		/// Checks for equality with another <see cref="Triangle3"/>.
 		/// </summary>

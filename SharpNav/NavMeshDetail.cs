@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -304,13 +304,13 @@ namespace SharpNav
 		/// <summary>
 		/// Floodfill heightfield to get 2D height data, starting at vertex locations
 		/// </summary>
-		/// <param name="openField">Original heightfield data</param>
+		/// <param name="compactField">Original heightfield data</param>
 		/// <param name="poly">Polygon vertices</param>
 		/// <param name="npoly">Number of polygons</param>
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield openField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield compactField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;
@@ -341,12 +341,12 @@ namespace SharpNav
 						continue;
 
 					//get new cell
-					CompactCell c = openField.Cells[(ax + borderSize) + (az + borderSize) * openField.Width];
+					CompactCell c = compactField.Cells[(ax + borderSize) + (az + borderSize) * compactField.Width];
 					
 					//loop through all the spans
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
-						CompactSpan s = openField.Spans[i];
+						CompactSpan s = compactField.Spans[i];
 						
 						//find minimum y-distance
 						int d = Math.Abs(ay - s.Minimum);
@@ -416,7 +416,7 @@ namespace SharpNav
 					break;
 				}
 
-				CompactSpan cs = openField.Spans[ci];
+				CompactSpan cs = compactField.Spans[ci];
 
 				//check all four directions
 				for (int dir = 0; dir < 4; dir++)
@@ -438,7 +438,7 @@ namespace SharpNav
 						continue;
 
 					//get the new index
-					int ai = openField.Cells[(ax + borderSize) + (ay + borderSize) * openField.Width].StartIndex +
+					int ai = compactField.Cells[(ax + borderSize) + (ay + borderSize) * compactField.Width].StartIndex +
 						CompactSpan.GetConnection(dir, ref cs);
 
 					//save data
@@ -466,7 +466,7 @@ namespace SharpNav
 
 				//set new heightpatch data
 				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
-				CompactSpan cs = openField.Spans[ci];
+				CompactSpan cs = compactField.Spans[ci];
 				hp.Data[idx] = cs.Minimum;
 			}
 
@@ -497,7 +497,7 @@ namespace SharpNav
 				}
 
 				//examine span
-				CompactSpan cs = openField.Spans[ci];
+				CompactSpan cs = compactField.Spans[ci];
 				
 				//loop in all four directions
 				for (int dir = 0; dir < 4; dir++)
@@ -518,11 +518,11 @@ namespace SharpNav
 						continue;
 
 					//get new span index
-					int ai = openField.Cells[(ax + borderSize) + (ay + borderSize) * openField.Width].StartIndex +
+					int ai = compactField.Cells[(ax + borderSize) + (ay + borderSize) * compactField.Width].StartIndex +
 						CompactSpan.GetConnection(dir, ref cs);
 
 					//get new span
-					CompactSpan ds = openField.Spans[ai];
+					CompactSpan ds = compactField.Spans[ai];
 					
 					//save
 					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
@@ -879,7 +879,9 @@ namespace SharpNav
 			int nedges = 0;
 			int maxEdges = npts * 10;
 			edges = new List<EdgeInfo>(maxEdges);
-			for (int i = 0; i < maxEdges; i++) //HACK should be an array, or algorithm should add edges as it goes
+
+			//HACK should be an array, or algorithm should add edges as it goes
+			for (int i = 0; i < maxEdges; i++)
 			{
 				EdgeInfo e = new EdgeInfo();
 				e.EndPts = new int[2];
@@ -1002,12 +1004,14 @@ namespace SharpNav
 			int pt = npts;
 			Vector3 c = new Vector3();
 			float r = -1;
+			float cross;
 			for (int u = 0; u < npts; u++)
 			{
 				if (u == s || u == t)
 					continue;
 
-				if (VectorCross2D(pts[s], pts[t], pts[u]) > EPS)
+				Vector3Extensions.Cross2D(ref pts[s], ref pts[t], ref pts[u], out cross);
+				if (cross > EPS)
 				{
 					if (r < 0)
 					{
@@ -1120,7 +1124,7 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (OverlapSegSeg2d(pts[s0], pts[t0], pts[s1], pts[t1]) == true)
+				if (OverlapSegSeg2d(ref pts[s0], ref pts[t0], ref pts[s1], ref pts[t1]))
 					return true;
 			}
 
@@ -1138,7 +1142,8 @@ namespace SharpNav
 		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 c, ref float r)
 		{
 			float EPS = 1e-6f;
-			float cp = VectorCross2D(p1, p2, p3);
+			float cp;
+			Vector3Extensions.Cross2D(ref p1, ref p2, ref p3, out cp);
 
 			if (Math.Abs(cp) > EPS)
 			{
@@ -1236,14 +1241,16 @@ namespace SharpNav
 			return c ? -dmin : dmin;
 		}
 	
-		private bool OverlapSegSeg2d(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+		private bool OverlapSegSeg2d(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
 		{
-			float a1 = VectorCross2D(a, b, d);
-			float a2 = VectorCross2D(a, b, c);
+			float a1, a2, a3;
+
+			Vector3Extensions.Cross2D(ref a, ref b, ref d, out a1);
+			Vector3Extensions.Cross2D(ref a, ref b, ref c, out a2);
 
 			if (a1 * a2 < 0.0f)
 			{
-				float a3 = VectorCross2D(c, d, a);
+				Vector3Extensions.Cross2D(ref c, ref d, ref a, out a3);
 				float a4 = a3 + a2 - a1;
 				
 				if (a3 * a4 < 0.0f)
@@ -1251,16 +1258,6 @@ namespace SharpNav
 			}
 
 			return false;
-		}
-
-		private float VectorCross2D(Vector3 p1, Vector3 p2, Vector3 p3)
-		{
-			float u1 = p2.X - p1.X;
-			float v1 = p2.Z - p1.Z;
-			float u2 = p3.X - p1.X;
-			float v2 = p3.Z - p1.Z;
-
-			return u1 * v2 - v1 * u2;
 		}
 
 		/// <summary>

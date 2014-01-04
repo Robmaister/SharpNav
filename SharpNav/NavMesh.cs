@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -329,7 +329,7 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private int Triangulate(int n, Contour.SimplifiedVertex[] verts, int[] indices, Tris[] tris)
+		private int Triangulate(int n, Contour.Vertex[] verts, int[] indices, Tris[] tris)
 		{
 			int ntris = 0;
 			Tris[] dst = tris;
@@ -339,7 +339,7 @@ namespace SharpNav
 			{
 				int i1 = Next(i, n);
 				int i2 = Next(i1, n);
-				if (Contour.SimplifiedVertex.Diagonal(i, i2, n, verts, indices))
+				if (Contour.Vertex.Diagonal(i, i2, n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[i1]);
 				}
@@ -384,9 +384,9 @@ namespace SharpNav
 
 				dst[ntris] = new Tris();
 				dst[ntris].VertexHash = new int[3];
-				dst[ntris].VertexHash[0] = RemoveDiagonalFlag(indices[mi]); 
-				dst[ntris].VertexHash[1] = RemoveDiagonalFlag(indices[mi1]); 
-				dst[ntris].VertexHash[2] = RemoveDiagonalFlag(indices[mi2]); 
+				dst[ntris].VertexHash[0] = RemoveDiagonalFlag(indices[mi]);
+				dst[ntris].VertexHash[1] = RemoveDiagonalFlag(indices[mi1]);
+				dst[ntris].VertexHash[2] = RemoveDiagonalFlag(indices[mi2]);
 				ntris++;
 
 				//remove P[i1]
@@ -398,7 +398,7 @@ namespace SharpNav
 				mi = Prev(mi1, n);
 
 				//update diagonal flags
-				if (Contour.SimplifiedVertex.Diagonal(Prev(mi, n), mi1, n, verts, indices))
+				if (Contour.Vertex.Diagonal(Prev(mi, n), mi1, n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi]);
 				}
@@ -407,7 +407,7 @@ namespace SharpNav
 					RemoveDiagonalFlag(ref indices[mi]);
 				}
 
-				if (Contour.SimplifiedVertex.Diagonal(mi, Next(mi1, n), n, verts, indices))
+				if (Contour.Vertex.Diagonal(mi, Next(mi1, n), n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi1]);
 				}
@@ -866,7 +866,7 @@ namespace SharpNav
 			}
 
 			Tris[] tris = new Tris[nhole];
-			var tverts = new Contour.SimplifiedVertex[nhole];
+			var tverts = new Contour.Vertex[nhole];
 			int[] thole = new int[nhole];
 
 			//generate temp vertex array for triangulation

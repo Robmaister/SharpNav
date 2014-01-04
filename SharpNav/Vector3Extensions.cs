@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -23,26 +23,49 @@ namespace SharpNav
 	internal static class Vector3Extensions
 	{
 #if OPENTK
+
+		/// <summary>
+		/// Gets the length of a <see cref="Vector3"/>.
+		/// </summary>
+		/// <param name="v">A vector.</param>
+		/// <returns>The length of the vector.</returns>
 		internal static float Length(this Vector3 v)
 		{
 			return v.Length;
 		}
 
+		/// <summary>
+		/// Gets the squared length of a <see cref="Vector3"/>. This avoids the square root operation
+		/// and is suitable for comparisons.
+		/// </summary>
+		/// <param name="v">A vector.</param>
+		/// <returns>The length of the vector.</returns>
 		internal static float LengthSquared(this Vector3 v)
 		{
 			return v.LengthSquared;
 		}
+
 #endif
 
 		/// <summary>
-		/// Calculate the dot (scalar) product of two vectors in the two dimensional xz plane
+		/// Calculate the dot product of two vectors projected onto the XZ plane.
 		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <returns>The dot product of the two inputs</returns>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector</param>
+		/// <param name="result">The dot product of the two vectors.</param>
 		internal static void Dot2D(ref Vector3 left, ref Vector3 right, out float result)
 		{
 			result = left.X * right.X + left.Z * right.Z;
+		}
+
+		internal static void Cross2D(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, out float result)
+		{
+			float u1 = p2.X - p1.X;
+			float v1 = p2.Z - p1.Z;
+			float u2 = p3.X - p1.X;
+			float v2 = p3.Z - p1.Z;
+
+			result = u1 * v2 - v1 * u2;
 		}
 	}
 }

@@ -97,6 +97,7 @@
     <Compile Include="NodePool.cs" />
     <Compile Include="NodeFlags.cs" />
     <Compile Include="PathfinderCommon.cs" />
+    <Compile Include="PolygonType.cs" />
     <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />

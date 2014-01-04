@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -13,6 +13,9 @@ namespace SharpNav.Collections.Generic
 	/// <summary>
 	/// Use a priority queue (heap) to determine which node is more important.
 	/// </summary>
+	/// <typeparam name="T">
+	/// A type that has a cost for each instance via the <see cref="IValueWithCost"/> interface.
+	/// </typeparam>
 	public class PriorityQueue<T> : ICollection<T>
 		where T : class, IValueWithCost
 	{
