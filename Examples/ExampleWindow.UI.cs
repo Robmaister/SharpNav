@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -98,10 +98,17 @@ namespace Examples
 			hfSettings.Dock = Pos.Top;
 			hfSettings.Height = 112;
 
-			Base cellSizeSetting = CreateSliderOption(hfSettings, "Cell Size:", 0.1f, 2.0f, 0.2f, "N1", leftMax, rightMax, v => settings.CellSize = v);
-			Base cellHeightSetting = CreateSliderOption(hfSettings, "Cell Height:", 0.1f, 2f, 0.1f, "N1", leftMax, rightMax, v => settings.CellHeight = v);
-			Base maxSlopeSetting = CreateSliderOption(hfSettings, "Max Climb:", 1f, 20f, 15f, "N0", leftMax, rightMax, v => settings.MaxClimb = (int)Math.Round(v));
-			Base maxHeightSetting = CreateSliderOption(hfSettings, "Max Height:", 1f, 50f, 40f, "N0", leftMax, rightMax, v => settings.MaxHeight = (int)Math.Round(v));
+			Base cellSizeSetting = CreateSliderOption(hfSettings, "Cell Size:", 0.1f, 2.0f, 0.3f, "N2", leftMax, rightMax, v => settings.CellSize = v);
+			Base cellHeightSetting = CreateSliderOption(hfSettings, "Cell Height:", 0.1f, 2f, 0.2f, "N2", leftMax, rightMax, v => settings.CellHeight = v);
+			Base maxSlopeSetting = CreateSliderOption(hfSettings, "Max Climb:", 0.1f, 5.0f, 0.9f, "N0", leftMax, rightMax, v => settings.MaxClimb = v);
+			Base maxHeightSetting = CreateSliderOption(hfSettings, "Max Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.MaxHeight = v);
+
+			GroupBox chfSettings = new GroupBox(genBase);
+			chfSettings.Text = "CompactHeightfield";
+			chfSettings.Dock = Pos.Top;
+			chfSettings.Height = 38;
+
+			Base erodeRadius = CreateSliderOption(chfSettings, "Erode Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => settings.ErodeRadius = v);
 
 			GroupBox regionSettings = new GroupBox(genBase);
 			regionSettings.Text = "Region";
@@ -172,8 +179,9 @@ namespace Examples
 		{
 			public float CellSize { get; set; }
 			public float CellHeight { get; set; }
-			public int MaxClimb { get; set; }
-			public int MaxHeight { get; set; }
+			public float MaxClimb { get; set; }
+			public float MaxHeight { get; set; }
+			public float ErodeRadius { get; set; }
 			public int MinRegionSize { get; set; }
 			public int MergedRegionSize { get; set; }
 			public int MaxEdgeLength { get; set; }

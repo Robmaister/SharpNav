@@ -340,6 +340,18 @@ namespace SharpNav
 			this.distances = src;
 		}
 
+		public void Erode(int radius)
+		{
+			int threshold = radius * 2;
+
+			int[] dists = new int[spans.Length];
+			CalculateDistanceField(dists);
+
+			for (int i = 0; i < spans.Length; i++)
+				if (dists[i] < threshold)
+					areas[i] = AreaFlags.Null;
+		}
+
 		/// <summary>
 		/// The central method for building regions, which consists of connected, non-overlapping walkable spans.
 		/// </summary>

@@ -49,7 +49,7 @@ namespace Examples
 		private Camera cam;
 
 		private Heightfield heightfield;
-		private CompactHeightfield openHeightfield;
+		private CompactHeightfield compactHeightfield;
 		private Color4[] regionColors;
 		private ContourSet contourSet;
 		private NavMesh navMesh;
@@ -289,6 +289,10 @@ namespace Examples
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
+			int voxMaxHeight = (int)(settings.MaxHeight / settings.CellHeight);
+			int voxMaxClimb = (int)(settings.MaxClimb / settings.CellHeight);
+			int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
+
 			BBox3 bounds = level.GetBounds();
 			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).Where(bbox => bbox.Min.Y > 0).IsWalkable().Create();
 			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).IsWalkable().Create();
@@ -296,23 +300,24 @@ namespace Examples
 			heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
 			//heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
 			heightfield.RasterizeTriangles(level.GetTriangles());
-			heightfield.FilterLedgeSpans(settings.MaxHeight, settings.MaxClimb);
-			heightfield.FilterLowHangingWalkableObstacles(settings.MaxClimb);
-			heightfield.FilterWalkableLowHeightSpans(settings.MaxHeight);
+			heightfield.FilterLedgeSpans(voxMaxHeight, voxMaxClimb);
+			heightfield.FilterLowHangingWalkableObstacles(voxMaxClimb);
+			heightfield.FilterWalkableLowHeightSpans(voxMaxHeight);
 
-			openHeightfield = new CompactHeightfield(heightfield, settings.MaxHeight, settings.MaxClimb);
-			openHeightfield.BuildDistanceField();
-			openHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
+			compactHeightfield = new CompactHeightfield(heightfield, voxMaxHeight, voxMaxClimb);
+			compactHeightfield.Erode(voxErodeRadius);
+			compactHeightfield.BuildDistanceField();
+			compactHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
 
 			Random r = new Random();
-			regionColors = new Color4[openHeightfield.MaxRegions];
+			regionColors = new Color4[compactHeightfield.MaxRegions];
 			for (int i = 0; i < regionColors.Length; i++)
 				regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
 
-			contourSet = new ContourSet(openHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
+			contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
 
 			navMesh = new NavMesh(contourSet, settings.VertsPerPoly);
-			navMeshDetail = new NavMeshDetail(navMesh, openHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+			navMeshDetail = new NavMeshDetail(navMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
 
 			parameters = new NavMeshCreateParams();
 			parameters.verts = navMesh.Verts;

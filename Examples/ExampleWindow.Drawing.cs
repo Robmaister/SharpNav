@@ -271,13 +271,13 @@ namespace Examples
 			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
-			for (int i = 0; i < openHeightfield.Length; i++)
+			for (int i = 0; i < compactHeightfield.Length; i++)
 			{
-				for (int j = 0; j < openHeightfield.Width; j++)
+				for (int j = 0; j < compactHeightfield.Width; j++)
 				{
 					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
-					var cell = openHeightfield[j, i];
+					var cell = compactHeightfield[j, i];
 
 					foreach (var span in cell)
 					{
@@ -323,7 +323,7 @@ namespace Examples
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
 
-			int maxdist = openHeightfield.MaxDistance;
+			int maxdist = compactHeightfield.MaxDistance;
 
 			var cellSize = heightfield.CellSize;
 			var halfCellSize = cellSize * 0.5f;
@@ -332,23 +332,23 @@ namespace Examples
 			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
-			for (int i = 0; i < openHeightfield.Length; i++)
+			for (int i = 0; i < compactHeightfield.Length; i++)
 			{
-				for (int j = 0; j < openHeightfield.Width; j++)
+				for (int j = 0; j < compactHeightfield.Width; j++)
 				{
 					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
-					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+					var cell = compactHeightfield.Cells[i * compactHeightfield.Width + j];
 
 					for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
 					{
 						GL.PushMatrix();
 
-						int dist = openHeightfield.Distances[k];
+						int dist = compactHeightfield.Distances[k];
 						float val = (float)dist / (float)maxdist;
 						GL.Color4(val, val, val, 1f);
 
-						var span = openHeightfield.Spans[k];
+						var span = compactHeightfield.Spans[k];
 						var squarePosFinal = squarePos;
 						squarePosFinal.Y += span.Minimum * cellSize.Y;
 						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
@@ -380,7 +380,7 @@ namespace Examples
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, squareIbo);
 
-			int maxdist = openHeightfield.MaxDistance;
+			int maxdist = compactHeightfield.MaxDistance;
 			var cellSize = heightfield.CellSize;
 			var halfCellSize = cellSize * 0.5f;
 
@@ -388,17 +388,17 @@ namespace Examples
 			Vector3 squarePos;
 			Matrix4.CreateScale(cellSize.X, 1, cellSize.Z, out squareScale);
 
-			for (int i = 0; i < openHeightfield.Length; i++)
+			for (int i = 0; i < compactHeightfield.Length; i++)
 			{
-				for (int j = 0; j < openHeightfield.Width; j++)
+				for (int j = 0; j < compactHeightfield.Width; j++)
 				{
-					var cell = openHeightfield.Cells[i * openHeightfield.Width + j];
+					var cell = compactHeightfield.Cells[i * compactHeightfield.Width + j];
 					squarePos = new Vector3(j * cellSize.X + halfCellSize.X + heightfield.Bounds.Min.X, heightfield.Bounds.Min.Y, i * cellSize.Z + halfCellSize.Z + heightfield.Bounds.Min.Z);
 
 					for (int k = cell.StartIndex, kEnd = cell.StartIndex + cell.Count; k < kEnd; k++)
 					{
 						GL.PushMatrix();
-						var span = openHeightfield.Spans[k];
+						var span = compactHeightfield.Spans[k];
 
 						int region = span.Region;
 						if (Region.IsBorder(region))
@@ -431,7 +431,7 @@ namespace Examples
 		{
 			GL.EnableClientState(ArrayCap.VertexArray);
 
-			int maxdist = openHeightfield.MaxDistance;
+			int maxdist = compactHeightfield.MaxDistance;
 			var cellSize = heightfield.CellSize;
 			var halfCellSize = cellSize * 0.5f;
 
