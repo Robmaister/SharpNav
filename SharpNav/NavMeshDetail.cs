@@ -439,7 +439,7 @@ namespace SharpNav
 
 					//get the new index
 					int ai = compactField.Cells[(ax + borderSize) + (ay + borderSize) * compactField.Width].StartIndex +
-						CompactSpan.GetConnection(dir, ref cs);
+						CompactSpan.GetConnection(ref cs, dir);
 
 					//save data
 					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
@@ -519,7 +519,7 @@ namespace SharpNav
 
 					//get new span index
 					int ai = compactField.Cells[(ax + borderSize) + (ay + borderSize) * compactField.Width].StartIndex +
-						CompactSpan.GetConnection(dir, ref cs);
+						CompactSpan.GetConnection(ref cs, dir);
 
 					//get new span
 					CompactSpan ds = compactField.Spans[ai];

@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -201,10 +201,10 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the connection data for a neighboring cell in a specified direction.
 		/// </summary>
-		/// <param name="dir">The direction.</param>
 		/// <param name="s">The <see cref="CompactSpan"/> to get the connection data from.</param>
+		/// <param name="dir">The direction.</param>
 		/// <returns>The index of the span in the neighboring cell.</returns>
-		public static int GetConnection(int dir, ref CompactSpan s)
+		public static int GetConnection(ref CompactSpan s, int dir)
 		{
 			dir %= 4;
 
@@ -229,7 +229,7 @@ namespace SharpNav
 		/// <returns>The index of the span in the neighboring cell.</returns>
 		public int GetConnection(int dir)
 		{
-			return GetConnection(dir, ref this);
+			return GetConnection(ref this, dir);
 		}
 
 		/// <summary>

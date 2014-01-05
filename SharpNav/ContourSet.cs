@@ -85,7 +85,7 @@ namespace SharpNav
 							{
 								int dx = x + MathHelper.GetDirOffsetX(dir);
 								int dy = y + MathHelper.GetDirOffsetY(dir);
-								int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
+								int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 								r = compactField.Spans[di].Region;
 							}
 
@@ -306,7 +306,7 @@ namespace SharpNav
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
-						int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
+						int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 						r = openField.Spans[di].Region;
 						if (area != openField.Areas[di])
 							isAreaBorder = true;
@@ -336,7 +336,7 @@ namespace SharpNav
 					if (s.IsConnected(dir))
 					{
 						CompactCell dc = openField.Cells[dx + dy * openField.Width];
-						di = dc.StartIndex + CompactSpan.GetConnection(dir, ref s);
+						di = dc.StartIndex + CompactSpan.GetConnection(ref s, dir);
 					}
 					
 					if (di == -1)
@@ -386,7 +386,7 @@ namespace SharpNav
 				//get neighbor span
 				int dx = x + MathHelper.GetDirOffsetX(dir);
 				int dy = y + MathHelper.GetDirOffsetY(dir);
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref s);
+				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
@@ -397,7 +397,7 @@ namespace SharpNav
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dirp);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dirp);
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(dirp, ref ds);
+					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
 					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
@@ -410,7 +410,7 @@ namespace SharpNav
 			{
 				int dx = x + MathHelper.GetDirOffsetX(dirp);
 				int dy = y + MathHelper.GetDirOffsetY(dirp);
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(dirp, ref s);
+				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
 				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
@@ -421,7 +421,7 @@ namespace SharpNav
 				{
 					int dx2 = dx + MathHelper.GetDirOffsetX(dir);
 					int dy2 = dy + MathHelper.GetDirOffsetY(dir);
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(dir, ref ds);
+					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
 					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
