@@ -62,18 +62,18 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('MONOGAME'))">
+  <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
     <Reference Include="MonoGame.Framework" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('OPENTK'))">
+  <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
     <Reference Include="OpenTK">
       <HintPath>..\Binaries\OpenTK.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('SHARPDX'))">
+  <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
     <Reference Include="SharpDX" />
   </ItemGroup>
-  <ItemGroup Condition="$(DefineConstants.Contains('XNA'))">
+  <ItemGroup Condition="'$(Configuration)' == 'XNA'">
     <Reference Include="Microsoft.Xna.Framework" />
   </ItemGroup>
   <ItemGroup>
