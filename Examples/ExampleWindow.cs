@@ -7,6 +7,9 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using Gwen.Control;
 
@@ -110,6 +113,11 @@ namespace Examples
 			gwenProjection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, -1, 1);
 
 			InitializeUI();
+
+			//Pre-JIT compile both SharpNav and this project for faster first-time runs.
+			Assembly sharpNavAssebmly = Assembly.Load(Assembly.GetExecutingAssembly().GetReferencedAssemblies().First(n => n.Name == "SharpNav"));
+			PreJITMethods(sharpNavAssebmly);
+			PreJITMethods(Assembly.GetExecutingAssembly());
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -373,6 +381,36 @@ namespace Examples
 
 			Label l = (Label)statusBar.FindChildByName("GenTime");
 			l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
+		}
+
+		/// <summary>
+		/// Pre-JIT compiles an assembly.
+		/// </summary>
+		/// <remarks>
+		/// Taken from http://blog.liranchen.com/2010/08/forcing-jit-compilation-during-runtime.html
+		/// </remarks>
+		/// <param name="assembly">The assembly to JIT.</param>
+		private static void PreJITMethods(Assembly assembly)
+		{
+			Type[] types = assembly.GetTypes();
+			foreach (Type curType in types)
+			{
+				MethodInfo[] methods = curType.GetMethods(
+						BindingFlags.DeclaredOnly |
+						BindingFlags.NonPublic |
+						BindingFlags.Public |
+						BindingFlags.Instance |
+						BindingFlags.Static);
+
+				foreach (MethodInfo curMethod in methods)
+				{
+					if (curMethod.IsAbstract ||
+						curMethod.ContainsGenericParameters)
+						continue;
+
+					RuntimeHelpers.PrepareMethod(curMethod.MethodHandle);
+				}
+			}
 		}
 	}
 }
