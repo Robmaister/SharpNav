@@ -200,8 +200,8 @@ namespace SharpNav
 			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
 
 			//store header
-			header.magic = PathfinderCommon.NAVMESH_MAGIC;
-			header.version = PathfinderCommon.NAVMESH_VERSION;
+			//header.magic = PathfinderCommon.NAVMESH_MAGIC;
+			//header.version = PathfinderCommon.NAVMESH_VERSION;
 			header.x = parameters.tileX;
 			header.y = parameters.tileY;
 			header.layer = parameters.tileLayer;

@@ -186,8 +186,7 @@ namespace SharpNav
 			while (m_openList.Count > 0)
 			{
 				Node bestNode = m_openList.Pop();
-				bestNode.flags &= ~NodeFlags.Open;
-				bestNode.flags |= NodeFlags.Closed;
+				SetNodeFlagClosed(ref bestNode);
 
 				//get poly and tile
 				uint bestRef = bestNode.id;
@@ -260,7 +259,7 @@ namespace SharpNav
 					if (neighbourNode == null)
 						continue;
 
-					if ((neighbourNode.flags & NodeFlags.Closed) != 0)
+					if (IsInClosedList(neighbourNode))
 						continue;
 
 					//cost
@@ -270,15 +269,15 @@ namespace SharpNav
 					float total = bestNode.total + (bestNode.pos - neighbourNode.pos).Length();
 
 					//node is already in open list and new result is worse, so skip
-					if ((neighbourNode.flags & NodeFlags.Open) != 0 && total >= neighbourNode.total)
+					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
 						continue;
 
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.Closed;
+					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.total = total;
 
-					if ((neighbourNode.flags & NodeFlags.Open) != 0)
+					if (IsInOpenList(neighbourNode))
 					{
 						m_openList.Modify(neighbourNode);
 					}
@@ -366,8 +365,7 @@ namespace SharpNav
 			{
 				//remove node from open list and put it in closed list
 				Node bestNode = m_openList.Pop();
-				bestNode.flags &= ~NodeFlags.Open;
-				bestNode.flags |= NodeFlags.Closed;
+				SetNodeFlagClosed(ref bestNode);
 
 				//reached the goal. stop searching
 				if (bestNode.id == endRef)
@@ -443,21 +441,21 @@ namespace SharpNav
 					float total = cost + heuristic;
 
 					//the node is already in open list and new result is worse, skip
-					if ((neighbourNode.flags & NodeFlags.Open) != 0 && total >= neighbourNode.total)
+					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
 						continue;
 
 					//the node is already visited and processesd, and the new result is worse, skip
-					if ((neighbourNode.flags & NodeFlags.Closed) != 0 && total >= neighbourNode.total)
+					if (IsInClosedList(neighbourNode) && total >= neighbourNode.total)
 						continue;
 
 					//add or update the node
 					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
 					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = neighbourNode.flags & ~NodeFlags.Closed;
+					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
 					neighbourNode.cost = cost;
 					neighbourNode.total = total;
 
-					if ((neighbourNode.flags & NodeFlags.Open) != 0)
+					if (IsInOpenList(neighbourNode))
 					{
 						//already in open, update node location
 						m_openList.Modify(neighbourNode);
@@ -465,7 +463,7 @@ namespace SharpNav
 					else
 					{
 						//put the node in the open list
-						neighbourNode.flags |= NodeFlags.Open;
+						SetNodeFlagOpen(ref neighbourNode);
 						m_openList.Push(neighbourNode);
 					}
 
@@ -662,6 +660,32 @@ namespace SharpNav
 			}
 
 			return false;
+		}
+
+		public bool IsInOpenList(Node node)
+		{
+			return (node.flags & NodeFlags.Open) != 0;
+		}
+
+		public bool IsInClosedList(Node node)
+		{
+			return (node.flags & NodeFlags.Closed) != 0;
+		}
+
+		public void SetNodeFlagOpen(ref Node node)
+		{
+			node.flags |= NodeFlags.Open;
+		}
+
+		public void SetNodeFlagClosed(ref Node node)
+		{
+			node.flags &= ~NodeFlags.Open;
+			node.flags |= NodeFlags.Closed;
+		}
+
+		public NodeFlags RemoveNodeFlagClosed(Node node)
+		{
+			return node.flags & ~NodeFlags.Closed;
 		}
 
 		public struct QueryData

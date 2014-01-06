@@ -28,8 +28,8 @@ namespace SharpNav
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
 
 		//tile serialization constants used to detect compatibility of navigation tile data
-		public const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V'; //magic number 
-		public const int NAVMESH_VERSION = 7; //version number
+		//public const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V'; //magic number 
+		//public const int NAVMESH_VERSION = 7; //version number
 
 		public const int EXT_LINK = 0x8000; //entity links to external entity
 		public const uint NULL_LINK = 0xffffffff; //doesn't link to anything
@@ -40,8 +40,8 @@ namespace SharpNav
 
 		public class MeshHeader
 		{
-			public int magic; //tile magic number (used to identify data format)
-			public int version;
+			//public int magic; //tile magic number (used to identify data format)
+			//public int version;
 			public int x;
 			public int y;
 			public int layer;
