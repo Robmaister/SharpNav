@@ -20,7 +20,7 @@ using SharpDX;
 
 namespace SharpNav
 {
-	public class NavMesh
+	public class PolyMesh
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
 		public const int MESH_NULL_IDX = -1;
@@ -63,7 +63,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="contSet">The ContourSet to use</param>
 		/// <param name="numVertsPerPoly">Number vertices per polygon</param>
-		public NavMesh(ContourSet contSet, int numVertsPerPoly)
+		public PolyMesh(ContourSet contSet, int numVertsPerPoly)
 		{
 			//copy contour data
 			this.bounds = contSet.Bounds;

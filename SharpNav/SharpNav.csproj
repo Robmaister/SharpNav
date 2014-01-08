@@ -88,10 +88,10 @@
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
-    <Compile Include="NavMesh.cs" />
+    <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="NavMeshCreateParams.cs" />
-    <Compile Include="NavMeshDetail.cs" />
+    <Compile Include="PolyMeshDetail.cs" />
     <Compile Include="NavMeshQuery.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodePool.cs" />

@@ -20,7 +20,7 @@ using SharpDX;
 
 namespace SharpNav
 {
-	public class NavMeshDetail
+	public class PolyMeshDetail
 	{
 		public const int UNSET_HEIGHT = 0xffff;
 
@@ -66,7 +66,7 @@ namespace SharpNav
 		/// <param name="openField">Compact heightfield data</param>
 		/// <param name="sampleDist"></param>
 		/// <param name="sampleMaxError"></param>
-		public NavMeshDetail(NavMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
+		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
 		{
 			if (mesh.NVerts == 0 || mesh.NPolys == 0)
 				return;
@@ -96,7 +96,7 @@ namespace SharpNav
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					int v = mesh.Polys[i].Vertices[j];
@@ -141,7 +141,7 @@ namespace SharpNav
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					int v = mesh.Polys[i].Vertices[j];
@@ -310,7 +310,7 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield compactField, NavMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
 		{
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;

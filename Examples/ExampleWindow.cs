@@ -55,8 +55,8 @@ namespace Examples
 		private CompactHeightfield compactHeightfield;
 		private Color4[] regionColors;
 		private ContourSet contourSet;
-		private NavMesh navMesh;
-		private NavMeshDetail navMeshDetail;
+		private PolyMesh navMesh;
+		private PolyMeshDetail navMeshDetail;
 		private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
 		private TiledNavMesh tiledNavMesh;
@@ -324,8 +324,8 @@ namespace Examples
 
 			contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
 
-			navMesh = new NavMesh(contourSet, settings.VertsPerPoly);
-			navMeshDetail = new NavMeshDetail(navMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+			navMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
+			navMeshDetail = new PolyMeshDetail(navMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
 
 			parameters = new NavMeshCreateParams();
 			parameters.verts = navMesh.Verts;

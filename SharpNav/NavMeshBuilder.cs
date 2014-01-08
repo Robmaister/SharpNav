@@ -29,7 +29,7 @@ namespace SharpNav
 		private PathfinderCommon.Poly[] navPolys;
 		private PathfinderCommon.PolyDetail[] navDMeshes;
 		private Vector3[] navDVerts;
-		private NavMeshDetail.TrisInfo[] navDTris;
+		private PolyMeshDetail.TrisInfo[] navDTris;
 		private PathfinderCommon.BVNode[] navBvTree;
 		private PathfinderCommon.OffMeshConnection[] offMeshCons;
 
@@ -38,7 +38,7 @@ namespace SharpNav
 		public PathfinderCommon.Poly[] NavPolys { get { return navPolys; } }
 		public PathfinderCommon.PolyDetail[] NavDMeshes { get { return navDMeshes; } }
 		public Vector3[] NavDVerts { get { return navDVerts; } }
-		public NavMeshDetail.TrisInfo[] NavDTris { get { return navDTris; } }
+		public PolyMeshDetail.TrisInfo[] NavDTris { get { return navDTris; } }
 		public PathfinderCommon.BVNode[] NavBvTree { get { return navBvTree; } }
 		public PathfinderCommon.OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
@@ -127,10 +127,10 @@ namespace SharpNav
 			int portalCount = 0;
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
-				NavMesh.Polygon p = parameters.polys[i];
+				PolyMesh.Polygon p = parameters.polys[i];
 				for (int j = 0; j < nvp; j++)
 				{
-					if (p.Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					edgeCount++;
@@ -154,12 +154,12 @@ namespace SharpNav
 				detailTriCount = parameters.detailTriCount;
 				for (int i = 0; i < parameters.polyCount; i++)
 				{
-					NavMesh.Polygon p = parameters.polys[i];
+					PolyMesh.Polygon p = parameters.polys[i];
 					int ndv = parameters.detailMeshes[i].NewNumVerts;
 					int nv = 0;
 					for (int j = 0; j < nvp; j++)
 					{
-						if (p.Vertices[j] == NavMesh.MESH_NULL_IDX)
+						if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
 							break;
 
 						nv++;
@@ -175,11 +175,11 @@ namespace SharpNav
 				detailTriCount = 0;
 				for (int i = 0; i < parameters.polyCount; i++)
 				{
-					NavMesh.Polygon p = parameters.polys[i];
+					PolyMesh.Polygon p = parameters.polys[i];
 					int nv = 0;
 					for (int j = 0; j < nvp; j++)
 					{
-						if (p.Vertices[j] == NavMesh.MESH_NULL_IDX)
+						if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
 							break;
 
 						nv++;
@@ -195,7 +195,7 @@ namespace SharpNav
 			navPolys = new PathfinderCommon.Poly[totPolyCount];
 			navDMeshes = new PathfinderCommon.PolyDetail[parameters.polyCount];
 			navDVerts = new Vector3[uniqueDetailVertCount];
-			navDTris = new NavMeshDetail.TrisInfo[detailTriCount];
+			navDTris = new PolyMeshDetail.TrisInfo[detailTriCount];
 			navBvTree = new PathfinderCommon.BVNode[parameters.polyCount * 2];
 			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
 
@@ -258,7 +258,7 @@ namespace SharpNav
 				navPolys[i].neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
 				{
-					if (parameters.polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (parameters.polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					navPolys[i].verts[j] = parameters.polys[i].Vertices[j];
@@ -440,7 +440,7 @@ namespace SharpNav
 			return 0xff;
 		}
 
-		public int CreateBVTree(Vector3[] verts, NavMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, PathfinderCommon.BVNode[] nodes)
+		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, PathfinderCommon.BVNode[] nodes)
 		{
 			//build bounding volume tree
 			PathfinderCommon.BVNode[] items = new PathfinderCommon.BVNode[npolys];
@@ -453,7 +453,7 @@ namespace SharpNav
 
 				for (int j = 1; j < nvp; j++)
 				{
-					if (polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					Vector3 v = verts[polys[i].Vertices[j]];

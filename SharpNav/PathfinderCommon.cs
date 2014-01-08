@@ -150,7 +150,7 @@ namespace SharpNav
 			public PathfinderCommon.PolyDetail[] detailMeshes;
 
 			public Vector3[] detailVerts;
-			public NavMeshDetail.TrisInfo[] detailTris;
+			public PolyMeshDetail.TrisInfo[] detailTris;
 
 			public PathfinderCommon.BVNode[] bvTree; //bounding volume nodes
 

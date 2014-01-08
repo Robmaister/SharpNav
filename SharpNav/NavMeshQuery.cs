@@ -639,7 +639,7 @@ namespace SharpNav
 				//find height at the location
 				for (int j = 0; j < pd.triCount; j++)
 				{
-					NavMeshDetail.TrisInfo t = tile.detailTris[pd.triBase + j];
+					PolyMeshDetail.TrisInfo t = tile.detailTris[pd.triBase + j];
 					Vector3[] v = new Vector3[3];
 
 					for (int k = 0; k < 3; k++)

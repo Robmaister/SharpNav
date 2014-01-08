@@ -510,7 +510,7 @@ namespace Examples
 
 				for (int j = 2; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					int vertIndex0 = navMesh.Polys[i].Vertices[0];
@@ -542,12 +542,12 @@ namespace Examples
 			{
 				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) != 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
@@ -569,13 +569,13 @@ namespace Examples
 			{
 				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == NavMesh.MESH_NULL_IDX)
+					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
 					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) == 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == NavMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
 					int vertIndex0 = navMesh.Polys[i].Vertices[j];
 					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
@@ -616,7 +616,7 @@ namespace Examples
 			GL.Begin(BeginMode.Triangles);
 			for (int i = 0; i < navMeshDetail.NMeshes; i++)
 			{
-				NavMeshDetail.MeshInfo m = navMeshDetail.Meshes[i];
+				PolyMeshDetail.MeshInfo m = navMeshDetail.Meshes[i];
 
 				int vertIndex = m.OldNumVerts;
 				int triIndex = m.OldNumTris;

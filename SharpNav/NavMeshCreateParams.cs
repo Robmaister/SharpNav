@@ -29,7 +29,7 @@ namespace SharpNav
 		//Used to create base navigation graph
 		public Vector3[] verts;
 		public int vertCount;
-		public NavMesh.Polygon[] polys;
+		public PolyMesh.Polygon[] polys;
 		public int[] polyFlags; //user assigned
 		public AreaFlags[] polyAreas;
 		public int polyCount;
@@ -37,10 +37,10 @@ namespace SharpNav
 
 		//NavMeshDetail Attributes
 		//Contains height detail
-		public NavMeshDetail.MeshInfo[] detailMeshes;
+		public PolyMeshDetail.MeshInfo[] detailMeshes;
 		public Vector3[] detailVerts;
 		public int detailVertsCount;
-		public NavMeshDetail.TrisInfo[] detailTris;
+		public PolyMeshDetail.TrisInfo[] detailTris;
 		public int detailTriCount;
 
 		//Off-Mesh Connection Attributes (OPTIONAL)
