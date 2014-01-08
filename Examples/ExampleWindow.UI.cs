@@ -80,8 +80,8 @@ namespace Examples
 			displayModes.AddItem("Regions", "", DisplayMode.Regions);
 			displayModes.AddItem("Contours", "", DisplayMode.Contours);
 			displayModes.AddItem("Simplified Contours", "", DisplayMode.SimplifiedContours);
-			displayModes.AddItem("Navigation Mesh", "", DisplayMode.NavMesh);
-			displayModes.AddItem("Navigation Mesh Detail", "", DisplayMode.NavMeshDetail);
+			displayModes.AddItem("Navigation Mesh", "", DisplayMode.PolyMesh);
+			displayModes.AddItem("Navigation Mesh Detail", "", DisplayMode.PolyMeshDetail);
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 

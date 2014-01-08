@@ -22,34 +22,69 @@ namespace SharpNav
 {
 	public class PolyMeshDetail
 	{
-		public const int UNSET_HEIGHT = 0xffff;
+		public const int UNSET_HEIGHT = unchecked((int)0xffffffff);
 
 		private int nmeshes;
 		private int nverts;
 		private int ntris;
 
 		//mesh info contains number of vertices and triangles
-		public struct MeshInfo
+		public struct MeshData
 		{
-			public int OldNumVerts;
-			public int NewNumVerts;
-			public int OldNumTris;
-			public int NewNumTris;
+			public int VertexIndex;
+			public int VertexCount;
+			public int TriangleIndex;
+			public int TriangleCount;
 		}
 
-		private MeshInfo[] meshes;
+		private MeshData[] meshes;
 		
 		//each vertex is basically a vector3 (has x, y, z coordinates)
 		private Vector3[] verts;
 
 		//triangle info contains three vertex hashes and a flag
-		public struct TrisInfo
+		public struct TriangleData
 		{
-			public int[] VertexHash;
-			public int Flag; //indicates which 3 vertices are part of the polygon
+			public int VertexHash0;
+			public int VertexHash1;
+			public int VertexHash2;
+			public int Flags; //indicates which 3 vertices are part of the polygon
+
+			public TriangleData(int hash0, int hash1, int hash2)
+			{
+				VertexHash0 = hash0;
+				VertexHash1 = hash1;
+				VertexHash2 = hash2;
+				Flags = 0;
+			}
+
+			public TriangleData(int hash0, int hash1, int hash2, int flags)
+			{
+				VertexHash0 = hash0;
+				VertexHash1 = hash1;
+				VertexHash2 = hash2;
+				Flags = flags;
+			}
+
+			public int this[int index]
+			{
+				get
+				{
+					switch (index)
+					{
+						case 0:
+							return VertexHash0;
+						case 1:
+							return VertexHash1;
+						case 2:
+						default:
+							return VertexHash2;
+					}
+				}
+			}
 		}
 
-		private TrisInfo[] tris;
+		private TriangleData[] tris;
 
 		private class EdgeInfo
 		{
@@ -74,7 +109,7 @@ namespace SharpNav
 			Vector3 origin = mesh.Bounds.Min;
 
 			List<EdgeInfo> edges = new List<EdgeInfo>(16);
-			List<TrisInfo> tris = new List<TrisInfo>(128);
+			List<TriangleData> tris = new List<TriangleData>(128);
 			List<int> samples = new List<int>(512);
 			HeightPatch hp = new HeightPatch();
 			Vector3[] verts = new Vector3[256];
@@ -124,7 +159,7 @@ namespace SharpNav
 			hp.Data = new int[maxhw * maxhh];
 
 			this.nmeshes = mesh.NPolys;
-			this.meshes = new MeshInfo[this.nmeshes];
+			this.meshes = new MeshData[this.nmeshes];
 
 			int vcap = nPolyVerts + nPolyVerts / 2;
 			int tcap = vcap * 2;
@@ -133,7 +168,7 @@ namespace SharpNav
 			this.verts = new Vector3[vcap];
 
 			this.ntris = 0;
-			this.tris = new TrisInfo[tcap];
+			this.tris = new TriangleData[tcap];
 
 			for (int i = 0; i < mesh.NPolys; i++)
 			{
@@ -179,10 +214,10 @@ namespace SharpNav
 				//save data
 				int ntris = tris.Count;
 
-				this.meshes[i].OldNumVerts = this.nverts;
-				this.meshes[i].NewNumVerts = nverts;
-				this.meshes[i].OldNumTris = this.ntris;
-				this.meshes[i].NewNumTris = ntris;
+				this.meshes[i].VertexIndex = this.nverts;
+				this.meshes[i].VertexCount = nverts;
+				this.meshes[i].TriangleIndex = this.ntris;
+				this.meshes[i].TriangleCount = ntris;
 
 				//exapnd vertex array
 				if (this.nverts + nverts > vcap)
@@ -215,7 +250,7 @@ namespace SharpNav
 					while (this.ntris + ntris > tcap)
 						tcap += 256;
 
-					TrisInfo[] newt = new TrisInfo[tcap];
+					TriangleData[] newt = new TriangleData[tcap];
 
 					if (this.ntris > 0)
 					{
@@ -230,9 +265,11 @@ namespace SharpNav
 				for (int j = 0; j < ntris; j++)
 				{
 					int t = j;
-					this.tris[this.ntris].VertexHash = new int[3];
-					this.tris[this.ntris].VertexHash = tris[t].VertexHash;
-					this.tris[this.ntris].Flag = GetTriFlags(verts, tris[t].VertexHash[0], tris[t].VertexHash[1], tris[t].VertexHash[2], poly, npoly);
+					TriangleData ti;
+					ti.VertexHash0 = tris[t].VertexHash0;
+					ti.VertexHash1 = tris[t].VertexHash1;
+					ti.VertexHash2 = tris[t].VertexHash2;
+					ti.Flags = GetTriFlags(verts, tris[t].VertexHash0, tris[t].VertexHash1, tris[t].VertexHash2, poly, npoly);
 					this.ntris++;
 				}
 			}
@@ -244,11 +281,11 @@ namespace SharpNav
 
 		public int NTris { get { return ntris; } }
 
-		public MeshInfo[] Meshes { get { return meshes; } }
+		public MeshData[] Meshes { get { return meshes; } }
 
 		public Vector3[] Verts { get { return verts; } }
 
-		public TrisInfo[] Tris { get { return tris; } }
+		public TriangleData[] Tris { get { return tris; } }
 
 		/// <summary>
 		/// Determine which edges of the triangle are part of the polygon
@@ -537,7 +574,7 @@ namespace SharpNav
 		}
 
 		private void BuildPolyDetail(Vector3[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
-			Vector3[] verts, ref int nverts, List<TrisInfo> tris, List<EdgeInfo> edges, List<int> samples)
+			Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -688,15 +725,7 @@ namespace SharpNav
 			{
 				//add default data
 				for (int i = 2; i < nverts; i++)
-				{
-					TrisInfo newTris = new TrisInfo();
-					newTris.VertexHash = new int[3];
-					newTris.VertexHash[0] = 0;
-					newTris.VertexHash[1] = i - 1;
-					newTris.VertexHash[2] = i;
-					newTris.Flag = 0;
-					tris.Add(newTris);
-				}
+					tris.Add(new TriangleData(0, i - 1, i));
 
 				return;
 			}
@@ -873,7 +902,7 @@ namespace SharpNav
 		/// <param name="hull">?</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
-		private void DelaunayHull(int npts, Vector3[] pts, int nhull, float[] hull, List<TrisInfo> tris, List<EdgeInfo> edges)
+		private void DelaunayHull(int npts, Vector3[] pts, int nhull, float[] hull, List<TriangleData> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
 			int nedges = 0;
@@ -908,17 +937,9 @@ namespace SharpNav
 			}
 
 			//create triangles
-			tris = new List<TrisInfo>();
+			tris = new List<TriangleData>();
 			for (int i = 0; i < nfaces; i++)
-			{
-				TrisInfo newTris = new TrisInfo();
-				newTris.VertexHash = new int[3];
-				newTris.VertexHash[0] = -1;
-				newTris.VertexHash[1] = -1;
-				newTris.VertexHash[2] = -1;
-				newTris.Flag = -1;
-				tris.Add(newTris);
-			}
+				tris.Add(new TriangleData(-1, -1, -1, -1));
 
 			for (int i = 0; i < nedges; i++)
 			{
@@ -926,50 +947,56 @@ namespace SharpNav
 				{
 					//left face
 					int t = edges[i].RightFace;
+					var tri = tris[t];
 					
-					if (tris[t].VertexHash[0] == -1)
+					if (tri.VertexHash0 == -1)
 					{
-						tris[t].VertexHash[0] = edges[i].EndPts[0];
-						tris[t].VertexHash[1] = edges[i].EndPts[1];
+						tri.VertexHash0 = edges[i].EndPts[0];
+						tri.VertexHash1 = edges[i].EndPts[1];
 					}
-					else if (tris[t].VertexHash[0] == edges[i].EndPts[1])
+					else if (tri.VertexHash0 == edges[i].EndPts[1])
 					{
-						tris[t].VertexHash[2] = edges[i].EndPts[0];
+						tri.VertexHash2 = edges[i].EndPts[0];
 					}
-					else if (tris[t].VertexHash[1] == edges[i].EndPts[0])
+					else if (tri.VertexHash1 == edges[i].EndPts[0])
 					{
-						tris[t].VertexHash[2] = edges[i].EndPts[1];
+						tri.VertexHash2 = edges[i].EndPts[1];
 					}
+
+					tris[t] = tri;
 				}
 
 				if (edges[i].LeftFace >= 0)
 				{
 					//right
 					int t = edges[i].LeftFace;
+					var tri = tris[t];
 					
-					if (tris[t].VertexHash[0] == -1)
+					if (tri.VertexHash0 == -1)
 					{
-						tris[t].VertexHash[0] = edges[i].EndPts[1];
-						tris[t].VertexHash[1] = edges[i].EndPts[0];
+						tri.VertexHash0 = edges[i].EndPts[1];
+						tri.VertexHash1 = edges[i].EndPts[0];
 					}
-					else if (tris[t].VertexHash[0] == edges[i].EndPts[0])
+					else if (tri.VertexHash0 == edges[i].EndPts[0])
 					{
-						tris[t].VertexHash[2] = edges[i].EndPts[1];
+						tri.VertexHash2 = edges[i].EndPts[1];
 					}
-					else if (tris[t].VertexHash[1] == edges[i].EndPts[1])
+					else if (tri.VertexHash1 == edges[i].EndPts[1])
 					{
-						tris[t].VertexHash[2] = edges[i].EndPts[0];
+						tri.VertexHash2 = edges[i].EndPts[0];
 					}
+
+					tris[t] = tri;
 				}
 			}
 
 			for (int i = 0; i < tris.Count; i++)
 			{
-				int t = i;
-				if (tris[t].VertexHash[0] == -1 || tris[t].VertexHash[1] == -1 || tris[t].VertexHash[2] == -1)
+				var t = tris[i];
+				if (t.VertexHash0 == -1 || t.VertexHash1 == -1 || t.VertexHash2 == -1)
 				{
 					//remove dangling face
-					tris[t] = tris[tris.Count - 1];
+					tris[i] = tris[tris.Count - 1];
 					tris.RemoveAt(tris.Count - 1);
 					--i;
 				}
@@ -1169,15 +1196,15 @@ namespace SharpNav
 			return false;
 		}
 
-		private float DistanceToTriMesh(Vector3 p, Vector3[] verts, List<TrisInfo> tris)
+		private float DistanceToTriMesh(Vector3 p, Vector3[] verts, List<TriangleData> tris)
 		{
 			float dmin = float.MaxValue;
 
 			for (int i = 0; i < tris.Count; i++)
 			{
-				int va = tris[i].VertexHash[0];
-				int vb = tris[i].VertexHash[1];
-				int vc = tris[i].VertexHash[2];
+				int va = tris[i].VertexHash0;
+				int vb = tris[i].VertexHash1;
+				int vc = tris[i].VertexHash2;
 				float d = DistancePointTri(p, verts[va], verts[vb], verts[vc]);
 				if (d < dmin)
 					dmin = d;

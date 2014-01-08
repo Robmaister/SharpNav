@@ -44,8 +44,8 @@ namespace Examples
 			Regions,
 			Contours,
 			SimplifiedContours,
-			NavMesh,
-			NavMeshDetail,
+			PolyMesh,
+			PolyMeshDetail,
 			Pathfinding
 		}
 
@@ -55,8 +55,8 @@ namespace Examples
 		private CompactHeightfield compactHeightfield;
 		private Color4[] regionColors;
 		private ContourSet contourSet;
-		private PolyMesh navMesh;
-		private PolyMeshDetail navMeshDetail;
+		private PolyMesh polyMesh;
+		private PolyMeshDetail polyMeshDetail;
 		private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
 		private TiledNavMesh tiledNavMesh;
@@ -246,11 +246,11 @@ namespace Examples
 					case DisplayMode.SimplifiedContours:
 						DrawContours(true);
 						break;
-					case DisplayMode.NavMesh:
-						DrawNavMesh();
+					case DisplayMode.PolyMesh:
+						DrawPolyMesh();
 						break;
-					case DisplayMode.NavMeshDetail:
-						DrawNavMeshDetail();
+					case DisplayMode.PolyMeshDetail:
+						DrawPolyMeshDetail();
 						break;
 					case DisplayMode.Pathfinding:
 						DrawPathfinding();
@@ -319,27 +319,28 @@ namespace Examples
 
 			Random r = new Random();
 			regionColors = new Color4[compactHeightfield.MaxRegions];
-			for (int i = 0; i < regionColors.Length; i++)
+			regionColors[0] = Color4.Black;
+			for (int i = 1; i < regionColors.Length; i++)
 				regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
 
 			contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
 
-			navMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
-			navMeshDetail = new PolyMeshDetail(navMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+			polyMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
+			polyMeshDetail = new PolyMeshDetail(polyMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
 
 			parameters = new NavMeshCreateParams();
-			parameters.verts = navMesh.Verts;
-			parameters.vertCount = navMesh.NVerts;
-			parameters.polys = navMesh.Polys;
-			parameters.polyAreas = navMesh.Areas;
-			parameters.polyFlags = navMesh.Flags;
-			parameters.polyCount = navMesh.NPolys;
-			parameters.numVertsPerPoly = navMesh.NumVertsPerPoly;
-			parameters.detailMeshes = navMeshDetail.Meshes;
-			parameters.detailVerts = navMeshDetail.Verts;
-			parameters.detailVertsCount = navMeshDetail.NVerts;
-			parameters.detailTris = navMeshDetail.Tris;
-			parameters.detailTriCount = navMeshDetail.NTris;
+			parameters.verts = polyMesh.Verts;
+			parameters.vertCount = polyMesh.NVerts;
+			parameters.polys = polyMesh.Polys;
+			parameters.polyAreas = polyMesh.Areas;
+			parameters.polyFlags = polyMesh.Flags;
+			parameters.polyCount = polyMesh.NPolys;
+			parameters.numVertsPerPoly = polyMesh.NumVertsPerPoly;
+			parameters.detailMeshes = polyMeshDetail.Meshes;
+			parameters.detailVerts = polyMeshDetail.Verts;
+			parameters.detailVertsCount = polyMeshDetail.NVerts;
+			parameters.detailTris = polyMeshDetail.Tris;
+			parameters.detailTriCount = polyMeshDetail.NTris;
 			//no support for offmesh connections
 			parameters.offMeshConVerts = null;
 			parameters.offMeshConRadii = null;
@@ -351,9 +352,9 @@ namespace Examples
 			parameters.walkableHeight = settings.MaxHeight;
 			parameters.walkableRadius = 1; //not really used, but set a default value anyway
 			parameters.walkableClimb = settings.MaxClimb;
-			parameters.bounds = navMesh.Bounds;
-			parameters.cellSize = navMesh.CellSize;
-			parameters.cellHeight = navMesh.CellHeight;
+			parameters.bounds = polyMesh.Bounds;
+			parameters.cellSize = polyMesh.CellSize;
+			parameters.cellHeight = polyMesh.CellHeight;
 			parameters.buildBvTree = true;
 
 			buildData = new NavMeshBuilder(parameters);

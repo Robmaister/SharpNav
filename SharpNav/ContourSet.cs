@@ -56,7 +56,7 @@ namespace SharpNav
 
 			int[] flags = new int[compactField.Spans.Length];
 
-			//Modify flags array by using the OpenHeightfield data
+			//Modify flags array by using the CompactHeightfield data
 			//mark boundaries
 			for (int y = 0; y < compactField.Length; y++)
 			{
@@ -127,8 +127,6 @@ namespace SharpNav
 						if (Region.IsBorderOrNull(reg))
 							continue;
 						
-						AreaFlags area = compactField.Areas[i];
-						
 						//reset each iteration
 						verts.Clear();
 						simplified.Clear();
@@ -141,7 +139,7 @@ namespace SharpNav
 						RemoveDegenerateSegments(simplified);
 
 						if (simplified.Count >= 3)
-							contours.Add(new Contour(simplified, verts, reg, area, borderSize));
+							contours.Add(new Contour(simplified, verts, reg, compactField.Areas[i], borderSize));
 					}
 				}
 			}
@@ -254,10 +252,10 @@ namespace SharpNav
 		/// <param name="x">Cell x</param>
 		/// <param name="y">Cell y</param>
 		/// <param name="i">Span index</param>
-		/// <param name="openField">OpenHeightfield</param>
+		/// <param name="compactField">OpenHeightfield</param>
 		/// <param name="flags">?</param>
 		/// <param name="points">Vertices of contour</param>
-		private void WalkContour(int x, int y, int i, CompactHeightfield openField, int[] flags, List<Contour.RawVertex> points)
+		private void WalkContour(int x, int y, int i, CompactHeightfield compactField, int[] flags, List<Contour.RawVertex> points)
 		{
 			int dir = 0;
 
@@ -268,7 +266,7 @@ namespace SharpNav
 			int startDir = dir;
 			int starti = i;
 
-			AreaFlags area = openField.Areas[i];
+			AreaFlags area = compactField.Areas[i];
 
 			int iter = 0;
 			while (++iter < 40000)
@@ -281,7 +279,7 @@ namespace SharpNav
 					bool isAreaBorder = false;
 
 					int px = x;
-					int py = GetCornerHeight(x, y, i, dir, openField, out isBorderVertex);
+					int py = GetCornerHeight(x, y, i, dir, compactField, out isBorderVertex);
 					int pz = y;
 
 					switch (dir)
@@ -301,14 +299,14 @@ namespace SharpNav
 					}
 
 					int r = 0;
-					CompactSpan s = openField.Spans[i];
+					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
 					{
 						int dx = x + MathHelper.GetDirOffsetX(dir);
 						int dy = y + MathHelper.GetDirOffsetY(dir);
-						int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
-						r = openField.Spans[di].Region;
-						if (area != openField.Areas[di])
+						int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+						r = compactField.Spans[di].Region;
+						if (area != compactField.Areas[di])
 							isAreaBorder = true;
 					}
 					
@@ -332,10 +330,10 @@ namespace SharpNav
 					int dx = x + MathHelper.GetDirOffsetX(dir);
 					int dy = y + MathHelper.GetDirOffsetY(dir);
 					
-					CompactSpan s = openField.Spans[i];
+					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
 					{
-						CompactCell dc = openField.Cells[dx + dy * openField.Width];
+						CompactCell dc = compactField.Cells[dx + dy * compactField.Width];
 						di = dc.StartIndex + CompactSpan.GetConnection(ref s, dir);
 					}
 					

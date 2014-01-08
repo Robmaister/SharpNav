@@ -37,10 +37,10 @@ namespace SharpNav
 
 		//NavMeshDetail Attributes
 		//Contains height detail
-		public PolyMeshDetail.MeshInfo[] detailMeshes;
+		public PolyMeshDetail.MeshData[] detailMeshes;
 		public Vector3[] detailVerts;
 		public int detailVertsCount;
-		public PolyMeshDetail.TrisInfo[] detailTris;
+		public PolyMeshDetail.TriangleData[] detailTris;
 		public int detailTriCount;
 
 		//Off-Mesh Connection Attributes (OPTIONAL)

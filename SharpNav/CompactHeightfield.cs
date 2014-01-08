@@ -520,8 +520,8 @@ namespace SharpNav
 			}
 
 			//Remove too small regions
-			List<int> stack = new List<int>();
-			List<int> trace = new List<int>();
+			Stack<int> stack = new Stack<int>();
+			Stack<int> trace = new Stack<int>();
 			for (int i = 0; i < numRegions; i++)
 			{
 				Region reg = regions[i];
@@ -536,18 +536,17 @@ namespace SharpNav
 				trace.Clear();
 
 				reg.Visited = true;
-				stack.Add(i);
+				stack.Push(i);
 
-				while (stack.Count != 0)
+				while (stack.Count > 0)
 				{
 					//pop
-					int ri = stack[stack.Count - 1];
-					stack.RemoveAt(stack.Count - 1);
+					int ri = stack.Pop();
 
 					Region creg = regions[ri];
 
 					spanCount += creg.SpanCount;
-					trace.Add(ri);
+					trace.Push(ri);
 
 					for (int j = 0; j < creg.Connections.Count; j++)
 					{
@@ -562,7 +561,7 @@ namespace SharpNav
 							continue;
 
 						//visit
-						stack.Add(neiReg.Id);
+						stack.Push(neiReg.Id);
 						neiReg.Visited = true;
 					}
 				}
@@ -573,10 +572,10 @@ namespace SharpNav
 				if (spanCount < minRegionArea && !connectsToBorder)
 				{
 					//kill all visited regions
-					for (int j = 0; j < trace.Count; j++)
+					foreach (int j in trace)
 					{
-						regions[trace[j]].SpanCount = 0;
-						regions[trace[j]].Id = 0;
+						regions[j].SpanCount = 0;
+						regions[j].Id = 0;
 					}
 				}
 			}

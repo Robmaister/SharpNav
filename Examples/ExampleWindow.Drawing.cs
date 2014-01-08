@@ -452,8 +452,9 @@ namespace Examples
 			{
 				int region = c.RegionId;
 
-				if (Region.IsBorder(region))
-					region = Region.RemoveBorderFlag(region);
+				//skip null or border regions
+				if (region == 0 || Region.IsBorder(region))
+					continue;
 
 				Color4 col = regionColors[region];
 				GL.Color4(col);
@@ -485,16 +486,16 @@ namespace Examples
 			GL.DisableClientState(ArrayCap.VertexArray);
 		}
 
-		private void DrawNavMesh()
+		private void DrawPolyMesh()
 		{
 			GL.PushMatrix();
 
 			Matrix4 squareScale, squareTrans;
 
-			Matrix4.CreateTranslation(navMesh.Bounds.Min.X + navMesh.CellSize * 0.5f, navMesh.Bounds.Min.Y, navMesh.Bounds.Min.Z + navMesh.CellSize * 0.5f, out squareTrans);
+			Matrix4.CreateTranslation(polyMesh.Bounds.Min.X + polyMesh.CellSize * 0.5f, polyMesh.Bounds.Min.Y, polyMesh.Bounds.Min.Z + polyMesh.CellSize * 0.5f, out squareTrans);
 			GL.MultMatrix(ref squareTrans);
 
-			Matrix4.CreateScale(navMesh.CellSize, navMesh.CellHeight, navMesh.CellSize, out squareScale);
+			Matrix4.CreateScale(polyMesh.CellSize, polyMesh.CellHeight, polyMesh.CellSize, out squareScale);
 			GL.MultMatrix(ref squareScale);
 
 			Color4 color = Color4.DarkViolet;
@@ -503,27 +504,27 @@ namespace Examples
 
 			GL.Begin(BeginMode.Triangles);
 
-			for (int i = 0; i < navMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.NPolys; i++)
 			{
-				if (navMesh.Areas[i] != AreaFlags.Walkable)
+				if (polyMesh.Areas[i] != AreaFlags.Walkable)
 					continue;
 
-				for (int j = 2; j < navMesh.NumVertsPerPoly; j++)
+				for (int j = 2; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[0];
-					int vertIndex1 = navMesh.Polys[i].Vertices[j - 1];
-					int vertIndex2 = navMesh.Polys[i].Vertices[j];
+					int vertIndex0 = polyMesh.Polys[i].Vertices[0];
+					int vertIndex1 = polyMesh.Polys[i].Vertices[j - 1];
+					int vertIndex2 = polyMesh.Polys[i].Vertices[j];
 					
-					var v = navMesh.Verts[vertIndex0];
+					var v = polyMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v = navMesh.Verts[vertIndex1];
+					v = polyMesh.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v = navMesh.Verts[vertIndex2];
+					v = polyMesh.Verts[vertIndex2];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
@@ -538,24 +539,24 @@ namespace Examples
 			GL.LineWidth(1.5f);
 			GL.Begin(BeginMode.Lines);
 
-			for (int i = 0; i < navMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.NPolys; i++)
 			{
-				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
+				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
-					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) != 0)
+					if ((polyMesh.Polys[i].ExtraInfo[j] & 0x8000) != 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[j];
-					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
+					int vertIndex0 = polyMesh.Polys[i].Vertices[j];
+					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];
 					
-					var v = navMesh.Verts[vertIndex0];
+					var v = polyMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v = navMesh.Verts[vertIndex1];
+					v = polyMesh.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
@@ -565,25 +566,25 @@ namespace Examples
 			//boundary edges
 			GL.LineWidth(3.5f);
 			GL.Begin(BeginMode.Lines);
-			for (int i = 0; i < navMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.NPolys; i++)
 			{
-				for (int j = 0; j < navMesh.NumVertsPerPoly; j++)
+				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (navMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
-					if ((navMesh.Polys[i].ExtraInfo[j] & 0x8000) == 0)
+					if ((polyMesh.Polys[i].ExtraInfo[j] & 0x8000) == 0)
 						continue;
 
-					int nj = (j + 1 >= navMesh.NumVertsPerPoly || navMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
 
-					int vertIndex0 = navMesh.Polys[i].Vertices[j];
-					int vertIndex1 = navMesh.Polys[i].Vertices[nj];
+					int vertIndex0 = polyMesh.Polys[i].Vertices[j];
+					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];
 					
-					var v = navMesh.Verts[vertIndex0];
+					var v = polyMesh.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 
-					v = navMesh.Verts[vertIndex1];
+					v = polyMesh.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y + 1, v.Z);
 				}
 			}
@@ -592,9 +593,9 @@ namespace Examples
 
 			GL.PointSize(4.8f);
 			GL.Begin(BeginMode.Points);
-			for (int i = 0; i < navMesh.NVerts; i++)
+			for (int i = 0; i < polyMesh.NVerts; i++)
 			{
-				var v = navMesh.Verts[i];
+				var v = polyMesh.Verts[i];
 				GL.Vertex3(v.X, v.Y + 1, v.Z);
 			}
 
@@ -605,7 +606,7 @@ namespace Examples
 			GL.PopMatrix();
 		}
 
-		private void DrawNavMeshDetail()
+		private void DrawPolyMeshDetail()
 		{
 			GL.PushMatrix();
 
@@ -614,24 +615,24 @@ namespace Examples
 			GL.Color4(color);
 
 			GL.Begin(BeginMode.Triangles);
-			for (int i = 0; i < navMeshDetail.NMeshes; i++)
+			for (int i = 0; i < polyMeshDetail.NMeshes; i++)
 			{
-				PolyMeshDetail.MeshInfo m = navMeshDetail.Meshes[i];
+				PolyMeshDetail.MeshData m = polyMeshDetail.Meshes[i];
 
-				int vertIndex = m.OldNumVerts;
-				int triIndex = m.OldNumTris;
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
 
-				for (int j = 0; j < m.NewNumTris; j++)
+				for (int j = 0; j < m.TriangleCount; j++)
 				{
-					var t = navMeshDetail.Tris[triIndex + j];
+					var t = polyMeshDetail.Tris[triIndex + j];
 
-					var v = navMeshDetail.Verts[vertIndex + t.VertexHash[0]];
+					var v = polyMeshDetail.Verts[vertIndex + t.VertexHash0];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = navMeshDetail.Verts[vertIndex + t.VertexHash[1]];
+					v = polyMeshDetail.Verts[vertIndex + t.VertexHash1];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = navMeshDetail.Verts[vertIndex + t.VertexHash[2]];
+					v = polyMeshDetail.Verts[vertIndex + t.VertexHash2];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
