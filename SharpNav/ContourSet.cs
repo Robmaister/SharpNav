@@ -77,14 +77,16 @@ namespace SharpNav
 						}
 
 						//go through all the neighboring cells
-						for (int dir = 0; dir < 4; dir++)
+						for (int d = 0; d < 4; d++)
 						{
+							Direction dir = (Direction)d;
+
 							//obtain region id
 							int r = 0;
 							if (s.IsConnected(dir))
 							{
-								int dx = x + MathHelper.GetDirOffsetX(dir);
-								int dy = y + MathHelper.GetDirOffsetY(dir);
+								int dx = x + dir.HorizontalOffset();
+								int dy = y + dir.VerticalOffset();
 								int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 								r = compactField.Spans[di].Region;
 							}
@@ -257,13 +259,13 @@ namespace SharpNav
 		/// <param name="points">Vertices of contour</param>
 		private void WalkContour(int x, int y, int i, CompactHeightfield compactField, int[] flags, List<Contour.RawVertex> points)
 		{
-			int dir = 0;
+			Direction dir = 0;
 
 			//find the first direction that has a connection 
 			while (!IsConnected(flags[i], dir))
 				dir++;
 
-			int startDir = dir;
+			Direction startDir = dir;
 			int starti = i;
 
 			AreaFlags area = compactField.Areas[i];
@@ -284,16 +286,14 @@ namespace SharpNav
 
 					switch (dir)
 					{
-						case 0:
+						case Direction.West:
 							pz++;
 							break;
-						
-						case 1:
+						case Direction.North:
 							px++;
 							pz++;
 							break;
-						
-						case 2:
+						case Direction.East:
 							px++;
 							break;
 					}
@@ -302,8 +302,8 @@ namespace SharpNav
 					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
 					{
-						int dx = x + MathHelper.GetDirOffsetX(dir);
-						int dy = y + MathHelper.GetDirOffsetY(dir);
+						int dx = x + dir.HorizontalOffset();
+						int dy = y + dir.VerticalOffset();
 						int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 						r = compactField.Spans[di].Region;
 						if (area != compactField.Areas[di])
@@ -321,14 +321,14 @@ namespace SharpNav
 					points.Add(new Contour.RawVertex(px, py, pz, r));
 
 					RemoveVisited(ref flags[i], dir);	// remove visited edges
-					dir = (dir + 1) % 4;				// rotate clockwise
+					dir = dir.NextClockwise();			// rotate clockwise
 				}
 				else
 				{
 					//get a new cell(x, y) and span index(i)
 					int di = -1;
-					int dx = x + MathHelper.GetDirOffsetX(dir);
-					int dy = y + MathHelper.GetDirOffsetY(dir);
+					int dx = x + dir.HorizontalOffset();
+					int dy = y + dir.VerticalOffset();
 					
 					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
@@ -346,7 +346,7 @@ namespace SharpNav
 					x = dx;
 					y = dy;
 					i = di;
-					dir = (dir + 3) % 4; // rotate counterclockwise
+					dir = dir.NextCounterClockwise(); // rotate counterclockwise
 				}
 
 				if (starti == i && startDir == dir)
@@ -366,13 +366,13 @@ namespace SharpNav
 		/// <param name="openField">OpenHeightfield</param>
 		/// <param name="isBorderVertex">Determine whether the vertex is a border or not</param>
 		/// <returns></returns>
-		private int GetCornerHeight(int x, int y, int i, int dir, CompactHeightfield openField, out bool isBorderVertex)
+		private int GetCornerHeight(int x, int y, int i, Direction dir, CompactHeightfield openField, out bool isBorderVertex)
 		{
 			isBorderVertex = false;
 
 			CompactSpan s = openField.Spans[i];
 			int cornerHeight = s.Minimum;
-			int dirp = (dir + 1) % 4; //new clockwise direction
+			Direction dirp = dir.NextClockwise(); //new clockwise direction
 
 			uint[] regs = { 0, 0, 0, 0 };
 
@@ -382,8 +382,8 @@ namespace SharpNav
 			if (s.IsConnected(dir))
 			{
 				//get neighbor span
-				int dx = x + MathHelper.GetDirOffsetX(dir);
-				int dy = y + MathHelper.GetDirOffsetY(dir);
+				int dx = x + dir.HorizontalOffset();
+				int dy = y + dir.VerticalOffset();
 				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 				CompactSpan ds = openField.Spans[di];
 
@@ -393,8 +393,8 @@ namespace SharpNav
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dirp))
 				{
-					int dx2 = dx + MathHelper.GetDirOffsetX(dirp);
-					int dy2 = dy + MathHelper.GetDirOffsetY(dirp);
+					int dx2 = dx + dirp.HorizontalOffset();
+					int dy2 = dy + dirp.VerticalOffset();
 					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
 					CompactSpan ds2 = openField.Spans[di2];
 
@@ -406,8 +406,8 @@ namespace SharpNav
 			//get neighbor span
 			if (s.IsConnected(dirp))
 			{
-				int dx = x + MathHelper.GetDirOffsetX(dirp);
-				int dy = y + MathHelper.GetDirOffsetY(dirp);
+				int dx = x + dirp.HorizontalOffset();
+				int dy = y + dirp.VerticalOffset();
 				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
 				CompactSpan ds = openField.Spans[di];
 
@@ -417,8 +417,8 @@ namespace SharpNav
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dir))
 				{
-					int dx2 = dx + MathHelper.GetDirOffsetX(dir);
-					int dy2 = dy + MathHelper.GetDirOffsetY(dir);
+					int dx2 = dx + dir.HorizontalOffset();
+					int dy2 = dy + dir.VerticalOffset();
 					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
 					CompactSpan ds2 = openField.Spans[di2];
 
@@ -785,12 +785,12 @@ namespace SharpNav
 			contA.Vertices = newVerts.ToArray();
 		}
 
-		private static void MarkInternalEdges(ref int flag, int dir)
+		private static void MarkInternalEdges(ref int flag, Direction dir)
 		{
 			//flag represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
 			//default is 0000
 			//the |= operation sets each direction bit to 1 (so if dir = 0, 0000 -> 0001)
-			flag |= 1 << dir;
+			flag |= 1 << (int)dir;
 		}
 
 		private static int FlipAllBits(int flag)
@@ -801,20 +801,20 @@ namespace SharpNav
 			return flag ^ 0xf;
 		}
 
-		private static bool IsConnected(int flag, int dir)
+		private static bool IsConnected(int flag, Direction dir)
 		{
 			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
-			return (flag & (1 << dir)) != 0;
+			return (flag & (1 << (int)dir)) != 0;
 		}
 
-		private static void RemoveVisited(ref int flag, int dir)
+		private static void RemoveVisited(ref int flag, Direction dir)
 		{
 			//say flag = 0110
 			//dir = 2 (so 1 << dir = 0100)
 			//~dir = 1011
 			//flag &= ~dir
 			//flag = 0110 & 1011 = 0010
-			flag &= ~(1 << dir); // remove visited edges
+			flag &= ~(1 << (int)dir); // remove visited edges
 		}
 
 		//TODO support the extra ICollection methods later?

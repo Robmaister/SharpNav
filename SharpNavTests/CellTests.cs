@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -132,14 +132,14 @@ namespace SharpNavTests
 		public void Indexer_BelowZero_Throws()
 		{
 			var cell = new Cell(10);
-			Assert.Throws<IndexOutOfRangeException>(() => { var s = cell[-1]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var s = cell[-1]; });
 		}
 
 		[Test]
 		public void Indexer_AboveMax_Throws()
 		{
 			var cell = new Cell(10);
-			Assert.Throws<IndexOutOfRangeException>(() => { var s = cell[10]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var s = cell[10]; });
 		}
 
 		[Test]

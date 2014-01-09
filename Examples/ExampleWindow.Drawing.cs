@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -286,7 +286,7 @@ namespace Examples
 						int numCons = 0;
 						for (int dir = 0; dir < 4; dir++)
 						{
-							if (span.GetConnection(dir) != 0xff)
+							if (span.GetConnection((Direction)dir) != 0xff)
 								numCons++;
 						}
 
@@ -452,8 +452,8 @@ namespace Examples
 			{
 				int region = c.RegionId;
 
-				//skip null or border regions
-				if (region == 0 || Region.IsBorder(region))
+				//skip border regions
+				if (Region.IsBorder(region))
 					continue;
 
 				Color4 col = regionColors[region];

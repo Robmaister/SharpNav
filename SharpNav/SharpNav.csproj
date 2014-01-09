@@ -87,6 +87,7 @@
     <Compile Include="Contour.cs" />
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
+    <Compile Include="Direction.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />

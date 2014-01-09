@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -121,17 +121,21 @@ namespace SharpNav
 		/// </summary>
 		public void RemoveAdjacentNeighbours()
 		{
+			if (connections.Count <= 1)
+				return;
+
 			// Remove adjacent duplicates.
-			for (int i = 0; i < connections.Count && connections.Count > 1;)
+			for (int i = 0; i < connections.Count; i++)
 			{
 				//get the next i
 				int ni = (i + 1) % connections.Count;
 
 				//remove duplicate if found
 				if (connections[i] == connections[ni])
+				{
 					connections.RemoveAt(i);
-				else
-					++i;
+					i--;
+				}
 			}
 		}
 
@@ -170,30 +174,27 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="otherRegion">The other region to merge with</param>
 		/// <returns></returns>
-		public bool CanMergeWithRegion(Region otherRegion)
+		public bool CanMergeWith(Region otherRegion)
 		{
-			//make sure area types are different
+			//make sure areas are the same
 			if (areaType != otherRegion.areaType)
 				return false;
 			
-			//count the number of connections
+			//count the number of connections to the other region
 			int n = 0;
-			for (int i = 0; i < connections.Count; ++i)
+			for (int i = 0; i < connections.Count; i++)
 			{
 				if (connections[i] == otherRegion.id)
 						n++;
 			}
 		
-			//make sure only one connection
+			//make sure there's only one connection
 			if (n > 1)
 				return false;
 		
 			//make sure floors are separate
-			for (int i = 0; i < floors.Count; ++i)
-			{
-				if (floors[i] == otherRegion.id)
-						return false;
-			}
+			if (floors.Contains(otherRegion.id))
+				return false;
 
 			return true;
 		}
@@ -204,13 +205,8 @@ namespace SharpNav
 		/// <param name="n">The value of the floor</param>
 		public void AddUniqueFloorRegion(int n)
 		{
-			//check if floor currently exists
-			for (int i = 0; i < floors.Count; ++i)
-				if (floors[i] == n)
-					return;
-
-			//region floor doesn't exist so add
-			floors.Add(n);
+			if (!floors.Contains(n))
+				floors.Add(n);
 		}
 
 		/// <summary>
@@ -280,7 +276,7 @@ namespace SharpNav
 		/// Test if region is connected to a border
 		/// </summary>
 		/// <returns></returns>
-		public bool IsRegionConnectedToBorder()
+		public bool IsConnectedToBorder()
 		{
 			// Region is connected to border if
 			// one of the neighbours is null id.

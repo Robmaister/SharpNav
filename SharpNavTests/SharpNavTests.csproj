@@ -80,6 +80,7 @@
     <Reference Include="Microsoft.Xna.Framework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
     <Compile Include="HeightfieldTests.cs" />

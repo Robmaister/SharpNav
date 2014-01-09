@@ -20,35 +20,6 @@ namespace SharpNav
 	/// </summary>
 	internal static class MathHelper
 	{
-		private static readonly int[] DirOffsetsX = { -1, 0, 1, 0 };
-		private static readonly int[] DirOffsetsY = { 0, 1, 0, -1 };
-
-		/// <summary>
-		/// Gets an X offset.
-		/// </summary>
-		/// <remarks>
-		/// The directions cycle between the following, starting from 0: west, north, east, south.
-		/// </remarks>
-		/// <param name="dir">The direction.</param>
-		/// <returns>The offset for the X coordinate.</returns>
-		internal static int GetDirOffsetX(int dir)
-		{
-			return DirOffsetsX[dir % 4];
-		}
-
-		/// <summary>
-		/// Get a Y offset.
-		/// </summary>
-		/// <remarks>
-		/// The directions cycle between the following, starting from 0: west, north, east, south.
-		/// </remarks>
-		/// <param name="dir">The direction.</param>
-		/// <returns>The offset for the Y coordinate.</returns>
-		internal static int GetDirOffsetY(int dir)
-		{
-			return DirOffsetsY[dir % 4];
-		}
-
 		/// <summary>
 		/// Clamps an integer value to be within a specified range.
 		/// </summary>

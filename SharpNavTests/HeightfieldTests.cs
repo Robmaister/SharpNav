@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -37,7 +37,7 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[-1, 1]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[-1, 1]; });
 		}
 
 		[Test]
@@ -45,7 +45,7 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[1, -1]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[1, -1]; });
 		}
 
 		[Test]
@@ -53,7 +53,7 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[-1, -1]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[-1, -1]; });
 		}
 
 		[Test]
@@ -61,7 +61,7 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[2, 0]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[2, 0]; });
 		}
 
 		[Test]
@@ -69,7 +69,7 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[0, 2]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[0, 2]; });
 		}
 
 		[Test]
@@ -77,14 +77,14 @@ namespace SharpNavTests
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
 
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[3, 3]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[3, 3]; });
 		}
 
 		[Test]
 		public void Indexer_CellOutOfRange_Throws()
 		{
 			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
-			Assert.Throws<IndexOutOfRangeException>(() => { var c = hf[5]; });
+			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[5]; });
 		}
 
 		[Test]

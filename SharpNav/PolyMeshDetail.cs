@@ -456,15 +456,17 @@ namespace SharpNav
 				CompactSpan cs = compactField.Spans[ci];
 
 				//check all four directions
-				for (int dir = 0; dir < 4; dir++)
+				for (int d = 0; d < 4; d++)
 				{
+					Direction dir = (Direction)d;
+
 					//skip if disconnected
 					if (!cs.IsConnected(dir))
 						continue;
 
 					//get neighbor
-					int ax = cx + MathHelper.GetDirOffsetX(dir);
-					int ay = cy + MathHelper.GetDirOffsetY(dir);
+					int ax = cx + dir.HorizontalOffset();
+					int ay = cy + dir.VerticalOffset();
 
 					//skip if out of bounds
 					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
@@ -537,14 +539,16 @@ namespace SharpNav
 				CompactSpan cs = compactField.Spans[ci];
 				
 				//loop in all four directions
-				for (int dir = 0; dir < 4; dir++)
+				for (int d = 0; d < 4; d++)
 				{
+					Direction dir = (Direction)d;
+
 					//skip
 					if (!cs.IsConnected(dir))
 						continue;
 
-					int ax = cx + MathHelper.GetDirOffsetX(dir);
-					int ay = cy + MathHelper.GetDirOffsetY(dir);
+					int ax = cx + dir.HorizontalOffset();
+					int ay = cy + dir.VerticalOffset();
 
 					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
 						ay < hp.ymin || ay >= (hp.ymin + hp.height))

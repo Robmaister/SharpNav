@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -215,6 +215,9 @@ namespace SharpNav
 		{
 			get
 			{
+				if (i < 0 || i >= cells.Length)
+					throw new ArgumentOutOfRangeException();
+
 				return cells[i];
 			}
 		}
@@ -327,10 +330,12 @@ namespace SharpNav
 						int accessibleMin = currentSpan.Maximum;
 						int accessibleMax = currentSpan.Maximum;
 
-						for (int dir = 0; dir < 4; ++dir)
+						for (int d = 0; d < 4; d++)
 						{
-							int dx = x + MathHelper.GetDirOffsetX(dir);
-							int dy = y + MathHelper.GetDirOffsetY(dir);
+							Direction dir = (Direction)d;
+
+							int dx = x + dir.HorizontalOffset();
+							int dy = y + dir.VerticalOffset();
 
 							// Skip neighbours which are out of bounds.
 							if (dx < 0 || dy < 0 || dx >= width || dy >= length)

@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -51,7 +51,7 @@ namespace SharpNavTests
 			reg.Connections.Add(20);
 			reg.Connections.Add(30);
 
-			Assert.AreEqual(reg.IsRegionConnectedToBorder(), false);
+			Assert.AreEqual(reg.IsConnectedToBorder(), false);
 		}
 
 		[Test]
@@ -83,8 +83,8 @@ namespace SharpNavTests
 			reg1.AddUniqueFloorRegion(1);
 			reg1.AddUniqueFloorRegion(3);
 
-			Assert.True(reg1.CanMergeWithRegion(reg2));
-			Assert.True(reg2.CanMergeWithRegion(reg1));
+			Assert.True(reg1.CanMergeWith(reg2));
+			Assert.True(reg2.CanMergeWith(reg1));
 		}
 
 	}

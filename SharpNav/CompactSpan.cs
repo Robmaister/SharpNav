@@ -148,27 +148,27 @@ namespace SharpNav
 		/// <param name="dir">The direction of the cell.</param>
 		/// <param name="i">The index of the span in the neighboring cell.</param>
 		/// <param name="s">The <see cref="CompactSpan"/> to set the data for.</param>
-		public static void SetConnection(int dir, int i, ref CompactSpan s)
+		public static void SetConnection(Direction dir, int i, ref CompactSpan s)
 		{
 			if (i >= NotConnected)
 				throw new ArgumentOutOfRangeException("Index of connecting span is too high to be stored. Try increasing cell height.", "i");
 
-			dir %= 4;
-
 			switch (dir)
 			{
-				case 0:
+				case Direction.West:
 					s.ConnectionWest = (byte)i;
 					break;
-				case 1:
+				case Direction.North:
 					s.ConnectionNorth = (byte)i;
 					break;
-				case 2:
+				case Direction.East:
 					s.ConnectionEast = (byte)i;
 					break;
-				case 3:
+				case Direction.South:
 					s.ConnectionSouth = (byte)i;
 					break;
+				default:
+					throw new ArgumentException("dir isn't a valid Direction.");
 			}
 		}
 
@@ -177,24 +177,24 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="dir">The direction of the cell.</param>
 		/// <param name="s">The <see cref="CompactSpan"/> to set the data for.</param>
-		public static void UnsetConnection(int dir, ref CompactSpan s)
+		public static void UnsetConnection(Direction dir, ref CompactSpan s)
 		{
-			dir %= 4;
-
 			switch (dir)
 			{
-				case 0:
+				case Direction.West:
 					s.ConnectionWest = NotConnected;
 					break;
-				case 1:
+				case Direction.North:
 					s.ConnectionNorth = NotConnected;
 					break;
-				case 2:
+				case Direction.East:
 					s.ConnectionEast = NotConnected;
 					break;
-				case 3:
+				case Direction.South:
 					s.ConnectionSouth = NotConnected;
 					break;
+				default:
+					throw new ArgumentException("dir isn't a valid Direction.");
 			}
 		}
 
@@ -204,21 +204,20 @@ namespace SharpNav
 		/// <param name="s">The <see cref="CompactSpan"/> to get the connection data from.</param>
 		/// <param name="dir">The direction.</param>
 		/// <returns>The index of the span in the neighboring cell.</returns>
-		public static int GetConnection(ref CompactSpan s, int dir)
+		public static int GetConnection(ref CompactSpan s, Direction dir)
 		{
-			dir %= 4;
-
 			switch (dir)
 			{
-				case 0:
+				case Direction.West:
 					return s.ConnectionWest;
-				case 1:
+				case Direction.North:
 					return s.ConnectionNorth;
-				case 2:
+				case Direction.East:
 					return s.ConnectionEast;
-				case 3:
-				default:
+				case Direction.South:
 					return s.ConnectionSouth;
+				default:
+					throw new ArgumentException("dir isn't a valid Direction.");
 			}
 		}
 
@@ -227,7 +226,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="dir">The direction.</param>
 		/// <returns>The index of the span in the neighboring cell.</returns>
-		public int GetConnection(int dir)
+		public int GetConnection(Direction dir)
 		{
 			return GetConnection(ref this, dir);
 		}
@@ -237,21 +236,20 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="dir">The direction.</param>
 		/// <returns>A value indicating whether the specified direction has a connected span.</returns>
-		public bool IsConnected(int dir)
+		public bool IsConnected(Direction dir)
 		{
-			dir %= 4;
-
 			switch (dir)
 			{
-				case 0:
+				case Direction.West:
 					return ConnectionWest != NotConnected;
-				case 1:
+				case Direction.North:
 					return ConnectionNorth != NotConnected;
-				case 2:
+				case Direction.East:
 					return ConnectionEast != NotConnected;
-				case 3:
-				default:
+				case Direction.South:
 					return ConnectionSouth != NotConnected;
+				default:
+					throw new ArgumentException("dir isn't a valid Direction.");
 			}
 		}
 	}
