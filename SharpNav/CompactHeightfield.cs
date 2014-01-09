@@ -373,7 +373,7 @@ namespace SharpNav
 			int[] dstDist = new int[spans.Length];
 
 			int regionId = 1;
-			int level = (maxDistance + 1) & ~1; //HACK find a better way to compute this
+			int level = ((maxDistance + 1) / 2) * 2; 
 
 			const int ExpandIters = 8;
 
@@ -914,7 +914,7 @@ namespace SharpNav
 		private int[] ExpandRegions(int maxIter, int level, int[] srcReg, int[] srcDist, int[] dstReg, int[] dstDist)
 		{
 			//find cells revealed by the raised level
-			List<int> stack = new List<int>();
+			List<CellData> stack = new List<CellData>();
 			for (int y = 0; y < length; y++)
 			{
 				for (int x = 0; x < width; x++)
@@ -924,9 +924,7 @@ namespace SharpNav
 					{
 						if (distances[i] >= level && srcReg[i] == 0 && areas[i] != AreaFlags.Null)
 						{
-							stack.Add(x);
-							stack.Add(y);
-							stack.Add(i);
+							stack.Add(new CellData(x, y, i));
 						}
 					}
 				}
@@ -940,11 +938,12 @@ namespace SharpNav
 				dstReg = srcReg;
 				dstDist = srcDist;
 
-				for (int j = 0; j < stack.Count; j += 3)
+				for (int j = 0; j < stack.Count; j++)
 				{
-					int x = stack[j + 0];
-					int y = stack[j + 1];
-					int i = stack[j + 2];
+					int x = stack[j].x;
+					int y = stack[j].y;
+					int i = stack[j].index;
+
 					if (i < 0)
 					{
 						failed++;
@@ -982,7 +981,7 @@ namespace SharpNav
 
 					if (r != 0)
 					{
-						stack[j + 2] = -1; //mark as used
+						stack[j] = new CellData(x, y, -1); //mark as used
 						dstReg[i] = r;
 						dstDist[i] = d2;
 					}
@@ -1001,7 +1000,7 @@ namespace SharpNav
 				srcDist = dstDist;
 				dstDist = temp;
 
-				if (failed * 3 == stack.Count)
+				if (failed == stack.Count)
 					break;
 
 				if (level > 0)
@@ -1031,10 +1030,8 @@ namespace SharpNav
 			AreaFlags area = areas[i];
 
 			//flood fill mark region
-			List<int> stack = new List<int>();
-			stack.Add(x);
-			stack.Add(y);
-			stack.Add(i);
+			Stack<CellData> stack = new Stack<CellData>();
+			stack.Push(new CellData(x, y, i));
 			srcReg[i] = r;
 			srcDist[i] = 0;
 
@@ -1043,12 +1040,10 @@ namespace SharpNav
 
 			while (stack.Count > 0)
 			{
-				int ci = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
-				int cy = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
-				int cx = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
+				CellData cell = stack.Pop();
+				int ci = cell.index;
+				int cy = cell.y;
+				int cx = cell.x;
 
 				CompactSpan cs = spans[ci];
 
@@ -1120,9 +1115,7 @@ namespace SharpNav
 						{
 							srcReg[di] = r;
 							srcDist[di] = 0;
-							stack.Add(dx);
-							stack.Add(dy);
-							stack.Add(di);
+							stack.Push(new CellData(dx, dy, di));
 						}
 					}
 				}
@@ -1278,6 +1271,20 @@ namespace SharpNav
 							srcReg[i] = regionId;
 					}
 				}
+			}
+		}
+
+		public struct CellData
+		{
+			public int x;
+			public int y;
+			public int index;
+
+			public CellData(int x, int y, int i)
+			{
+				this.x = x;
+				this.y = y;
+				this.index = i;
 			}
 		}
 	}

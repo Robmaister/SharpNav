@@ -270,6 +270,7 @@ namespace SharpNav
 					ti.VertexHash1 = tris[t].VertexHash1;
 					ti.VertexHash2 = tris[t].VertexHash2;
 					ti.Flags = GetTriFlags(verts, tris[t].VertexHash0, tris[t].VertexHash1, tris[t].VertexHash2, poly, npoly);
+					this.tris[this.ntris] = ti;
 					this.ntris++;
 				}
 			}
@@ -352,7 +353,7 @@ namespace SharpNav
 			for (int i = 0; i < hp.Data.Length; i++)
 				hp.Data[i] = 0;
 
-			List<int> stack = new List<int>();
+			List<CompactHeightfield.CellData> stack = new List<CompactHeightfield.CellData>();
 
 			//9 x 2
 			int[] offset = { 0,0, -1,-1, 0,-1, 
@@ -401,9 +402,7 @@ namespace SharpNav
 				//only add if something new found
 				if (ci != -1)
 				{
-					stack.Add(cx);
-					stack.Add(cz);
-					stack.Add(ci);
+					stack.Add(new CompactHeightfield.CellData(cx, cz, ci));
 				}
 			}
 
@@ -419,10 +418,10 @@ namespace SharpNav
 			pcz /= numVertsPerPoly;
 
 			//stack groups 3 elements as one part
-			for (int i = 0; i < stack.Count; i += 3)
+			for (int i = 0; i < stack.Count; i++)
 			{
-				int cx = stack[i + 0];
-				int cy = stack[i + 1];
+				int cx = stack[i].x;
+				int cy = stack[i].y;
 				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
 				hp.Data[idx] = 1;
 			}
@@ -432,24 +431,19 @@ namespace SharpNav
 			{
 				//since we add cx, cy, ci to stack, cx is at bottom and ci is at top
 				//so the order we remove items is the opposite of the order we insert items
-				int ci = stack[stack.Count - 1];
+				CompactHeightfield.CellData cell = stack[stack.Count - 1];
 				stack.RemoveAt(stack.Count - 1);
-				
-				int cy = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
-				
-				int cx = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
+				int ci = cell.index;
+				int cy = cell.y;
+				int cx = cell.x;
 
 				//check if close to center of polygon
 				if (Math.Abs(cx - pcx) <= 1 && Math.Abs(cy - pcz) <= 1)
 				{
 					//clear the stack and add a new group
 					stack.Clear();
-					
-					stack.Add(cx);
-					stack.Add(cy);
-					stack.Add(ci);
+
+					stack.Add(new CompactHeightfield.CellData(cx, cy, ci));
 					break;
 				}
 
@@ -485,9 +479,7 @@ namespace SharpNav
 					hp.Data[idx] = 1;
 
 					//push to stack
-					stack.Add(ax);
-					stack.Add(ay);
-					stack.Add(ai);
+					stack.Add(new CompactHeightfield.CellData(ax, ay, ai));
 				}
 			}
 
@@ -496,12 +488,12 @@ namespace SharpNav
 				hp.Data[i] = 0xff;
 
 			//mark start locations
-			for (int i = 0; i < stack.Count; i += 3)
+			for (int i = 0; i < stack.Count; i++)
 			{
 				//get stack information
-				int cx = stack[i + 0];
-				int cy = stack[i + 1];
-				int ci = stack[i + 2];
+				int cx = stack[i].x;
+				int cy = stack[i].y;
+				int ci = stack[i].index;
 
 				//set new heightpatch data
 				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
@@ -512,11 +504,11 @@ namespace SharpNav
 			const int RETRACT_SIZE = 256;
 			int head = 0;
 
-			while (head * 3 < stack.Count)
+			while (head < stack.Count)
 			{
-				int cx = stack[head * 3 + 0];
-				int cy = stack[head * 3 + 1];
-				int ci = stack[head * 3 + 2];
+				int cx = stack[head].x;
+				int cy = stack[head].y;
+				int ci = stack[head].index;
 				head++;
 
 				//stack is greater than the maximum size
@@ -524,14 +516,14 @@ namespace SharpNav
 				{
 					head = 0;
 
-					if (stack.Count > RETRACT_SIZE * 3)
+					if (stack.Count > RETRACT_SIZE)
 					{
 						//copy elements at the end of the stack to the beginning
-						for (int i = 0; i < stack.Count - RETRACT_SIZE * 3; i++)
-							stack[i] = stack[RETRACT_SIZE * 3 + i];
+						for (int i = 0; i < stack.Count - RETRACT_SIZE; i++)
+							stack[i] = stack[RETRACT_SIZE + i];
 
 						//shrink stack
-						stack.RemoveRange(RETRACT_SIZE * 3, stack.Count - RETRACT_SIZE * 3);
+						stack.RemoveRange(RETRACT_SIZE, stack.Count - RETRACT_SIZE);
 					}
 				}
 
@@ -570,9 +562,7 @@ namespace SharpNav
 					hp.Data[idx] = ds.Minimum;
 
 					//add grouping to stack
-					stack.Add(ax);
-					stack.Add(ay);
-					stack.Add(ai);
+					stack.Add(new CompactHeightfield.CellData(ax, ay, ai));
 				}
 			}
 		}
