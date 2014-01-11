@@ -715,6 +715,20 @@ namespace Examples
 				}
 			}
 			GL.End();
+
+			//steering path
+			GL.Color4(Color4.Black);
+			GL.Begin(BeginMode.Lines);
+			for (int i = 0; i < nsteerPath - 1; i++)
+			{
+				SVector3 v0 = steerPath[i];
+				GL.Vertex3(v0.X, v0.Y, v0.Z);
+
+				SVector3 v1 = steerPath[i + 1];
+				GL.Vertex3(v1.X, v1.Y, v1.Z);
+			}
+			GL.End();
+
 			GL.DepthMask(true);
 
 			GL.PopMatrix();

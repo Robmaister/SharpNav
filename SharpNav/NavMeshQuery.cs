@@ -506,6 +506,216 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Add vertices and portals to a regular path computed from the method FindPath().
+		/// </summary>
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, uint[] path, int pathSize,
+			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		{
+			straightPathCount = 0;
+
+			if (path.Length == 0)
+				return false;
+
+			bool stat = false;
+
+			Vector3 closestStartPos = new Vector3();
+			ClosestPointOnPolyBoundary(path[0], startPos, ref closestStartPos);
+
+			Vector3 closestEndPos = new Vector3();
+			ClosestPointOnPolyBoundary(path[pathSize - 1], endPos, ref closestEndPos);
+
+			stat = AppendVertex(closestStartPos, PathfinderCommon.STRAIGHTPATH_START, path[0], 
+				straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+			if (!stat)
+				return true;
+
+			if (pathSize > 1)
+			{
+				Vector3 portalApex = closestStartPos;
+				Vector3 portalLeft = portalApex;
+				Vector3 portalRight = portalApex;
+				int apexIndex = 0;
+				int leftIndex = 0;
+				int rightIndex = 0;
+
+				PolygonType leftPolyType = 0;
+				PolygonType rightPolyType = 0;
+
+				uint leftPolyRef = path[0];
+				uint rightPolyRef = path[0];
+
+				for (int i = 0; i < pathSize; i++)
+				{
+					Vector3 left = new Vector3();
+					Vector3 right = new Vector3();
+					PolygonType fromType = 0, toType = 0;
+
+					if (i + 1 < pathSize)
+					{
+						//next portal
+						if (GetPortalPoints(path[i], path[i + 1], ref left, ref right, ref fromType, ref toType) == false)
+						{
+							//failed to get portal points means path[i + 1] is an invalid polygon
+							//clamp end point to path[i] and return path so far
+							if (ClosestPointOnPolyBoundary(path[i], endPos, ref closestEndPos) == false)
+							{
+								//first polygon is invalid
+								return false;
+							}
+
+							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							{
+								//append portals
+								stat = AppendPortals(apexIndex, i, closestEndPos, path,
+									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+							}
+
+							stat = AppendVertex(closestEndPos, 0, path[i],
+								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+							return true;
+						}
+
+						//if starting really close to the portal, advance
+						if (i == 0)
+						{
+							float t = 0;
+							if (PathfinderCommon.DistancePointSegmentSquare2D(portalApex, left, right, ref t) < 0.001 * 0.001)
+								continue;
+						}
+					}
+					else
+					{
+						//end of the path
+						left = closestEndPos;
+						right = closestEndPos;
+
+						fromType = toType = PolygonType.Ground;
+					}
+
+					//right vertex
+					if (Triangle3.Area2D(ref portalApex, ref portalRight, ref right) <= 0.0)
+					{
+						if (portalApex == portalRight || Triangle3.Area2D(ref portalApex, ref portalLeft, ref right) > 0.0)
+						{
+							portalRight = right;
+							rightPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
+							rightPolyType = toType;
+							rightIndex = i;
+						}
+						else
+						{
+							//append portals along current straight path segment
+							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							{
+								stat = AppendPortals(apexIndex, leftIndex, portalLeft, path,
+									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+
+								if (stat != true)
+									return true;
+							}
+
+							portalApex = portalLeft;
+							apexIndex = leftIndex;
+
+							int flags = 0;
+							if (leftPolyRef == 0)
+								flags = PathfinderCommon.STRAIGHTPATH_END;
+							else if (leftPolyType == PolygonType.OffMeshConnection)
+								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
+
+							uint reference = leftPolyRef;
+
+							//append or update vertex
+							stat = AppendVertex(portalApex, flags, reference,
+								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+							if (stat != true)
+								return true;
+
+							portalLeft = portalApex;
+							portalRight = portalApex;
+							leftIndex = apexIndex;
+							rightIndex = apexIndex;
+
+							//restart
+							i = apexIndex;
+
+							continue;
+						}
+					}
+
+					//left vertex
+					if (Triangle3.Area2D(ref portalApex, ref portalLeft, ref left) >= 0.0)
+					{
+						if (portalApex == portalLeft || Triangle3.Area2D(ref portalApex, ref portalRight, ref left) < 0.0f)
+						{
+							portalLeft = left;
+							leftPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
+							leftPolyType = toType;
+							leftIndex = i;
+						}
+						else
+						{
+							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							{
+								stat = AppendPortals(apexIndex, rightIndex, portalRight, path,
+									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+
+								if (stat != true)
+									return true;
+							}
+
+							portalApex = portalRight;
+							apexIndex = rightIndex;
+
+							int flags = 0;
+							if (rightPolyRef == 0)
+								flags = PathfinderCommon.STRAIGHTPATH_END;
+							else if (rightPolyType == PolygonType.OffMeshConnection)
+								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
+
+							uint reference = rightPolyRef;
+
+							//append or update vertex
+							stat = AppendVertex(portalApex, flags, reference,
+								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+							if (stat != true)
+								return true;
+
+							portalLeft = portalApex;
+							portalRight = portalApex;
+							leftIndex = apexIndex;
+							rightIndex = apexIndex;
+
+							//restart 
+							i = apexIndex;
+
+							continue;
+						}
+					}
+				}
+
+				//append portals along the current straight line segment
+				if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+				{
+					stat = AppendPortals(apexIndex, pathSize - 1, closestEndPos, path,
+						straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+
+					if (stat != true)
+						return true;
+				}
+			}
+
+			stat = AppendVertex(closestEndPos, PathfinderCommon.STRAIGHTPATH_END, 0,
+				straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+			return true;
+		}
+
+		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
 		public bool GetEdgeMidPoint(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile,
@@ -521,6 +731,23 @@ namespace SharpNav
 			mid.Z = (left.Z + right.Z) * 0.5f;
 
 			return true;
+		}
+
+		public bool GetPortalPoints(uint from, uint to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
+		{
+			PathfinderCommon.MeshTile fromTile = null;
+			PathfinderCommon.Poly fromPoly = null;
+			if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+				return false;
+			fromType = fromPoly.GetPolyType();
+
+			PathfinderCommon.MeshTile toTile = null;
+			PathfinderCommon.Poly toPoly = null;
+			if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+				return false;
+			toType = toPoly.GetPolyType();
+
+			return GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right);
 		}
 
 		public bool GetPortalPoints(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile,
@@ -592,6 +819,137 @@ namespace SharpNav
 					float tmax = link.bmax * s;
 					left = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmin);
 					right = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmax);
+				}
+			}
+
+			return true;
+		}
+
+		public bool ClosestPointOnPolyBoundary(uint reference, Vector3 pos, ref Vector3 closest)
+		{
+			PathfinderCommon.MeshTile tile = null;
+			PathfinderCommon.Poly poly = null;
+			if (m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+				return false;
+
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			int nv = 0;
+			for (int i = 0; i < poly.vertCount; i++)
+			{
+				verts[nv] = tile.verts[poly.verts[i]];
+				nv++;
+			}
+
+			bool inside = PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget);
+			if (inside)
+			{
+				//point is inside the polygon
+				closest = pos;
+			}
+			else
+			{
+				//point is outside the polygon
+				//clamp to nearest edge
+				float dmin = float.MaxValue;
+				int imin = -1;
+				for (int i = 0; i < nv; i++)
+				{
+					if (edged[i] < dmin)
+					{
+						dmin = edged[i];
+						imin = i;
+					}
+				}
+				Vector3 va = verts[imin];
+				Vector3 vb = verts[(imin + 1) % nv];
+				closest = Vector3.Lerp(va, vb, edget[imin]);
+			}
+
+			return true;
+		}
+
+		public bool AppendVertex(Vector3 pos, int flags, uint reference,
+			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		{
+			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
+			{
+				//the vertices are equal
+				//update flags and polys
+				if (straightPathFlags.Length != 0)
+					straightPathFlags[straightPathCount - 1] = flags;
+				
+				if (straightPathRefs.Length != 0)
+					straightPathRefs[straightPathCount - 1] = reference;
+			}
+			else
+			{
+				//append new vertex
+				straightPath[straightPathCount] = pos;
+				
+				if (straightPathFlags.Length != 0)
+					straightPathFlags[straightPathCount] = flags;
+				
+				if (straightPathRefs.Length != 0)
+					straightPathRefs[straightPathCount] = reference;
+				
+				straightPathCount++;
+
+				if (flags == PathfinderCommon.STRAIGHTPATH_END || straightPathCount >= maxStraightPath)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, uint[] path,
+			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		{
+			Vector3 startPos = straightPath[straightPathCount - 1];
+
+			//append or update last vertex
+			bool stat = false;
+			for (int i = startIdx; i < endIdx; i++)
+			{
+				//calculate portal
+				uint from = path[i];
+				PathfinderCommon.MeshTile fromTile = null;
+				PathfinderCommon.Poly fromPoly = null;
+				if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+					return false;
+
+				uint to = path[i + 1];
+				PathfinderCommon.MeshTile toTile = null;
+				PathfinderCommon.Poly toPoly = null;
+				if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+					return false;
+
+				Vector3 left = new Vector3();
+				Vector3 right = new Vector3();
+				if (GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right) == false)
+					break;
+
+				if ((options & PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS) != 0)
+				{
+					//skip intersection if only area crossings are requested
+					if (fromPoly.GetArea() == toPoly.GetArea())
+						continue;
+				}
+
+				//append intersection
+				float s = 0, t = 0;
+				if (PathfinderCommon.IntersectSegSeg2D(startPos, endPos, left, right, ref s, ref t))
+				{
+					Vector3 pt = Vector3.Lerp(left, right, t);
+
+					stat = AppendVertex(pt, 0, path[i + 1],
+						straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+
+					if (stat != true)
+						return true;
 				}
 			}
 

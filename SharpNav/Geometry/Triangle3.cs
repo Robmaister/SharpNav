@@ -276,6 +276,15 @@ namespace SharpNav.Geometry
 			area = acx * abz - abx * acz;
 		}
 
+		public static float Area2D(ref Vector3 a, ref Vector3 b, ref Vector3 c)
+		{
+			float abx = b.X - a.X;
+			float abz = b.Z - a.Z;
+			float acx = c.X - a.X;
+			float acz = c.Z - a.Z;
+			return acx * abz - abx * acz;
+		}
+
 		/// <summary>
 		/// Checks for equality with another <see cref="Triangle3"/>.
 		/// </summary>

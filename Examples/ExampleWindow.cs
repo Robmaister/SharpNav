@@ -65,7 +65,10 @@ namespace Examples
 		private SVector3 startPos;
 		private SVector3 endPos;
 		private int pathCount;
-		private uint[] path;
+		private uint[] path; 
+		private int nsteerPath = 0;
+		private SVector3[] steerPath;
+
 		private bool hasGenerated;
 		private bool displayLevel;
 		private DisplayMode displayMode;
@@ -375,6 +378,14 @@ namespace Examples
 			path = new uint[MAX_POLYS];
 			pathCount = 0;
 			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
+			
+			int MAX_STEER_POINTS = 3;
+			steerPath = new SVector3[MAX_STEER_POINTS];
+			int[] steerPathFlags = new int[MAX_STEER_POINTS];
+			uint[] steerPathPolys = new uint[MAX_STEER_POINTS];
+			nsteerPath = 0;
+			navMeshQuery.FindStraightPath(startPos, endPos, path, pathCount,
+				steerPath, steerPathFlags, steerPathPolys, ref nsteerPath, MAX_STEER_POINTS, 0);
 
 			hasGenerated = true;
 

@@ -36,6 +36,13 @@ namespace SharpNav
 
 		public const int MAX_AREAS = 64; //max number of user defined area ids
 
+		public const int STRAIGHTPATH_START = 0x01; //vertex is in start position of path
+		public const int STRAIGHTPATH_END = 0x02; //vertex is in end position of path
+		public const int STRAIGHTPATH_OFFMESH_CONNECTION = 0x04; //vertex is at start of an off-mesh connection
+
+		public const int STRAIGHTPATH_AREA_CROSSINGS = 0x01; //add a vertex at each polygon edge crossing where area changes
+		public const int STRAIGHTPATH_ALL_CROSSINGS = 0x02; //add a vertex at each polygon edge crossing
+
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
 		public class MeshHeader
@@ -210,6 +217,26 @@ namespace SharpNav
 			dz = p.Z + t * pqz - pt.Z;
 
 			return dx * dx + dz * dz;
+		}
+
+		public static float VectorPerpendicularXZ(Vector3 a, Vector3 b)
+		{
+			return a.X * b.Z - a.Z * b.X;
+		}
+
+		public static bool IntersectSegSeg2D(Vector3 ap, Vector3 aq, Vector3 bp, Vector3 bq, ref float s, ref float t)
+		{
+			Vector3 u = aq - ap;
+			Vector3 v = bq - bp;
+			Vector3 w = ap - bp;
+			
+			float d = VectorPerpendicularXZ(u, v);
+			if (Math.Abs(d) < 1e-6f)
+				return false;
+
+			s = VectorPerpendicularXZ(v, w) / d;
+			t = VectorPerpendicularXZ(u, w) / d;
+			return true;
 		}
 
 		public static bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
