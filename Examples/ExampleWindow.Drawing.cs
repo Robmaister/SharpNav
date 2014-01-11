@@ -284,9 +284,9 @@ namespace Examples
 						GL.PushMatrix();
 
 						int numCons = 0;
-						for (int dir = 0; dir < 4; dir++)
+						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
-							if (span.GetConnection((Direction)dir) != 0xff)
+							if (span.IsConnected(dir))
 								numCons++;
 						}
 

@@ -330,12 +330,10 @@ namespace SharpNav
 						int accessibleMin = currentSpan.Maximum;
 						int accessibleMax = currentSpan.Maximum;
 
-						for (int d = 0; d < 4; d++)
+						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
-							Direction dir = (Direction)d;
-
-							int dx = x + dir.HorizontalOffset();
-							int dy = y + dir.VerticalOffset();
+							int dx = x + dir.GetHorizontalOffset();
+							int dy = y + dir.GetVerticalOffset();
 
 							// Skip neighbours which are out of bounds.
 							if (dx < 0 || dy < 0 || dx >= width || dy >= length)

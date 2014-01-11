@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 
+using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
 #if MONOGAME || XNA
@@ -22,7 +23,7 @@ namespace SharpNav
 {
 	public class PolyMeshDetail
 	{
-		public const int UNSET_HEIGHT = unchecked((int)0xffffffff);
+		private const int UnsetHeight = -1;
 
 		private int nmeshes;
 		private int nverts;
@@ -350,21 +351,18 @@ namespace SharpNav
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
 		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
 		{
-			for (int i = 0; i < hp.Data.Length; i++)
-				hp.Data[i] = 0;
-
-			List<CompactHeightfield.CellData> stack = new List<CompactHeightfield.CellData>();
-
 			//9 x 2
 			int[] offset = { 0,0, -1,-1, 0,-1, 
 								1,-1, 1,0, 1,1, 
 								0,1, -1,1, -1,0 };
 
+			var stack = new Stack<CompactHeightfield.CellData>();
+
 			//use poly vertices as seed points
 			for (int j = 0; j < numVertsPerPoly; j++)
 			{
 				int cx = 0, cz = 0, ci = -1;
-				int dmin = UNSET_HEIGHT;
+				int dmin = int.MaxValue;
 
 				for (int k = 0; k < 9; k++)
 				{
@@ -402,7 +400,7 @@ namespace SharpNav
 				//only add if something new found
 				if (ci != -1)
 				{
-					stack.Add(new CompactHeightfield.CellData(cx, cz, ci));
+					stack.Push(new CompactHeightfield.CellData(cx, cz, ci));
 				}
 			}
 
@@ -418,11 +416,9 @@ namespace SharpNav
 			pcz /= numVertsPerPoly;
 
 			//stack groups 3 elements as one part
-			for (int i = 0; i < stack.Count; i++)
+			foreach (var cell in stack)
 			{
-				int cx = stack[i].x;
-				int cy = stack[i].y;
-				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
+				int idx = cell.X - hp.xmin + (cell.Y - hp.ymin) * hp.width;
 				hp.Data[idx] = 1;
 			}
 
@@ -431,11 +427,10 @@ namespace SharpNav
 			{
 				//since we add cx, cy, ci to stack, cx is at bottom and ci is at top
 				//so the order we remove items is the opposite of the order we insert items
-				CompactHeightfield.CellData cell = stack[stack.Count - 1];
-				stack.RemoveAt(stack.Count - 1);
-				int ci = cell.index;
-				int cy = cell.y;
-				int cx = cell.x;
+				var cell = stack.Pop();
+				int ci = cell.Index;
+				int cy = cell.Y;
+				int cx = cell.X;
 
 				//check if close to center of polygon
 				if (Math.Abs(cx - pcx) <= 1 && Math.Abs(cy - pcz) <= 1)
@@ -443,24 +438,22 @@ namespace SharpNav
 					//clear the stack and add a new group
 					stack.Clear();
 
-					stack.Add(new CompactHeightfield.CellData(cx, cy, ci));
+					stack.Push(new CompactHeightfield.CellData(cx, cy, ci));
 					break;
 				}
 
 				CompactSpan cs = compactField.Spans[ci];
 
 				//check all four directions
-				for (int d = 0; d < 4; d++)
+				for (var dir = Direction.West; dir <= Direction.South; dir++)
 				{
-					Direction dir = (Direction)d;
-
 					//skip if disconnected
 					if (!cs.IsConnected(dir))
 						continue;
 
 					//get neighbor
-					int ax = cx + dir.HorizontalOffset();
-					int ay = cy + dir.VerticalOffset();
+					int ax = cx + dir.GetHorizontalOffset();
+					int ay = cy + dir.GetVerticalOffset();
 
 					//skip if out of bounds
 					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
@@ -479,75 +472,53 @@ namespace SharpNav
 					hp.Data[idx] = 1;
 
 					//push to stack
-					stack.Add(new CompactHeightfield.CellData(ax, ay, ai));
+					stack.Push(new CompactHeightfield.CellData(ax, ay, ai));
 				}
 			}
 
 			//initialize to some default value 
 			for (int i = 0; i < hp.Data.Length; i++)
-				hp.Data[i] = 0xff;
+				hp.Data[i] = UnsetHeight;
 
 			//mark start locations
-			for (int i = 0; i < stack.Count; i++)
+			foreach (var cell in stack)
 			{
-				//get stack information
-				int cx = stack[i].x;
-				int cy = stack[i].y;
-				int ci = stack[i].index;
-
 				//set new heightpatch data
-				int idx = cx - hp.xmin + (cy - hp.ymin) * hp.width;
-				CompactSpan cs = compactField.Spans[ci];
+				int idx = cell.X - hp.xmin + (cell.Y - hp.ymin) * hp.width;
+				CompactSpan cs = compactField.Spans[cell.Index];
 				hp.Data[idx] = cs.Minimum;
 			}
 
-			const int RETRACT_SIZE = 256;
+			BufferedStack<CompactHeightfield.CellData> bufferedStack = new BufferedStack<CompactHeightfield.CellData>(256, stack);
 			int head = 0;
 
-			while (head < stack.Count)
+			while (head < bufferedStack.Count)
 			{
-				int cx = stack[head].x;
-				int cy = stack[head].y;
-				int ci = stack[head].index;
+				var cell = bufferedStack[head];
+				int cx = cell.X;
+				int cy = cell.Y;
+				int ci = cell.Index;
 				head++;
-
-				//stack is greater than the maximum size
-				if (head >= RETRACT_SIZE)
-				{
-					head = 0;
-
-					if (stack.Count > RETRACT_SIZE)
-					{
-						//copy elements at the end of the stack to the beginning
-						for (int i = 0; i < stack.Count - RETRACT_SIZE; i++)
-							stack[i] = stack[RETRACT_SIZE + i];
-
-						//shrink stack
-						stack.RemoveRange(RETRACT_SIZE, stack.Count - RETRACT_SIZE);
-					}
-				}
 
 				//examine span
 				CompactSpan cs = compactField.Spans[ci];
 				
 				//loop in all four directions
-				for (int d = 0; d < 4; d++)
+				for (var dir = Direction.West; dir <= Direction.South; dir++)
 				{
-					Direction dir = (Direction)d;
-
 					//skip
 					if (!cs.IsConnected(dir))
 						continue;
 
-					int ax = cx + dir.HorizontalOffset();
-					int ay = cy + dir.VerticalOffset();
+					int ax = cx + dir.GetHorizontalOffset();
+					int ay = cy + dir.GetVerticalOffset();
 
 					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
 						ay < hp.ymin || ay >= (hp.ymin + hp.height))
 						continue;
 
 					//only continue if height is unset
-					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != UNSET_HEIGHT)
+					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != UnsetHeight)
 						continue;
 
 					//get new span index
@@ -561,8 +532,9 @@ namespace SharpNav
 					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
 					hp.Data[idx] = ds.Minimum;
 
-					//add grouping to stack
-					stack.Add(new CompactHeightfield.CellData(ax, ay, ai));
+					//add grouping to stack, adjust head if buffer resets
+					if (bufferedStack.Push(new CompactHeightfield.CellData(ax, ay, ai)))
+						head = 0;
 				}
 			}
 		}
@@ -850,7 +822,7 @@ namespace SharpNav
 			iz = MathHelper.Clamp(iz - hp.ymin, 0, hp.height - 1);
 			int h = hp.Data[ix + iz * hp.width];
 
-			if (h == UNSET_HEIGHT)
+			if (h == UnsetHeight)
 			{
 				//go in counterclockwise direction starting from west, ending in northwest
 				int[] off = { -1, 0,	-1, -1,		0, -1, 
@@ -868,7 +840,7 @@ namespace SharpNav
 						continue;
 
 					int nh = hp.Data[nx + nz * hp.width];
-					if (nh == UNSET_HEIGHT)
+					if (nh == UnsetHeight)
 						continue;
 
 					float d = Math.Abs(nh * cellHeight - loc.Y);

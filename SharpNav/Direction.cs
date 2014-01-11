@@ -6,14 +6,33 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A set of cardinal directions.
+	/// </summary>
 	public enum Direction
 	{
+		/// <summary>
+		/// The west direction.
+		/// </summary>
 		West = 0,
+
+		/// <summary>
+		/// The north direction.
+		/// </summary>
 		North = 1,
+
+		/// <summary>
+		/// The east direction.
+		/// </summary>
 		East = 2,
+
+		/// <summary>
+		/// The south direction.
+		/// </summary>
 		South = 3
 	}
 
@@ -30,7 +49,7 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="dir">The direction.</param>
 		/// <returns>The offset for the X coordinate.</returns>
-		public static int HorizontalOffset(this Direction dir)
+		public static int GetHorizontalOffset(this Direction dir)
 		{
 			return OffsetsX[(int)dir];
 		}
@@ -43,11 +62,16 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="dir">The direction.</param>
 		/// <returns>The offset for the Y coordinate.</returns>
-		public static int VerticalOffset(this Direction dir)
+		public static int GetVerticalOffset(this Direction dir)
 		{
 			return OffsetsY[(int)dir];
 		}
 
+		/// <summary>
+		/// Gets the next cardinal direction in clockwise order.
+		/// </summary>
+		/// <param name="dir">The current direction.</param>
+		/// <returns>The next direction.</returns>
 		public static Direction NextClockwise(this Direction dir)
 		{
 			switch (dir)
@@ -65,6 +89,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the next cardinal direction in counter-clockwise order.
+		/// </summary>
+		/// <param name="dir">The current direction.</param>
+		/// <returns>The next direction.</returns>
 		public static Direction NextCounterClockwise(this Direction dir)
 		{
 			switch (dir)

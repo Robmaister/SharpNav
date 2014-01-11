@@ -77,16 +77,14 @@ namespace SharpNav
 						}
 
 						//go through all the neighboring cells
-						for (int d = 0; d < 4; d++)
+						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
-							Direction dir = (Direction)d;
-
 							//obtain region id
 							int r = 0;
 							if (s.IsConnected(dir))
 							{
-								int dx = x + dir.HorizontalOffset();
-								int dy = y + dir.VerticalOffset();
+								int dx = x + dir.GetHorizontalOffset();
+								int dy = y + dir.GetVerticalOffset();
 								int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 								r = compactField.Spans[di].Region;
 							}
@@ -302,8 +300,8 @@ namespace SharpNav
 					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
 					{
-						int dx = x + dir.HorizontalOffset();
-						int dy = y + dir.VerticalOffset();
+						int dx = x + dir.GetHorizontalOffset();
+						int dy = y + dir.GetVerticalOffset();
 						int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 						r = compactField.Spans[di].Region;
 						if (area != compactField.Areas[di])
@@ -327,8 +325,8 @@ namespace SharpNav
 				{
 					//get a new cell(x, y) and span index(i)
 					int di = -1;
-					int dx = x + dir.HorizontalOffset();
-					int dy = y + dir.VerticalOffset();
+					int dx = x + dir.GetHorizontalOffset();
+					int dy = y + dir.GetVerticalOffset();
 					
 					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
@@ -382,8 +380,8 @@ namespace SharpNav
 			if (s.IsConnected(dir))
 			{
 				//get neighbor span
-				int dx = x + dir.HorizontalOffset();
-				int dy = y + dir.VerticalOffset();
+				int dx = x + dir.GetHorizontalOffset();
+				int dy = y + dir.GetVerticalOffset();
 				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 				CompactSpan ds = openField.Spans[di];
 
@@ -393,8 +391,8 @@ namespace SharpNav
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dirp))
 				{
-					int dx2 = dx + dirp.HorizontalOffset();
-					int dy2 = dy + dirp.VerticalOffset();
+					int dx2 = dx + dirp.GetHorizontalOffset();
+					int dy2 = dy + dirp.GetVerticalOffset();
 					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
 					CompactSpan ds2 = openField.Spans[di2];
 
@@ -406,8 +404,8 @@ namespace SharpNav
 			//get neighbor span
 			if (s.IsConnected(dirp))
 			{
-				int dx = x + dirp.HorizontalOffset();
-				int dy = y + dirp.VerticalOffset();
+				int dx = x + dirp.GetHorizontalOffset();
+				int dy = y + dirp.GetVerticalOffset();
 				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
 				CompactSpan ds = openField.Spans[di];
 
@@ -417,8 +415,8 @@ namespace SharpNav
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dir))
 				{
-					int dx2 = dx + dir.HorizontalOffset();
-					int dy2 = dy + dir.VerticalOffset();
+					int dx2 = dx + dir.GetHorizontalOffset();
+					int dy2 = dy + dir.GetVerticalOffset();
 					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
 					CompactSpan ds2 = openField.Spans[di2];
 
