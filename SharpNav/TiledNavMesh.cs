@@ -744,8 +744,8 @@ namespace SharpNav
 
 					for (int j = 1; j < tile.polys[i].vertCount; j++)
 					{
-						bmin = Vector3.Min(bmin, tile.verts[tile.polys[i].verts[j]]);
-						bmax = Vector3.Min(bmax, tile.verts[tile.polys[i].verts[j]]);
+						bmin = Vector3.ComponentMin(bmin, tile.verts[tile.polys[i].verts[j]]);
+						bmax = Vector3.ComponentMax(bmax, tile.verts[tile.polys[i].verts[j]]);
 					}
 
 					if (PathfinderCommon.OverlapQuantBounds(qmin, qmax, bmin, bmax))

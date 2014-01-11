@@ -705,8 +705,8 @@ namespace SharpNav
 
 				for (int i = 1; i < nin_; i++)
 				{
-					bounds.Min = Vector3.Min(bounds.Min, in_[i]);
-					bounds.Max = Vector3.Max(bounds.Max, in_[i]); 
+					bounds.Min = Vector3.ComponentMin(bounds.Min, in_[i]);
+					bounds.Max = Vector3.ComponentMax(bounds.Max, in_[i]); 
 				}
 
 				int x0 = (int)Math.Floor(bounds.Min.X / sampleDist);

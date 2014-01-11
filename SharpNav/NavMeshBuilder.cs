@@ -137,8 +137,8 @@ namespace SharpNav
 					
 					if ((p.ExtraInfo[j] & 0x8000) != 0)
 					{
-						int dir = p.ExtraInfo[j] & 0xf;
-						if (dir != 0xf)
+						int dir = p.ExtraInfo[j] % 16;
+						if (dir != 15)
 							portalCount++;
 					}
 				}
@@ -265,7 +265,7 @@ namespace SharpNav
 					if ((parameters.polys[i].ExtraInfo[j] & 0x8000) != 0)
 					{
 						//border or portal edge
-						int dir = parameters.polys[i].ExtraInfo[j] & 0xf;
+						int dir = parameters.polys[i].ExtraInfo[j] % 16;
 						if (dir == 0xf) //border
 							navPolys[i].neis[j] = 0;
 						else if (dir == 0) //portal x-
@@ -399,41 +399,41 @@ namespace SharpNav
 
 		public int ClassifyOffMeshPoint(Vector3 pt, BBox3 bounds)
 		{
-			const int XP = 1 << 0; //x plus
-			const int ZP = 1 << 1; //z plus 
-			const int XM = 1 << 2; //x minus
-			const int ZM = 1 << 3; //z minus
+			const int xPlus = 1;
+			const int zPlus = 2;  
+			const int xMinus = 4; 
+			const int zMinus = 8; 
 
 			int outcode = 0;
-			outcode |= (pt.X >= bounds.Max.X) ? XP : 0;
-			outcode |= (pt.Z >= bounds.Max.Z) ? ZP : 0;
-			outcode |= (pt.X < bounds.Min.X) ? XM : 0;
-			outcode |= (pt.Z < bounds.Min.Z) ? ZM : 0;
+			outcode += (pt.X >= bounds.Max.X) ? xPlus : 0;
+			outcode += (pt.Z >= bounds.Max.Z) ? zPlus : 0;
+			outcode += (pt.X < bounds.Min.X) ? xMinus : 0;
+			outcode += (pt.Z < bounds.Min.Z) ? zMinus : 0;
 
 			switch (outcode)
 			{
-				case XP:
+				case xPlus:
 					return 0;
 
-				case XP | ZP:
+				case xPlus + zPlus:
 					return 1;
 
-				case ZP:
+				case zPlus:
 					return 2;
 
-				case XM | ZP:
+				case xMinus + zPlus:
 					return 3;
 
-				case XM:
+				case xMinus:
 					return 4;
 
-				case XM | ZM:
+				case xMinus + zMinus:
 					return 5;
 
-				case ZM:
+				case zMinus:
 					return 6;
 
-				case XP | ZM:
+				case xPlus + zMinus:
 					return 7;
 			}
 
@@ -538,13 +538,8 @@ namespace SharpNav
 
 			for (int i = imin + 1; i < imax; i++)
 			{
-				if (items[i].bounds.Min.X < bounds.Min.X) bounds.Min.X = items[i].bounds.Min.X;
-				if (items[i].bounds.Min.Y < bounds.Min.Y) bounds.Min.Y = items[i].bounds.Min.Y;
-				if (items[i].bounds.Min.Z < bounds.Min.Z) bounds.Min.Z = items[i].bounds.Min.Z;
-
-				if (items[i].bounds.Max.X > bounds.Max.X) bounds.Max.X = items[i].bounds.Max.X;
-				if (items[i].bounds.Max.Y > bounds.Max.Y) bounds.Max.Y = items[i].bounds.Max.Y;
-				if (items[i].bounds.Max.Z > bounds.Max.Z) bounds.Max.Z = items[i].bounds.Max.Z;
+				bounds.Min = Vector3.ComponentMin(items[i].bounds.Min, bounds.Min);
+				bounds.Max = Vector3.ComponentMax(items[i].bounds.Max, bounds.Max);
 			}
 		}
 
