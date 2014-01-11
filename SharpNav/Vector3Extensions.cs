@@ -47,6 +47,24 @@ namespace SharpNav
 
 #endif
 
+		internal static void ComponentMin(ref Vector3 left, ref Vector3 right, out Vector3 result)
+		{
+#if OPENTK || STANDALONE
+			Vector3.ComponentMin(ref left, ref right, out result);
+#else
+			Vector3.Min(ref left, ref right, out result);
+#endif
+		}
+
+		internal static void ComponentMax(ref Vector3 left, ref Vector3 right, out Vector3 result)
+		{
+#if OPENTK || STANDALONE
+			Vector3.ComponentMax(ref left, ref right, out result);
+#else
+			Vector3.Max(ref left, ref right, out result);
+#endif
+		}
+
 		/// <summary>
 		/// Calculate the dot product of two vectors projected onto the XZ plane.
 		/// </summary>

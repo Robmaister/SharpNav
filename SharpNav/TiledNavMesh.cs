@@ -733,19 +733,22 @@ namespace SharpNav
 				uint polyBase = GetPolyRefBase(tile);
 
 				for (int i = 0; i < tile.header.polyCount; i++)
-				{	
+				{
+					var poly = tile.polys[i];
+
 					//don't return off-mesh connection polygons
-					if (tile.polys[i].GetPolyType() == PolygonType.OffMeshConnection)
+					if (poly.GetPolyType() == PolygonType.OffMeshConnection)
 						continue;
 
 					//calculate polygon bounds
-					bmin = tile.verts[tile.polys[i].verts[0]];
-					bmax = tile.verts[tile.polys[i].verts[0]];
+					bmin = tile.verts[poly.verts[0]];
+					bmax = bmin;
 
-					for (int j = 1; j < tile.polys[i].vertCount; j++)
+					for (int j = 1; j < poly.vertCount; j++)
 					{
-						bmin = Vector3.ComponentMin(bmin, tile.verts[tile.polys[i].verts[j]]);
-						bmax = Vector3.ComponentMax(bmax, tile.verts[tile.polys[i].verts[j]]);
+						int index = poly.verts[j];
+						Vector3Extensions.ComponentMin(ref bmin, ref tile.verts[index], out bmin);
+						Vector3Extensions.ComponentMax(ref bmax, ref tile.verts[index], out bmax);
 					}
 
 					if (PathfinderCommon.OverlapQuantBounds(qmin, qmax, bmin, bmax))

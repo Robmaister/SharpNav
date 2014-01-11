@@ -538,8 +538,8 @@ namespace SharpNav
 
 			for (int i = imin + 1; i < imax; i++)
 			{
-				bounds.Min = Vector3.ComponentMin(items[i].bounds.Min, bounds.Min);
-				bounds.Max = Vector3.ComponentMax(items[i].bounds.Max, bounds.Max);
+				Vector3Extensions.ComponentMin(ref items[i].bounds.Min, ref bounds.Min, out bounds.Min);
+				Vector3Extensions.ComponentMax(ref items[i].bounds.Max, ref bounds.Max, out bounds.Max);
 			}
 		}
 

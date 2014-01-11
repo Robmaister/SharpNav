@@ -23,8 +23,6 @@ namespace SharpNav
 {
 	public class PolyMeshDetail
 	{
-		private const int UnsetHeight = -1;
-
 		private int nmeshes;
 		private int nverts;
 		private int ntris;
@@ -112,7 +110,6 @@ namespace SharpNav
 			List<EdgeInfo> edges = new List<EdgeInfo>(16);
 			List<TriangleData> tris = new List<TriangleData>(128);
 			List<int> samples = new List<int>(512);
-			HeightPatch hp = new HeightPatch();
 			Vector3[] verts = new Vector3[256];
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
@@ -157,7 +154,7 @@ namespace SharpNav
 				maxhh = Math.Max(maxhh, ymax - ymin);
 			}
 
-			hp.Data = new int[maxhw * maxhh];
+			HeightPatch hp = new HeightPatch(0, 0, maxhw, maxhh);
 
 			this.nmeshes = mesh.NPolys;
 			this.meshes = new MeshData[this.nmeshes];
@@ -188,11 +185,8 @@ namespace SharpNav
 				}
 
 				//get height data from area of polygon
-				hp.xmin = bounds[i * 4 + 0];
-				hp.ymin = bounds[i * 4 + 2];
-				hp.width = bounds[i * 4 + 1] - bounds[i * 4 + 0];
-				hp.height = bounds[i * 4 + 3] - bounds[i * 4 + 2];
-				GetHeightData(openField, mesh.Polys, i, npoly, mesh.Verts, mesh.BorderSize, ref hp);
+				hp.Resize(bounds[i * 4 + 0], bounds[i * 4 + 2], bounds[i * 4 + 1] - bounds[i * 4 + 0], bounds[i * 4 + 3] - bounds[i * 4 + 2]);
+				GetHeightData(openField, mesh.Polys, i, npoly, mesh.Verts, mesh.BorderSize, hp);
 
 				int nverts = 0;
 				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, verts, ref nverts, tris, edges, samples);
@@ -349,7 +343,7 @@ namespace SharpNav
 		/// <param name="verts"></param>
 		/// <param name="borderSize"></param>
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, ref HeightPatch hp)
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, HeightPatch hp)
 		{
 			//9 x 2
 			int[] offset = { 0,0, -1,-1, 0,-1, 
@@ -372,8 +366,8 @@ namespace SharpNav
 					int az = (int)verts[poly[polyStartIndex].Vertices[j]].Z + offset[k * 2 + 1];
 
 					//skip if out of bounds
-					if (ax < hp.xmin || ax >= hp.xmin + hp.width ||
-						az < hp.ymin || az >= hp.ymin + hp.height)
+					if (ax < hp.X || ax >= hp.X + hp.Width ||
+						az < hp.Y || az >= hp.Y + hp.Height)
 						continue;
 
 					//get new cell
@@ -418,8 +412,8 @@ namespace SharpNav
 			//stack groups 3 elements as one part
 			foreach (var cell in stack)
 			{
-				int idx = cell.X - hp.xmin + (cell.Y - hp.ymin) * hp.width;
-				hp.Data[idx] = 1;
+				int idx = cell.X - hp.X + (cell.Y - hp.Y) * hp.Width;
+				hp[idx] = 1;
 			}
 
 			//process the entire stack
@@ -456,11 +450,11 @@ namespace SharpNav
 					int ay = cy + dir.GetVerticalOffset();
 
 					//skip if out of bounds
-					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
-						ay < hp.ymin || ay >= (hp.ymin + hp.height))
+					if (ax < hp.X || ax >= (hp.X + hp.Width) ||
+						ay < hp.Y || ay >= (hp.Y + hp.Height))
 						continue;
 
-					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != 0)
+					if (hp[ax - hp.X + (ay - hp.Y) * hp.Width] != 0)
 						continue;
 
 					//get the new index
@@ -468,8 +462,8 @@ namespace SharpNav
 						CompactSpan.GetConnection(ref cs, dir);
 
 					//save data
-					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
-					hp.Data[idx] = 1;
+					int idx = ax - hp.X + (ay - hp.Y) * hp.Width;
+					hp[idx] = 1;
 
 					//push to stack
 					stack.Push(new CompactHeightfield.CellData(ax, ay, ai));
@@ -477,16 +471,15 @@ namespace SharpNav
 			}
 
 			//initialize to some default value 
-			for (int i = 0; i < hp.Data.Length; i++)
-				hp.Data[i] = UnsetHeight;
+			hp.Clear();
 
 			//mark start locations
 			foreach (var cell in stack)
 			{
 				//set new heightpatch data
-				int idx = cell.X - hp.xmin + (cell.Y - hp.ymin) * hp.width;
+				int idx = cell.X - hp.X + (cell.Y - hp.Y) * hp.Width;
 				CompactSpan cs = compactField.Spans[cell.Index];
-				hp.Data[idx] = cs.Minimum;
+				hp[idx] = cs.Minimum;
 			}
 
 			BufferedStack<CompactHeightfield.CellData> bufferedStack = new BufferedStack<CompactHeightfield.CellData>(256, stack);
@@ -513,12 +506,12 @@ namespace SharpNav
 					int ax = cx + dir.GetHorizontalOffset();
 					int ay = cy + dir.GetVerticalOffset();
 
-					if (ax < hp.xmin || ax >= (hp.xmin + hp.width) ||
-						ay < hp.ymin || ay >= (hp.ymin + hp.height))
+					if (ax < hp.X || ax >= (hp.X + hp.Width) ||
+						ay < hp.Y || ay >= (hp.Y + hp.Height))
 						continue;
 
 					//only continue if height is unset
-					if (hp.Data[ax - hp.xmin + (ay - hp.ymin) * hp.width] != UnsetHeight)
+					if (hp.IsSet(ax - hp.X + (ay - hp.Y) * hp.Width))
 						continue;
 
 					//get new span index
@@ -529,8 +522,8 @@ namespace SharpNav
 					CompactSpan ds = compactField.Spans[ai];
 					
 					//save
-					int idx = ax - hp.xmin + (ay - hp.ymin) * hp.width;
-					hp.Data[idx] = ds.Minimum;
+					int idx = ax - hp.X + (ay - hp.Y) * hp.Width;
+					hp[idx] = ds.Minimum;
 
 					//add grouping to stack, adjust head if buffer resets
 					if (bufferedStack.Push(new CompactHeightfield.CellData(ax, ay, ai)))
@@ -705,8 +698,8 @@ namespace SharpNav
 
 				for (int i = 1; i < nin_; i++)
 				{
-					bounds.Min = Vector3.ComponentMin(bounds.Min, in_[i]);
-					bounds.Max = Vector3.ComponentMax(bounds.Max, in_[i]); 
+					Vector3Extensions.ComponentMin(ref bounds.Min, ref in_[i], out bounds.Min);
+					Vector3Extensions.ComponentMax(ref bounds.Max, ref in_[i], out bounds.Max); 
 				}
 
 				int x0 = (int)Math.Floor(bounds.Min.X / sampleDist);
@@ -818,11 +811,11 @@ namespace SharpNav
 		{
 			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
 			int iz = (int)Math.Floor(loc.Z * invCellSize + 0.01f);
-			ix = MathHelper.Clamp(ix - hp.xmin, 0, hp.width - 1);
-			iz = MathHelper.Clamp(iz - hp.ymin, 0, hp.height - 1);
-			int h = hp.Data[ix + iz * hp.width];
+			ix = MathHelper.Clamp(ix - hp.X, 0, hp.Width - 1);
+			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Height - 1);
+			int h = hp[ix + iz * hp.Width];
 
-			if (h == UnsetHeight)
+			if (h == HeightPatch.UnsetHeight)
 			{
 				//go in counterclockwise direction starting from west, ending in northwest
 				int[] off = { -1, 0,	-1, -1,		0, -1, 
@@ -836,11 +829,11 @@ namespace SharpNav
 					int nx = ix + off[i * 2 + 0];
 					int nz = iz + off[i * 2 + 1];
 
-					if (nx < 0 || nz < 0 || nx >= hp.width || nz >= hp.height)
+					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Height)
 						continue;
 
-					int nh = hp.Data[nx + nz * hp.width];
-					if (nh == UnsetHeight)
+					int nh = hp[nx + nz * hp.Width];
+					if (nh == HeightPatch.UnsetHeight)
 						continue;
 
 					float d = Math.Abs(nh * cellHeight - loc.Y);
@@ -888,15 +881,15 @@ namespace SharpNav
 			}
 
 			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
-				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.HULL, (int)EdgeValues.UNDEF);
+				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
 
 			int currentEdge = 0;
 			while (currentEdge < nedges)
 			{
-				if (edges[currentEdge].LeftFace == (int)EdgeValues.UNDEF)
+				if (edges[currentEdge].LeftFace == (int)EdgeValues.Undefined)
 					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
 				
-				if (edges[currentEdge].RightFace == (int)EdgeValues.UNDEF)
+				if (edges[currentEdge].RightFace == (int)EdgeValues.Undefined)
 					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
 				
 				currentEdge++;
@@ -977,12 +970,12 @@ namespace SharpNav
 
 			//cache s and t
 			int s, t;
-			if (edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
+			if (edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 			{
 				s = edges[edgePos].EndPts[0];
 				t = edges[edgePos].EndPts[1];
 			}
-			else if (edges[edgePos].RightFace == (int)EdgeValues.UNDEF)
+			else if (edges[edgePos].RightFace == (int)EdgeValues.Undefined)
 			{
 				s = edges[edgePos].EndPts[1];
 				t = edges[edgePos].EndPts[0];
@@ -1052,14 +1045,14 @@ namespace SharpNav
 				UpdateLeftFace(edges, e, s, t, nfaces);
 
 				e = FindEdge(edges, nedges, pt, s);
-				if (e == (int)EdgeValues.UNDEF)
-					AddEdge(edges, ref nedges, maxEdges, pt, s, nfaces, (int)EdgeValues.UNDEF);
+				if (e == (int)EdgeValues.Undefined)
+					AddEdge(edges, ref nedges, maxEdges, pt, s, nfaces, (int)EdgeValues.Undefined);
 				else
 					UpdateLeftFace(edges, e, pt, s, nfaces);
 
 				e = FindEdge(edges, nedges, t, pt);
-				if (e == (int)EdgeValues.UNDEF)
-					AddEdge(edges, ref nedges, maxEdges, t, pt, nfaces, (int)EdgeValues.UNDEF);
+				if (e == (int)EdgeValues.Undefined)
+					AddEdge(edges, ref nedges, maxEdges, t, pt, nfaces, (int)EdgeValues.Undefined);
 				else
 					UpdateLeftFace(edges, e, t, pt, nfaces);
 
@@ -1067,7 +1060,7 @@ namespace SharpNav
 			}
 			else
 			{
-				UpdateLeftFace(edges, e, s, t, (int)EdgeValues.HULL);
+				UpdateLeftFace(edges, e, s, t, (int)EdgeValues.Hull);
 			}
 		}
 
@@ -1075,12 +1068,12 @@ namespace SharpNav
 		{
 			if (nedges >= maxEdges)
 			{
-				return (int)EdgeValues.UNDEF;
+				return (int)EdgeValues.Undefined;
 			}
 
 			//add edge
 			int e = FindEdge(edges, nedges, s, t);
-			if (e == (int)EdgeValues.UNDEF)
+			if (e == (int)EdgeValues.Undefined)
 			{
 				int edge = nedges;
 				edges[edge].EndPts[0] = s;
@@ -1091,7 +1084,7 @@ namespace SharpNav
 			}
 			else
 			{
-				return (int)EdgeValues.UNDEF;
+				return (int)EdgeValues.Undefined;
 			}
 		}
 
@@ -1103,7 +1096,7 @@ namespace SharpNav
 					return i;
 			}
 
-			return (int)EdgeValues.UNDEF;
+			return (int)EdgeValues.Undefined;
 		}
 
 		private bool OverlapEdges(Vector3[] pts, List<EdgeInfo> edges, int nedges, int s1, int t1)
@@ -1126,9 +1119,9 @@ namespace SharpNav
 
 		private void UpdateLeftFace(List<EdgeInfo> edges, int edgePos, int s, int t, int f)
 		{
-			if (edges[edgePos].EndPts[0] == s && edges[edgePos].EndPts[1] == t && edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
+			if (edges[edgePos].EndPts[0] == s && edges[edgePos].EndPts[1] == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 				edges[edgePos].LeftFace = f;
-			else if (edges[edgePos].EndPts[1] == s && edges[edgePos].EndPts[0] == t && edges[edgePos].LeftFace == (int)EdgeValues.UNDEF)
+			else if (edges[edgePos].EndPts[1] == s && edges[edgePos].EndPts[0] == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 				edges[edgePos].RightFace = f;
 		}
 
@@ -1256,27 +1249,10 @@ namespace SharpNav
 		/// <summary>
 		/// Determines whether an edge has been created or not
 		/// </summary>
-		private enum EdgeValues : int
+		private enum EdgeValues
 		{
-			UNDEF = -1,
-			HULL = -2
-		}
-
-		/// <summary>
-		/// Store height data, which will later be merged with the NavMesh
-		/// </summary>
-		private class HeightPatch
-		{
-			public HeightPatch()
-			{
-				xmin = 0;
-				ymin = 0;
-				width = 0;
-				height = 0;
-			}
-
-			public int[] Data;
-			public int xmin, ymin, width, height;
+			Undefined = -1,
+			Hull = -2
 		}
 	}
 }

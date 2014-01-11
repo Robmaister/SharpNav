@@ -628,11 +628,10 @@ namespace SharpNav
 		/// <returns>The component-wise minimum</returns>
 		public static Vector3 ComponentMin(Vector3 a, Vector3 b)
 		{
-			Vector3 result = new Vector3();
-			result.X = a.X < b.X ? a.X : b.X;
-			result.Y = a.Y < b.Y ? a.Y : b.Y;
-			result.Z = a.Z < b.Z ? a.Z : b.Z;
-			return result;
+			a.X = a.X < b.X ? a.X : b.X;
+			a.Y = a.Y < b.Y ? a.Y : b.Y;
+			a.Z = a.Z < b.Z ? a.Z : b.Z;
+			return a;
 		}
 
 		/// <summary>
@@ -660,11 +659,10 @@ namespace SharpNav
 		/// <returns>The component-wise maximum</returns>
 		public static Vector3 ComponentMax(Vector3 a, Vector3 b)
 		{
-			Vector3 result = new Vector3();
-			result.X = a.X > b.X ? a.X : b.X;
-			result.Y = a.Y > b.Y ? a.Y : b.Y;
-			result.Z = a.Z > b.Z ? a.Z : b.Z;
-			return result;
+			a.X = a.X > b.X ? a.X : b.X;
+			a.Y = a.Y > b.Y ? a.Y : b.Y;
+			a.Z = a.Z > b.Z ? a.Z : b.Z;
+			return a;
 		}
 
 		/// <summary>
