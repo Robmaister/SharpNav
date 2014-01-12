@@ -32,7 +32,7 @@ namespace SharpNav
 		//public const int NAVMESH_VERSION = 7; //version number
 
 		public const int EXT_LINK = 0x8000; //entity links to external entity
-		public const uint NULL_LINK = 0xffffffff; //doesn't link to anything
+		public const int NULL_LINK = unchecked((int)0xffffffff); //doesn't link to anything
 
 		public const int MAX_AREAS = 64; //max number of user defined area ids
 
@@ -44,128 +44,6 @@ namespace SharpNav
 		public const int STRAIGHTPATH_ALL_CROSSINGS = 0x02; //add a vertex at each polygon edge crossing
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
-
-		public class MeshHeader
-		{
-			//public int magic; //tile magic number (used to identify data format)
-			//public int version;
-			public int x;
-			public int y;
-			public int layer;
-			public uint userId;
-			public int polyCount;
-			public int vertCount;
-			public int maxLinkCount;
-			public int detailMeshCount;
-
-			public int detailVertCount;
-
-			public int detailTriCount;
-			public int bvNodeCount;
-			public int offMeshConCount;
-			public int offMeshBase; //index of first polygon which is off-mesh connection
-			public float walkableHeight;
-			public float walkableRadius;
-			public float walkableClimb;
-			public BBox3 bounds;
-
-			public float bvQuantFactor; //bounding volume quantization facto
-		}
-
-		public class Poly
-		{
-			public uint firstLink; //index to first link in linked list
-			public int[] verts; //indices of polygon's vertices
-			public int[] neis; //packed data representing neighbor polygons references and flags for each edge
-			public int flags; //user defined polygon flags
-			public int vertCount;
-			public int areaAndtype = 0; //bit packed area id and polygon type
-
-			public void SetArea(int a)
-			{
-				areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f);
-			}
-
-			public void SetType(PolygonType t)
-			{
-				areaAndtype = (areaAndtype & 0x3f) | ((int)t << 6);
-			}
-
-			public int GetArea()
-			{
-				return areaAndtype & 0x3f;
-			}
-
-			public PolygonType GetPolyType()
-			{
-				return (PolygonType)(areaAndtype >> 6);
-			}
-		}
-
-		public struct PolyDetail
-		{
-			public uint vertBase; //offset of vertices in some array
-			public uint triBase; //offset of triangles in some array
-			public int vertCount;
-			public int triCount;
-		}
-
-		public struct OffMeshConnection
-		{
-			public Vector3[] pos; //the endpoints of the connection
-			public float radius;
-			public int poly;
-			public int flags; //assigned flag from Poly
-			public int side; //endpoint side
-			public uint userId; //id of offmesh connection
-		}
-
-		public struct BVNode
-		{
-			public BBox3 bounds;
-			public int index;
-		}
-
-		public struct NavMeshParams
-		{
-			public Vector3 origin;
-			public float tileWidth;
-			public float tileHeight;
-			public int maxTiles;
-			public int maxPolys;
-		}
-
-		public class Link
-		{
-			public uint reference; //neighbor reference (the one it's linked to)
-			public uint next; //index of next link
-			public int edge; //index of polygon edge
-			public int side;
-			public int bmin;
-			public int bmax;
-		}
-
-		public class MeshTile
-		{
-			public uint salt; //counter describing modifications to the tile
-
-			public uint linksFreeList; //index to the next free link
-			public PathfinderCommon.MeshHeader header;
-			public PathfinderCommon.Poly[] polys;
-			public Vector3[] verts;
-			public Link[] links;
-			public PathfinderCommon.PolyDetail[] detailMeshes;
-
-			public Vector3[] detailVerts;
-			public PolyMeshDetail.TriangleData[] detailTris;
-
-			public PathfinderCommon.BVNode[] bvTree; //bounding volume nodes
-
-			public PathfinderCommon.OffMeshConnection[] offMeshCons;
-
-			public NavMeshBuilder data;
-			public MeshTile next;
-		}
 
 		public static bool OverlapQuantBounds(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax)
 		{
@@ -190,53 +68,10 @@ namespace SharpNav
 					c = !c;
 				}
 
-				ed[j] = DistancePointSegmentSquare2D(pt, vj, vi, ref et[j]);
+				ed[j] = MathHelper.Distance.PointToSegment2DSquared(ref pt, ref vj, ref vi, out et[j]);
 			}
 
 			return c;
-		}
-
-		public static float DistancePointSegmentSquare2D(Vector3 pt, Vector3 p, Vector3 q, ref float t)
-		{
-			float pqx = q.X - p.X;
-			float pqz = q.Z - p.Z;
-			float dx = pt.X - p.X;
-			float dz = pt.Z - p.Z;
-			float d = pqx * pqx + pqz * pqz;
-			t = pqx * dx + pqz * dz;
-
-			if (d > 0)
-				t /= d;
-
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = p.X + t * pqx - pt.X;
-			dz = p.Z + t * pqz - pt.Z;
-
-			return dx * dx + dz * dz;
-		}
-
-		public static float VectorPerpendicularXZ(Vector3 a, Vector3 b)
-		{
-			return a.X * b.Z - a.Z * b.X;
-		}
-
-		public static bool IntersectSegSeg2D(Vector3 ap, Vector3 aq, Vector3 bp, Vector3 bq, ref float s, ref float t)
-		{
-			Vector3 u = aq - ap;
-			Vector3 v = bq - bp;
-			Vector3 w = ap - bp;
-			
-			float d = VectorPerpendicularXZ(u, v);
-			if (Math.Abs(d) < 1e-6f)
-				return false;
-
-			s = VectorPerpendicularXZ(v, w) / d;
-			t = VectorPerpendicularXZ(u, w) / d;
-			return true;
 		}
 
 		public static bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
@@ -312,6 +147,128 @@ namespace SharpNav
 			pt.X = a * pa.X + b * pb.X + c * pc.X;
 			pt.Y = a * pa.Y + b * pb.Y + c * pc.Y;
 			pt.Z = a * pa.Z + b * pb.Z + c * pc.Z;
+		}
+
+		public class MeshHeader
+		{
+			//public int magic; //tile magic number (used to identify data format)
+			//public int version;
+			public int x;
+			public int y;
+			public int layer;
+			public uint userId;
+			public int polyCount;
+			public int vertCount;
+			public int maxLinkCount;
+			public int detailMeshCount;
+
+			public int detailVertCount;
+
+			public int detailTriCount;
+			public int bvNodeCount;
+			public int offMeshConCount;
+			public int offMeshBase; //index of first polygon which is off-mesh connection
+			public float walkableHeight;
+			public float walkableRadius;
+			public float walkableClimb;
+			public BBox3 bounds;
+
+			public float bvQuantFactor; //bounding volume quantization facto
+		}
+
+		public class Poly
+		{
+			public int firstLink; //index to first link in linked list
+			public int[] verts; //indices of polygon's vertices
+			public int[] neis; //packed data representing neighbor polygons references and flags for each edge
+			public int flags; //user defined polygon flags
+			public int vertCount;
+			public int areaAndtype = 0; //bit packed area id and polygon type
+
+			public void SetArea(int a)
+			{
+				areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f);
+			}
+
+			public void SetType(PolygonType t)
+			{
+				areaAndtype = (areaAndtype & 0x3f) | ((int)t << 6);
+			}
+
+			public int GetArea()
+			{
+				return areaAndtype & 0x3f;
+			}
+
+			public PolygonType GetPolyType()
+			{
+				return (PolygonType)(areaAndtype >> 6);
+			}
+		}
+
+		public struct PolyDetail
+		{
+			public uint vertBase; //offset of vertices in some array
+			public uint triBase; //offset of triangles in some array
+			public int vertCount;
+			public int triCount;
+		}
+
+		public struct OffMeshConnection
+		{
+			public Vector3[] pos; //the endpoints of the connection
+			public float radius;
+			public int poly;
+			public int flags; //assigned flag from Poly
+			public int side; //endpoint side
+			public uint userId; //id of offmesh connection
+		}
+
+		public struct BVNode
+		{
+			public BBox3 bounds;
+			public int index;
+		}
+
+		public struct NavMeshParams
+		{
+			public Vector3 origin;
+			public float tileWidth;
+			public float tileHeight;
+			public int maxTiles;
+			public int maxPolys;
+		}
+
+		public class Link
+		{
+			public int reference; //neighbor reference (the one it's linked to)
+			public int next; //index of next link
+			public int edge; //index of polygon edge
+			public int side;
+			public int bmin;
+			public int bmax;
+		}
+
+		public class MeshTile
+		{
+			public int salt; //counter describing modifications to the tile
+
+			public int linksFreeList; //index to the next free link
+			public PathfinderCommon.MeshHeader header;
+			public PathfinderCommon.Poly[] polys;
+			public Vector3[] verts;
+			public Link[] links;
+			public PathfinderCommon.PolyDetail[] detailMeshes;
+
+			public Vector3[] detailVerts;
+			public PolyMeshDetail.TriangleData[] detailTris;
+
+			public PathfinderCommon.BVNode[] bvTree; //bounding volume nodes
+
+			public PathfinderCommon.OffMeshConnection[] offMeshCons;
+
+			public NavMeshBuilder data;
+			public MeshTile next;
 		}
 	}
 }

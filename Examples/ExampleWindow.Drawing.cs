@@ -659,7 +659,7 @@ namespace Examples
 					color = Color4.LightYellow;
 				GL.Color4(color);
 
-				uint polyRef = path[i];
+				int polyRef = path[i];
 				PathfinderCommon.MeshTile tile = null;
 				PathfinderCommon.Poly poly = null;
 				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
@@ -697,7 +697,7 @@ namespace Examples
 					color = Color4.Yellow;
 				GL.Color4(color);
 
-				uint polyRef = path[i];
+				int polyRef = path[i];
 				PathfinderCommon.MeshTile tile = null;
 				PathfinderCommon.Poly poly = null;
 				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);

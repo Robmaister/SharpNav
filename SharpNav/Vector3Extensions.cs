@@ -85,5 +85,10 @@ namespace SharpNav
 
 			result = u1 * v2 - v1 * u2;
 		}
+
+		public static void PerpDotXZ(ref Vector3 a, ref Vector3 b, out float result)
+		{
+			result = a.X * b.Z - a.Z * b.X;
+		}
 	}
 }

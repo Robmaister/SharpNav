@@ -65,7 +65,7 @@ namespace Examples
 		private SVector3 startPos;
 		private SVector3 endPos;
 		private int pathCount;
-		private uint[] path; 
+		private int[] path; 
 		private int nsteerPath = 0;
 		private SVector3[] steerPath;
 
@@ -366,23 +366,23 @@ namespace Examples
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
 			
 			QueryFilter filter = new QueryFilter();
-			uint startRef = 0;
+			int startRef = 0;
 			startPos = new SVector3();
 			navMeshQuery.FindRandomPoint(ref filter, ref startRef, ref startPos);
 
-			uint endRef = 0;
+			int endRef = 0;
 			endPos = new SVector3();
 			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
 
 			int MAX_POLYS = 256;
-			path = new uint[MAX_POLYS];
+			path = new int[MAX_POLYS];
 			pathCount = 0;
 			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
 			
 			int MAX_STEER_POINTS = 3;
 			steerPath = new SVector3[MAX_STEER_POINTS];
 			int[] steerPathFlags = new int[MAX_STEER_POINTS];
-			uint[] steerPathPolys = new uint[MAX_STEER_POINTS];
+			int[] steerPathPolys = new int[MAX_STEER_POINTS];
 			nsteerPath = 0;
 			navMeshQuery.FindStraightPath(startPos, endPos, path, pathCount,
 				steerPath, steerPathFlags, steerPathPolys, ref nsteerPath, MAX_STEER_POINTS, 0);

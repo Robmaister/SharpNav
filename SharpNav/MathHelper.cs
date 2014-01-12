@@ -1,9 +1,11 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
+
+using System;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -216,110 +218,165 @@ namespace SharpNav
 			return m;
 		}
 
-		/// <summary>
-		/// Find the 3D distance between a point (x, y, z) and a segment PQ
-		/// </summary>
-		/// <param name="pt">The coordinate of the point.</param>
-		/// <param name="p">The coordinate of point P in the segment PQ.</param>
-		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
-		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+		internal static class Distance
 		{
-			//distance from P to Q
-			Vector3 pq = q - p;
 
-			//disance from P to the lone point
-			float dx = pt.X - p.X;
-			float dy = pt.Y - p.Y;
-			float dz = pt.Z - p.Z;
+			/// <summary>
+			/// Find the 3D distance between a point (x, y, z) and a segment PQ
+			/// </summary>
+			/// <param name="pt">The coordinate of the point.</param>
+			/// <param name="p">The coordinate of point P in the segment PQ.</param>
+			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+			/// <returns>The distance between the point and the segment.</returns>
+			internal static float PointToSegment(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+			{
+				//distance from P to Q
+				Vector3 pq = q - p;
 
-			float segmentMagnitudeSquared = pq.LengthSquared();
-			float t = pq.X * dx + pq.Y * dy + pq.Z * dz;
+				//disance from P to the lone point
+				float dx = pt.X - p.X;
+				float dy = pt.Y - p.Y;
+				float dz = pt.Z - p.Z;
 
-			if (segmentMagnitudeSquared > 0)
-				t /= segmentMagnitudeSquared;
+				float segmentMagnitudeSquared = pq.LengthSquared();
+				float t = pq.X * dx + pq.Y * dy + pq.Z * dz;
 
-			//keep t between 0 and 1
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
+				if (segmentMagnitudeSquared > 0)
+					t /= segmentMagnitudeSquared;
 
-			dx = p.X + t * pq.X - pt.X;
-			dy = p.Y + t * pq.Y - pt.Y;
-			dz = p.Z + t * pq.Z - pt.Z;
+				//keep t between 0 and 1
+				if (t < 0)
+					t = 0;
+				else if (t > 1)
+					t = 1;
 
-			return dx * dx + dy * dy + dz * dz;
+				dx = p.X + t * pq.X - pt.X;
+				dy = p.Y + t * pq.Y - pt.Y;
+				dz = p.Z + t * pq.Z - pt.Z;
+
+				return dx * dx + dy * dy + dz * dz;
+			}
+
+			/// <summary>
+			/// Find the 2d distance between a point and a segment PQ
+			/// </summary>
+			/// <param name="pt">The coordinate of the point.</param>
+			/// <param name="p">The coordinate of point P in the segment PQ.</param>
+			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+			/// <returns>The distance between the point and the segment.</returns>
+			internal static float PointToSegment2D(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+			{
+				//distance from P to Q in the xz plane
+				float segmentDeltaX = q.X - p.X;
+				float segmentDeltaZ = q.Z - p.Z;
+
+				//distance from P to lone point in xz plane
+				float dx = pt.X - p.X;
+				float dz = pt.Z - p.Z;
+
+				float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
+				float t = segmentDeltaX * dx + segmentDeltaZ * dz;
+
+				if (segmentMagnitudeSquared > 0)
+					t /= segmentMagnitudeSquared;
+
+				//keep t between 0 and 1
+				if (t < 0)
+					t = 0;
+				else if (t > 1)
+					t = 1;
+
+				dx = p.X + t * segmentDeltaX - pt.X;
+				dz = p.Z + t * segmentDeltaZ - pt.Z;
+
+				return dx * dx + dz * dz;
+			}
+
+			/// <summary>
+			/// Find the 2d distance between a point (x, z) and a segment PQ, where P is (px, pz) and Q is (qx, qz).
+			/// </summary>
+			/// <param name="x">The X coordinate of the point.</param>
+			/// <param name="z">The Z coordinate of the point.</param>
+			/// <param name="px">The X coordinate of point P in the segment PQ.</param>
+			/// <param name="pz">The Z coordinate of point P in the segment PQ.</param>
+			/// <param name="qx">The X coordinate of point Q in the segment PQ.</param>
+			/// <param name="qz">The Z coordinate of point Q in the segment PQ.</param>
+			/// <returns>The distance between the point and the segment.</returns>
+			internal static float PointToSegment2D(int x, int z, int px, int pz, int qx, int qz)
+			{
+				float segmentDeltaX = qx - px;
+				float segmentDeltaZ = qz - pz;
+				float dx = x - px;
+				float dz = z - pz;
+				float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
+				float t = segmentDeltaX * dx + segmentDeltaZ * dz;
+
+				//normalize?
+				if (segmentMagnitudeSquared > 0)
+					t /= segmentMagnitudeSquared;
+
+				//0 < t < 1
+				if (t < 0)
+					t = 0;
+				else if (t > 1)
+					t = 1;
+
+				dx = px + t * segmentDeltaX - x;
+				dz = pz + t * segmentDeltaZ - z;
+
+				return dx * dx + dz * dz;
+			}
+
+			public static float PointToSegment2DSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q, out float t)
+			{
+				float pqx = q.X - p.X;
+				float pqz = q.Z - p.Z;
+				float dx = pt.X - p.X;
+				float dz = pt.Z - p.Z;
+				float d = pqx * pqx + pqz * pqz;
+				t = pqx * dx + pqz * dz;
+
+				if (d > 0)
+					t /= d;
+
+				if (t < 0)
+					t = 0;
+				else if (t > 1)
+					t = 1;
+
+				dx = p.X + t * pqx - pt.X;
+				dz = p.Z + t * pqz - pt.Z;
+
+				return dx * dx + dz * dz;
+			}
 		}
 
-		/// <summary>
-		/// Find the 2d distance between a point and a segment PQ
-		/// </summary>
-		/// <param name="pt">The coordinate of the point.</param>
-		/// <param name="p">The coordinate of point P in the segment PQ.</param>
-		/// <param name="q">The coordinate of point Q in the segment PQ.</param>
-		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment2D(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+		internal static class Intersection
 		{
-			//distance from P to Q in the xz plane
-			float segmentDeltaX = q.X - p.X;
-			float segmentDeltaZ = q.Z - p.Z;
+			internal static bool SegmentSegment2D(ref Vector3 ap, ref Vector3 aq, ref Vector3 bp, ref Vector3 bq, out float s, out float t)
+			{
+				Vector3 u = aq - ap;
+				Vector3 v = bq - bp;
+				Vector3 w = ap - bp;
 
-			//distance from P to lone point in xz plane
-			float dx = pt.X - p.X;
-			float dz = pt.Z - p.Z;
+				float d;
+				Vector3Extensions.PerpDotXZ(ref u, ref v, out d);
 
-			float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
-			float t = segmentDeltaX * dx + segmentDeltaZ * dz;
+				if (Math.Abs(d) < 1e-6f)
+				{
+					//TODO is NaN the best value to set here?
+					s = float.NaN;
+					t = float.NaN;
+					return false;
+				}
 
-			if (segmentMagnitudeSquared > 0)
-				t /= segmentMagnitudeSquared;
+				Vector3Extensions.PerpDotXZ(ref v, ref w, out s);
+				Vector3Extensions.PerpDotXZ(ref u, ref w, out t);
+				s /= d;
+				t /= d;
 
-			//keep t between 0 and 1
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = p.X + t * segmentDeltaX - pt.X;
-			dz = p.Z + t * segmentDeltaZ - pt.Z;
-
-			return dx * dx + dz * dz;
-		}
-
-		/// <summary>
-		/// Find the 2d distance between a point (x, z) and a segment PQ, where P is (px, pz) and Q is (qx, qz).
-		/// </summary>
-		/// <param name="x">The X coordinate of the point.</param>
-		/// <param name="z">The Z coordinate of the point.</param>
-		/// <param name="px">The X coordinate of point P in the segment PQ.</param>
-		/// <param name="pz">The Z coordinate of point P in the segment PQ.</param>
-		/// <param name="qx">The X coordinate of point Q in the segment PQ.</param>
-		/// <param name="qz">The Z coordinate of point Q in the segment PQ.</param>
-		/// <returns>The distance between the point and the segment.</returns>
-		internal static float DistanceFromPointToSegment2D(int x, int z, int px, int pz, int qx, int qz)
-		{
-			float segmentDeltaX = qx - px;
-			float segmentDeltaZ = qz - pz;
-			float dx = x - px;
-			float dz = z - pz;
-			float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
-			float t = segmentDeltaX * dx + segmentDeltaZ * dz;
-
-			//normalize?
-			if (segmentMagnitudeSquared > 0)
-				t /= segmentMagnitudeSquared;
-
-			//0 < t < 1
-			if (t < 0)
-				t = 0;
-			else if (t > 1)
-				t = 1;
-
-			dx = px + t * segmentDeltaX - x;
-			dz = pz + t * segmentDeltaZ - z;
-
-			return dx * dx + dz * dz;
+				return true;
+			}
 		}
 	}
 }

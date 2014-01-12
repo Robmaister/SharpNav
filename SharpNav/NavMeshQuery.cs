@@ -43,7 +43,7 @@ namespace SharpNav
 			m_openList = new PriorityQueue<Node>(maxNodes);
 		}
 
-		public bool FindRandomPoint(ref QueryFilter filter, ref uint randomRef, ref Vector3 randomPt)
+		public bool FindRandomPoint(ref QueryFilter filter, ref int randomRef, ref Vector3 randomPt)
 		{
 			if (m_nav == null)
 				return false;
@@ -75,8 +75,8 @@ namespace SharpNav
 
 			//randomly pick one polygon weighted by polygon area
 			PathfinderCommon.Poly poly = null;
-			uint polyRef = 0;
-			uint polyBase = m_nav.GetPolyRefBase(tile);
+			int polyRef = 0;
+			int polyBase = m_nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
 			for (int i = 0; i < tile.header.polyCount; i++)
@@ -88,7 +88,7 @@ namespace SharpNav
 					continue;
 
 				//NOTE: polygon flags are never set so the filter will remove all polygons
-				uint reference = polyBase | (uint)i;
+				int reference = polyBase | i;
 				//if (!filter.PassFilter(p))
 				//	continue;
 
@@ -140,7 +140,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool FindRandomPointAroundCircle(uint startRef, Vector3 centerPos, float radius, ref QueryFilter filter, ref uint randomRef, ref Vector3 randomPt)
+		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref QueryFilter filter, ref int randomRef, ref Vector3 randomPt)
 		{
 			if (m_nav == null)
 				return false;
@@ -180,7 +180,7 @@ namespace SharpNav
 
 			PathfinderCommon.MeshTile randomTile = null;
 			PathfinderCommon.Poly randomPoly = null;
-			uint randomPolyRef = 0;
+			int randomPolyRef = 0;
 
 			while (m_openList.Count > 0)
 			{
@@ -188,7 +188,7 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//get poly and tile
-				uint bestRef = bestNode.id;
+				int bestRef = bestNode.id;
 				PathfinderCommon.MeshTile bestTile = null;
 				PathfinderCommon.Poly bestPoly = null;
 				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
@@ -217,7 +217,7 @@ namespace SharpNav
 				}
 
 				//get parent poly and tile
-				uint parentRef = 0;
+				int parentRef = 0;
 				PathfinderCommon.MeshTile parentTile = null;
 				PathfinderCommon.Poly parentPoly = null;
 				if (bestNode.pidx != 0)
@@ -225,10 +225,10 @@ namespace SharpNav
 				if (parentRef != 0)
 					m_nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
 
-				for (uint i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
+				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
 					PathfinderCommon.Link link = bestTile.links[i];
-					uint neighbourRef = link.reference;
+					int neighbourRef = link.reference;
 					//skip invalid neighbours and do not follor back to parent
 					if (neighbourRef == 0 || neighbourRef == parentRef)
 						continue;
@@ -249,8 +249,8 @@ namespace SharpNav
 						continue;
 
 				 	//if circle isn't touching next polygon, skip it
-					float tseg = 0;
-					float distSqr = PathfinderCommon.DistancePointSegmentSquare2D(centerPos, va, vb, ref tseg);
+					float tseg;
+					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
 						continue;
 
@@ -323,7 +323,7 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
-		public bool FindPath(uint startRef, uint endRef, ref Vector3 startPos, ref Vector3 endPos, ref QueryFilter filter, uint[] path, ref int pathCount, int maxPath)
+		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, ref QueryFilter filter, int[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
 
@@ -373,13 +373,13 @@ namespace SharpNav
 				}
 
 				//get current poly and tile
-				uint bestRef = bestNode.id;
+				int bestRef = bestNode.id;
 				PathfinderCommon.MeshTile bestTile = null;
 				PathfinderCommon.Poly bestPoly = null;
 				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
 
 				//get parent poly and tile
-				uint parentRef = 0;
+				int parentRef = 0;
 				PathfinderCommon.MeshTile parentTile = null;
 				PathfinderCommon.Poly parentPoly = null;
 				if (bestNode.pidx != 0)
@@ -387,9 +387,9 @@ namespace SharpNav
 				if (parentRef != 0)
 					m_nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
 
-				for (uint i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
+				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
-					uint neighbourRef = bestTile.links[i].reference;
+					int neighbourRef = bestTile.links[i].reference;
 
 					//skip invalid ids and do not expand back to where we came from
 					if (neighbourRef == 0 || neighbourRef == parentRef)
@@ -506,8 +506,8 @@ namespace SharpNav
 		/// <summary>
 		/// Add vertices and portals to a regular path computed from the method FindPath().
 		/// </summary>
-		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, uint[] path, int pathSize,
-			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize,
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			straightPathCount = 0;
 
@@ -540,8 +540,8 @@ namespace SharpNav
 				PolygonType leftPolyType = 0;
 				PolygonType rightPolyType = 0;
 
-				uint leftPolyRef = path[0];
-				uint rightPolyRef = path[0];
+				int leftPolyRef = path[0];
+				int rightPolyRef = path[0];
 
 				for (int i = 0; i < pathSize; i++)
 				{
@@ -578,8 +578,8 @@ namespace SharpNav
 						//if starting really close to the portal, advance
 						if (i == 0)
 						{
-							float t = 0;
-							if (PathfinderCommon.DistancePointSegmentSquare2D(portalApex, left, right, ref t) < 0.001 * 0.001)
+							float t;
+							if (MathHelper.Distance.PointToSegment2DSquared(ref portalApex, ref left, ref right, out t) < 0.001 * 0.001)
 								continue;
 						}
 					}
@@ -593,9 +593,12 @@ namespace SharpNav
 					}
 
 					//right vertex
-					if (Triangle3.Area2D(ref portalApex, ref portalRight, ref right) <= 0.0)
+					float triArea2D;
+					Triangle3.Area2D(ref portalApex, ref portalRight, ref right, out triArea2D);
+					if (triArea2D <= 0.0)
 					{
-						if (portalApex == portalRight || Triangle3.Area2D(ref portalApex, ref portalLeft, ref right) > 0.0)
+						Triangle3.Area2D(ref portalApex, ref portalLeft, ref right, out triArea2D);
+						if (portalApex == portalRight || triArea2D > 0.0)
 						{
 							portalRight = right;
 							rightPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
@@ -623,7 +626,7 @@ namespace SharpNav
 							else if (leftPolyType == PolygonType.OffMeshConnection)
 								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
-							uint reference = leftPolyRef;
+							int reference = leftPolyRef;
 
 							//append or update vertex
 							stat = AppendVertex(portalApex, flags, reference,
@@ -645,9 +648,11 @@ namespace SharpNav
 					}
 
 					//left vertex
-					if (Triangle3.Area2D(ref portalApex, ref portalLeft, ref left) >= 0.0)
+					Triangle3.Area2D(ref portalApex, ref portalLeft, ref left, out triArea2D);
+					if (triArea2D >= 0.0)
 					{
-						if (portalApex == portalLeft || Triangle3.Area2D(ref portalApex, ref portalRight, ref left) < 0.0f)
+						Triangle3.Area2D(ref portalApex, ref portalRight, ref left, out triArea2D);
+						if (portalApex == portalLeft || triArea2D < 0.0f)
 						{
 							portalLeft = left;
 							leftPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
@@ -674,7 +679,7 @@ namespace SharpNav
 							else if (rightPolyType == PolygonType.OffMeshConnection)
 								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
-							uint reference = rightPolyRef;
+							int reference = rightPolyRef;
 
 							//append or update vertex
 							stat = AppendVertex(portalApex, flags, reference,
@@ -716,7 +721,7 @@ namespace SharpNav
 		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
-		public bool GetEdgeMidPoint(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 mid)
+		public bool GetEdgeMidPoint(int from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, int to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 mid)
 		{
 			Vector3 left = new Vector3();
 			Vector3 right = new Vector3();
@@ -730,7 +735,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool GetPortalPoints(uint from, uint to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
+		public bool GetPortalPoints(int from, int to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
 		{
 			PathfinderCommon.MeshTile fromTile = null;
 			PathfinderCommon.Poly fromPoly = null;
@@ -747,11 +752,11 @@ namespace SharpNav
 			return GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right);
 		}
 
-		public bool GetPortalPoints(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 left, ref Vector3 right)
+		public bool GetPortalPoints(int from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, int to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 left, ref Vector3 right)
 		{
 			//find the link that points to the 'to' polygon
 			PathfinderCommon.Link link = null;
-			for (uint i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
+			for (int i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
 			{
 				if (fromTile.links[i].reference == to)
 				{
@@ -767,7 +772,7 @@ namespace SharpNav
 			if (fromPoly.GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (uint i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
+				for (int i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
 				{
 					if (fromTile.links[i].reference == to)
 					{
@@ -784,7 +789,7 @@ namespace SharpNav
 			if (toPoly.GetPolyType() == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (uint i = toPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = toTile.links[i].next)
+				for (int i = toPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = toTile.links[i].next)
 				{
 					if (toTile.links[i].reference == from)
 					{
@@ -821,7 +826,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool ClosestPointOnPolyBoundary(uint reference, Vector3 pos, ref Vector3 closest)
+		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
 		{
 			PathfinderCommon.MeshTile tile = null;
 			PathfinderCommon.Poly poly = null;
@@ -866,8 +871,8 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendVertex(Vector3 pos, int flags, uint reference,
-			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		public bool AppendVertex(Vector3 pos, int flags, int reference,
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
 		{
 			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
 			{
@@ -901,8 +906,8 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, uint[] path,
-			Vector3[] straightPath, int[] straightPathFlags, uint[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path,
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -911,13 +916,13 @@ namespace SharpNav
 			for (int i = startIdx; i < endIdx; i++)
 			{
 				//calculate portal
-				uint from = path[i];
+				int from = path[i];
 				PathfinderCommon.MeshTile fromTile = null;
 				PathfinderCommon.Poly fromPoly = null;
 				if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
 					return false;
 
-				uint to = path[i + 1];
+				int to = path[i + 1];
 				PathfinderCommon.MeshTile toTile = null;
 				PathfinderCommon.Poly toPoly = null;
 				if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
@@ -936,8 +941,8 @@ namespace SharpNav
 				}
 
 				//append intersection
-				float s = 0, t = 0;
-				if (PathfinderCommon.IntersectSegSeg2D(startPos, endPos, left, right, ref s, ref t))
+				float s, t;
+				if (MathHelper.Intersection.SegmentSegment2D(ref startPos, ref endPos, ref left, ref right, out s, out t))
 				{
 					Vector3 pt = Vector3.Lerp(left, right, t);
 
@@ -955,7 +960,7 @@ namespace SharpNav
 		/// <summary>
 		/// Return false if the provided position is outside the xz-bounds
 		/// </summary>
-		public bool GetPolyHeight(uint reference, Vector3 pos, ref float height)
+		public bool GetPolyHeight(int reference, Vector3 pos, ref float height)
 		{
 			if (m_nav == null)
 				return false;
@@ -1046,7 +1051,7 @@ namespace SharpNav
 		{
 			public Node lastBestNode;
 			public float lastBestNodeCost;
-			public uint startRef, endRef;
+			public int startRef, endRef;
 			public Vector3 startPos, endPos;
 			public QueryFilter filter;
 		}

@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -30,7 +30,7 @@ namespace SharpNav
 		public float total;
 		public int pidx = 30; //index to parent node
 		public NodeFlags flags = 0; //node flags 0/open/closed
-		public uint id; //polygon ref the node corresponds to
+		public int id; //polygon ref the node corresponds to
 
 		public float Cost { get { return total; } }
 	}

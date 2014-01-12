@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -39,7 +39,7 @@ namespace SharpNav
 				m_next[i] = 0xff;
 		}
 
-		public uint HashRef(uint a)
+		public int HashRef(int a)
 		{
 			a += ~(a << 15);
 			a ^= a >> 10;
@@ -59,9 +59,9 @@ namespace SharpNav
 			m_nodeCount = 0;
 		}
 
-		public Node FindNode(uint id)
+		public Node FindNode(int id)
 		{
-			uint bucket = HashRef(id) & ((uint)m_hashSize - 1);
+			int bucket = HashRef(id) & (m_hashSize - 1);
 			int i = m_first[bucket];
 
 			while (i != NULL_IDX)
@@ -75,9 +75,9 @@ namespace SharpNav
 			return null;
 		}
 
-		public Node GetNode(uint id)
+		public Node GetNode(int id)
 		{
-			uint bucket = HashRef(id) & ((uint)m_hashSize - 1);
+			int bucket = HashRef(id) & (m_hashSize - 1);
 			int i = m_first[bucket];
 
 			while (i != NULL_IDX)

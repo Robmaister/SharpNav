@@ -565,7 +565,7 @@ namespace SharpNav
 					//find the maximum deviation
 					while (ci != endi)
 					{
-						float deviation = MathHelper.DistanceFromPointToSegment2D(points[ci].X, points[ci].Z, ax, az, bx, bz);
+						float deviation = MathHelper.Distance.PointToSegment2D(points[ci].X, points[ci].Z, ax, az, bx, bz);
 						
 						if (deviation > maxDeviation)
 						{
