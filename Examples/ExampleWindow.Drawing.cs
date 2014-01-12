@@ -402,7 +402,7 @@ namespace Examples
 
 						int region = span.Region;
 						if (Region.IsBorder(region))
-							region = Region.RemoveBorderFlag(region);
+							region = Region.RemoveFlags(region);
 
 						Color4 col = regionColors[region];
 						GL.Color4(col);
@@ -448,7 +448,7 @@ namespace Examples
 			GL.LineWidth(5f);
 			GL.Begin(BeginMode.Lines);
 			
-			foreach (var c in contourSet.Contours)
+			foreach (var c in contourSet)
 			{
 				int region = c.RegionId;
 

@@ -140,8 +140,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool FindRandomPointAroundCircle(uint startRef, Vector3 centerPos, float radius, ref QueryFilter filter, 
-			ref uint randomRef, ref Vector3 randomPt)
+		public bool FindRandomPointAroundCircle(uint startRef, Vector3 centerPos, float radius, ref QueryFilter filter, ref uint randomRef, ref Vector3 randomPt)
 		{
 			if (m_nav == null)
 				return false;
@@ -324,8 +323,7 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
-		public bool FindPath(uint startRef, uint endRef, ref Vector3 startPos, ref Vector3 endPos, 
-			ref QueryFilter filter, uint[] path, ref int pathCount, int maxPath)
+		public bool FindPath(uint startRef, uint endRef, ref Vector3 startPos, ref Vector3 endPos, ref QueryFilter filter, uint[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
 
@@ -718,8 +716,7 @@ namespace SharpNav
 		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
-		public bool GetEdgeMidPoint(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile,
-			uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 mid)
+		public bool GetEdgeMidPoint(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 mid)
 		{
 			Vector3 left = new Vector3();
 			Vector3 right = new Vector3();
@@ -750,8 +747,7 @@ namespace SharpNav
 			return GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right);
 		}
 
-		public bool GetPortalPoints(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile,
-			uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 left, ref Vector3 right)
+		public bool GetPortalPoints(uint from, PathfinderCommon.Poly fromPoly, PathfinderCommon.MeshTile fromTile, uint to, PathfinderCommon.Poly toPoly, PathfinderCommon.MeshTile toTile, ref Vector3 left, ref Vector3 right)
 		{
 			//find the link that points to the 'to' polygon
 			PathfinderCommon.Link link = null;

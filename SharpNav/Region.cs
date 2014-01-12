@@ -21,7 +21,13 @@ namespace SharpNav
 		/// <summary>
 		/// The border region flag.
 		/// </summary>
-		private const int BorderFlag = unchecked((int)0x80000000);
+		public const int BorderFlag = unchecked((int)0x80000000);
+
+		public const int VertexBorderFlag = unchecked((int)0x20000000);
+
+		public const int AreaBorderFlag = unchecked((int)0x40000000);
+
+		public const int IdMask = 0x1fffffff;
 
 		private int spanCount;
 		private int id;
@@ -81,9 +87,9 @@ namespace SharpNav
 			return id | BorderFlag;
 		}
 
-		public static int RemoveBorderFlag(int id)
+		public static int RemoveFlags(int id)
 		{
-			return id & ~BorderFlag;
+			return id & IdMask;
 		}
 
 		public static bool IsBorder(int id)
@@ -114,6 +120,36 @@ namespace SharpNav
 		public bool IsBorderOrNull()
 		{
 			return id == 0 || (id & BorderFlag) == BorderFlag;
+		}
+
+		public static void SetBorderVertex(ref int region)
+		{
+			region |= VertexBorderFlag;
+		}
+
+		public static void SetAreaBorder(ref int region)
+		{
+			region |= AreaBorderFlag;
+		}
+
+		public static bool IsBorderVertex(int r)
+		{
+			return (r & VertexBorderFlag) != 0;
+		}
+
+		public static bool IsAreaBorder(int r)
+		{
+			return (r & AreaBorderFlag) != 0;
+		}
+
+		public static bool IsSameArea(int region1, int region2)
+		{
+			return (region1 & AreaBorderFlag) == (region2 & AreaBorderFlag);
+		}
+
+		public static bool IsSameRegion(int region1, int region2)
+		{
+			return (region1 & IdMask) == (region2 & IdMask);
 		}
 
 		/// <summary>

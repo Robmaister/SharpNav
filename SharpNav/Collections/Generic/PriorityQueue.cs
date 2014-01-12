@@ -38,6 +38,14 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+		bool ICollection<T>.IsReadOnly
+		{
+			get
+			{
+				return false;
+			}
+		}
+
 		public void Clear()
 		{
 			size = 0;
@@ -100,14 +108,6 @@ namespace SharpNav.Collections.Generic
 				throw new ArgumentException("array not large enough to hold priority queue", "array");
 
 			Array.Copy(heap, 0, array, arrayIndex, heap.Length);
-		}
-
-		bool ICollection<T>.IsReadOnly
-		{
-			get
-			{
-				return false;
-			}
 		}
 
 		bool ICollection<T>.Remove(T item)

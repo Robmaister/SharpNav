@@ -23,6 +23,20 @@ namespace SharpNav
 {
 	public class PolyMeshDetail
 	{
+		//9 x 2
+		private static readonly int[] VertexOffset =
+		{
+			0, 0,
+			-1, -1,
+			0, -1,
+			1, -1,
+			1, 0,
+			1, 1,
+			0, 1,
+			-1, 1,
+			-1, 0
+		};
+		
 		private int nmeshes;
 		private int nverts;
 		private int ntris;
@@ -345,12 +359,7 @@ namespace SharpNav
 		/// <param name="hp">Heightpatch which extracts heightfield data</param>
 		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, HeightPatch hp)
 		{
-			//9 x 2
-			int[] offset = { 0,0, -1,-1, 0,-1, 
-								1,-1, 1,0, 1,1, 
-								0,1, -1,1, -1,0 };
-
-			var stack = new Stack<CompactHeightfield.CellData>();
+			var stack = new Stack<CompactSpanReference>();
 
 			//use poly vertices as seed points
 			for (int j = 0; j < numVertsPerPoly; j++)
@@ -361,9 +370,9 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					int ax = (int)verts[poly[polyStartIndex].Vertices[j]].X + offset[k * 2 + 0];
+					int ax = (int)verts[poly[polyStartIndex].Vertices[j]].X + VertexOffset[k * 2 + 0];
 					int ay = (int)verts[poly[polyStartIndex].Vertices[j]].Y;
-					int az = (int)verts[poly[polyStartIndex].Vertices[j]].Z + offset[k * 2 + 1];
+					int az = (int)verts[poly[polyStartIndex].Vertices[j]].Z + VertexOffset[k * 2 + 1];
 
 					//skip if out of bounds
 					if (ax < hp.X || ax >= hp.X + hp.Width ||
@@ -394,7 +403,7 @@ namespace SharpNav
 				//only add if something new found
 				if (ci != -1)
 				{
-					stack.Push(new CompactHeightfield.CellData(cx, cz, ci));
+					stack.Push(new CompactSpanReference(cx, cz, ci));
 				}
 			}
 
@@ -432,7 +441,7 @@ namespace SharpNav
 					//clear the stack and add a new group
 					stack.Clear();
 
-					stack.Push(new CompactHeightfield.CellData(cx, cy, ci));
+					stack.Push(new CompactSpanReference(cx, cy, ci));
 					break;
 				}
 
@@ -466,7 +475,7 @@ namespace SharpNav
 					hp[idx] = 1;
 
 					//push to stack
-					stack.Push(new CompactHeightfield.CellData(ax, ay, ai));
+					stack.Push(new CompactSpanReference(ax, ay, ai));
 				}
 			}
 
@@ -482,7 +491,7 @@ namespace SharpNav
 				hp[idx] = cs.Minimum;
 			}
 
-			BufferedStack<CompactHeightfield.CellData> bufferedStack = new BufferedStack<CompactHeightfield.CellData>(256, stack);
+			BufferedStack<CompactSpanReference> bufferedStack = new BufferedStack<CompactSpanReference>(256, stack);
 			int head = 0;
 
 			while (head < bufferedStack.Count)
@@ -526,14 +535,13 @@ namespace SharpNav
 					hp[idx] = ds.Minimum;
 
 					//add grouping to stack, adjust head if buffer resets
-					if (bufferedStack.Push(new CompactHeightfield.CellData(ax, ay, ai)))
+					if (bufferedStack.Push(new CompactSpanReference(ax, ay, ai)))
 						head = 0;
 				}
 			}
 		}
 
-		private void BuildPolyDetail(Vector3[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp,
-			Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<int> samples)
+		private void BuildPolyDetail(Vector3[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;

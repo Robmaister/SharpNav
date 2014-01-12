@@ -23,15 +23,10 @@ namespace SharpNav
 		//raw vertices derived directly from CompactHeightfield
 		public RawVertex[] RawVertices;
 
+		//applied to region id field of contour vertices in order to extract region id
+
 		private int regionId;
 		private AreaFlags area;
-
-		//flags used in the build process
-		private const int VertexBorderFlag = 0x10000;
-		private const int AreaBorderFlag = 0x20000;
-
-		//applied to region id field of contour vertices in order to extract region id
-		private const int ContourRegionMask = 0xffff;
 
 		public Contour(IEnumerable<Vertex> simplified, IEnumerable<RawVertex> verts, int reg, AreaFlags area, int borderSize)
 		{
@@ -55,61 +50,6 @@ namespace SharpNav
 					RawVertices[j].Z -= borderSize;
 				}
 			}
-		}
-
-		public static void SetBorderVertex(ref int region)
-		{
-			region |= VertexBorderFlag;
-		}
-
-		public static void SetAreaBorder(ref int region)
-		{
-			region |= AreaBorderFlag;
-		}
-
-		public static bool IsBorderVertex(int r)
-		{
-			return (r & VertexBorderFlag) != 0;
-		}
-
-		public static bool IsAreaBorder(int r)
-		{
-			return (r & AreaBorderFlag) != 0;
-		}
-
-		public static bool IsSameArea(int region1, int region2)
-		{
-			return (region1 & AreaBorderFlag) == (region2 & AreaBorderFlag);
-		}
-
-		public static int ExtractRegionId(int r)
-		{
-			return r & ContourRegionMask;
-		}
-
-		public static bool IsSameRegion(int region1, int region2)
-		{
-			return ExtractRegionId(region1) == ExtractRegionId(region2);
-		}
-
-		public static bool CanTessellateWallEdges(ContourBuildFlags buildFlags)
-		{
-			return (buildFlags & ContourBuildFlags.TessellateWallEdges) != 0;
-		}
-
-		public static bool CanTessellateAreaEdges(ContourBuildFlags buildFlags)
-		{
-			return (buildFlags & ContourBuildFlags.TessellateAreaEdges) != 0;
-		}
-
-		public static bool CanTessellateEitherWallOrAreaEdges(ContourBuildFlags buildFlags)
-		{
-			return (buildFlags & (ContourBuildFlags.TessellateWallEdges | ContourBuildFlags.TessellateAreaEdges)) != 0;
-		}
-
-		public static int GetNewRegion(int region1, int region2)
-		{
-			return (region1 & (ContourRegionMask | AreaBorderFlag)) | (region2 & VertexBorderFlag);
 		}
 
 		//TODO operator overload == and != with null?
@@ -156,6 +96,71 @@ namespace SharpNav
 				}
 
 				return (area + 1) / 2; 
+			}
+		}
+
+		public void Merge(Contour contour)
+		{
+			int lengthA = Vertices.Length;
+			int lengthB = contour.Vertices.Length;
+
+			int ia, ib;
+			GetClosestIndices(this, contour, out ia, out ib);
+
+			//create a list with the capacity set to the max number of possible verts to avoid expanding the list.
+			var newVerts = new List<Contour.Vertex>(Vertices.Length + contour.Vertices.Length + 2);
+
+			//copy contour A
+			for (int i = 0; i <= lengthA; i++)
+				newVerts.Add(Vertices[(ia + i) % lengthA]);
+
+			//add contour B (other contour) to contour A (this contour)
+			for (int i = 0; i <= lengthB; i++)
+				newVerts.Add(contour.Vertices[(ib + i) % lengthB]);
+
+			Vertices = newVerts.ToArray();
+		}
+
+		/// <summary>
+		/// Required to find closest indices for merging.
+		/// </summary>
+		/// <param name="vertsA">First set of vertices</param>
+		/// <param name="vertsB">Second set of vertices</param>
+		/// <param name="indexA">First index</param>
+		/// <param name="indexB">Second index</param>
+		private static void GetClosestIndices(Contour a, Contour b, out int indexA, out int indexB)
+		{
+			int closestDistance = int.MaxValue;
+			int lengthA = a.Vertices.Length;
+			int lengthB = b.Vertices.Length;
+
+			indexA = -1;
+			indexB = -1;
+
+			for (int i = 0; i < lengthA; i++)
+			{
+				int vertA = i;
+				int vertANext = (i + 1) % lengthA;
+				int vertAPrev = (i + lengthA - 1) % lengthA;
+
+				for (int j = 0; j < lengthB; j++)
+				{
+					int vertB = j;
+
+					//vertB must be infront of vertA
+					if (Contour.Vertex.IsLeft(ref a.Vertices[vertAPrev], ref a.Vertices[vertA], ref b.Vertices[vertB]) && Contour.Vertex.IsLeft(ref a.Vertices[vertA], ref a.Vertices[vertANext], ref b.Vertices[vertB]))
+					{
+						int dx = b.Vertices[vertB].X - a.Vertices[vertA].X;
+						int dz = b.Vertices[vertB].Z - a.Vertices[vertA].Z;
+						int tempDist = dx * dx + dz * dz;
+						if (tempDist < closestDistance)
+						{
+							indexA = i;
+							indexB = j;
+							closestDistance = tempDist;
+						}
+					}
+				}
 			}
 		}
 

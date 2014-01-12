@@ -66,7 +66,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the number of spans that don't have their area flags set to <see cref="AreaFlags.Null"/>.
 		/// </summary>
-		public int NonNullSpanCount
+		public int WalkableSpanCount
 		{
 			get
 			{

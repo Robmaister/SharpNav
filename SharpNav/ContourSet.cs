@@ -144,57 +144,42 @@ namespace SharpNav
 				}
 			}
 
-			//Check and merge holes
+			//Check and merge bad contours
 			for (int i = 0; i < contours.Count; i++)
 			{
 				Contour cont = contours[i];
 
-				//check if contour is backwards
+				//Check if contour is backwards
 				if (cont.Area2D < 0)
 				{
-					//find another contour with same region id
-					int mergeIdx = -1;
+					//Find another contour to merge with
+					int mergeIndex = -1;
 					for (int j = 0; j < contours.Count; j++)
 					{
-						//don't compare to itself
-						if (i == j) continue;
+						if (i == j)
+							continue;
 
+						//Must have at least one vertex, the same region ID, and be going forwards.
 						Contour contj = contours[j];
-
-						//same region id
-						if (contj.Vertices.Length != 0 && contj.RegionId == cont.RegionId)
+						if (contj.Vertices.Length != 0 && contj.RegionId == cont.RegionId && contj.Area2D > 0)
 						{
-							//make sure polygon is correctly oriented
-							if (contj.Area2D > 0)
-							{
-								mergeIdx = j;
-								break;
-							}
+							mergeIndex = j;
+							break;
 						}
 					}
 
-					//only merge if needed
-					if (mergeIdx != -1)
-					{
-						Contour mcont = contours[mergeIdx];
-
-						//merge by closest points
-						int ia, ib;
-						GetClosestIndices(mcont.Vertices, cont.Vertices, out ia, out ib);
-						if (ia == -1 || ib == -1)
-							continue;
-
-						MergeContours(mcont, cont, ia, ib);
-					}
+					//Merge if found.
+					if (mergeIndex != -1)
+						contours[mergeIndex].Merge(cont);
 				}
 			}
 		}
 
-		public List<Contour> Contours
+		public int Count
 		{
 			get
 			{
-				return contours;
+				return contours.Count;
 			}
 		}
 
@@ -244,6 +229,16 @@ namespace SharpNav
 			{
 				return borderSize;
 			}
+		}
+
+		public bool Contains(Contour item)
+		{
+			return contours.Contains(item);
+		}
+
+		public void CopyTo(Contour[] array, int arrayIndex)
+		{
+			contours.CopyTo(array, arrayIndex);
 		}
 
 		/// <summary>
@@ -310,10 +305,10 @@ namespace SharpNav
 					
 					// apply flags if neccessary
 					if (isBorderVertex)
-						Contour.SetBorderVertex(ref r);
+						Region.SetBorderVertex(ref r);
 
 					if (isAreaBorder)
-						Contour.SetAreaBorder(ref r);
+						Region.SetAreaBorder(ref r);
 					
 					//save the point
 					points.Add(new Contour.RawVertex(px, py, pz, r));
@@ -338,7 +333,9 @@ namespace SharpNav
 					if (di == -1)
 					{
 						// shouldn't happen
-						return;
+						// TODO if this shouldn't happen, this check shouldn't be necessary.
+						throw new InvalidOperationException("Something went wrong");
+						//return;
 					}
 					
 					x = dx;
@@ -462,7 +459,7 @@ namespace SharpNav
 			bool hasConnections = false;
 			for (int i = 0; i < points.Count; i++)
 			{
-				if (Contour.ExtractRegionId(points[i].RegionId) != 0)
+				if (Region.RemoveFlags(points[i].RegionId) != 0)
 				{
 					hasConnections = true;
 					break;
@@ -476,8 +473,8 @@ namespace SharpNav
 				for (int i = 0, end = points.Count; i < end; i++)
 				{
 					int ii = (i + 1) % end;
-					bool differentRegions = !Contour.IsSameRegion(points[i].RegionId, points[ii].RegionId);
-					bool areaBorders = !Contour.IsSameArea(points[i].RegionId, points[ii].RegionId);
+					bool differentRegions = !Region.IsSameRegion(points[i].RegionId, points[ii].RegionId);
+					bool areaBorders = !Region.IsSameArea(points[i].RegionId, points[ii].RegionId);
 					
 					if (differentRegions || areaBorders)
 					{
@@ -563,7 +560,7 @@ namespace SharpNav
 				}
 
 				//tessellate only outer edges or edges between areas
-				if (Contour.ExtractRegionId(points[ci].RegionId) == 0 || Contour.IsAreaBorder(points[ci].RegionId))
+				if (Region.RemoveFlags(points[ci].RegionId) == 0 || Region.IsAreaBorder(points[ci].RegionId))
 				{
 					//find the maximum deviation
 					while (ci != endi)
@@ -603,7 +600,7 @@ namespace SharpNav
 			}
 
 			//split too long edges
-			if (maxEdgeLen > 0 && Contour.CanTessellateEitherWallOrAreaEdges(buildFlags))
+			if (maxEdgeLen > 0 && (buildFlags & (ContourBuildFlags.TessellateAreaEdges | ContourBuildFlags.TessellateWallEdges)) != 0)
 			{
 				for (int i = 0; i < simplified.Count;)
 				{
@@ -626,11 +623,11 @@ namespace SharpNav
 					bool tess = false;
 
 					//wall edges
-					if (Contour.CanTessellateWallEdges(buildFlags) && Contour.ExtractRegionId(points[ci].RegionId) == 0)
+					if ((buildFlags & ContourBuildFlags.TessellateWallEdges) != 0 && Region.RemoveFlags(points[ci].RegionId) == 0)
 						tess = true;
 
 					//edges between areas
-					if (Contour.CanTessellateAreaEdges(buildFlags) && Contour.IsAreaBorder(points[ci].RegionId))
+					if ((buildFlags & ContourBuildFlags.TessellateAreaEdges) != 0 && Region.IsAreaBorder(points[ci].RegionId))
 						tess = true;
 
 					if (tess)
@@ -684,7 +681,7 @@ namespace SharpNav
 				int bi = sv.RawVertexIndex;
 
 				//save new region id
-				sv.RawVertexIndex = Contour.GetNewRegion(points[ai].RegionId, points[bi].RegionId);
+				sv.RawVertexIndex = (points[ai].RegionId & (Region.IdMask | Region.AreaBorderFlag)) | (points[bi].RegionId & Region.VertexBorderFlag);
 
 				simplified[i] = sv;
 			}
@@ -710,77 +707,6 @@ namespace SharpNav
 					simplified.RemoveAt(i);
 				}
 			}
-		}
-
-		/// <summary>
-		/// Required to find closest indices for merging.
-		/// </summary>
-		/// <param name="vertsA">First set of vertices</param>
-		/// <param name="vertsB">Second set of vertices</param>
-		/// <param name="indexA">First index</param>
-		/// <param name="indexB">Second index</param>
-		private static void GetClosestIndices(Contour.Vertex[] vertsA, Contour.Vertex[] vertsB, out int indexA, out int indexB)
-		{
-			int closestDistance = int.MaxValue;
-			int lengthA = vertsA.Length;
-			int lengthB = vertsB.Length;
-
-			indexA = -1;
-			indexB = -1;
-
-			for (int i = 0; i < lengthA; i++)
-			{
-				int vertA = i;
-				int vertANext = (i + 1) % lengthA;
-				int vertAPrev = (i + lengthA - 1) % lengthA;
-
-				for (int j = 0; j < lengthB; j++)
-				{
-					int vertB = j; 
-					
-					//vertB must be infront of vertA
-					if (ILeft(ref vertsA[vertAPrev], ref vertsA[vertA], ref vertsB[vertB]) && ILeft(ref vertsA[vertA], ref vertsA[vertANext], ref vertsB[vertB]))
-					{
-						int dx = vertsB[vertB].X - vertsA[vertA].X;
-						int dz = vertsB[vertB].Z - vertsA[vertA].Z;
-						int tempDist = dx * dx + dz * dz;
-						if (tempDist < closestDistance)
-						{
-							indexA = i;
-							indexB = j;
-							closestDistance = tempDist;
-						}
-					}
-				}
-			}
-		}
-
-		/// <summary>
-		/// Helper method for GetClosestIndices function
-		/// </summary>
-		private static bool ILeft(ref Contour.Vertex a, ref Contour.Vertex b, ref Contour.Vertex c)
-		{
-			return (b.X - a.X) * (c.Z - a.Z)
-				 - (c.X - a.X) * (b.Z - a.Z) <= 0;
-		}
-
-		private static void MergeContours(Contour contA, Contour contB, int ia, int ib)
-		{
-			int lengthA = contA.Vertices.Length;
-			int lengthB = contB.Vertices.Length;
-
-			//create a list with the capacity set to the max number of possible verts to avoid expanding the list.
-			var newVerts = new List<Contour.Vertex>(contA.Vertices.Length + contB.Vertices.Length + 2);
-
-			//copy contour A
-			for (int i = 0; i <= lengthA; i++)
-				newVerts.Add(contA.Vertices[(ia + i) % lengthA]);
-
-			//add contour B (other contour) to contour A (this contour)
-			for (int i = 0; i <= lengthB; i++)
-				newVerts.Add(contB.Vertices[(ib + i) % lengthB]);
-
-			contA.Vertices = newVerts.ToArray();
 		}
 
 		private static void MarkInternalEdges(ref int flag, Direction dir)
@@ -824,21 +750,6 @@ namespace SharpNav
 		void ICollection<Contour>.Clear()
 		{
 			throw new InvalidOperationException();
-		}
-
-		public bool Contains(Contour item)
-		{
-			return contours.Contains(item);
-		}
-
-		public void CopyTo(Contour[] array, int arrayIndex)
-		{
-			contours.CopyTo(array, arrayIndex);
-		}
-
-		public int Count
-		{
-			get { return contours.Count; }
 		}
 
 		bool ICollection<Contour>.IsReadOnly

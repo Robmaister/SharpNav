@@ -85,6 +85,7 @@
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />
+    <Compile Include="CompactSpanReference.cs" />
     <Compile Include="Contour.cs" />
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="CompactHeightfield.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Span.cs" />
+    <Compile Include="SpanReference.cs" />
     <Compile Include="TiledNavMesh.cs" />
     <Compile Include="Vector3.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>

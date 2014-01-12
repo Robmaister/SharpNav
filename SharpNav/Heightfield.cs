@@ -183,7 +183,7 @@ namespace SharpNav
 			{
 				int count = 0;
 				for (int i = 0; i < cells.Length; i++)
-					count += cells[i].NonNullSpanCount;
+					count += cells[i].WalkableSpanCount;
 
 				return count;
 			}
@@ -219,6 +219,14 @@ namespace SharpNav
 					throw new ArgumentOutOfRangeException();
 
 				return cells[i];
+			}
+		}
+
+		public Span this[SpanReference spanRef]
+		{
+			get
+			{
+				return cells[spanRef.Y * width + spanRef.X].Spans[spanRef.Index];
 			}
 		}
 
