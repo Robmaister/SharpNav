@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -26,21 +27,21 @@ namespace SharpNav
 		//This class will create tiled data.
 		private PathfinderCommon.MeshHeader header;
 		private Vector3[] navVerts;
-		private PathfinderCommon.Poly[] navPolys;
-		private PathfinderCommon.PolyDetail[] navDMeshes;
+		private Poly[] navPolys;
+		private PolyDetail[] navDMeshes;
 		private Vector3[] navDVerts;
 		private PolyMeshDetail.TriangleData[] navDTris;
-		private PathfinderCommon.BVNode[] navBvTree;
-		private PathfinderCommon.OffMeshConnection[] offMeshCons;
+		private BVNode[] navBvTree;
+		private OffMeshConnection[] offMeshCons;
 
 		public PathfinderCommon.MeshHeader Header { get { return header; } }
 		public Vector3[] NavVerts { get { return navVerts; } }
-		public PathfinderCommon.Poly[] NavPolys { get { return navPolys; } }
-		public PathfinderCommon.PolyDetail[] NavDMeshes { get { return navDMeshes; } }
+		public Poly[] NavPolys { get { return navPolys; } }
+		public PolyDetail[] NavDMeshes { get { return navDMeshes; } }
 		public Vector3[] NavDVerts { get { return navDVerts; } }
 		public PolyMeshDetail.TriangleData[] NavDTris { get { return navDTris; } }
-		public PathfinderCommon.BVNode[] NavBvTree { get { return navBvTree; } }
-		public PathfinderCommon.OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
+		public BVNode[] NavBvTree { get { return navBvTree; } }
+		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
 		public NavMeshBuilder(NavMeshCreateParams parameters)
 		{
@@ -192,12 +193,12 @@ namespace SharpNav
 			//allocate data
 			header = new PathfinderCommon.MeshHeader();
 			navVerts = new Vector3[totVertCount];
-			navPolys = new PathfinderCommon.Poly[totPolyCount];
-			navDMeshes = new PathfinderCommon.PolyDetail[parameters.polyCount];
+			navPolys = new Poly[totPolyCount];
+			navDMeshes = new PolyDetail[parameters.polyCount];
 			navDVerts = new Vector3[uniqueDetailVertCount];
 			navDTris = new PolyMeshDetail.TriangleData[detailTriCount];
-			navBvTree = new PathfinderCommon.BVNode[parameters.polyCount * 2];
-			offMeshCons = new PathfinderCommon.OffMeshConnection[storedOffMeshConCount];
+			navBvTree = new BVNode[parameters.polyCount * 2];
+			offMeshCons = new OffMeshConnection[storedOffMeshConCount];
 
 			//store header
 			//header.magic = PathfinderCommon.NAVMESH_MAGIC;
@@ -248,7 +249,7 @@ namespace SharpNav
 			//store polygons
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
-				navPolys[i] = new PathfinderCommon.Poly();
+				navPolys[i] = new Poly();
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
 				navPolys[i].SetArea((int)parameters.polyAreas[i]);
@@ -313,9 +314,9 @@ namespace SharpNav
 					int vb = parameters.detailMeshes[i].VertexIndex;
 					int ndv = parameters.detailMeshes[i].VertexCount;
 					int nv = navPolys[i].vertCount;
-					navDMeshes[i].vertBase = (uint)vbase;
+					navDMeshes[i].vertBase = vbase;
 					navDMeshes[i].vertCount = ndv - nv;
-					navDMeshes[i].triBase = (uint)parameters.detailMeshes[i].TriangleIndex;
+					navDMeshes[i].triBase = parameters.detailMeshes[i].TriangleIndex;
 					navDMeshes[i].triCount = parameters.detailMeshes[i].TriangleCount;
 
 					//copy vertices except for first 'nv' verts which are equal to nav poly verts
@@ -343,7 +344,7 @@ namespace SharpNav
 					int nv = navPolys[i].vertCount;
 					navDMeshes[i].vertBase = 0;
 					navDMeshes[i].vertCount = 0;
-					navDMeshes[i].triBase = (uint)tbase;
+					navDMeshes[i].triBase = tbase;
 					navDMeshes[i].triCount = nv - 2;
 
 					//triangulate polygon
@@ -382,9 +383,8 @@ namespace SharpNav
 					offMeshCons[n].poly = offMeshPolyBase + n;
 
 					//copy connection end points
-					offMeshCons[n].pos = new Vector3[2];
-					offMeshCons[n].pos[0] = parameters.offMeshConVerts[i * 2 + 0];
-					offMeshCons[n].pos[1] = parameters.offMeshConVerts[i * 2 + 1];
+					offMeshCons[n].pos0 = parameters.offMeshConVerts[i * 2 + 0];
+					offMeshCons[n].pos1 = parameters.offMeshConVerts[i * 2 + 1];
 
 					offMeshCons[n].radius = parameters.offMeshConRadii[i];
 					offMeshCons[n].flags = (parameters.offMeshConDir[i] != 0) ? PathfinderCommon.OFFMESH_CON_BIDIR : 0;
@@ -440,10 +440,10 @@ namespace SharpNav
 			return 0xff;
 		}
 
-		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, PathfinderCommon.BVNode[] nodes)
+		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
 		{
 			//build bounding volume tree
-			PathfinderCommon.BVNode[] items = new PathfinderCommon.BVNode[npolys];
+			BVNode[] items = new BVNode[npolys];
 			for (int i = 0; i < npolys; i++)
 			{
 				items[i].index = i;
@@ -479,7 +479,7 @@ namespace SharpNav
 			return curNode;
 		}
 
-		public void Subdivide(PathfinderCommon.BVNode[] items, int nitems, int imin, int imax, ref int curNode, PathfinderCommon.BVNode[] nodes)
+		public void Subdivide(BVNode[] items, int nitems, int imin, int imax, ref int curNode, BVNode[] nodes)
 		{
 			int inum = imax - imin;
 			int icur = curNode;
@@ -532,7 +532,7 @@ namespace SharpNav
 			}
 		}
 
-		public void CalcExtends(PathfinderCommon.BVNode[] items, int imin, int imax, ref BBox3 bounds)
+		public void CalcExtends(BVNode[] items, int imin, int imax, ref BBox3 bounds)
 		{
 			bounds = items[imin].bounds;
 
@@ -563,9 +563,9 @@ namespace SharpNav
 			return axis;
 		}
 
-		private class CompareItemX : IComparer<PathfinderCommon.BVNode>
+		private class CompareItemX : IComparer<BVNode>
 		{
-			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
+			public int Compare(BVNode a, BVNode b)
 			{
 				if (a.bounds.Min.X < b.bounds.Min.X)
 					return -1;
@@ -577,9 +577,9 @@ namespace SharpNav
 			}
 		}
 
-		private class CompareItemY : IComparer<PathfinderCommon.BVNode>
+		private class CompareItemY : IComparer<BVNode>
 		{
-			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
+			public int Compare(BVNode a, BVNode b)
 			{
 				if (a.bounds.Min.Y < b.bounds.Min.Y)
 					return -1;
@@ -591,9 +591,9 @@ namespace SharpNav
 			}
 		}
 
-		private class CompareItemZ : IComparer<PathfinderCommon.BVNode>
+		private class CompareItemZ : IComparer<BVNode>
 		{
-			public int Compare(PathfinderCommon.BVNode a, PathfinderCommon.BVNode b)
+			public int Compare(BVNode a, BVNode b)
 			{
 				if (a.bounds.Min.Z < b.bounds.Min.Z)
 					return -1;

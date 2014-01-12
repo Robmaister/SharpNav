@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -39,12 +40,12 @@ namespace SharpNav
 				m_areaCost[i] = 1.0f;
 		}
 
-		public bool PassFilter(PathfinderCommon.Poly poly)
+		public bool PassFilter(Poly poly)
 		{
 			return (poly.flags & m_includeFlags) != 0 && (poly.flags & m_excludeFlags) == 0;
 		}
 
-		public float GetCost(Vector3 pa, Vector3 pb, PathfinderCommon.Poly curPoly)
+		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
 		{
 			return (pa - pb).Length() * m_areaCost[curPoly.GetArea()];
 		}

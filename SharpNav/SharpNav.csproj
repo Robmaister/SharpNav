@@ -92,6 +92,13 @@
     <Compile Include="Direction.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
+    <Compile Include="Pathfinding\BVNode.cs" />
+    <Compile Include="Pathfinding\Link.cs" />
+    <Compile Include="Pathfinding\MeshTile.cs" />
+    <Compile Include="Pathfinding\NavMeshParams.cs" />
+    <Compile Include="Pathfinding\OffMeshConnection.cs" />
+    <Compile Include="Pathfinding\Poly.cs" />
+    <Compile Include="Pathfinding\PolyDetail.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="NavMeshCreateParams.cs" />
@@ -101,7 +108,7 @@
     <Compile Include="NodePool.cs" />
     <Compile Include="NodeFlags.cs" />
     <Compile Include="PathfinderCommon.cs" />
-    <Compile Include="PolygonType.cs" />
+    <Compile Include="Pathfinding\PolygonType.cs" />
     <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />

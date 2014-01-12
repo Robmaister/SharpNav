@@ -7,7 +7,7 @@
 
 using System;
 
-namespace SharpNav
+namespace SharpNav.Pathfinding
 {
 	/// <summary>
 	/// Flags representing the type of a navmesh polygon.

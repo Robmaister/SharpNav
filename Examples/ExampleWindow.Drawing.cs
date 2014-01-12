@@ -13,13 +13,14 @@ using OpenTK.Graphics.OpenGL;
 
 using SharpNav;
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 //Prevents name collision under the Standalone configuration
 #if !OPENTK
 using Vector3 = OpenTK.Vector3;
 using SVector3 = SharpNav.Vector3;
 #else
-
+using SVector3 = OpenTK.Vector3;
 #endif
 
 namespace Examples
@@ -660,8 +661,8 @@ namespace Examples
 				GL.Color4(color);
 
 				int polyRef = path[i];
-				PathfinderCommon.MeshTile tile = null;
-				PathfinderCommon.Poly poly = null;
+				MeshTile tile = null;
+				Poly poly = null;
 				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
 			
 				for (int j = 2; j < poly.vertCount; j++)
@@ -698,8 +699,8 @@ namespace Examples
 				GL.Color4(color);
 
 				int polyRef = path[i];
-				PathfinderCommon.MeshTile tile = null;
-				PathfinderCommon.Poly poly = null;
+				MeshTile tile = null;
+				Poly poly = null;
 				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
 
 				for (int j = 0; j < poly.vertCount; j++)

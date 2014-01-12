@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -22,23 +23,23 @@ namespace SharpNav
 {
 	public class TiledNavMesh
 	{
-		private PathfinderCommon.NavMeshParams m_params;
+		private NavMeshParams m_params;
 		private Vector3 m_origin;
 		private float m_tileWidth, m_tileHeight;
 		private int m_maxTiles;
 		private int m_tileLutSize; //tile hash lookup size
 		private int m_tileLutMask; //tile hash lookup mask
 
-		private PathfinderCommon.MeshTile[] m_posLookup; //tile hash lookup
-		private PathfinderCommon.MeshTile m_nextFree; //freelist of tiles
-		private PathfinderCommon.MeshTile[] m_tiles; //list of tiles
+		private MeshTile[] m_posLookup; //tile hash lookup
+		private MeshTile m_nextFree; //freelist of tiles
+		private MeshTile[] m_tiles; //list of tiles
 
 		private int m_saltBits; //number of salt bits in ID
 		private int m_tileBits; //number of tile bits in ID
 		private int m_polyBits; //number of poly bits in ID
 
 		public int GetMaxTiles() { return m_maxTiles; }
-		public PathfinderCommon.MeshTile GetTile(int i) { return m_tiles[i]; }
+		public MeshTile GetTile(int i) { return m_tiles[i]; }
 
 		public int GetReference(int polyBase, int poly)
 		{
@@ -53,7 +54,7 @@ namespace SharpNav
 			//if (data.Header.version != PathfinderCommon.NAVMESH_VERSION) //TODO: output error message?
 			//	return;
 
-			PathfinderCommon.NavMeshParams parameters;
+			NavMeshParams parameters;
 			parameters.origin = data.Header.bounds.Min;
 			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
 			parameters.tileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
@@ -67,7 +68,7 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
-		public bool InitTileNavMesh(PathfinderCommon.NavMeshParams parameters)
+		public bool InitTileNavMesh(NavMeshParams parameters)
 		{
 			m_params = parameters;
 			m_origin = parameters.origin;
@@ -81,10 +82,10 @@ namespace SharpNav
 				m_tileLutSize = 1;
 			m_tileLutMask = m_tileLutSize - 1;
 
-			m_tiles = new PathfinderCommon.MeshTile[m_maxTiles];
-			m_posLookup = new PathfinderCommon.MeshTile[m_tileLutSize];
+			m_tiles = new MeshTile[m_maxTiles];
+			m_posLookup = new MeshTile[m_tileLutSize];
 			for (int i = 0; i < m_tiles.Length; i++)
-				m_tiles[i] = new PathfinderCommon.MeshTile();
+				m_tiles[i] = new MeshTile();
 			for (int i = 0; i < m_posLookup.Length; i++)
 				m_posLookup[i] = null;
 
@@ -123,7 +124,7 @@ namespace SharpNav
 				return;
 
 			//allocate a tile
-			PathfinderCommon.MeshTile tile = null;
+			MeshTile tile = null;
 			if (lastRef == 0)
 			{
 				if (m_nextFree != null)
@@ -141,8 +142,8 @@ namespace SharpNav
 					return;
 
 				//try to find specific tile id from free list
-				PathfinderCommon.MeshTile target = m_tiles[tileIndex];
-				PathfinderCommon.MeshTile prev = null;
+				MeshTile target = m_tiles[tileIndex];
+				MeshTile prev = null;
 				tile = m_nextFree;
 				while (tile != null && tile != target)
 				{
@@ -187,9 +188,9 @@ namespace SharpNav
 
 			//build links freelist
 			tile.linksFreeList = 0;
-			tile.links = new PathfinderCommon.Link[header.maxLinkCount];
+			tile.links = new Link[header.maxLinkCount];
 			for (int i = 0; i < header.maxLinkCount; i++)
-				tile.links[i] = new PathfinderCommon.Link();
+				tile.links[i] = new Link();
 
 			tile.links[header.maxLinkCount - 1].next = PathfinderCommon.NULL_LINK;
 			for (int i = 0; i < header.maxLinkCount - 1; i++)
@@ -204,7 +205,7 @@ namespace SharpNav
 
 			//create connections with neighbor tiles
 			const int MAX_NEIS = 32;
-			PathfinderCommon.MeshTile[] neis = new PathfinderCommon.MeshTile[MAX_NEIS];
+			MeshTile[] neis = new MeshTile[MAX_NEIS];
 			int nneis;
 
 			//connect with layers in current tile
@@ -241,7 +242,7 @@ namespace SharpNav
 		/// Allocate links for each of the tile's polygons' vertices
 		/// </summary>
 		/// <param name="tile"></param>
-		public void ConnectIntLinks(ref PathfinderCommon.MeshTile tile)
+		public void ConnectIntLinks(ref MeshTile tile)
 		{
 			if (tile == null)
 				return;
@@ -279,7 +280,7 @@ namespace SharpNav
 			}
 		}
 
-		public void BaseOffMeshLinks(ref PathfinderCommon.MeshTile tile)
+		public void BaseOffMeshLinks(ref MeshTile tile)
 		{
 			if (tile == null)
 				return;
@@ -295,7 +296,7 @@ namespace SharpNav
 				Vector3 ext = new Vector3(tile.offMeshCons[con].radius, tile.header.walkableClimb, tile.offMeshCons[con].radius);
 				
 				//find polygon to connect to
-				Vector3 p = tile.offMeshCons[con].pos[0];
+				Vector3 p = tile.offMeshCons[con].pos0;
 				Vector3 nearestPt = new Vector3();
 				int reference = FindNearestPolyInTile(tile, p, ext, ref nearestPt);
 				if (reference == 0)
@@ -340,7 +341,7 @@ namespace SharpNav
 			}
 		}
 
-		public void ConnectExtLinks(ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.MeshTile target, int side)
+		public void ConnectExtLinks(ref MeshTile tile, ref MeshTile target, int side)
 		{
 			if (tile == null)
 				return;
@@ -417,7 +418,7 @@ namespace SharpNav
 			}
 		}
 
-		public void ConnectExtOffMeshLinks(ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.MeshTile target, int side)
+		public void ConnectExtOffMeshLinks(ref MeshTile tile, ref MeshTile target, int side)
 		{
 			if (tile == null)
 				return;
@@ -427,11 +428,11 @@ namespace SharpNav
 
 			for (int i = 0; i < target.header.offMeshConCount; i++)
 			{
-				PathfinderCommon.OffMeshConnection targetCon = target.offMeshCons[i];
+				OffMeshConnection targetCon = target.offMeshCons[i];
 				if (targetCon.side != oppositeSide)
 					continue;
 
-				PathfinderCommon.Poly targetPoly = target.polys[targetCon.poly];
+				Poly targetPoly = target.polys[targetCon.poly];
 
 				//skip off-mesh connections which start location could not be connected at all
 				if (targetPoly.firstLink == PathfinderCommon.NULL_LINK)
@@ -440,7 +441,7 @@ namespace SharpNav
 				Vector3 ext = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
 
 				//find polygon to connect to
-				Vector3 p = targetCon.pos[1];
+				Vector3 p = targetCon.pos1;
 				Vector3 nearestPt = new Vector3();
 				int reference = FindNearestPolyInTile(tile, p, ext, ref nearestPt);
 				if (reference == 0)
@@ -493,7 +494,7 @@ namespace SharpNav
 			return (side + 4) % 8;
 		}
 
-		public int FindConnectingPolys(Vector3 va, Vector3 vb, PathfinderCommon.MeshTile tile, int side, int[] con, float[] conarea, int maxcon)
+		public int FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, int[] con, float[] conarea, int maxcon)
 		{
 			if (tile == null)
 				return 0;
@@ -636,7 +637,7 @@ namespace SharpNav
 			return false;
 		}
 
-		public int FindNearestPolyInTile(PathfinderCommon.MeshTile tile, Vector3 center, Vector3 extents, ref Vector3 nearestPt)
+		public int FindNearestPolyInTile(MeshTile tile, Vector3 center, Vector3 extents, ref Vector3 nearestPt)
 		{
 			BBox3 bounds;
 			bounds.Min = center - extents;
@@ -667,7 +668,7 @@ namespace SharpNav
 			return nearest;
 		}
 
-		public int QueryPolygonsInTile(PathfinderCommon.MeshTile tile, Vector3 qmin, Vector3 qmax, int[] polys, int maxPolys)
+		public int QueryPolygonsInTile(MeshTile tile, Vector3 qmin, Vector3 qmax, int[] polys, int maxPolys)
 		{
 			if (tile.bvTree.Length != 0)
 			{
@@ -762,9 +763,9 @@ namespace SharpNav
 			}
 		}
 
-		public void ClosestPointOnPolyInTile(PathfinderCommon.MeshTile tile, int indexPoly, Vector3 pos, ref Vector3 closest)
+		public void ClosestPointOnPolyInTile(MeshTile tile, int indexPoly, Vector3 pos, ref Vector3 closest)
 		{
-			PathfinderCommon.Poly poly = tile.polys[indexPoly];
+			Poly poly = tile.polys[indexPoly];
 
 			//off-mesh connections don't have detail polygons
 			if (tile.polys[indexPoly].GetPolyType() == PolygonType.OffMeshConnection)
@@ -778,7 +779,7 @@ namespace SharpNav
 				return;
 			}
 
-			PathfinderCommon.PolyDetail pd = tile.detailMeshes[indexPoly];
+			PolyDetail pd = tile.detailMeshes[indexPoly];
 
 			//clamp point to be inside the polygon
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
@@ -832,7 +833,7 @@ namespace SharpNav
 			}
 		}
 
-		public int AllocLink(PathfinderCommon.MeshTile tile)
+		public int AllocLink(MeshTile tile)
 		{
 			if (tile.linksFreeList == PathfinderCommon.NULL_LINK)
 				return PathfinderCommon.NULL_LINK;
@@ -842,7 +843,7 @@ namespace SharpNav
 			return link;
 		}
 
-		public int GetTileRef(PathfinderCommon.MeshTile tile)
+		public int GetTileRef(MeshTile tile)
 		{
 			if (tile == null)
 				return 0;
@@ -860,11 +861,11 @@ namespace SharpNav
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
-		public PathfinderCommon.MeshTile GetTileAt(int x, int y, int layer)
+		public MeshTile GetTileAt(int x, int y, int layer)
 		{
 			//find tile based off hash
 			int h = ComputeTileHash(x, y, m_tileLutMask);
-			PathfinderCommon.MeshTile tile = m_posLookup[h];
+			MeshTile tile = m_posLookup[h];
 			
 			while (tile != null)
 			{
@@ -877,13 +878,13 @@ namespace SharpNav
 			return null;
 		}
 
-		public int GetTilesAt(int x, int y, PathfinderCommon.MeshTile[] tiles, int maxTiles)
+		public int GetTilesAt(int x, int y, MeshTile[] tiles, int maxTiles)
 		{
 			int n = 0;
 
 			//find tile based on hash
 			int h = ComputeTileHash(x, y, m_tileLutMask);
-			PathfinderCommon.MeshTile tile = m_posLookup[h];
+			MeshTile tile = m_posLookup[h];
 			
 			while (tile != null)
 			{
@@ -899,7 +900,7 @@ namespace SharpNav
 			return n;
 		}
 
-		public int GetNeighbourTilesAt(int x, int y, int side, PathfinderCommon.MeshTile[] tiles, int maxTiles)
+		public int GetNeighbourTilesAt(int x, int y, int side, MeshTile[] tiles, int maxTiles)
 		{
 			int nx = x, ny = y;
 			switch (side)
@@ -953,7 +954,7 @@ namespace SharpNav
 			return (int)(n & mask);
 		}
 		
-		public int GetPolyRefBase(PathfinderCommon.MeshTile tile)
+		public int GetPolyRefBase(MeshTile tile)
 		{
 			if (tile == null)
 				return 0;
@@ -971,7 +972,7 @@ namespace SharpNav
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
-		public bool GetTileAndPolyByRef(int reference, ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.Poly poly)
+		public bool GetTileAndPolyByRef(int reference, ref MeshTile tile, ref Poly poly)
 		{
 			if (reference == 0)
 				return false;
@@ -996,7 +997,7 @@ namespace SharpNav
 		/// <summary>
 		/// Only use this function if it is known that the provided polygon reference is valid.
 		/// </summary>
-		public void GetTileAndPolyByRefUnsafe(int reference, ref PathfinderCommon.MeshTile tile, ref PathfinderCommon.Poly poly)
+		public void GetTileAndPolyByRefUnsafe(int reference, ref MeshTile tile, ref Poly poly)
 		{
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
