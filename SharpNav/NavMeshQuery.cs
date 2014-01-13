@@ -720,6 +720,194 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// This method is optimized for small delta movement and a small number of polygons.
+		/// If movement distance is too large, the result will form an incomplete path.
+		/// </summary>
+		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, ref QueryFilter filter,
+			ref Vector3 resultPos, int[] visited, ref int visitedCount, int maxVisitedSize)
+		{
+			if (m_nav == null)
+				return false;
+			if (m_tinyNodePool == null)
+				return false;
+
+			visitedCount = 0;
+
+			//validate input
+			if (startRef == 0)
+				return false;
+			if (!m_nav.IsValidPolyRef(startRef))
+				return false;
+
+			int MAX_STACK = 48;
+			Node[] stack = new Node[MAX_STACK];
+			int nstack = 0;
+
+			m_tinyNodePool.Clear();
+
+			Node startNode = m_tinyNodePool.GetNode(startRef);
+			startNode.pidx = 0;
+			startNode.cost = 0;
+			startNode.total = 0;
+			startNode.id = startRef;
+			startNode.flags = NodeFlags.Closed;
+			stack[nstack++] = startNode;
+
+			Vector3 bestPos = startPos;
+			float bestDist = float.MaxValue;
+			Node bestNode = null;
+
+			//search constraints
+			Vector3 searchPos = Vector3.Lerp(startPos, endPos, 0.5f);
+			float searchRad = (startPos - endPos).Length() / 2.0f + 0.001f;
+			float searchRadSqr = searchRad * searchRad;
+
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			
+			while (nstack > 0)
+			{
+				//pop front
+				Node curNode = stack[0];
+				for (int i = 0; i < nstack - 1; i++)
+					stack[i] = stack[i + 1];
+				nstack--;
+
+				//get poly and tile
+				int curRef = curNode.id;
+				MeshTile curTile = null;
+				Poly curPoly = null;
+				m_nav.GetTileAndPolyByRefUnsafe(curRef, ref curTile, ref curPoly);
+
+				//collect vertices
+				int nverts = curPoly.vertCount;
+				for (int i = 0; i < nverts; i++)
+					verts[i] = curTile.verts[curPoly.verts[i]];
+
+				//if target is inside poly, stop search
+				if (PathfinderCommon.PointInPoly(endPos, verts, nverts))
+				{
+					bestNode = curNode;
+					bestPos = endPos;
+					break;
+				}
+
+				//find wall edges and find nearest point inside walls
+				for (int i = 0, j = curPoly.vertCount - 1; i < curPoly.vertCount; j = i++)
+				{
+					//find links to neighbors
+					int MAX_NEIS = 8;
+					int nneis = 0;
+					int[] neis = new int[MAX_NEIS];
+
+					if ((curPoly.neis[j] & PathfinderCommon.EXT_LINK) != 0)
+					{
+						//tile border
+						for (int k = curPoly.firstLink; k != PathfinderCommon.NULL_LINK; k = curTile.links[k].next)
+						{
+							Link link = curTile.links[k];
+							if (link.edge == j)
+							{
+								if (link.reference != 0)
+								{
+									MeshTile neiTile = null;
+									Poly neiPoly = null;
+									m_nav.GetTileAndPolyByRefUnsafe(link.reference, ref neiTile, ref neiPoly);
+									
+									if (nneis < MAX_NEIS)
+										neis[nneis++] = link.reference;
+								}
+							}
+						}
+					}
+					else if (curPoly.neis[j] != 0)
+					{
+						int idx = curPoly.neis[j] - 1;
+						int reference = m_nav.GetPolyRefBase(curTile) | idx;
+						neis[nneis++] = reference; //internal edge, encode id
+					}
+
+					if (nneis == 0)
+					{
+						//wall edge, calculate distance
+						Vector3 vj = verts[j];
+						Vector3 vi = verts[i];
+						float tseg = 0;
+						float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref endPos, ref vj, ref vi, out tseg);
+						if (distSqr < bestDist)
+						{
+							//update nearest distance
+							bestPos = Vector3.Lerp(vj, vi, tseg);
+							bestDist = distSqr;
+							bestNode = curNode;
+						}
+					}
+					else
+					{
+						for (int k = 0; k < nneis; k++)
+						{
+							//skip if no node can be allocated
+							Node neighbourNode = m_tinyNodePool.GetNode(neis[k]);
+							if (neighbourNode == null)
+								continue;
+							
+							//skip if already visited
+							if ((neighbourNode.flags & NodeFlags.Closed) != 0)
+								continue;
+
+							//skip the link if too far from search constraint
+							Vector3 vj = verts[j];
+							Vector3 vi = verts[i];
+							float tseg = 0;
+							float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref searchPos, ref vj, ref vi, out tseg);
+							if (distSqr > searchRadSqr)
+								continue;
+
+							//mark the node as visited and push to queue
+							if (nstack < MAX_STACK)
+							{
+								neighbourNode.pidx = m_tinyNodePool.GetNodeIdx(curNode);
+								neighbourNode.flags |= NodeFlags.Closed;
+								stack[nstack++] = neighbourNode;
+							}
+						}
+					}
+				}
+			}
+
+			//reverse the path
+			int n = 0;
+			if (bestNode != null)
+			{
+				Node prev = null;
+				Node node = bestNode;
+				do
+				{
+					Node next = m_tinyNodePool.GetNodeAtIdx(node.pidx);
+					node.pidx = m_tinyNodePool.GetNodeIdx(prev);
+					prev = node;
+					node = next;
+				} while (node != null);
+
+				//store path
+				node = prev;
+				do
+				{
+					visited[n++] = node.id;
+					if (n >= maxVisitedSize)
+						break;
+
+					node = m_tinyNodePool.GetNodeAtIdx(node.pidx);
+				}
+				while (node != null);
+			}
+
+			resultPos = bestPos;
+			visitedCount = n;
+			
+			return true;
+		}
+
+		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
 		public bool GetEdgeMidPoint(int from, Poly fromPoly, MeshTile fromTile, int to, Poly toPoly, MeshTile toTile, ref Vector3 mid)
@@ -825,6 +1013,102 @@ namespace SharpNav
 			}
 
 			return true;
+		}
+
+		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest)
+		{
+			if (m_nav == null)
+				return false;
+
+			MeshTile tile = null;
+			Poly poly = null;
+
+			if (m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+				return false;
+
+			if (tile == null)
+				return false;
+
+			ClosestPointOnPolyInTile(tile, poly, pos, ref closest);
+			return true;
+		}
+
+		public void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
+		{
+			//off-mesh connections don't have detail polygons
+			if (poly.GetPolyType() == PolygonType.OffMeshConnection)
+			{
+				Vector3 v0 = tile.verts[poly.verts[0]];
+				Vector3 v1 = tile.verts[poly.verts[1]];
+				float d0 = (pos - v0).Length();
+				float d1 = (pos - v1).Length();
+				float u = d0 / (d0 + d1);
+				closest = Vector3.Lerp(v0, v1, u);
+				return;
+			}
+
+			int indexPoly = 0;
+			for (int i = 0; i < tile.polys.Length; i++)
+			{
+				if (tile.polys[i] == poly)
+				{
+					indexPoly = i;
+					break;
+				}
+			}
+
+			PolyDetail pd = tile.detailMeshes[indexPoly];
+
+			//clamp point to be inside the polygon
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			int nv = poly.vertCount;
+			for (int i = 0; i < nv; i++)
+				verts[i] = tile.verts[poly.verts[i]];
+
+			closest = pos;
+			if (!PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
+			{
+				//point is outside polygon so clamp to nearest edge
+				float dmin = float.MaxValue;
+				int imin = -1;
+
+				for (int i = 0; i < nv; i++)
+				{
+					if (edged[i] < dmin)
+					{
+						dmin = edged[i];
+						imin = i;
+					}
+				}
+
+				Vector3 va = verts[imin];
+				Vector3 vb = verts[(imin + 1) % nv];
+				closest = Vector3.Lerp(va, vb, edget[imin]);
+			}
+
+			//find height at the location
+			for (int j = 0; j < tile.detailMeshes[indexPoly].triCount; j++)
+			{
+				PolyMeshDetail.TriangleData t = tile.detailTris[pd.triBase + j];
+				Vector3[] v = new Vector3[3];
+
+				for (int k = 0; k < 3; k++)
+				{
+					if (t[k] < poly.vertCount)
+						v[k] = tile.verts[poly.verts[t[k]]];
+					else
+						v[k] = tile.detailVerts[pd.vertBase + (t[k] - poly.vertCount)];
+				}
+
+				float h = 0;
+				if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
+				{
+					closest.Y = h;
+					break;
+				}
+			}
 		}
 
 		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)

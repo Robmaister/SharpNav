@@ -74,6 +74,25 @@ namespace SharpNav
 			return c;
 		}
 
+		public static bool PointInPoly (Vector3 pt, Vector3[] verts, int nverts)
+		{
+			bool c = false;
+
+			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+			{
+				int vi = i;
+				int vj = j;
+
+				if (((verts[vi].Z > pt.Z) != (verts[vj].Z > pt.Z)) &&
+					(pt.X < (verts[vj].X - verts[vi].X) * (pt.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
+				{
+					c = !c;
+				}
+			}
+
+			return c;
+		}
+
 		public static bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
 		{
 			Vector3 v0 = c - a;

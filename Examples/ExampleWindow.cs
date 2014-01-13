@@ -65,9 +65,9 @@ namespace Examples
 		private SVector3 startPos;
 		private SVector3 endPos;
 		private int pathCount;
-		private int[] path; 
-		private int nsteerPath = 0;
-		private SVector3[] steerPath;
+		private int[] path;
+		private int smoothPathCount = 0;
+		private SVector3[] smoothPath = new SVector3[2048];
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -335,6 +335,14 @@ namespace Examples
 
 			sw.Stop();
 
+			GeneratePathfinding();
+
+			Label l = (Label)statusBar.FindChildByName("GenTime");
+			l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
+		}
+
+		private void GeneratePathfinding()
+		{
 			parameters = new NavMeshCreateParams();
 			parameters.verts = polyMesh.Verts;
 			parameters.vertCount = polyMesh.NVerts;
@@ -369,6 +377,7 @@ namespace Examples
 			tiledNavMesh = new TiledNavMesh(buildData);
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
 
+			//Find random start and end points on the poly mesh
 			QueryFilter filter = new QueryFilter();
 			int startRef = 0;
 			startPos = new SVector3();
@@ -378,21 +387,191 @@ namespace Examples
 			endPos = new SVector3();
 			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
 
+			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
 			path = new int[MAX_POLYS];
 			pathCount = 0;
 			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
 
+			//find a smooth path over the mesh surface
+			int npolys = pathCount;
+			int[] polys = new int[npolys];
+			for (int i = 0; i < polys.Length; i++)
+				polys[i] = path[i];
+			SVector3 iterPos = new SVector3();
+			SVector3 targetPos = new SVector3();
+			navMeshQuery.ClosestPointOnPoly(startRef, startPos, ref iterPos);
+			navMeshQuery.ClosestPointOnPoly(polys[npolys - 1], endPos, ref targetPos);
+
+			int MAX_SMOOTH_COUNT = 2048;
+			smoothPath = new SVector3[MAX_SMOOTH_COUNT];
+			smoothPathCount = 0;
+			smoothPath[smoothPathCount] = iterPos;
+			smoothPathCount++;
+
+			float STEP_SIZE = 0.5f;
+			float SLOP = 0.01f;
+			while (npolys > 0 && smoothPathCount < MAX_SMOOTH_COUNT)
+			{
+				//find location to steer towards
+				SVector3 steerPos = new SVector3();
+				int steerPosFlag = 0;
+				int steerPosRef = 0;
+
+				if (!GetSteerTarget(navMeshQuery, iterPos, targetPos, SLOP, polys, npolys, ref steerPos, ref steerPosFlag, ref steerPosRef))
+					break;
+
+				bool endOfPath = (steerPosFlag & PathfinderCommon.STRAIGHTPATH_END) != 0 ? true : false;
+				bool offMeshConnection = (steerPosFlag & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ? true : false;
+
+				//find movement delta
+				SVector3 delta = steerPos - iterPos;
+				float len = (float)Math.Sqrt(SVector3.Dot(delta, delta));
+
+				//if steer target is at end of path or off-mesh link
+				//don't move past location
+				if ((endOfPath || offMeshConnection) && len < STEP_SIZE)
+					len = 1;
+				else
+					len = STEP_SIZE / len;
+
+				SVector3 moveTgt = new SVector3();
+				VMad(ref moveTgt, iterPos, delta, len);
+
+				//move
+				SVector3 result = new SVector3();
+				int[] visited = new int[16];
+				int nvisited = 0;
+				navMeshQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, ref filter, ref result, visited, ref nvisited, 16);
+				npolys = FixupCorridor(polys, npolys, MAX_POLYS, visited, nvisited);
+				float h = 0;
+				navMeshQuery.GetPolyHeight(polys[0], result, ref h);
+				result.Y = h;
+				iterPos = result;
+
+				//handle end of path when close enough
+				if (endOfPath && InRange(iterPos, steerPos, SLOP, 1.0f))
+				{
+					//reached end of path
+					iterPos = targetPos;
+					if (smoothPathCount < MAX_SMOOTH_COUNT)
+					{
+						smoothPath[smoothPathCount] = iterPos;
+						smoothPathCount++;
+					}
+					break;
+				}
+
+				//store results
+				if (smoothPathCount < MAX_SMOOTH_COUNT)
+				{
+					smoothPath[smoothPathCount] = iterPos;
+					smoothPathCount++;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Scaled vector addition
+		/// </summary>
+		/// <param name="dest">Result</param>
+		/// <param name="v1">Vector 1</param>
+		/// <param name="v2">Vector 2</param>
+		/// <param name="s">Scalar</param>
+		private void VMad(ref SVector3 dest, SVector3 v1, SVector3 v2, float s)
+		{
+			dest.X = v1.X + v2.X * s;
+			dest.Y = v1.Y + v2.Y * s;
+			dest.Z = v1.Z + v2.Z * s;
+		}
+
+		private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, int[] path, int pathSize,
+			ref SVector3 steerPos, ref int steerPosFlag, ref int steerPosRef)
+		{
 			int MAX_STEER_POINTS = 3;
-			steerPath = new SVector3[MAX_STEER_POINTS];
+			SVector3[] steerPath = new SVector3[MAX_STEER_POINTS];
 			int[] steerPathFlags = new int[MAX_STEER_POINTS];
 			int[] steerPathPolys = new int[MAX_STEER_POINTS];
-			nsteerPath = 0;
+			int nsteerPath = 0;
 			navMeshQuery.FindStraightPath(startPos, endPos, path, pathCount,
 				steerPath, steerPathFlags, steerPathPolys, ref nsteerPath, MAX_STEER_POINTS, 0);
 
-			Label l = (Label)statusBar.FindChildByName("GenTime");
-			l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
+			if (nsteerPath == 0)
+				return false;
+
+			//find vertex far enough to steer to
+			int ns = 0;
+			while (ns < nsteerPath)
+			{
+				if ((steerPathFlags[ns] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ||
+					!InRange(steerPath[ns], startPos, minTargetDist, 1000.0f))
+					break;
+
+				ns++;
+			}
+
+			//failed to find good point to steer to
+			if (ns >= nsteerPath)
+				return false;
+
+			steerPos = steerPath[ns];
+			steerPos.Y = startPos.Y;
+			steerPosFlag = steerPathFlags[ns];
+			steerPosRef = steerPathPolys[ns];
+
+			return true;
+		}
+
+		private bool InRange(SVector3 v1, SVector3 v2, float r, float h)
+		{
+			float dx = v2.X - v1.X;
+			float dy = v2.Y - v1.Y;
+			float dz = v2.Z - v1.Z;
+			return (dx * dx + dz * dz) < (r * r) && Math.Abs(dy) < h;
+		}
+
+		private int FixupCorridor(int[] path, int npath, int maxPath, int[] visited, int nvisited)
+		{
+			int furthestPath = -1;
+			int furthestVisited = -1;
+
+			//find furhtest common polygon
+			for (int i = npath - 1; i >= 0; i--)
+			{
+				bool found = false;
+				for (int j = nvisited - 1; j >= 0; j--)
+				{
+					if (path[i] == visited[j])
+					{
+						furthestPath = i;
+						furthestVisited = j;
+						found = true;
+					}
+				}
+
+				if (found)
+					break;
+			}
+
+			//if no intersection found, return current path
+			if (furthestPath == -1 || furthestVisited == -1)
+				return npath;
+
+			//concatenate paths
+			//adjust beginning of the buffer to include the visited
+			int req = nvisited - furthestVisited;
+			int orig = Math.Min(furthestPath + 1, npath);
+			int size = Math.Max(0, npath - orig);
+			if (req + size > maxPath)
+				size = maxPath - req;
+			for (int i = 0; i < size; i++)
+				path[req + i] = path[orig + i];
+
+			//store visited
+			for (int i = 0; i < req; i++)
+				path[i] = visited[(nvisited - 1) - i];
+
+			return req + size;
 		}
 
 		/// <summary>

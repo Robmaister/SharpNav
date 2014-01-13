@@ -82,6 +82,9 @@ namespace SharpNav
 
 			while (i != NULL_IDX)
 			{
+				if (i >= MaxNodes)
+					break;
+
 				if (m_nodes[i] == null)
 					break;
 
