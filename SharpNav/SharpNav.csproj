@@ -109,7 +109,6 @@
     <Compile Include="NodeFlags.cs" />
     <Compile Include="PathfinderCommon.cs" />
     <Compile Include="Pathfinding\PolygonType.cs" />
-    <Compile Include="QueryFilter.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />

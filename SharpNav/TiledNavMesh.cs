@@ -655,7 +655,7 @@ namespace SharpNav
 			{
 				int reference = polys[i];
 				Vector3 closestPtPoly = new Vector3();
-				ClosestPointOnPolyInTile(tile, DecodePolyIdPoly(reference), center, ref closestPtPoly);
+				PathfinderCommon.ClosestPointOnPolyInTile(tile, DecodePolyIdPoly(reference), center, ref closestPtPoly);
 				float d = (center - closestPtPoly).LengthSquared();
 				if (d < nearestDistanceSqr)
 				{
@@ -760,76 +760,6 @@ namespace SharpNav
 				}
 
 				return n;
-			}
-		}
-
-		public void ClosestPointOnPolyInTile(MeshTile tile, int indexPoly, Vector3 pos, ref Vector3 closest)
-		{
-			Poly poly = tile.polys[indexPoly];
-
-			//off-mesh connections don't have detail polygons
-			if (tile.polys[indexPoly].GetPolyType() == PolygonType.OffMeshConnection)
-			{
-				Vector3 v0 = tile.verts[poly.verts[0]];
-				Vector3 v1 = tile.verts[poly.verts[1]];
-				float d0 = (pos - v0).Length();
-				float d1 = (pos - v1).Length();
-				float u = d0 / (d0 + d1);
-				closest = Vector3.Lerp(v0, v1, u);
-				return;
-			}
-
-			PolyDetail pd = tile.detailMeshes[indexPoly];
-
-			//clamp point to be inside the polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int nv = poly.vertCount;
-			for (int i = 0; i < nv; i++)
-				verts[i] = tile.verts[poly.verts[i]];
-
-			closest = pos;
-			if (!PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
-			{
-				//point is outside polygon so clamp to nearest edge
-				float dmin = float.MaxValue;
-				int imin = -1;
-
-				for (int i = 0; i < nv; i++)
-				{
-					if (edged[i] < dmin)
-					{
-						dmin = edged[i];
-						imin = i;
-					}
-				}
-
-				Vector3 va = verts[imin];
-				Vector3 vb = verts[(imin + 1) % nv];
-				closest = Vector3.Lerp(va, vb, edget[imin]);
-			}
-
-			//find height at the location
-			for (int j = 0; j < tile.detailMeshes[indexPoly].triCount; j++)
-			{
-				PolyMeshDetail.TriangleData t = tile.detailTris[pd.triBase + j];
-				Vector3[] v = new Vector3[3];
-		
-				for (int k = 0; k < 3; k++)
-				{
-					if (t[k] < poly.vertCount)
-						v[k] = tile.verts[poly.verts[t[k]]];
-					else
-						v[k] = tile.detailVerts[pd.vertBase + (t[k] - poly.vertCount)];
-				}
-
-				float h = 0;
-				if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
-				{
-					closest.Y = h;
-					break;
-				}
 			}
 		}
 

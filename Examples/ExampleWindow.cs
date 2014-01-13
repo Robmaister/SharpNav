@@ -378,20 +378,19 @@ namespace Examples
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
 
 			//Find random start and end points on the poly mesh
-			QueryFilter filter = new QueryFilter();
 			int startRef = 0;
 			startPos = new SVector3();
-			navMeshQuery.FindRandomPoint(ref filter, ref startRef, ref startPos);
+			navMeshQuery.FindRandomPoint(ref startRef, ref startPos);
 
 			int endRef = 0;
 			endPos = new SVector3();
-			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref filter, ref endRef, ref endPos);
+			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref endRef, ref endPos);
 
 			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
 			path = new int[MAX_POLYS];
 			pathCount = 0;
-			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, ref filter, path, ref pathCount, MAX_POLYS);
+			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, path, ref pathCount, MAX_POLYS);
 
 			//find a smooth path over the mesh surface
 			int npolys = pathCount;
@@ -442,7 +441,7 @@ namespace Examples
 				SVector3 result = new SVector3();
 				int[] visited = new int[16];
 				int nvisited = 0;
-				navMeshQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, ref filter, ref result, visited, ref nvisited, 16);
+				navMeshQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, ref result, visited, ref nvisited, 16);
 				npolys = FixupCorridor(polys, npolys, MAX_POLYS, visited, nvisited);
 				float h = 0;
 				navMeshQuery.GetPolyHeight(polys[0], result, ref h);

@@ -30,21 +30,30 @@ namespace SharpNav
 		private const float H_SCALE = 0.999f;
 
 		private TiledNavMesh m_nav;
+		private float[] m_areaCost; 
 		private NodePool m_tinyNodePool;
 		private NodePool m_nodePool;
 		private PriorityQueue<Node> m_openList;
-		private QueryData m_query;
 
 		public NavMeshQuery(TiledNavMesh nav, int maxNodes)
 		{
 			m_nav = nav;
+
+			m_areaCost = new float[PathfinderCommon.MAX_AREAS];
+			for (int i = 0; i < PathfinderCommon.MAX_AREAS; i++)
+				m_areaCost[i] = 1.0f;
 
 			m_nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
 			m_tinyNodePool = new NodePool(64, 32);
 			m_openList = new PriorityQueue<Node>(maxNodes);
 		}
 
-		public bool FindRandomPoint(ref QueryFilter filter, ref int randomRef, ref Vector3 randomPt)
+		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
+		{
+			return (pa - pb).Length() * m_areaCost[curPoly.GetArea()];
+		}
+
+		public bool FindRandomPoint(ref int randomRef, ref Vector3 randomPt)
 		{
 			if (m_nav == null)
 				return false;
@@ -88,10 +97,7 @@ namespace SharpNav
 				if (p.GetPolyType() != PolygonType.Ground)
 					continue;
 
-				//NOTE: polygon flags are never set so the filter will remove all polygons
 				int reference = polyBase | i;
-				//if (!filter.PassFilter(p))
-				//	continue;
 
 				//calculate area of polygon
 				float polyArea = 0.0f;
@@ -141,7 +147,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref QueryFilter filter, ref int randomRef, ref Vector3 randomPt)
+		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref int randomRef, ref Vector3 randomPt)
 		{
 			if (m_nav == null)
 				return false;
@@ -160,9 +166,6 @@ namespace SharpNav
 			MeshTile startTile = null;
 			Poly startPoly = null;
 			m_nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
-			//NOTE: DON'T USE FILTER!
-			//if (!filter.PassFilter(startPoly))
-			//	return false;
 
 			m_nodePool.Clear();
 			m_openList.Clear();
@@ -238,10 +241,6 @@ namespace SharpNav
 					MeshTile neighbourTile = null;
 					Poly neighbourPoly = null;
 					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
-
-					//do not advance if polygon is excluded by filter
-					//if (!filter.PassFilter(neighbourPoly))
-					//	continue;
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
@@ -324,7 +323,7 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
-		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, ref QueryFilter filter, int[] path, ref int pathCount, int maxPath)
+		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, int[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
 
@@ -401,9 +400,6 @@ namespace SharpNav
 					Poly neighbourPoly = null;
 					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
-					//if (!filter.PassFilter(neighbourPoly))
-					//	continue;
-
 					Node neighbourNode = m_nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
 						continue;
@@ -422,8 +418,8 @@ namespace SharpNav
 					if (neighbourRef == endRef)
 					{
 						//cost
-						float curCost = filter.GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
-						float endCost = filter.GetCost(neighbourNode.pos, endPos, neighbourPoly);
+						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+						float endCost = GetCost(neighbourNode.pos, endPos, neighbourPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -431,7 +427,7 @@ namespace SharpNav
 					else
 					{
 						//cost
-						float curCost = filter.GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
 						
 						cost = bestNode.cost + curCost;
 						heuristic = (neighbourNode.pos - endPos).Length() * H_SCALE; 
@@ -723,7 +719,7 @@ namespace SharpNav
 		/// This method is optimized for small delta movement and a small number of polygons.
 		/// If movement distance is too large, the result will form an incomplete path.
 		/// </summary>
-		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, ref QueryFilter filter,
+		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, 
 			ref Vector3 resultPos, int[] visited, ref int visitedCount, int maxVisitedSize)
 		{
 			if (m_nav == null)
@@ -1029,86 +1025,8 @@ namespace SharpNav
 			if (tile == null)
 				return false;
 
-			ClosestPointOnPolyInTile(tile, poly, pos, ref closest);
+			PathfinderCommon.ClosestPointOnPolyInTile(tile, poly, pos, ref closest);
 			return true;
-		}
-
-		public void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
-		{
-			//off-mesh connections don't have detail polygons
-			if (poly.GetPolyType() == PolygonType.OffMeshConnection)
-			{
-				Vector3 v0 = tile.verts[poly.verts[0]];
-				Vector3 v1 = tile.verts[poly.verts[1]];
-				float d0 = (pos - v0).Length();
-				float d1 = (pos - v1).Length();
-				float u = d0 / (d0 + d1);
-				closest = Vector3.Lerp(v0, v1, u);
-				return;
-			}
-
-			int indexPoly = 0;
-			for (int i = 0; i < tile.polys.Length; i++)
-			{
-				if (tile.polys[i] == poly)
-				{
-					indexPoly = i;
-					break;
-				}
-			}
-
-			PolyDetail pd = tile.detailMeshes[indexPoly];
-
-			//clamp point to be inside the polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int nv = poly.vertCount;
-			for (int i = 0; i < nv; i++)
-				verts[i] = tile.verts[poly.verts[i]];
-
-			closest = pos;
-			if (!PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
-			{
-				//point is outside polygon so clamp to nearest edge
-				float dmin = float.MaxValue;
-				int imin = -1;
-
-				for (int i = 0; i < nv; i++)
-				{
-					if (edged[i] < dmin)
-					{
-						dmin = edged[i];
-						imin = i;
-					}
-				}
-
-				Vector3 va = verts[imin];
-				Vector3 vb = verts[(imin + 1) % nv];
-				closest = Vector3.Lerp(va, vb, edget[imin]);
-			}
-
-			//find height at the location
-			for (int j = 0; j < tile.detailMeshes[indexPoly].triCount; j++)
-			{
-				PolyMeshDetail.TriangleData t = tile.detailTris[pd.triBase + j];
-				Vector3[] v = new Vector3[3];
-
-				for (int k = 0; k < 3; k++)
-				{
-					if (t[k] < poly.vertCount)
-						v[k] = tile.verts[poly.verts[t[k]]];
-					else
-						v[k] = tile.detailVerts[pd.vertBase + (t[k] - poly.vertCount)];
-				}
-
-				float h = 0;
-				if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
-				{
-					closest.Y = h;
-					break;
-				}
-			}
 		}
 
 		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
@@ -1330,15 +1248,6 @@ namespace SharpNav
 		public NodeFlags RemoveNodeFlagClosed(Node node)
 		{
 			return node.flags & ~NodeFlags.Closed;
-		}
-
-		public struct QueryData
-		{
-			public Node lastBestNode;
-			public float lastBestNodeCost;
-			public int startRef, endRef;
-			public Vector3 startPos, endPos;
-			public QueryFilter filter;
 		}
 	}
 }
