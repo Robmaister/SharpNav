@@ -95,7 +95,6 @@
     <Compile Include="Pathfinding\BVNode.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />
-    <Compile Include="Pathfinding\NavMeshParams.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
     <Compile Include="Pathfinding\PolyDetail.cs" />

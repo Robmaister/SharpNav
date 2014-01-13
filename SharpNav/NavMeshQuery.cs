@@ -50,7 +50,7 @@ namespace SharpNav
 
 		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
 		{
-			return (pa - pb).Length() * m_areaCost[curPoly.GetArea()];
+			return (pa - pb).Length() * m_areaCost[curPoly.Area];
 		}
 
 		public bool FindRandomPoint(ref int randomRef, ref Vector3 randomPt)
@@ -94,7 +94,7 @@ namespace SharpNav
 				Poly p = tile.polys[i];
 
 				//don't return off-mesh connection polygons
-				if (p.GetPolyType() != PolygonType.Ground)
+				if (p.PolyType != PolygonType.Ground)
 					continue;
 
 				int reference = polyBase | i;
@@ -198,7 +198,7 @@ namespace SharpNav
 				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
 
 				//place random locations on ground
-				if (bestPoly.GetPolyType() == PolygonType.Ground)
+				if (bestPoly.PolyType == PolygonType.Ground)
 				{
 					//calculate area of polygon
 					float polyArea = 0.0f;
@@ -926,13 +926,13 @@ namespace SharpNav
 			Poly fromPoly = null;
 			if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
 				return false;
-			fromType = fromPoly.GetPolyType();
+			fromType = fromPoly.PolyType;
 
 			MeshTile toTile = null;
 			Poly toPoly = null;
 			if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
 				return false;
-			toType = toPoly.GetPolyType();
+			toType = toPoly.PolyType;
 
 			return GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right);
 		}
@@ -954,7 +954,7 @@ namespace SharpNav
 				return false;
 
 			//handle off-mesh connections
-			if (fromPoly.GetPolyType() == PolygonType.OffMeshConnection)
+			if (fromPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
 				for (int i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
@@ -971,7 +971,7 @@ namespace SharpNav
 				return false;
 			}
 
-			if (toPoly.GetPolyType() == PolygonType.OffMeshConnection)
+			if (toPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
 				for (int i = toPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = toTile.links[i].next)
@@ -1139,7 +1139,7 @@ namespace SharpNav
 				if ((options & PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS) != 0)
 				{
 					//skip intersection if only area crossings are requested
-					if (fromPoly.GetArea() == toPoly.GetArea())
+					if (fromPoly.Area == toPoly.Area)
 						continue;
 				}
 
@@ -1174,7 +1174,7 @@ namespace SharpNav
 				return false;
 
 			//off-mesh connections don't have detail polygons
-			if (poly.GetPolyType() == PolygonType.OffMeshConnection)
+			if (poly.PolyType == PolygonType.OffMeshConnection)
 			{
 				Vector3 v0 = tile.verts[poly.verts[0]];
 				Vector3 v1 = tile.verts[poly.verts[1]];

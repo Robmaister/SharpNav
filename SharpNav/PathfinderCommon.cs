@@ -114,7 +114,7 @@ namespace SharpNav
 			Poly poly = tile.polys[indexPoly];
 
 			//off-mesh connections don't have detail polygons
-			if (tile.polys[indexPoly].GetPolyType() == PolygonType.OffMeshConnection)
+			if (tile.polys[indexPoly].PolyType == PolygonType.OffMeshConnection)
 			{
 				Vector3 v0 = tile.verts[poly.verts[0]];
 				Vector3 v1 = tile.verts[poly.verts[1]];

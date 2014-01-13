@@ -253,8 +253,7 @@ namespace SharpNav
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
 				navPolys[i].SetArea((int)parameters.polyAreas[i]);
-				navPolys[i].SetType(PolygonType.Ground);
-				
+				navPolys[i].PolyType = PolygonType.Ground;
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
@@ -300,7 +299,7 @@ namespace SharpNav
 					navPolys[offMeshPolyBase + n].verts[1] = offMeshVertsBase + (n * 2 + 1);
 					navPolys[offMeshPolyBase + n].flags = parameters.offMeshConFlags[i];
 					navPolys[offMeshPolyBase + n].SetArea(parameters.offMeshConAreas[i]);
-					navPolys[offMeshPolyBase + n].SetType(PolygonType.OffMeshConnection);
+					navPolys[offMeshPolyBase + n].PolyType = PolygonType.OffMeshConnection;
 					n++;
 				}
 			}

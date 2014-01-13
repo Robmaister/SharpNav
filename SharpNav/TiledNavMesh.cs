@@ -23,7 +23,7 @@ namespace SharpNav
 {
 	public class TiledNavMesh
 	{
-		private NavMeshParams m_params;
+		private TiledNavMeshParams m_params;
 		private Vector3 m_origin;
 		private float m_tileWidth, m_tileHeight;
 		private int m_maxTiles;
@@ -46,6 +46,15 @@ namespace SharpNav
 			return polyBase | poly;
 		}
 
+		public struct TiledNavMeshParams
+		{
+			public Vector3 origin;
+			public float tileWidth;
+			public float tileHeight;
+			public int maxTiles;
+			public int maxPolys;
+		}
+
 		public TiledNavMesh(NavMeshBuilder data)
 		{
 			//if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
@@ -54,7 +63,7 @@ namespace SharpNav
 			//if (data.Header.version != PathfinderCommon.NAVMESH_VERSION) //TODO: output error message?
 			//	return;
 
-			NavMeshParams parameters;
+			TiledNavMeshParams parameters;
 			parameters.origin = data.Header.bounds.Min;
 			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
 			parameters.tileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
@@ -68,7 +77,7 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
-		public bool InitTileNavMesh(NavMeshParams parameters)
+		public bool InitTileNavMesh(TiledNavMeshParams parameters)
 		{
 			m_params = parameters;
 			m_origin = parameters.origin;
@@ -253,7 +262,7 @@ namespace SharpNav
 			{
 				tile.polys[i].firstLink = PathfinderCommon.NULL_LINK;
 
-				if (tile.polys[i].GetPolyType() == PolygonType.OffMeshConnection)
+				if (tile.polys[i].PolyType == PolygonType.OffMeshConnection)
 					continue;
 
 				//build edge links backwards so that the links will be in the linked list
@@ -645,7 +654,7 @@ namespace SharpNav
 
 			//get nearby polygons from proximity grid
 			int[] polys = new int[128];
-			int polyCount = QueryPolygonsInTile(tile, bounds.Min, bounds.Max, polys, 128);
+			int polyCount = QueryPolygonsInTile(tile, bounds, polys, 128);
 
 			//find nearest polygon amongst the nearby polygons
 			int nearest = 0;
@@ -668,7 +677,7 @@ namespace SharpNav
 			return nearest;
 		}
 
-		public int QueryPolygonsInTile(MeshTile tile, Vector3 qmin, Vector3 qmax, int[] polys, int maxPolys)
+		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, int[] polys, int maxPolys)
 		{
 			if (tile.bvTree.Length != 0)
 			{
@@ -683,12 +692,12 @@ namespace SharpNav
 				Vector3 bmax = new Vector3();
 				
 				//Clamp query box to world box
-				float minx = MathHelper.Clamp(qmin.X, tbmin.X, tbmax.X) - tbmin.X;
-				float miny = MathHelper.Clamp(qmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				float minz = MathHelper.Clamp(qmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-				float maxx = MathHelper.Clamp(qmax.X, tbmin.X, tbmax.X) - tbmin.X;
-				float maxy = MathHelper.Clamp(qmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				float maxz = MathHelper.Clamp(qmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+				float minx = MathHelper.Clamp(qbounds.Min.X, tbmin.X, tbmax.X) - tbmin.X;
+				float miny = MathHelper.Clamp(qbounds.Min.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				float minz = MathHelper.Clamp(qbounds.Min.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+				float maxx = MathHelper.Clamp(qbounds.Max.X, tbmin.X, tbmax.X) - tbmin.X;
+				float maxy = MathHelper.Clamp(qbounds.Max.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				float maxz = MathHelper.Clamp(qbounds.Max.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
 
 				//quantize
 				bmin.X = (int)(qfac * minx) & 0xfffe;
@@ -738,7 +747,7 @@ namespace SharpNav
 					var poly = tile.polys[i];
 
 					//don't return off-mesh connection polygons
-					if (poly.GetPolyType() == PolygonType.OffMeshConnection)
+					if (poly.PolyType == PolygonType.OffMeshConnection)
 						continue;
 
 					//calculate polygon bounds
@@ -752,7 +761,7 @@ namespace SharpNav
 						Vector3Extensions.ComponentMax(ref bmax, ref tile.verts[index], out bmax);
 					}
 
-					if (PathfinderCommon.OverlapQuantBounds(qmin, qmax, bmin, bmax))
+					if (PathfinderCommon.OverlapQuantBounds(qbounds.Min, qbounds.Max, bmin, bmax))
 					{
 						if (n < maxPolys)
 							polys[n++] = GetReference(polyBase, i);

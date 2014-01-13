@@ -16,26 +16,15 @@ namespace SharpNav.Pathfinding
 		public int[] neis; //packed data representing neighbor polygons references and flags for each edge
 		public int flags; //user defined polygon flags
 		public int vertCount;
-		public int areaAndtype = 0; //bit packed area id and polygon type
 
+		public int Area;
+		public PolygonType PolyType;
+
+		//There exists a limit to the number of different areas 
+		//Keep the area value in bounds
 		public void SetArea(int a)
 		{
-			areaAndtype = (areaAndtype & 0xc0) | (a & 0x3f);
-		}
-
-		public void SetType(PolygonType t)
-		{
-			areaAndtype = (areaAndtype & 0x3f) | ((int)t << 6);
-		}
-
-		public int GetArea()
-		{
-			return areaAndtype & 0x3f;
-		}
-
-		public PolygonType GetPolyType()
-		{
-			return (PolygonType)(areaAndtype >> 6);
+			Area = a % PathfinderCommon.MAX_AREAS;
 		}
 	}
 }
