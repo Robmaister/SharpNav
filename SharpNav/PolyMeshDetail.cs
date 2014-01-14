@@ -341,7 +341,8 @@ namespace SharpNav
 				Vector3 pt2 = vb;
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (MathHelper.Distance.PointToSegment2D(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr && MathHelper.Distance.PointToSegment2D(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
+				if (MathHelper.Distance.PointToSegment2D(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr 
+					&& MathHelper.Distance.PointToSegment2D(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
 					return 1;
 			}
 
@@ -541,7 +542,22 @@ namespace SharpNav
 			}
 		}
 
-		private void BuildPolyDetail(Vector3[] in_, int nin_, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<int> samples)
+		/// <summary>
+		/// Generate the PolyMeshDetail using the PolyMesh and HeightPatch
+		/// </summary>
+		/// <param name="polyMeshVerts">PolyMesh Vertex data</param>
+		/// <param name="numMeshVerts">Number of PolyMesh vertices</param>
+		/// <param name="sampleDist">Sampling distance</param>
+		/// <param name="sampleMaxError">Maximum sampling error</param>
+		/// <param name="openField">CompactHeightfield</param>
+		/// <param name="hp">HeightPatch</param>
+		/// <param name="verts">Detail verts</param>
+		/// <param name="nverts">Numver of detail verts</param>
+		/// <param name="tris">Detail triangles</param>
+		/// <param name="edges">Edges</param>
+		/// <param name="samples">Samples</param>
+		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, 
+			Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<int> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -553,12 +569,12 @@ namespace SharpNav
 			nverts = 0;
 
 			//fill up vertex array
-			for (int i = 0; i < nin_; ++i)
+			for (int i = 0; i < numMeshVerts; ++i)
 			{
-				verts[i] = in_[i];
+				verts[i] = polyMeshVerts[i];
 			}
 
-			nverts = nin_;
+			nverts = numMeshVerts;
 
 			float cs = openField.CellSize;
 			float ics = 1.0f / cs;
@@ -566,38 +582,38 @@ namespace SharpNav
 			//tessellate outlines
 			if (sampleDist > 0)
 			{
-				for (int i = 0, j = nin_ - 1; i < nin_; j = i++)
+				for (int i = 0, j = numMeshVerts - 1; i < numMeshVerts; j = i++)
 				{
 					int vj = j;
 					int vi = i;
 					bool swapped = false;
 
 					//make sure order is correct, otherwise swap data
-					if (Math.Abs(in_[vj].X - in_[vi].X) < 1E-06f)
+					if (Math.Abs(polyMeshVerts[vj].X - polyMeshVerts[vi].X) < 1E-06f)
 					{
-						if (in_[vj].Z > in_[vi].Z)
+						if (polyMeshVerts[vj].Z > polyMeshVerts[vi].Z)
 						{
-							float temp = in_[vj].Z;
-							in_[vj].Z = in_[vi].Z;
-							in_[vi].Z = temp;
+							float temp = polyMeshVerts[vj].Z;
+							polyMeshVerts[vj].Z = polyMeshVerts[vi].Z;
+							polyMeshVerts[vi].Z = temp;
 							swapped = true;
 						}
 					}
 					else
 					{
-						if (in_[vj].X > in_[vi].X)
+						if (polyMeshVerts[vj].X > polyMeshVerts[vi].X)
 						{
-							float temp = in_[vj].X;
-							in_[vj].X = in_[vi].X;
-							in_[vi].X = temp;
+							float temp = polyMeshVerts[vj].X;
+							polyMeshVerts[vj].X = polyMeshVerts[vi].X;
+							polyMeshVerts[vi].X = temp;
 							swapped = true;
 						}
 					}
 
 					//create samples along the edge
-					float dx = in_[vi].X - in_[vj].X;
-					float dy = in_[vi].Y - in_[vj].Y;
-					float dz = in_[vi].Z - in_[vj].Z;
+					float dx = polyMeshVerts[vi].X - polyMeshVerts[vj].X;
+					float dy = polyMeshVerts[vi].Y - polyMeshVerts[vj].Y;
+					float dz = polyMeshVerts[vi].Z - polyMeshVerts[vj].Z;
 					float d = (float)Math.Sqrt(dx * dx + dz * dz);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
 					if (nverts + nn >= MAX_VERTS)
@@ -609,9 +625,9 @@ namespace SharpNav
 						int pos = k;
 						
 						//edge seems to store vertex data
-						edge[pos].X = in_[vj].X + dx * u;
-						edge[pos].Y = in_[vj].Y + dy * u;
-						edge[pos].Z = in_[vj].Z + dz * u;
+						edge[pos].X = polyMeshVerts[vj].X + dx * u;
+						edge[pos].Y = polyMeshVerts[vj].Y + dy * u;
+						edge[pos].Z = polyMeshVerts[vj].Z + dz * u;
 
 						edge[pos].Y = GetHeight(edge[pos], ics, openField.CellHeight, hp) * openField.CellHeight;
 					}
@@ -701,13 +717,13 @@ namespace SharpNav
 			{
 				//create sample locations
 				BBox3 bounds = new BBox3();
-				bounds.Min = in_[0];
-				bounds.Max = in_[0];
+				bounds.Min = polyMeshVerts[0];
+				bounds.Max = polyMeshVerts[0];
 
-				for (int i = 1; i < nin_; i++)
+				for (int i = 1; i < numMeshVerts; i++)
 				{
-					Vector3Extensions.ComponentMin(ref bounds.Min, ref in_[i], out bounds.Min);
-					Vector3Extensions.ComponentMax(ref bounds.Max, ref in_[i], out bounds.Max); 
+					Vector3Extensions.ComponentMin(ref bounds.Min, ref polyMeshVerts[i], out bounds.Min);
+					Vector3Extensions.ComponentMax(ref bounds.Max, ref polyMeshVerts[i], out bounds.Max); 
 				}
 
 				int x0 = (int)Math.Floor(bounds.Min.X / sampleDist);
@@ -727,7 +743,7 @@ namespace SharpNav
 						pt.Z = z * sampleDist;
 
 						//make sure samples aren't too close to edge
-						if (DistanceToPoly(nin_, in_, pt) > -sampleDist / 2)
+						if (MathHelper.Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist / 2)
 							continue;
 
 						samples.Add(x);
@@ -1118,7 +1134,7 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (OverlapSegSeg2d(ref pts[s0], ref pts[t0], ref pts[s1], ref pts[t1]))
+				if (MathHelper.Intersection.SegmentSegment2D(ref pts[s0], ref pts[t0], ref pts[s1], ref pts[t1]))
 					return true;
 			}
 
@@ -1211,47 +1227,6 @@ namespace SharpNav
 			}
 
 			return float.MaxValue;
-		}
-
-		private float DistanceToPoly(int nvert, Vector3[] verts, Vector3 p)
-		{
-			float dmin = float.MaxValue;
-			bool c = false;
-
-			for (int i = 0, j = nvert - 1; i < nvert; j = i++)
-			{
-				int vi = i;
-				int vj = j;
-
-				if (((verts[vi].Z > p.Z) != (verts[vj].Z > p.Z)) &&
-					(p.X < (verts[vj].X - verts[vi].X) * (p.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
-				{
-					c = !c;
-				}
-
-				dmin = Math.Min(dmin, MathHelper.Distance.PointToSegment2D(ref p, ref verts[vj], ref verts[vi]));
-			}
-
-			return c ? -dmin : dmin;
-		}
-	
-		private bool OverlapSegSeg2d(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
-		{
-			float a1, a2, a3;
-
-			Vector3Extensions.Cross2D(ref a, ref b, ref d, out a1);
-			Vector3Extensions.Cross2D(ref a, ref b, ref c, out a2);
-
-			if (a1 * a2 < 0.0f)
-			{
-				Vector3Extensions.Cross2D(ref c, ref d, ref a, out a3);
-				float a4 = a3 + a2 - a1;
-				
-				if (a3 * a4 < 0.0f)
-					return true;
-			}
-
-			return false;
 		}
 
 		/// <summary>

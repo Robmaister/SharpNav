@@ -1046,7 +1046,7 @@ namespace SharpNav
 				nv++;
 			}
 
-			bool inside = PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget);
+			bool inside = MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, nv, edged, edget);
 			if (inside)
 			{
 				//point is inside the polygon

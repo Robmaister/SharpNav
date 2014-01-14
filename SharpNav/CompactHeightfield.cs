@@ -928,7 +928,7 @@ namespace SharpNav
 							d += cellDist;
 						}
 
-						if (s.IsConnected(Direction.East))
+						if (s.IsConnected(Direction.South))
 						{
 							int dy = y - 1;
 							int di = cells[dy * width + x].StartIndex + s.ConnectionSouth;

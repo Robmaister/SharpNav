@@ -42,7 +42,7 @@ namespace SharpNav.Pathfinding
 			}
 			set
 			{
-				areaAndType = (byte)((areaAndType & AreaMask) | ((int)value & PolyTypeMask));
+				areaAndType = (byte)((areaAndType & AreaMask) | ((int)value << 6));
 			}
 		}
 	}

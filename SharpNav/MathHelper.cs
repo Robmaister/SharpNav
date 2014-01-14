@@ -327,7 +327,15 @@ namespace SharpNav
 				return dx * dx + dz * dz;
 			}
 
-			public static float PointToSegment2DSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q, out float t)
+			/// <summary>
+			/// Find the 2d distance between a point and a segment PQ
+			/// </summary>
+			/// <param name="pt">The coordinate of the point.</param>
+			/// <param name="p">The coordinate of point P in the segment PQ.</param>
+			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+			/// <param name="t">Parameterization ratio t</param>
+			/// <returns>The distance between the point and the segment.</returns>
+			internal static float PointToSegment2DSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q, out float t)
 			{
 				float pqx = q.X - p.X;
 				float pqz = q.Z - p.Z;
@@ -349,20 +357,115 @@ namespace SharpNav
 
 				return dx * dx + dz * dz;
 			}
+
+			/// <summary>
+			/// Find the distance between a point and the edge of a polygon.
+			/// </summary>
+			/// <param name="pt">Point</param>
+			/// <param name="verts">Vertex data</param>
+			/// <param name="nverts">Number of vertices</param>
+			/// <returns></returns>
+			internal static float PointToPolygonEdgeSquared(Vector3 p, Vector3[] verts, int nverts)
+			{
+				float dmin = float.MaxValue;
+				bool c = false;
+
+				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+				{
+					int vi = i;
+					int vj = j;
+
+					if (((verts[vi].Z > p.Z) != (verts[vj].Z > p.Z)) &&
+						(p.X < (verts[vj].X - verts[vi].X) * (p.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
+					{
+						c = !c;
+					}
+
+					dmin = Math.Min(dmin, MathHelper.Distance.PointToSegment2D(ref p, ref verts[vj], ref verts[vi]));
+				}
+
+				return c ? -dmin : dmin;
+			}
+
+			/// <summary>
+			/// Find the distance between a point and the edge of a polygon.
+			/// </summary>
+			/// <param name="pt">Point</param>
+			/// <param name="verts">Vertex data</param>
+			/// <param name="nverts">Number of vertices</param>
+			/// <param name="edgeDist">Edge Distances</param>
+			/// <param name="edgeT">Parametrization Ratio 't'</param>
+			/// <returns></returns>
+			internal static bool PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts, float[] edgeDist, float[] edgeT)
+			{
+				bool c = false;
+
+				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+				{
+					Vector3 vi = verts[i];
+					Vector3 vj = verts[j];
+					if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
+						(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
+					{
+						c = !c;
+					}
+
+					edgeDist[j] = PointToSegment2DSquared(ref pt, ref vj, ref vi, out edgeT[j]);
+				}
+
+				return c;
+			}
 		}
 
 		internal static class Intersection
 		{
-			internal static bool SegmentSegment2D(ref Vector3 ap, ref Vector3 aq, ref Vector3 bp, ref Vector3 bq, out float s, out float t)
+			/// <summary>
+			/// Determine whether two 2D segments AB and CD intersect
+			/// </summary>
+			/// <param name="a">Segment AB endpoint A</param>
+			/// <param name="b">Segment AB endpoint B</param>
+			/// <param name="c">Segment CD endpoint C</param>
+			/// <param name="d">Segment CD endpoint D</param>
+			/// <returns></returns>
+			internal static bool SegmentSegment2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
 			{
-				Vector3 u = aq - ap;
-				Vector3 v = bq - bp;
-				Vector3 w = ap - bp;
+				float a1, a2, a3;
 
-				float d;
-				Vector3Extensions.PerpDotXZ(ref u, ref v, out d);
+				Vector3Extensions.Cross2D(ref a, ref b, ref d, out a1);
+				Vector3Extensions.Cross2D(ref a, ref b, ref c, out a2);
 
-				if (Math.Abs(d) < 1e-6f)
+				if (a1 * a2 < 0.0f)
+				{
+					Vector3Extensions.Cross2D(ref c, ref d, ref a, out a3);
+					float a4 = a3 + a2 - a1;
+
+					if (a3 * a4 < 0.0f)
+						return true;
+				}
+
+				return false;
+			}
+
+			/// <summary>
+			/// Determine whether two 2D segments AB and CD intersect
+			/// </summary>
+			/// <param name="ap">Segment AB endpoint A</param>
+			/// <param name="bq">Segment AB endpoint B</param>
+			/// <param name="bp">Segment CD endpoint C</param>
+			/// <param name="d">Segment CD endpoint D</param>
+			/// <param name="s">?</param>
+			/// <param name="t">?</param>
+			/// <returns></returns>
+			internal static bool SegmentSegment2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d, out float s, out float t)
+			{
+				Vector3 u = b - a;
+				Vector3 v = d - c;
+				Vector3 w = a - c;
+
+				float magnitude;
+				Vector3Extensions.PerpDotXZ(ref u, ref v, out magnitude);
+
+				if (Math.Abs(magnitude) < 1e-6f)
 				{
 					//TODO is NaN the best value to set here?
 					s = float.NaN;
@@ -372,8 +475,8 @@ namespace SharpNav
 
 				Vector3Extensions.PerpDotXZ(ref v, ref w, out s);
 				Vector3Extensions.PerpDotXZ(ref u, ref w, out t);
-				s /= d;
-				t /= d;
+				s /= magnitude;
+				t /= magnitude;
 
 				return true;
 			}

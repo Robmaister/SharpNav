@@ -55,26 +55,6 @@ namespace SharpNav
 			return overlap;
 		}
 
-		public static bool DistancePointPolyEdgesSquare(Vector3 pt, Vector3[] verts, int nverts, float[] ed, float[] et)
-		{
-			bool c = false;
-
-			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
-			{
-				Vector3 vi = verts[i];
-				Vector3 vj = verts[j];
-				if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
-					(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
-				{
-					c = !c;
-				}
-
-				ed[j] = MathHelper.Distance.PointToSegment2DSquared(ref pt, ref vj, ref vi, out et[j]);
-			}
-
-			return c;
-		}
-
 		public static bool PointInPoly (Vector3 pt, Vector3[] verts, int nverts)
 		{
 			bool c = false;
@@ -136,7 +116,7 @@ namespace SharpNav
 				verts[i] = tile.verts[poly.verts[i]];
 
 			closest = pos;
-			if (!PathfinderCommon.DistancePointPolyEdgesSquare(pos, verts, nv, edged, edget))
+			if (!MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, nv, edged, edget))
 			{
 				//point is outside polygon so clamp to nearest edge
 				float dmin = float.MaxValue;
