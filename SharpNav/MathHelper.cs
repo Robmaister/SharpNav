@@ -96,7 +96,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="v">A value.</param>
 		/// <returns>The next power of two after the value.</returns>
-		public static int NextPowerOfTwo(int v)
+		internal static int NextPowerOfTwo(int v)
 		{
 			v--;
 			v |= v >> 1;
@@ -114,7 +114,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="v">A value.</param>
 		/// <returns>The next power of two after the value.</returns>
-		public static uint NextPowerOfTwo(uint v)
+		internal static uint NextPowerOfTwo(uint v)
 		{
 			v--;
 			v |= v >> 1;
@@ -127,7 +127,7 @@ namespace SharpNav
 			return v;
 		}
 
-		public static int Log2(int v)
+		internal static int Log2(int v)
 		{
 			int r;
 			int shift;
@@ -152,7 +152,7 @@ namespace SharpNav
 			return r;
 		}
 
-		public static uint Log2(uint v)
+		internal static uint Log2(uint v)
 		{
 			uint r;
 			int shift;
@@ -177,6 +177,8 @@ namespace SharpNav
 			return r;
 		}
 
+		private static float[] distances = new float[12];
+
 		/// <summary>
 		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
 		/// </summary>
@@ -189,11 +191,12 @@ namespace SharpNav
 		/// <returns>The number of vertices stored in outVertices.</returns>
 		internal static int ClipPolygonToPlane(Vector3[] inVertices, Vector3[] outVertices, int numVerts, float planeX, float planeZ, float planeD)
 		{
-			float[] distances = new float[12];
+			
 			for (int i = 0; i < numVerts; i++)
 				distances[i] = planeX * inVertices[i].X + planeZ * inVertices[i].Z + planeD;
 
 			int m = 0;
+			Vector3 temp;
 			for (int i = 0, j = numVerts - 1; i < numVerts; j = i, i++)
 			{
 				bool inj = distances[j] >= 0;
@@ -202,9 +205,10 @@ namespace SharpNav
 				if (inj != ini)
 				{
 					float s = distances[j] / (distances[j] - distances[i]);
-					outVertices[m].X = inVertices[j].X + (inVertices[i].X - inVertices[j].X) * s;
-					outVertices[m].Y = inVertices[j].Y + (inVertices[i].Y - inVertices[j].Y) * s;
-					outVertices[m].Z = inVertices[j].Z + (inVertices[i].Z - inVertices[j].Z) * s;
+
+					Vector3.Subtract(ref inVertices[i], ref inVertices[j], out temp);
+					Vector3.Multiply(ref temp, s, out temp);
+					Vector3.Add(ref inVertices[j], ref temp, out outVertices[m]);
 					m++;
 				}
 

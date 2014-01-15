@@ -710,20 +710,25 @@ namespace SharpNav
 						CompactSpan s = spans[i];
 						AreaFlags area = areas[i];
 
-						int numConnections = 0;
-						for (var dir = Direction.West; dir <= Direction.South; dir++)
+						bool isBoundary = false;
+						if (s.ConnectionCount != 4)
+							isBoundary = true;
+						else
 						{
-							if (s.IsConnected(dir))
+							for (var dir = Direction.West; dir <= Direction.South; dir++)
 							{
 								int dx = x + dir.GetHorizontalOffset();
 								int dy = y + dir.GetVerticalOffset();
 								int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
-								if (area == areas[di])
-									numConnections++;
+								if (area != areas[di])
+								{
+									isBoundary = true;
+									break;
+								}
 							}
 						}
 
-						if (numConnections != 4)
+						if (isBoundary)
 							src[i] = 0;
 					}
 				}
@@ -852,56 +857,9 @@ namespace SharpNav
 			if (buffer == null || buffer.Length < distances.Length)
 				buffer = new int[distances.Length];
 
+			Buffer.BlockCopy(distances, 0, buffer, 0, distances.Length * sizeof(int)); 
+
 			//horizontal pass
-			for (int y = 0; y < length; y++)
-			{
-				for (int x = 0; x < width; x++)
-				{
-					CompactCell c = cells[y * width + x];
-					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
-					{
-						CompactSpan s = spans[i];
-						int cellDist = distances[i];
-
-						//if the distance is below the threshold, skip the span.
-						if (cellDist <= threshold)
-							continue;
-
-						//iterate the full neighborhood of 8 spans.
-						int d = cellDist;
-						if (s.IsConnected(Direction.West))
-						{
-							int dx = x - 1;
-							int di = cells[y * width + dx].StartIndex + s.ConnectionWest;
-
-							d += distances[di];
-						}
-						else
-						{
-							//add the center span if there's no connection.
-							d += cellDist;
-						}
-
-						if (s.IsConnected(Direction.East))
-						{
-							int dx = x + 1;
-							int di = cells[y * width + dx].StartIndex + s.ConnectionEast;
-
-							d += distances[di];
-						}
-						else
-						{
-							//add the center span if there's no connection.
-							d += cellDist;
-						}
-
-						//save new value to destination
-						buffer[i] = (d + 1) / 3;
-					}
-				}
-			}
-
-			//vertical pass
 			for (int y = 0; y < length; y++)
 			{
 				for (int x = 0; x < width; x++)
@@ -918,34 +876,40 @@ namespace SharpNav
 
 						//iterate the full neighborhood of 8 spans.
 						int d = cellDist;
-						if (s.IsConnected(Direction.North))
+						for (Direction dir = Direction.West; dir <= Direction.South; dir++)
 						{
-							int dy = y + 1;
-							int di = cells[dy * width + x].StartIndex + s.ConnectionNorth;
+							if (s.IsConnected(dir))
+							{
+								int dx = x + dir.GetHorizontalOffset();
+								int dy = y + dir.GetVerticalOffset();
+								int di = cells[dy * width + dx].StartIndex + CompactSpan.GetConnection(ref s, dir);
 
-							d += buffer[di];
-						}
-						else
-						{
-							//add the center span if there's no connection.
-							d += cellDist;
-						}
+								d += buffer[di];
 
-						if (s.IsConnected(Direction.South))
-						{
-							int dy = y - 1;
-							int di = cells[dy * width + x].StartIndex + s.ConnectionSouth;
+								CompactSpan ds = spans[di];
+								Direction dir2 = dir.NextClockwise();
+								if (ds.IsConnected(dir2))
+								{
+									int dx2 = dx + dir2.GetHorizontalOffset();
+									int dy2 = dy + dir2.GetVerticalOffset();
+									int di2 = cells[dy2 * width + dx2].StartIndex + CompactSpan.GetConnection(ref ds, dir2);
 
-							d += buffer[di];
-						}
-						else
-						{
-							//add the center span if there's no connection.
-							d += cellDist;
+									d += buffer[di2];
+								}
+								else
+								{
+									d += cellDist;
+								}
+							}
+							else
+							{
+								//add the center span if there's no connection.
+								d += cellDist * 2;
+							}
 						}
 
 						//save new value to destination
-						distances[i] = (d + 1) / 3;
+						distances[i] = (d + 5) / 9;
 					}
 				}
 			}

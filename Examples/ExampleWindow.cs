@@ -299,46 +299,105 @@ namespace Examples
 		{
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
+			long prevMs = 0;
+			try
+			{
+				int voxMaxHeight = (int)(settings.MaxHeight / settings.CellHeight);
+				int voxMaxClimb = (int)(settings.MaxClimb / settings.CellHeight);
+				int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
 
-			int voxMaxHeight = (int)(settings.MaxHeight / settings.CellHeight);
-			int voxMaxClimb = (int)(settings.MaxClimb / settings.CellHeight);
-			int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
+				BBox3 bounds = level.GetBounds();
+				//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).Where(bbox => bbox.Min.Y > 0).IsWalkable().Create();
+				//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).IsWalkable().Create();
 
-			BBox3 bounds = level.GetBounds();
-			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).Where(bbox => bbox.Min.Y > 0).IsWalkable().Create();
-			//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).IsWalkable().Create();
+				heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
 
-			heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
-			//heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
-			heightfield.RasterizeTriangles(level.GetTriangles());
-			heightfield.FilterLedgeSpans(voxMaxHeight, voxMaxClimb);
-			heightfield.FilterLowHangingWalkableObstacles(voxMaxClimb);
-			heightfield.FilterWalkableLowHeightSpans(voxMaxHeight);
+				Console.WriteLine("Heightfield");
+				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
 
-			compactHeightfield = new CompactHeightfield(heightfield, voxMaxHeight, voxMaxClimb);
-			compactHeightfield.Erode(voxErodeRadius);
-			compactHeightfield.BuildDistanceField();
-			compactHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
+				heightfield.RasterizeTriangles(level.GetTriangles());
 
-			Random r = new Random();
-			regionColors = new Color4[compactHeightfield.MaxRegions];
-			regionColors[0] = Color4.Black;
-			for (int i = 1; i < regionColors.Length; i++)
-				regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
+				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
 
-			contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
+				heightfield.FilterLedgeSpans(voxMaxHeight, voxMaxClimb);
+				heightfield.FilterLowHangingWalkableObstacles(voxMaxClimb);
+				heightfield.FilterWalkableLowHeightSpans(voxMaxHeight);
 
-			polyMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
-			polyMeshDetail = new PolyMeshDetail(polyMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+				Console.WriteLine(" + Filtering\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
 
-			hasGenerated = true;
+				compactHeightfield = new CompactHeightfield(heightfield, voxMaxHeight, voxMaxClimb);
 
-			sw.Stop();
+				Console.WriteLine("CompactHeightfield");
+				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
 
-			GeneratePathfinding();
+				compactHeightfield.Erode(voxErodeRadius);
 
-			Label l = (Label)statusBar.FindChildByName("GenTime");
-			l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
+				Console.WriteLine(" + Erosion\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				compactHeightfield.BuildDistanceField();
+
+				Console.WriteLine(" + Distance Field\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				compactHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
+
+				Console.WriteLine(" + Regions\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				Random r = new Random();
+				regionColors = new Color4[compactHeightfield.MaxRegions];
+				regionColors[0] = Color4.Black;
+				for (int i = 1; i < regionColors.Length; i++)
+					regionColors[i] = new Color4((byte)r.Next(0, 255), (byte)r.Next(0, 255), (byte)r.Next(0, 255), 255);
+
+				Console.WriteLine(" + Colors\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
+
+				Console.WriteLine("ContourSet");
+				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				polyMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
+
+				Console.WriteLine("PolyMesh");
+				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				polyMeshDetail = new PolyMeshDetail(polyMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+
+				Console.WriteLine("PolyMeshDetail");
+				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
+				hasGenerated = true;
+
+
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("Navmesh generation failed with exception:" + Environment.NewLine + e.ToString());
+			}
+			finally
+			{
+				sw.Stop();
+			}
+
+			if (hasGenerated)
+			{
+				//GeneratePathfinding();
+
+				Label l = (Label)statusBar.FindChildByName("GenTime");
+				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
+
+				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
+			}
 		}
 
 		private void GeneratePathfinding()

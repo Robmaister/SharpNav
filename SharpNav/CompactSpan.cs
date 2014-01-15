@@ -95,6 +95,24 @@ namespace SharpNav
 			}
 		}
 
+		public int ConnectionCount
+		{
+			get
+			{
+				int count = 0;
+				if (ConnectionWest != NotConnected)
+					count++;
+				if (ConnectionNorth != NotConnected)
+					count++;
+				if (ConnectionEast != NotConnected)
+					count++;
+				if (ConnectionSouth != NotConnected)
+					count++;
+
+				return count;
+			}
+		}
+
 		public static void OverlapMin(ref CompactSpan left, ref CompactSpan right, out int min)
 		{
 			min = Math.Max(left.Minimum, right.Minimum);

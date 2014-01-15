@@ -25,6 +25,7 @@ namespace Examples
 			dock.Dock = Pos.Fill;
 			dock.SetSize(Width, Height);
 			dock.RightDock.Width = 280;
+			dock.BottomDock.Height = 150;
 
 			statusBar = new StatusBar(gwenCanvas);
 
@@ -85,7 +86,7 @@ namespace Examples
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 
-			displayModes.SelectByUserData(DisplayMode.Pathfinding);
+			displayModes.SelectByUserData(DisplayMode.DistanceField);
 
 			displayModeBase.SizeToChildren();
 			displayModeBase.Height += 4; //accounts for the padding, GWEN.NET should do this
@@ -134,6 +135,15 @@ namespace Examples
 
 			Base sampleDistance = CreateSliderOption(navMeshDetailSettings, "Sample Distance:", 0f, 16f, 6f, "N0", leftMax, rightMax, v => settings.SampleDistance = (int)Math.Round(v));
 			Base maxSampleError = CreateSliderOption(navMeshDetailSettings, "Max Sample Error:", 0f, 16f, 1f, "N0", leftMax, rightMax, v => settings.MaxSmapleError = (int)Math.Round(v));
+
+			Base logBase = new Base(dock);
+			dock.BottomDock.TabControl.AddPage("Log", logBase);
+
+			ListBox logBox = new ListBox(logBase);
+			logBox.Dock = Pos.Fill;
+			logBox.AllowMultiSelect = false;
+			logBox.EnableScroll(true, true);
+			Console.SetOut(new GwenTextWriter(logBox));
 		}
 
 		private Base CreateSliderOption(Base parent, string labelText, float min, float max, float value, string valueStringFormat, int labelMaxWidth, int valueLabelMaxWidth, Action<float> onChange)
