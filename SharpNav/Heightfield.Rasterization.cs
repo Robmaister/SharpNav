@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -630,16 +630,12 @@ namespace SharpNav
 			if (!BBox3.Overlapping(ref bbox, ref bounds))
 				return;
 
-			//figure out which cells the triangle touches.
-			int x0 = (int)((bbox.Min.X - bounds.Min.X) * invCellSize);
+			//figure out which rows.
 			int z0 = (int)((bbox.Min.Z - bounds.Min.Z) * invCellSize);
-			int x1 = (int)((bbox.Max.X - bounds.Min.X) * invCellSize);
 			int z1 = (int)((bbox.Max.Z - bounds.Min.Z) * invCellSize);
 
 			//clamp to the field boundaries.
-			MathHelper.Clamp(ref x0, 0, width - 1);
 			MathHelper.Clamp(ref z0, 0, length - 1);
-			MathHelper.Clamp(ref x1, 0, width - 1);
 			MathHelper.Clamp(ref z1, 0, length - 1);
 
 			Vector3[] inVerts = new Vector3[7], outVerts = new Vector3[7], inRowVerts = new Vector3[7];
@@ -660,6 +656,22 @@ namespace SharpNav
 				nvrow = MathHelper.ClipPolygonToPlane(outVerts, inRowVerts, nvrow, 0, -1, cz + cellSize);
 				if (nvrow < 3)
 					continue;
+
+				float minX = inRowVerts[0].X, maxX = minX;
+				for (int i = 1; i < nvrow; i++)
+				{
+					float vx = inRowVerts[i].X;
+					if (minX > vx)
+						minX = vx;
+					if (maxX < vx)
+						maxX = vx;
+				}
+
+				int x0 = (int)((minX - bounds.Min.X) * invCellSize);
+				int x1 = (int)((maxX - bounds.Min.X) * invCellSize);
+
+				MathHelper.Clamp(ref x0, 0, width - 1);
+				MathHelper.Clamp(ref x1, 0, width - 1);
 
 				for (int x = x0; x <= x1; x++)
 				{
