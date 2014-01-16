@@ -127,6 +127,9 @@ namespace Examples
 		{
 			base.OnUpdateFrame(e);
 
+			if (!Focused)
+				return;
+
 			KeyboardState k = OpenTK.Input.Keyboard.GetState();
 			MouseState m = OpenTK.Input.Mouse.GetState();
 
@@ -168,16 +171,15 @@ namespace Examples
 
 		protected void OnKeyboardKeyDown(object sender, KeyboardKeyEventArgs e)
 		{
+			if (!Focused)
+				return;
+
 			if (e.Key == Key.Escape)
 				Exit();
 			else if (e.Key == Key.F11)
 				WindowState = OpenTK.WindowState.Normal;
 			else if (e.Key == Key.F12)
 				WindowState = OpenTK.WindowState.Fullscreen;
-			else if (e.Key == Key.P)
-			{
-				
-			}
 
 			gwenInput.ProcessKeyDown(e);
 
@@ -186,16 +188,25 @@ namespace Examples
 
 		protected void OnKeyboardKeyUp(object sender, KeyboardKeyEventArgs e)
 		{
+			if (!Focused)
+				return;
+
 			gwenInput.ProcessKeyUp(e);
 		}
 
 		protected void OnMouseButtonDown(object sender, MouseButtonEventArgs e)
 		{
+			if (!Focused)
+				return;
+
 			gwenInput.ProcessMouseMessage(e);
 		}
 
 		protected void OnMouseButtonUp(object sender, MouseButtonEventArgs e)
 		{
+			if (!Focused)
+				return;
+
 			gwenInput.ProcessMouseMessage(e);
 		}
 
@@ -206,6 +217,9 @@ namespace Examples
 
 		protected void OnMouseWheel(object sender, MouseWheelEventArgs e)
 		{
+			if (!Focused)
+				return;
+
 			gwenInput.ProcessMouseMessage(e);
 		}
 
@@ -307,8 +321,6 @@ namespace Examples
 				int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
 
 				BBox3 bounds = level.GetBounds();
-				//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).Where(bbox => bbox.Min.Y > 0).IsWalkable().Create();
-				//AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles()).IsWalkable().Create();
 
 				heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
 
@@ -316,6 +328,11 @@ namespace Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
+				/*AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles(), AreaFlags.Walkable)
+					.MarkAboveHeight(5f, AreaFlags.Null)
+					.MarkAboveSlope(0.95f, AreaFlags.Null)
+					.ToArray();
+				heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);*/
 				heightfield.RasterizeTriangles(level.GetTriangles());
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");

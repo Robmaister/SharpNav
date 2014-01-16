@@ -1,6 +1,14 @@
-﻿using System;
+﻿#region License
+/**
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 using SharpNav.Geometry;
 
@@ -14,285 +22,164 @@ using SharpDX;
 
 namespace SharpNav
 {
-	public static class AreaFlagsGenerator
+	public class AreaFlagsGenerator
 	{
-		public static AreaFlagsQuery From(Triangle3[] tris)
+		private IEnumerable<Triangle3> tris;
+		private int triCount;
+		private List<Tuple<Func<Triangle3, bool>, AreaFlags>> conditions;
+		private AreaFlags defaultArea;
+
+		private AreaFlagsGenerator(IEnumerable<Triangle3> verts, int triCount, AreaFlags defaultArea)
 		{
-			return new FromQuery(null, new TriangleCollection(tris, 0, tris.Length));
+			this.tris = verts;
+			this.triCount = triCount;
+			this.defaultArea = defaultArea;
+			conditions = new List<Tuple<Func<Triangle3, bool>, AreaFlags>>();
 		}
 
-		public static AreaFlagsQuery From(Triangle3[] tris, int triOffset, int triCount)
+		public static AreaFlagsGenerator From(Triangle3[] tris, AreaFlags area)
 		{
-			return new FromQuery(null, new TriangleCollection(tris, triOffset, triCount));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
 		}
 
-		public static AreaFlagsQuery From(Vector3[] verts)
+		public static AreaFlagsGenerator From(Triangle3[] tris, int triOffset, int triCount, AreaFlags area)
 		{
-			return new FromQuery(null, new Vector3Collection(verts, 0, 1, verts.Length / 3));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
 		}
 
-		public static AreaFlagsQuery From(Vector3[] verts, int vertOffset, int vertStride, int triCount)
+		public static AreaFlagsGenerator From(Vector3[] verts, AreaFlags area)
 		{
-			return new FromQuery(null, new Vector3Collection(verts, vertOffset, vertStride, triCount));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
 		}
 
-		public static AreaFlagsQuery From(float[] verts)
+		public static AreaFlagsGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaFlags area)
 		{
-			return new FromQuery(null, new FloatCollection(verts, 0, 3, verts.Length / 9));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
 		}
 
-		public static AreaFlagsQuery From(float[] verts, int floatOffset, int floatStride, int triCount)
+		public static AreaFlagsGenerator From(float[] verts, AreaFlags area)
 		{
-			return new FromQuery(null, new FloatCollection(verts, floatOffset, floatStride, triCount));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
 		}
 
-		public static AreaFlagsQuery From(Vector3[] verts, int[] inds)
+		public static AreaFlagsGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, AreaFlags area)
 		{
-			return new FromQuery(null, new IndexedVector3Collection(verts, inds, 0, 1, 0, inds.Length / 3));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
 		}
 
-		public static AreaFlagsQuery From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount)
+		public static AreaFlagsGenerator From(Vector3[] verts, int[] inds, AreaFlags area)
 		{
-			return new FromQuery(null, new IndexedVector3Collection(verts, inds, vertOffset, vertStride, indexOffset, triCount));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
-		public static AreaFlagsQuery From(float[] verts, int[] inds)
+		public static AreaFlagsGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaFlags area)
 		{
-			return new FromQuery(null, new IndexedFloatCollection(verts, inds, 0, 3, 0, inds.Length / 3));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
 		}
 
-		public static AreaFlagsQuery From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount)
+		public static AreaFlagsGenerator From(float[] verts, int[] inds, AreaFlags area)
 		{
-			return new FromQuery(null, new IndexedFloatCollection(verts, inds, floatOffset, floatStride, indexOffset, triCount));
+			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
-		public abstract class AreaFlagsQuery
+		public static AreaFlagsGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaFlags area)
 		{
-			protected AreaFlagsQuery parent;
-			protected IEnumerable<Tuple<int, Triangle3>> tris;
-
-			protected AreaFlagsQuery(AreaFlagsQuery parent, IEnumerable<Tuple<int, Triangle3>> tris)
-			{
-				this.parent = parent;
-				this.tris = tris;
-			}
-
-			internal abstract IEnumerable<Tuple<int, Triangle3>> Execute(AreaFlags[] flags);
-
-			public AreaFlags[] Create()
-			{
-				//calling Count() does not iterate over all tris, since tris will always
-				//be a subclass of ICollection<Tuple<int, Triangle3>>.
-				AreaFlags[] flags = new AreaFlags[tris.Count()];
-
-				//run the query on the list and return the modified array.
-				foreach (var tri in Execute(flags))
-				{
-				}
-
-				return flags;
-			}
-
-			public AreaFlagsQuery And()
-			{
-				return new AndQuery(this, tris);
-			}
-
-			public AreaFlagsQuery SetArea(AreaFlags area)
-			{
-				return new SetAreaQuery(this, tris, area);
-			}
-
-			public AreaFlagsQuery IsWalkable()
-			{
-				return new SetAreaQuery(this, tris, AreaFlags.Walkable);
-			}
-
-			public AreaFlagsQuery IsUnwalkable()
-			{
-				return new SetAreaQuery(this, tris, AreaFlags.Null);
-			}
-
-			public AreaFlagsQuery Where(Predicate<Triangle3> condition)
-			{
-				return new WhereQuery(this, tris, condition);
-			}
-
-			public AreaFlagsQuery Where(Func<BBox3, bool> condition)
-			{
-				Predicate<Triangle3> pred = t =>
-				{
-					BBox3 bbox;
-					Triangle3.GetBoundingBox(ref t, out bbox);
-					return condition(bbox);
-				};
-
-				return new WhereQuery(this, tris, pred);
-			}
-
-			public AreaFlagsQuery Where(Func<Vector3, Vector3, Vector3, bool> condition)
-			{
-				Predicate<Triangle3> pred = t => condition(t.A, t.B, t.C);
-
-				return new WhereQuery(this, tris, pred);
-			}
+			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
 		}
 
-		public class FromQuery : AreaFlagsQuery
+		public AreaFlags[] ToArray()
 		{
-			public FromQuery(AreaFlagsQuery parent, IEnumerable<Tuple<int, Triangle3>> tris)
-				: base(parent, tris)
+			AreaFlags[] areas = new AreaFlags[triCount];
+
+			int i = 0;
+			foreach (var tri in tris)
 			{
+				areas[i] = defaultArea;
+
+				foreach (var condition in conditions)
+					if (condition.Item1(tri))
+						areas[i] = condition.Item2;
+
+				i++;
 			}
 
-			internal override IEnumerable<Tuple<int, Triangle3>> Execute(AreaFlags[] flags)
-			{
-				return tris;
-			}
+			return areas;
 		}
 
-		public class WhereQuery : AreaFlagsQuery
+		public AreaFlagsGenerator MarkAboveSlope(float angle, AreaFlags area)
 		{
-			private Predicate<Triangle3> condition;
-
-			public WhereQuery(AreaFlagsQuery parent, IEnumerable<Tuple<int, Triangle3>> tris, Predicate<Triangle3> condition)
-				: base(parent, tris)
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
 			{
-				this.condition = condition;
-			}
+				Vector3 n = tri.Normal;
+				return Vector3.Dot(n, Vector3.UnitY) <= angle;
+			}, area));
 
-			internal override IEnumerable<Tuple<int, Triangle3>> Execute(AreaFlags[] flags)
-			{
-				foreach (var tri in parent.Execute(flags))
-				{
-					if (condition(tri.Item2))
-						yield return tri;
-				}
-			}
+			return this;
 		}
 
-		public class SetAreaQuery : AreaFlagsQuery
+		public AreaFlagsGenerator MarkBelowSlope(float angle, AreaFlags area)
 		{
-			private AreaFlags area;
-
-			public SetAreaQuery(AreaFlagsQuery parent, IEnumerable<Tuple<int, Triangle3>> tris, AreaFlags area)
-				: base(parent, tris)
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
 			{
-				this.area = area;
-			}
+				Vector3 n = tri.Normal;
+				return Vector3.Dot(n, Vector3.UnitY) >= angle;
+			}, area));
 
-			internal override IEnumerable<Tuple<int, Triangle3>> Execute(AreaFlags[] flags)
-			{
-				foreach (var tri in parent.Execute(flags))
-				{
-					flags[tri.Item1] = area;
-
-					yield return tri;
-				}
-			}
+			return this;
 		}
 
-		public class AndQuery : AreaFlagsQuery
+		public AreaFlagsGenerator MarkAtSlope(float angle, float range, AreaFlags area)
 		{
-			public AndQuery(AreaFlagsQuery parent, IEnumerable<Tuple<int, Triangle3>> tris)
-				: base(parent, tris)
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
 			{
-			}
+				Vector3 n = tri.Normal;
+				float ang = Vector3.Dot(n, Vector3.UnitY);
+				return ang >= angle - range && ang <= angle + range;
+			}, area));
 
-			internal override IEnumerable<Tuple<int, Triangle3>> Execute(AreaFlags[] flags)
-			{
-				foreach (var tri in parent.Execute(flags))
-				{
-				}
-
-				foreach (var tri in tris)
-					yield return tri;
-			}
+			return this;
 		}
 
-		private abstract class VertCollection : ICollection<Tuple<int, Triangle3>>
+		public AreaFlagsGenerator MarkBelowHeight(float y, AreaFlags area)
 		{
-			public abstract IEnumerator<Tuple<int, Triangle3>> GetEnumerator();
-
-			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
 			{
-				return GetEnumerator();
-			}
+				if (tri.A.Y <= y || tri.B.Y <= y || tri.C.Y <= y)
+					return true;
 
-			public void Add(Tuple<int, Triangle3> item)
-			{
-				throw new InvalidOperationException();
-			}
+				return false;
+			}, area));
 
-			public void Clear()
-			{
-				throw new InvalidOperationException();
-			}
-
-			public bool Contains(Tuple<int, Triangle3> item)
-			{
-				throw new InvalidOperationException();
-			}
-
-			public void CopyTo(Tuple<int, Triangle3>[] array, int arrayIndex)
-			{
-				throw new InvalidOperationException();
-			}
-
-			public abstract int Count { get; }
-
-			public bool IsReadOnly
-			{
-				get { return true; }
-			}
-
-			public bool Remove(Tuple<int, Triangle3> item)
-			{
-				throw new InvalidOperationException();
-			}
+			return this;
 		}
 
-		private class TriangleCollection : VertCollection
+		public AreaFlagsGenerator MarkAtHeight(float y, float radius, AreaFlags area)
 		{
-			private Triangle3[] tris;
-			private int triOffset, triCount;
+			throw new NotImplementedException();
+		}
 
-			public TriangleCollection(Triangle3[] tris, int triOffset, int triCount)
+		public AreaFlagsGenerator MarkAboveHeight(float y, AreaFlags area)
+		{
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
 			{
-				this.tris = tris;
-				this.triOffset = triOffset;
-				this.triCount = triCount;
-			}
+				if (tri.A.Y >= y || tri.B.Y >= y || tri.C.Y >= y)
+					return true;
 
-			public override IEnumerator<Tuple<int, Triangle3>> GetEnumerator()
+				return false;
+			}, area));
+
+			return this;
+		}
+
+		private static class TriangleEnumerable
+		{
+			public static IEnumerable<Triangle3> FromTriangle(Triangle3[] tris, int triOffset, int triCount)
 			{
 				for (int i = 0; i < triCount; i++)
-					yield return Tuple.Create(i, tris[triOffset + i]);
+					yield return tris[triOffset + i];
 			}
 
-			public override int Count
-			{
-				get
-				{
-					return triCount;
-				}
-			}
-		}
-
-		private class Vector3Collection : VertCollection
-		{
-			private Vector3[] verts;
-			private int vertOffset, vertStride, triCount;
-
-			public Vector3Collection(Vector3[] verts, int vertOffset, int vertStride, int triCount)
-			{
-				this.verts = verts;
-				this.vertOffset = vertOffset;
-				this.vertStride = vertStride;
-				this.triCount = triCount;
-			}
-
-			public override IEnumerator<Tuple<int, Triangle3>> GetEnumerator()
+			public static IEnumerable<Triangle3> FromVector3(Vector3[] verts, int vertOffset, int vertStride, int triCount)
 			{
 				Triangle3 tri;
 
@@ -302,30 +189,11 @@ namespace SharpNav
 					tri.B = verts[vertOffset + i * vertStride * 6];
 					tri.C = verts[vertOffset + i * vertStride * 9];
 
-					yield return Tuple.Create(i, tri);
+					yield return tri;
 				}
 			}
 
-			public override int Count
-			{
-				get { return triCount; }
-			}
-		}
-
-		private class FloatCollection : VertCollection
-		{
-			private float[] verts;
-			private int floatOffset, floatStride, triCount;
-
-			public FloatCollection(float[] verts, int floatOffset, int floatStride, int triCount)
-			{
-				this.verts = verts;
-				this.floatOffset = floatOffset;
-				this.floatStride = floatStride;
-				this.triCount = triCount;
-			}
-
-			public override IEnumerator<Tuple<int, Triangle3>> GetEnumerator()
+			public static IEnumerable<Triangle3> FromFloat(float[] verts, int floatOffset, int floatStride, int triCount)
 			{
 				Triangle3 tri;
 
@@ -347,33 +215,11 @@ namespace SharpNav
 					tri.C.Y = verts[indC + 1];
 					tri.C.Z = verts[indC + 2];
 
-					yield return Tuple.Create(i, tri);
+					yield return tri;
 				}
 			}
 
-			public override int Count
-			{
-				get { return triCount; }
-			}
-		}
-
-		private class IndexedVector3Collection : VertCollection
-		{
-			private Vector3[] verts;
-			private int[] inds;
-			private int vertOffset, vertStride, indexOffset, triCount;
-
-			public IndexedVector3Collection(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount)
-			{
-				this.verts = verts;
-				this.inds = inds;
-				this.vertOffset = vertOffset;
-				this.vertStride = vertStride;
-				this.indexOffset = indexOffset;
-				this.triCount = triCount;
-			}
-
-			public override IEnumerator<Tuple<int, Triangle3>> GetEnumerator()
+			public static IEnumerable<Triangle3> FromIndexedVector3(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount)
 			{
 				Triangle3 tri;
 
@@ -387,33 +233,11 @@ namespace SharpNav
 					tri.B = verts[indB];
 					tri.C = verts[indC];
 
-					yield return Tuple.Create(i, tri);
+					yield return tri;
 				}
 			}
 
-			public override int Count
-			{
-				get { return triCount; }
-			}
-		}
-
-		private class IndexedFloatCollection : VertCollection
-		{
-			private float[] verts;
-			private int[] inds;
-			private int floatOffset, floatStride, indexOffset, triCount;
-
-			public IndexedFloatCollection(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount)
-			{
-				this.verts = verts;
-				this.inds = inds;
-				this.floatOffset = floatOffset;
-				this.floatStride = floatStride;
-				this.indexOffset = indexOffset;
-				this.triCount = triCount;
-			}
-
-			public override IEnumerator<Tuple<int, Triangle3>> GetEnumerator()
+			public static IEnumerable<Triangle3> FromIndexedFloat(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount)
 			{
 				Triangle3 tri;
 
@@ -435,13 +259,8 @@ namespace SharpNav
 					tri.C.Y = verts[indC + 1];
 					tri.C.Z = verts[indC + 2];
 
-					yield return Tuple.Create(i, tri);
+					yield return tri;
 				}
-			}
-
-			public override int Count
-			{
-				get { return triCount; }
 			}
 		}
 	}

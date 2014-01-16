@@ -184,7 +184,7 @@ namespace SharpNav
 			if (areas.Length < triCount)
 				throw new ArgumentException("There must be at least as many AreaFlags as there are triangles.", "areas");
 
-			for (int i = triCount, j = 0; i < triEnd; i++, j++)
+			for (int i = triOffset, j = 0; i < triEnd; i++, j++)
 				RasterizeTriangle(ref tris[i].A, ref tris[i].B, ref tris[i].C, areas[j]);
 		}
 

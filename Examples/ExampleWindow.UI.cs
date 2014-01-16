@@ -86,7 +86,7 @@ namespace Examples
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 
-			displayModes.SelectByUserData(DisplayMode.DistanceField);
+			displayModes.SelectByUserData(DisplayMode.PolyMesh);
 
 			displayModeBase.SizeToChildren();
 			displayModeBase.Height += 4; //accounts for the padding, GWEN.NET should do this
