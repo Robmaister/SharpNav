@@ -546,7 +546,7 @@ namespace Examples
 				{
 					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
-					if ((polyMesh.Polys[i].ExtraInfo[j] & 0x8000) != 0)
+					if (PolyMesh.IsBoundaryEdge(polyMesh.Polys[i].NeighborEdges[j]))
 						continue;
 
 					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
@@ -574,7 +574,7 @@ namespace Examples
 					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
 						break;
 
-					if ((polyMesh.Polys[i].ExtraInfo[j] & 0x8000) == 0)
+					if (PolyMesh.IsInteriorEdge(polyMesh.Polys[i].NeighborEdges[j]))
 						continue;
 
 					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;

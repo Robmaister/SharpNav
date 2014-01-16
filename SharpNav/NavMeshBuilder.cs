@@ -136,9 +136,9 @@ namespace SharpNav
 
 					edgeCount++;
 					
-					if ((p.ExtraInfo[j] & 0x8000) != 0)
+					if (PolyMesh.IsBoundaryEdge(p.NeighborEdges[j]))
 					{
-						int dir = p.ExtraInfo[j] % 16;
+						int dir = p.NeighborEdges[j] % 16;
 						if (dir != 15)
 							portalCount++;
 					}
@@ -251,7 +251,7 @@ namespace SharpNav
 			{
 				navPolys[i] = new Poly();
 				navPolys[i].vertCount = 0;
-				navPolys[i].flags = parameters.polyFlags[i];
+				navPolys[i].flags = parameters.polys[i].Flags;
 				navPolys[i].Area = (int)parameters.polys[i].Area;
 				navPolys[i].PolyType = PolygonType.Ground;
 				navPolys[i].verts = new int[nvp];
@@ -262,10 +262,10 @@ namespace SharpNav
 						break;
 
 					navPolys[i].verts[j] = parameters.polys[i].Vertices[j];
-					if ((parameters.polys[i].ExtraInfo[j] & 0x8000) != 0)
+					if (PolyMesh.IsBoundaryEdge(parameters.polys[i].NeighborEdges[j]))
 					{
 						//border or portal edge
-						int dir = parameters.polys[i].ExtraInfo[j] % 16;
+						int dir = parameters.polys[i].NeighborEdges[j] % 16;
 						if (dir == 0xf) //border
 							navPolys[i].neis[j] = 0;
 						else if (dir == 0) //portal x-
@@ -280,7 +280,7 @@ namespace SharpNav
 					else
 					{
 						//normal connection
-						navPolys[i].neis[j] = parameters.polys[i].ExtraInfo[j] + 1;
+						navPolys[i].neis[j] = parameters.polys[i].NeighborEdges[j] + 1;
 					}
 
 					navPolys[i].vertCount++;

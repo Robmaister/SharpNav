@@ -24,16 +24,15 @@ namespace SharpNav
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
 		public const int MESH_NULL_IDX = -1;
-
+		
 		private const int DiagonalFlag = unchecked((int)0x80000000);
+		private const int NeighborEdgeFlag = 0x8000;
 
 		private int nverts;
 		private int npolys;
 
 		private Vector3[] verts; //each vertex contains (x, y, z)
 		private Polygon[] polys;
-		private int[] regionIds; //contains region id for each triangle
-		private int[] flags; //flags for a polygon
 		
 		private int maxPolys;
 		private int numVertsPerPoly;
@@ -49,12 +48,14 @@ namespace SharpNav
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
 		public Vector3[] Verts { get { return verts; } }
 		public Polygon[] Polys { get { return polys; } }
-		public int[] Flags { get { return flags; } }
 
 		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
 		public float CellHeight { get { return cellHeight; } }
 		public int BorderSize { get { return borderSize; } }
+
+		public static bool IsBoundaryEdge(int flag) { return (flag & NeighborEdgeFlag) != 0; }
+		public static bool IsInteriorEdge(int flag) { return (flag & NeighborEdgeFlag) == 0; }
 
 		/// <summary>
 		/// Create polygons out of a set of contours
@@ -92,7 +93,6 @@ namespace SharpNav
 			//initialize the mesh members
 			this.verts = new Vector3[maxVertices]; 
 			this.polys = new Polygon[maxTris];
-			this.regionIds = new int[maxTris];
 
 			this.nverts = 0;
 			this.npolys = 0;
@@ -102,13 +102,14 @@ namespace SharpNav
 			for (int i = 0; i < this.polys.Length; i++)
 			{
 				this.polys[i].Vertices = new int[numVertsPerPoly];
-				this.polys[i].ExtraInfo = new int[numVertsPerPoly];
+				this.polys[i].NeighborEdges = new int[numVertsPerPoly];
 				this.polys[i].Area = new AreaFlags();
+				this.polys[i].RegionId = 0;
 
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
 					this.polys[i].Vertices[j] = MESH_NULL_IDX;
-					this.polys[i].ExtraInfo[j] = MESH_NULL_IDX;
+					this.polys[i].NeighborEdges[j] = MESH_NULL_IDX;
 				}
 			}
 
@@ -262,7 +263,7 @@ namespace SharpNav
 					{
 						this.polys[this.npolys].Vertices[j] = polys[i].Vertices[j];
 					}
-					this.regionIds[this.npolys] = cont.RegionId;
+					this.polys[this.npolys].RegionId = cont.RegionId;
 					this.polys[this.npolys].Area = cont.Area;
 
 					this.npolys++;
@@ -303,7 +304,7 @@ namespace SharpNav
 							break;
 
 						//skip connected edges
-						if (this.polys[i].ExtraInfo[j] != MESH_NULL_IDX)
+						if (this.polys[i].NeighborEdges[j] != MESH_NULL_IDX)
 							continue;
 
 						int nj = j + 1;
@@ -316,21 +317,22 @@ namespace SharpNav
 
 						//set some flags
 						if (this.verts[va].X == 0 && this.verts[vb].X == 0)
-							this.polys[i].ExtraInfo[j] = 0x8000 | 0;
+							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 0;
 						else if (this.verts[va].Z == contSet.Height && this.verts[vb].Z == contSet.Height)
-							this.polys[i].ExtraInfo[j] = 0x8000 | 1;
+							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 1;
 						else if (this.verts[va].X == contSet.Width && this.verts[vb].X == contSet.Width)
-							this.polys[i].ExtraInfo[j] = 0x8000 | 2;
+							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 2;
 						else if (this.verts[va].Z == 0 && this.verts[vb].Z == 0)
-							this.polys[i].ExtraInfo[j] = 0x8000 | 3;
+							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 3;
 					}
 				}
 			}
 
 			//user fills this in?
-			this.flags = new int[this.npolys];
-			for (int i = 0; i < this.flags.Length; i++)
-				this.flags[i] = 0;
+			for (int i = 0; i < this.polys.Length; i++)
+			{
+				this.polys[i].Flags = 0;
+			}
 		}
 
 		/// <summary>
@@ -773,7 +775,7 @@ namespace SharpNav
 							int e = nedges * 4;
 							edges[e + 0] = this.polys[i].Vertices[k];
 							edges[e + 1] = this.polys[i].Vertices[j];
-							edges[e + 2] = this.regionIds[i];
+							edges[e + 2] = this.polys[i].RegionId;
 							edges[e + 3] = (int)this.polys[i].Area;
 							nedges++;
 						}
@@ -783,10 +785,10 @@ namespace SharpNav
 					for (int j = 0; j < numVertsPerPoly; j++)
 					{
 						this.polys[i].Vertices[j] = this.polys[this.npolys - 1].Vertices[j];
-						this.polys[i].ExtraInfo[j] = MESH_NULL_IDX;
+						this.polys[i].NeighborEdges[j] = MESH_NULL_IDX;
 					}
 
-					this.regionIds[i] = this.regionIds[this.npolys - 1];
+					this.polys[i].RegionId = this.polys[this.npolys - 1].RegionId;
 					this.polys[i].Area = this.polys[this.npolys - 1].Area;
 					this.npolys--;
 					--i;
@@ -994,10 +996,10 @@ namespace SharpNav
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
 					this.polys[this.npolys].Vertices[j] = polys[i].Vertices[j];
-					this.polys[this.npolys].ExtraInfo[j] = MESH_NULL_IDX;
+					this.polys[this.npolys].NeighborEdges[j] = MESH_NULL_IDX;
 				}
 
-				this.regionIds[this.npolys] = pregs[i];
+				this.polys[this.npolys].RegionId = pregs[i];
 				this.polys[this.npolys].Area = (AreaFlags)pareas[i];
 				this.npolys++;
 			}
@@ -1094,8 +1096,8 @@ namespace SharpNav
 				if (e.PolyX != e.PolyY)
 				{
 					//store other polygon number as part of extra info
-					polys[e.PolyX].ExtraInfo[e.PolyEdgeX] = e.PolyY;
-					polys[e.PolyY].ExtraInfo[e.PolyEdgeY] = e.PolyX;
+					polys[e.PolyX].NeighborEdges[e.PolyEdgeX] = e.PolyY;
+					polys[e.PolyY].NeighborEdges[e.PolyEdgeY] = e.PolyX;
 				}
 			}
 		}
@@ -1168,8 +1170,10 @@ namespace SharpNav
 		public struct Polygon
 		{
 			public int[] Vertices; //"numVertsPerPoly" elements
-			public int[] ExtraInfo; //"numVertsPerPoly" elements (contains flags, other polys)
-			public AreaFlags Area; 
+			public int[] NeighborEdges; //"numVertsPerPoly" elements
+			public AreaFlags Area;
+			public int RegionId; 
+			public int Flags; 
 		}
 
 		private struct Tris
