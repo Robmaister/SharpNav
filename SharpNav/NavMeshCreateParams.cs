@@ -31,7 +31,6 @@ namespace SharpNav
 		public int vertCount;
 		public PolyMesh.Polygon[] polys;
 		public int[] polyFlags; //user assigned
-		public AreaFlags[] polyAreas;
 		public int polyCount;
 		public int numVertsPerPoly;
 

@@ -28,7 +28,7 @@ namespace SharpNav
 		private PathfinderCommon.MeshHeader header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
-		private PolyDetail[] navDMeshes;
+		private PolyMeshDetail.MeshData[] navDMeshes;
 		private Vector3[] navDVerts;
 		private PolyMeshDetail.TriangleData[] navDTris;
 		private BVNode[] navBvTree;
@@ -37,7 +37,7 @@ namespace SharpNav
 		public PathfinderCommon.MeshHeader Header { get { return header; } }
 		public Vector3[] NavVerts { get { return navVerts; } }
 		public Poly[] NavPolys { get { return navPolys; } }
-		public PolyDetail[] NavDMeshes { get { return navDMeshes; } }
+		public PolyMeshDetail.MeshData[] NavDMeshes { get { return navDMeshes; } }
 		public Vector3[] NavDVerts { get { return navDVerts; } }
 		public PolyMeshDetail.TriangleData[] NavDTris { get { return navDTris; } }
 		public BVNode[] NavBvTree { get { return navBvTree; } }
@@ -194,7 +194,7 @@ namespace SharpNav
 			header = new PathfinderCommon.MeshHeader();
 			navVerts = new Vector3[totVertCount];
 			navPolys = new Poly[totPolyCount];
-			navDMeshes = new PolyDetail[parameters.polyCount];
+			navDMeshes = new PolyMeshDetail.MeshData[parameters.polyCount];
 			navDVerts = new Vector3[uniqueDetailVertCount];
 			navDTris = new PolyMeshDetail.TriangleData[detailTriCount];
 			navBvTree = new BVNode[parameters.polyCount * 2];
@@ -252,7 +252,7 @@ namespace SharpNav
 				navPolys[i] = new Poly();
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polyFlags[i];
-				navPolys[i].Area = (int)parameters.polyAreas[i];
+				navPolys[i].Area = (int)parameters.polys[i].Area;
 				navPolys[i].PolyType = PolygonType.Ground;
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];
@@ -313,10 +313,10 @@ namespace SharpNav
 					int vb = parameters.detailMeshes[i].VertexIndex;
 					int ndv = parameters.detailMeshes[i].VertexCount;
 					int nv = navPolys[i].vertCount;
-					navDMeshes[i].vertBase = vbase;
-					navDMeshes[i].vertCount = ndv - nv;
-					navDMeshes[i].triBase = parameters.detailMeshes[i].TriangleIndex;
-					navDMeshes[i].triCount = parameters.detailMeshes[i].TriangleCount;
+					navDMeshes[i].VertexIndex = vbase;
+					navDMeshes[i].VertexCount = ndv - nv;
+					navDMeshes[i].TriangleIndex = parameters.detailMeshes[i].TriangleIndex;
+					navDMeshes[i].TriangleCount = parameters.detailMeshes[i].TriangleCount;
 
 					//copy vertices except for first 'nv' verts which are equal to nav poly verts
 					if (ndv - nv > 0)
@@ -341,10 +341,10 @@ namespace SharpNav
 				for (int i = 0; i < parameters.polyCount; i++)
 				{
 					int nv = navPolys[i].vertCount;
-					navDMeshes[i].vertBase = 0;
-					navDMeshes[i].vertCount = 0;
-					navDMeshes[i].triBase = tbase;
-					navDMeshes[i].triCount = nv - 2;
+					navDMeshes[i].VertexIndex = 0;
+					navDMeshes[i].VertexCount = 0;
+					navDMeshes[i].TriangleIndex = tbase;
+					navDMeshes[i].TriangleCount = nv - 2;
 
 					//triangulate polygon
 					for (int j = 2; j < nv; j++)

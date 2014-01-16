@@ -101,7 +101,8 @@ namespace SharpNav
 
 		private class EdgeInfo
 		{
-			public int[] EndPts;
+			public int EndPt0;
+			public int EndPt1;
 			public int LeftFace;
 			public int RightFace;
 		}
@@ -896,9 +897,8 @@ namespace SharpNav
 			for (int i = 0; i < maxEdges; i++)
 			{
 				EdgeInfo e = new EdgeInfo();
-				e.EndPts = new int[2];
-				e.EndPts[0] = 0;
-				e.EndPts[1] = 0;
+				e.EndPt0 = 0;
+				e.EndPt1 = 0;
 				e.LeftFace = 0;
 				e.RightFace = 0;
 				edges.Add(e);
@@ -934,16 +934,16 @@ namespace SharpNav
 					
 					if (tri.VertexHash0 == -1)
 					{
-						tri.VertexHash0 = edges[i].EndPts[0];
-						tri.VertexHash1 = edges[i].EndPts[1];
+						tri.VertexHash0 = edges[i].EndPt0;
+						tri.VertexHash1 = edges[i].EndPt1;
 					}
-					else if (tri.VertexHash0 == edges[i].EndPts[1])
+					else if (tri.VertexHash0 == edges[i].EndPt1)
 					{
-						tri.VertexHash2 = edges[i].EndPts[0];
+						tri.VertexHash2 = edges[i].EndPt0;
 					}
-					else if (tri.VertexHash1 == edges[i].EndPts[0])
+					else if (tri.VertexHash1 == edges[i].EndPt0)
 					{
-						tri.VertexHash2 = edges[i].EndPts[1];
+						tri.VertexHash2 = edges[i].EndPt1;
 					}
 
 					tris[t] = tri;
@@ -957,16 +957,16 @@ namespace SharpNav
 					
 					if (tri.VertexHash0 == -1)
 					{
-						tri.VertexHash0 = edges[i].EndPts[1];
-						tri.VertexHash1 = edges[i].EndPts[0];
+						tri.VertexHash0 = edges[i].EndPt1;
+						tri.VertexHash1 = edges[i].EndPt0;
 					}
-					else if (tri.VertexHash0 == edges[i].EndPts[0])
+					else if (tri.VertexHash0 == edges[i].EndPt0)
 					{
-						tri.VertexHash2 = edges[i].EndPts[1];
+						tri.VertexHash2 = edges[i].EndPt1;
 					}
-					else if (tri.VertexHash1 == edges[i].EndPts[1])
+					else if (tri.VertexHash1 == edges[i].EndPt1)
 					{
-						tri.VertexHash2 = edges[i].EndPts[0];
+						tri.VertexHash2 = edges[i].EndPt0;
 					}
 
 					tris[t] = tri;
@@ -996,13 +996,13 @@ namespace SharpNav
 			int s, t;
 			if (edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 			{
-				s = edges[edgePos].EndPts[0];
-				t = edges[edgePos].EndPts[1];
+				s = edges[edgePos].EndPt0;
+				t = edges[edgePos].EndPt1;
 			}
 			else if (edges[edgePos].RightFace == (int)EdgeValues.Undefined)
 			{
-				s = edges[edgePos].EndPts[1];
-				t = edges[edgePos].EndPts[0];
+				s = edges[edgePos].EndPt1;
+				t = edges[edgePos].EndPt0;
 			}
 			else
 			{
@@ -1100,8 +1100,8 @@ namespace SharpNav
 			if (e == (int)EdgeValues.Undefined)
 			{
 				int edge = nedges;
-				edges[edge].EndPts[0] = s;
-				edges[edge].EndPts[1] = t;
+				edges[edge].EndPt0 = s;
+				edges[edge].EndPt1 = t;
 				edges[edge].LeftFace = l;
 				edges[edge].RightFace = r;
 				return nedges++;
@@ -1116,7 +1116,7 @@ namespace SharpNav
 		{
 			for (int i = 0; i < nedges; i++)
 			{
-				if ((edges[i].EndPts[0] == s && edges[i].EndPts[1] == t) || (edges[i].EndPts[0] == t && edges[i].EndPts[1] == s))
+				if ((edges[i].EndPt0 == s && edges[i].EndPt1 == t) || (edges[i].EndPt0 == t && edges[i].EndPt1 == s))
 					return i;
 			}
 
@@ -1127,8 +1127,8 @@ namespace SharpNav
 		{
 			for (int i = 0; i < nedges; i++)
 			{
-				int s0 = edges[i].EndPts[0];
-				int t0 = edges[i].EndPts[1];
+				int s0 = edges[i].EndPt0;
+				int t0 = edges[i].EndPt1;
 
 				//same or connected edges do not overlap
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
@@ -1143,9 +1143,9 @@ namespace SharpNav
 
 		private void UpdateLeftFace(List<EdgeInfo> edges, int edgePos, int s, int t, int f)
 		{
-			if (edges[edgePos].EndPts[0] == s && edges[edgePos].EndPts[1] == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
+			if (edges[edgePos].EndPt0 == s && edges[edgePos].EndPt1 == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 				edges[edgePos].LeftFace = f;
-			else if (edges[edgePos].EndPts[1] == s && edges[edgePos].EndPts[0] == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
+			else if (edges[edgePos].EndPt1 == s && edges[edgePos].EndPt0 == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
 				edges[edgePos].RightFace = f;
 		}
 

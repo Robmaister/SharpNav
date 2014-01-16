@@ -105,7 +105,7 @@ namespace SharpNav
 				return;
 			}
 
-			PolyDetail pd = tile.detailMeshes[indexPoly];
+			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
 
 			//clamp point to be inside the polygon
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
@@ -137,9 +137,9 @@ namespace SharpNav
 			}
 
 			//find height at the location
-			for (int j = 0; j < tile.detailMeshes[indexPoly].triCount; j++)
+			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
 			{
-				PolyMeshDetail.TriangleData t = tile.detailTris[pd.triBase + j];
+				PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
 				Vector3[] v = new Vector3[3];
 
 				for (int k = 0; k < 3; k++)
@@ -147,7 +147,7 @@ namespace SharpNav
 					if (t[k] < poly.vertCount)
 						v[k] = tile.verts[poly.verts[t[k]]];
 					else
-						v[k] = tile.detailVerts[pd.vertBase + (t[k] - poly.vertCount)];
+						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
 				}
 
 				float h = 0;

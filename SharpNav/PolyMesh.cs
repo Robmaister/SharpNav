@@ -34,7 +34,6 @@ namespace SharpNav
 		private Polygon[] polys;
 		private int[] regionIds; //contains region id for each triangle
 		private int[] flags; //flags for a polygon
-		private AreaFlags[] areas; //contains area flags for each triangle
 		
 		private int maxPolys;
 		private int numVertsPerPoly;
@@ -51,7 +50,6 @@ namespace SharpNav
 		public Vector3[] Verts { get { return verts; } }
 		public Polygon[] Polys { get { return polys; } }
 		public int[] Flags { get { return flags; } }
-		public AreaFlags[] Areas { get { return areas; } }
 
 		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
@@ -95,7 +93,6 @@ namespace SharpNav
 			this.verts = new Vector3[maxVertices]; 
 			this.polys = new Polygon[maxTris];
 			this.regionIds = new int[maxTris];
-			this.areas = new AreaFlags[maxTris];
 
 			this.nverts = 0;
 			this.npolys = 0;
@@ -106,6 +103,7 @@ namespace SharpNav
 			{
 				this.polys[i].Vertices = new int[numVertsPerPoly];
 				this.polys[i].ExtraInfo = new int[numVertsPerPoly];
+				this.polys[i].Area = new AreaFlags();
 
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
@@ -261,10 +259,12 @@ namespace SharpNav
 				for (int i = 0; i < npolys; i++)
 				{
 					for (int j = 0; j < numVertsPerPoly; j++)
+					{
 						this.polys[this.npolys].Vertices[j] = polys[i].Vertices[j];
-
+					}
 					this.regionIds[this.npolys] = cont.RegionId;
-					this.areas[this.npolys] = cont.Area;
+					this.polys[this.npolys].Area = cont.Area;
+
 					this.npolys++;
 				}
 			}
@@ -774,7 +774,7 @@ namespace SharpNav
 							edges[e + 0] = this.polys[i].Vertices[k];
 							edges[e + 1] = this.polys[i].Vertices[j];
 							edges[e + 2] = this.regionIds[i];
-							edges[e + 3] = (int)this.areas[i];
+							edges[e + 3] = (int)this.polys[i].Area;
 							nedges++;
 						}
 					}
@@ -787,7 +787,7 @@ namespace SharpNav
 					}
 
 					this.regionIds[i] = this.regionIds[this.npolys - 1];
-					this.areas[i] = this.areas[this.npolys - 1];
+					this.polys[i].Area = this.polys[this.npolys - 1].Area;
 					this.npolys--;
 					--i;
 				}
@@ -998,7 +998,7 @@ namespace SharpNav
 				}
 
 				this.regionIds[this.npolys] = pregs[i];
-				this.areas[this.npolys] = (AreaFlags)pareas[i];
+				this.polys[this.npolys].Area = (AreaFlags)pareas[i];
 				this.npolys++;
 			}
 		}
@@ -1169,6 +1169,7 @@ namespace SharpNav
 		{
 			public int[] Vertices; //"numVertsPerPoly" elements
 			public int[] ExtraInfo; //"numVertsPerPoly" elements (contains flags, other polys)
+			public AreaFlags Area; 
 		}
 
 		private struct Tris

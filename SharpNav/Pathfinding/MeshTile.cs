@@ -26,8 +26,8 @@ namespace SharpNav.Pathfinding
 		public Poly[] polys;
 		public Vector3[] verts;
 		public Link[] links;
-		public PolyDetail[] detailMeshes;
 
+		public PolyMeshDetail.MeshData[] detailMeshes;
 		public Vector3[] detailVerts;
 		public PolyMeshDetail.TriangleData[] detailTris;
 

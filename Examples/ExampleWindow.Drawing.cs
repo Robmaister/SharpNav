@@ -507,7 +507,7 @@ namespace Examples
 
 			for (int i = 0; i < polyMesh.NPolys; i++)
 			{
-				if (polyMesh.Areas[i] != AreaFlags.Walkable)
+				if (polyMesh.Polys[i].Area != AreaFlags.Walkable)
 					continue;
 
 				for (int j = 2; j < polyMesh.NumVertsPerPoly; j++)
