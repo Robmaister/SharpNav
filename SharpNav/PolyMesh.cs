@@ -151,7 +151,7 @@ namespace SharpNav
 					//save the hash code for each vertex
 					indices[i] = AddVertex(cont.Vertices[v], this.verts, firstVert, nextVert, ref this.nverts);
 
-					if (Region.IsBorderVertex(cont.Vertices[v].RawVertexIndex))
+					if (Region.IsBorderVertex(cont.Vertices[v].RegionId))
 					{
 						//the vertex should be removed
 						vFlags[indices[i]] = 1;
@@ -344,7 +344,7 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private int Triangulate(int n, Contour.Vertex[] verts, int[] indices, Tris[] tris)
+		private int Triangulate(int n, ContourVertex[] verts, int[] indices, Tris[] tris)
 		{
 			int ntris = 0;
 			Tris[] dst = tris;
@@ -354,7 +354,7 @@ namespace SharpNav
 			{
 				int i1 = Next(i, n);
 				int i2 = Next(i1, n);
-				if (Contour.Vertex.Diagonal(i, i2, n, verts, indices))
+				if (Diagonal(i, i2, n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[i1]);
 				}
@@ -412,7 +412,7 @@ namespace SharpNav
 				mi = Prev(mi1, n);
 
 				//update diagonal flags
-				if (Contour.Vertex.Diagonal(Prev(mi, n), mi1, n, verts, indices))
+				if (Diagonal(Prev(mi, n), mi1, n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi]);
 				}
@@ -421,7 +421,7 @@ namespace SharpNav
 					RemoveDiagonalFlag(ref indices[mi]);
 				}
 
-				if (Contour.Vertex.Diagonal(mi, Next(mi1, n), n, verts, indices))
+				if (Diagonal(mi, Next(mi1, n), n, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi1]);
 				}
@@ -447,7 +447,7 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <returns></returns>
-		private int AddVertex(Contour.Vertex v, Vector3[] verts, int[] firstVert, int[] nextVert, ref int nv)
+		private int AddVertex(ContourVertex v, Vector3[] verts, int[] firstVert, int[] nextVert, ref int nv)
 		{
 			//generate a unique index
 			int bucket = ComputeVertexHash(v.X, 0, v.Z);
@@ -879,7 +879,7 @@ namespace SharpNav
 			}
 
 			Tris[] tris = new Tris[nhole];
-			var tverts = new Contour.Vertex[nhole];
+			var tverts = new ContourVertex[nhole];
 			int[] thole = new int[nhole];
 
 			//generate temp vertex array for triangulation
@@ -889,7 +889,7 @@ namespace SharpNav
 				tverts[i].X = (int)this.verts[pi].X;
 				tverts[i].Y = (int)this.verts[pi].Y;
 				tverts[i].Z = (int)this.verts[pi].Z;
-				tverts[i].RawVertexIndex = 0;
+				tverts[i].RegionId = 0;
 				thole[i] = i;
 			}
 
@@ -1159,6 +1159,67 @@ namespace SharpNav
 		public bool IsDiagonalFlagOn(int index)
 		{
 			return (index & DiagonalFlag) == DiagonalFlag;
+		}
+
+		/// <summary>
+		/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
+		/// </summary>
+		public static bool Diagonal(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		{
+			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
+		}
+
+		/// <summary>
+		/// true if and only if diagonal (i, j) is strictly internal to polygon 
+		/// in neighborhood of i endpoint
+		/// </summary>
+		public static bool InCone(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		{
+			int pi = RemoveDiagonalFlag(indices[i]);
+			int pj = RemoveDiagonalFlag(indices[j]);
+			int pi1 = RemoveDiagonalFlag(indices[Next(i, n)]);
+			int pin1 = RemoveDiagonalFlag(indices[Prev(i, n)]);
+
+			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
+			if (ContourVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
+				return ContourVertex.IsLeft(ref verts[pi], ref verts[pj], ref verts[pin1]) && ContourVertex.IsLeft(ref verts[pj], ref verts[pi], ref verts[pi1]);
+
+			//assume (i - 1, i, i + 1) not collinear
+			return !(ContourVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && ContourVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
+		}
+
+		/// <summary>
+		/// true if and only if (v[i], v[j]) is internal or external diagonal
+		/// ignoring edges incident to v[i] or v[j]
+		/// </summary>
+		public static bool Diagonalie(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		{
+			int d0 = RemoveDiagonalFlag(indices[i]);
+			int d1 = RemoveDiagonalFlag(indices[j]);
+
+			//for each edge (k, k + 1)
+			for (int k = 0; k < n; k++)
+			{
+				int k1 = Next(k, n);
+
+				//skip edges incident to i or j
+				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
+				{
+					int p0 = RemoveDiagonalFlag(indices[k]);
+					int p1 = RemoveDiagonalFlag(indices[k1]);
+
+					if (ContourVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
+						ContourVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
+						ContourVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
+						ContourVertex.Equal2D(ref verts[d1], ref verts[p1]))
+						continue;
+
+					if (ContourVertex.Intersect(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
+						return false;
+				}
+			}
+
+			return true;
 		}
 
 		//HACK this is also in Contour, find a good place to move.

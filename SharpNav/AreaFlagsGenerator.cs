@@ -171,6 +171,13 @@ namespace SharpNav
 			return this;
 		}
 
+		public AreaFlagsGenerator MarkCustomFilter(Func<Triangle3, bool> func, AreaFlags area)
+		{
+			conditions.Add(Tuple.Create(func, area));
+
+			return this;
+		}
+
 		private static class TriangleEnumerable
 		{
 			public static IEnumerable<Triangle3> FromTriangle(Triangle3[] tris, int triOffset, int triCount)

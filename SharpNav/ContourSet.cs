@@ -104,8 +104,8 @@ namespace SharpNav
 				}
 			}
 
-			var verts = new List<Contour.RawVertex>();
-			var simplified = new List<Contour.Vertex>();
+			var verts = new List<ContourVertex>();
+			var simplified = new List<ContourVertex>();
 
 			for (int y = 0; y < compactField.Length; y++)
 			{
@@ -170,7 +170,7 @@ namespace SharpNav
 
 					//Merge if found.
 					if (mergeIndex != -1)
-						contours[mergeIndex].Merge(cont);
+						contours[mergeIndex].MergeWith(cont);
 				}
 			}
 		}
@@ -250,7 +250,7 @@ namespace SharpNav
 		/// <param name="compactField">OpenHeightfield</param>
 		/// <param name="flags">?</param>
 		/// <param name="points">Vertices of contour</param>
-		private void WalkContour(int x, int y, int i, CompactHeightfield compactField, int[] flags, List<Contour.RawVertex> points)
+		private void WalkContour(int x, int y, int i, CompactHeightfield compactField, int[] flags, List<ContourVertex> points)
 		{
 			Direction dir = 0;
 
@@ -311,7 +311,7 @@ namespace SharpNav
 						Region.SetAreaBorder(ref r);
 					
 					//save the point
-					points.Add(new Contour.RawVertex(px, py, pz, r));
+					points.Add(new ContourVertex(px, py, pz, r));
 
 					RemoveVisited(ref flags[i], dir);	// remove visited edges
 					dir = dir.NextClockwise();			// rotate clockwise
@@ -453,7 +453,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
-		private void SimplifyContour(List<Contour.RawVertex> points, List<Contour.Vertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
+		private void SimplifyContour(List<ContourVertex> points, List<ContourVertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
 		{
 			//add initial points
 			bool hasConnections = false;
@@ -478,7 +478,7 @@ namespace SharpNav
 					
 					if (differentRegions || areaBorders)
 					{
-						simplified.Add(new Contour.Vertex(points[i].X, points[i].Y, points[i].Z, i));
+						simplified.Add(new ContourVertex(points[i].X, points[i].Y, points[i].Z, i));
 					}
 				}
 			}
@@ -522,8 +522,8 @@ namespace SharpNav
 				}
 				
 				//save the points
-				simplified.Add(new Contour.Vertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
-				simplified.Add(new Contour.Vertex(upperRightX, upperRightY, upperRightZ, upperRightI));
+				simplified.Add(new ContourVertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
+				simplified.Add(new ContourVertex(upperRightX, upperRightY, upperRightZ, upperRightI));
 			}
 
 			//add points until all points are within erorr tolerance of simplified slope
@@ -535,11 +535,11 @@ namespace SharpNav
 				//obtain (x, z) coordinates, along with region id
 				int ax = simplified[i].X;
 				int az = simplified[i].Z;
-				int ai = simplified[i].RawVertexIndex;
+				int ai = simplified[i].RegionId;
 
 				int bx = simplified[ii].X;
 				int bz = simplified[ii].Z;
-				int bi = simplified[ii].RawVertexIndex;
+				int bi = simplified[ii].RegionId;
 
 				float maxDeviation = 0;
 				int maxi = -1;
@@ -581,7 +581,7 @@ namespace SharpNav
 				if (maxi != -1 && maxDeviation > (maxError * maxError))
 				{
 					//add extra space to list
-					simplified.Add(new Contour.Vertex(0, 0, 0, 0));
+					simplified.Add(new ContourVertex(0, 0, 0, 0));
 
 					//make space for new point by shifting elements to the right
 					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
@@ -591,7 +591,7 @@ namespace SharpNav
 					}
 
 					//add point 
-					simplified[i + 1] = new Contour.Vertex(points[maxi], maxi);
+					simplified[i + 1] = new ContourVertex(points[maxi], maxi);
 				}
 				else
 				{
@@ -609,11 +609,11 @@ namespace SharpNav
 					//get (x, z) coordinates along with region id
 					int ax = simplified[i].X;
 					int az = simplified[i].Z;
-					int ai = simplified[i].RawVertexIndex;
+					int ai = simplified[i].RegionId;
 
 					int bx = simplified[ii].X;
 					int bz = simplified[ii].Z;
-					int bi = simplified[ii].RawVertexIndex;
+					int bi = simplified[ii].RegionId;
 
 					//find maximum deviation from segment
 					int maxi = -1;
@@ -654,7 +654,7 @@ namespace SharpNav
 					if (maxi != -1)
 					{
 						//add extra space to list
-						simplified.Add(new Contour.Vertex(0, 0, 0, 0));
+						simplified.Add(new ContourVertex(0, 0, 0, 0));
 
 						//make space for new point by shifting elements to the right
 						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
@@ -664,7 +664,7 @@ namespace SharpNav
 						}
 
 						//add point
-						simplified[i + 1] = new Contour.Vertex(points[maxi], maxi);
+						simplified[i + 1] = new ContourVertex(points[maxi], maxi);
 					}
 					else
 					{
@@ -675,13 +675,13 @@ namespace SharpNav
 
 			for (int i = 0; i < simplified.Count; i++)
 			{
-				Contour.Vertex sv = simplified[i];
+				ContourVertex sv = simplified[i];
 				//take edge vertex flag from current raw point and neighbor region from next raw point
-				int ai = (sv.RawVertexIndex + 1) % numPoints;
-				int bi = sv.RawVertexIndex;
+				int ai = (sv.RegionId + 1) % numPoints;
+				int bi = sv.RegionId;
 
 				//save new region id
-				sv.RawVertexIndex = (points[ai].RegionId & (Region.IdMask | Region.AreaBorderFlag)) | (points[bi].RegionId & Region.VertexBorderFlag);
+				sv.RegionId = (points[ai].RegionId & (Region.IdMask | Region.AreaBorderFlag)) | (points[bi].RegionId & Region.VertexBorderFlag);
 
 				simplified[i] = sv;
 			}
@@ -691,7 +691,7 @@ namespace SharpNav
 		/// Clean up the simplified segments
 		/// </summary>
 		/// <param name="simplified"></param>
-		private void RemoveDegenerateSegments(List<Contour.Vertex> simplified)
+		private void RemoveDegenerateSegments(List<ContourVertex> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
 			for (int i = 0; i < simplified.Count; i++)

@@ -89,6 +89,7 @@
     <Compile Include="Contour.cs" />
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
+    <Compile Include="ContourVertex.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
