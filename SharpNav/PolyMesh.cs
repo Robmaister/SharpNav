@@ -27,7 +27,7 @@ namespace SharpNav
 		private const int DiagonalFlag = unchecked((int)0x80000000);
 		private const int NeighborEdgeFlag = unchecked((int)0x80000000);
 
-		private Vector3[] vertices; //each vertex contains (x, y, z)
+		private Vector3[] vertices; 
 		private Polygon[] polygons;
 
 		private int numVertsPerPoly;
