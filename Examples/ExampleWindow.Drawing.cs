@@ -594,7 +594,8 @@ namespace Examples
 
 			GL.PointSize(4.8f);
 			GL.Begin(BeginMode.Points);
-			for (int i = 0; i < polyMesh.NVerts; i++)
+
+			for (int i = 0; i < polyMesh.VertCount; i++)
 			{
 				var v = polyMesh.Verts[i];
 				GL.Vertex3(v.X, v.Y + 1, v.Z);

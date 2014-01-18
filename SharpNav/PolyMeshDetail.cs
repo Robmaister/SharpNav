@@ -117,7 +117,7 @@ namespace SharpNav
 		/// <param name="sampleMaxError"></param>
 		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
 		{
-			if (mesh.NVerts == 0 || mesh.PolyCount == 0)
+			if (mesh.VertCount == 0 || mesh.PolyCount == 0)
 				return;
 
 			Vector3 origin = mesh.Bounds.Min;

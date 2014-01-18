@@ -421,7 +421,7 @@ namespace Examples
 		{
 			parameters = new NavMeshCreateParams();
 			parameters.verts = polyMesh.Verts;
-			parameters.vertCount = polyMesh.NVerts;
+			parameters.vertCount = polyMesh.VertCount;
 			parameters.polys = polyMesh.Polys;
 			parameters.polyCount = polyMesh.PolyCount;
 			parameters.numVertsPerPoly = polyMesh.NumVertsPerPoly;
