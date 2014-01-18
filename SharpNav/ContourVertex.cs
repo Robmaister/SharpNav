@@ -1,5 +1,20 @@
-﻿using System;
+﻿#region License
+/**
+ * Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+ */
+#endregion
+
+using System;
 using System.Runtime.InteropServices;
+
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#endif
 
 namespace SharpNav
 {
@@ -41,6 +56,14 @@ namespace SharpNav
 			this.X = x;
 			this.Y = y;
 			this.Z = z;
+			this.RegionId = region;
+		}
+
+		public ContourVertex(Vector3 vec, int region)
+		{
+			this.X = (int)vec.X;
+			this.Y = (int)vec.Y;
+			this.Z = (int)vec.Z;
 			this.RegionId = region;
 		}
 

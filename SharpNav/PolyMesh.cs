@@ -22,11 +22,10 @@ namespace SharpNav
 {
 	public class PolyMesh
 	{
-		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
 		public const int NullId = -1;
 		
 		private const int DiagonalFlag = unchecked((int)0x80000000);
-		private const int NeighborEdgeFlag = 0x8000;
+		private const int NeighborEdgeFlag = unchecked((int)0x80000000);
 
 		private Vector3[] vertices; //each vertex contains (x, y, z)
 		private Polygon[] polygons;
@@ -49,9 +48,6 @@ namespace SharpNav
 		public float CellSize { get { return cellSize; } }
 		public float CellHeight { get { return cellHeight; } }
 		public int BorderSize { get { return borderSize; } }
-
-		public static bool IsBoundaryEdge(int flag) { return (flag & NeighborEdgeFlag) != 0; }
-		public static bool IsInteriorEdge(int flag) { return (flag & NeighborEdgeFlag) == 0; }
 
 		/// <summary>
 		/// Create polygons out of a set of contours
@@ -92,13 +88,7 @@ namespace SharpNav
 
 			this.numVertsPerPoly = numVertsPerPoly;
 
-			//temporary variables needed for calculations
-			int[] nextVert = new int[maxVertices];
-
-			//This stores a hash table. The x,y,z coordinates generate a specific number.
-			int[] firstVert = new int[VERTEX_BUCKET_COUNT];
-			for (int i = 0; i < firstVert.Length; i++)
-				firstVert[i] = -1;
+			Dictionary<Vector3, int> vertDict = new Dictionary<Vector3, int>(new Vector3YRadiusEqualityComparer());
 
 			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
 			Triangle[] tris = new Triangle[maxVertsPerCont];
@@ -116,7 +106,7 @@ namespace SharpNav
 					indices[i] = i;
 
 				//Form triangles inside the area bounded by the contours
-				int ntris = Triangulate(cont.Vertices.Length, cont.Vertices, indices, tris);
+				int ntris = Triangulate(cont.Vertices, indices, cont.Vertices.Length, tris);
 				if (ntris <= 0) //TODO notify user when this happens. Logging?
 					ntris = -ntris;
 
@@ -127,7 +117,7 @@ namespace SharpNav
 					ContourVertex cv = cont.Vertices[v];
 
 					//save the hash code for each vertex
-					indices[i] = AddVertex(cv, verts, firstVert, nextVert);
+					indices[i] = AddVertex(vertDict, cv, verts);
 
 					if (Region.IsBorderVertex(cv.RegionId))
 					{
@@ -277,15 +267,14 @@ namespace SharpNav
 		/// Walk the edges of a contour to determine whether a triangle can be formed.
 		/// Form as many triangles as possible.
 		/// </summary>
-		/// <param name="n">The number of vertices</param>
 		/// <param name="verts">Vertices array</param>
 		/// <param name="indices">Indices array</param>
+		/// <param name="n">The number of vertices</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private int Triangulate(int n, ContourVertex[] verts, int[] indices, Triangle[] tris)
+		private static int Triangulate(ContourVertex[] verts, int[] indices, int n, Triangle[] tris)
 		{
 			int ntris = 0;
-			Triangle[] dst = tris;
 
 			//last bit of index determines whether vertex can be removed
 			for (int i = 0; i < n; i++)
@@ -335,10 +324,10 @@ namespace SharpNav
 				int mi1 = Next(mi, n);
 				int mi2 = Next(mi1, n);
 
-				dst[ntris] = new Triangle();
-				dst[ntris].Index0 = RemoveDiagonalFlag(indices[mi]);
-				dst[ntris].Index1 = RemoveDiagonalFlag(indices[mi1]);
-				dst[ntris].Index2 = RemoveDiagonalFlag(indices[mi2]);
+				tris[ntris] = new Triangle();
+				tris[ntris].Index0 = RemoveDiagonalFlag(indices[mi]);
+				tris[ntris].Index1 = RemoveDiagonalFlag(indices[mi1]);
+				tris[ntris].Index2 = RemoveDiagonalFlag(indices[mi2]);
 				ntris++;
 
 				//remove P[i1]
@@ -370,14 +359,12 @@ namespace SharpNav
 			}
 
 			//append remaining triangle
-			dst[ntris] = new Triangle();
-			dst[ntris].Index0 = RemoveDiagonalFlag(indices[0]);
-			dst[ntris].Index1 = RemoveDiagonalFlag(indices[1]);
-			dst[ntris].Index2 = RemoveDiagonalFlag(indices[2]);
+			tris[ntris] = new Triangle();
+			tris[ntris].Index0 = RemoveDiagonalFlag(indices[0]);
+			tris[ntris].Index1 = RemoveDiagonalFlag(indices[1]);
+			tris[ntris].Index2 = RemoveDiagonalFlag(indices[2]);
 			ntris++;
 
-			//save triangle information
-			tris = dst;
 			return ntris;
 		}
 
@@ -385,57 +372,19 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <returns></returns>
-		private static int AddVertex(ContourVertex v, List<Vector3> verts, int[] firstVert, int[] nextVert)
+		private static int AddVertex(Dictionary<Vector3, int> vertDict, ContourVertex cv, List<Vector3> verts)
 		{
-			//generate a unique index
-			int bucket = ComputeVertexHash(v.X, 0, v.Z);
-			
-			//access that vertex
-			int i = firstVert[bucket];
-
-			//default unintialized i value is -1.
-			//if i isn't equal to -1, this vertex should exist somewhere
-			while (i != -1)
+			Vector3 v = new Vector3(cv.X, cv.Y, cv.Z);
+			int index;
+			if (vertDict.TryGetValue(v, out index))
 			{
-				//found existing vertex
-				if (verts[i].X == v.X && (Math.Abs(verts[i].Y - v.Y) <= 2) && verts[i].Z == v.Z)
-					return i;
-				
-				//next vertex. this stores the vertices linearly (similar to a linked list)
-				i = nextVert[i];
+				return index;
 			}
 
-			//no existing vertex so make a new one
-			i = verts.Count;
-
-			//save the data
-			verts.Add(new Vector3(v.X, v.Y, v.Z));
-
-			//add this current vertex to the chain
-			nextVert[i] = firstVert[bucket];
-
-			//update so this vertex index isn't reused again
-			firstVert[bucket] = i;
-			
-			return i;
-		}
-
-		/// <summary>
-		/// Compute a hash code based off of the (x, y, z) coordinates
-		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <param name="z"></param>
-		/// <returns></returns>
-		private static int ComputeVertexHash(int x, int y, int z)
-		{
-			//choose large multiplicative constants, which are primes
-			uint h1 = 0x8da6b343;
-			uint h2 = 0xd8163841;
-			uint h3 = 0xcb1ab31f;
-
-			uint n = (uint)(h1 * x + h2 * y + h3 * z);
-			return (int)(n & (VERTEX_BUCKET_COUNT - 1));
+			index = verts.Count;
+			verts.Add(v);
+			vertDict.Add(v, index);
+			return index;
 		}
 
 		/// <summary>
@@ -676,17 +625,10 @@ namespace SharpNav
 				}
 			}
 
-			int nedges = 0;
-			int[] edges = new int[numRemovedVerts * numVertsPerPoly * 4];
-			
-			int nhole = 0;
-			int[] hole = new int[numRemovedVerts * numVertsPerPoly];
-
-			int nhreg = 0;
-			int[] hreg = new int[numRemovedVerts * numVertsPerPoly];
-
-			int nharea = 0;
-			int[] harea = new int[numRemovedVerts * numVertsPerPoly];
+			List<Edge> edges = new List<Edge>(numRemovedVerts * numVertsPerPoly);
+			List<int> hole = new List<int>(numRemovedVerts * numVertsPerPoly);
+			List<int> regions = new List<int>(numRemovedVerts * numVertsPerPoly);
+			List<AreaFlags> areas = new List<AreaFlags>(numRemovedVerts * numVertsPerPoly);
 
 			//Iterate through all the polygons
 			for (int i = 0; i < polys.Count; i++)
@@ -699,17 +641,8 @@ namespace SharpNav
 
 					//collect edges which don't touch removed vertex
 					for (int j = 0, k = nv - 1; j < nv; k = j++)
-					{
 						if (p.Vertices[j] != vertex && p.Vertices[k] != vertex)
-						{
-							int e = nedges * 4;
-							edges[e + 0] = p.Vertices[k];
-							edges[e + 1] = p.Vertices[j];
-							edges[e + 2] = p.RegionId;
-							edges[e + 3] = (int)p.Area;
-							nedges++;
-						}
-					}
+							edges.Add(new Edge(p.Vertices[k], p.Vertices[j], p.RegionId, p.Area));
 
 					polys[i] = polys[polys.Count - 1];
 					polys.RemoveAt(polys.Count - 1);
@@ -733,62 +666,59 @@ namespace SharpNav
 				}
 			}
 
-			for (int i = 0; i < nedges; i++)
+			for (int i = 0; i < edges.Count; i++)
 			{
-				if (edges[i * 4 + 0] > vertex)
-					edges[i * 4 + 0]--;
+				Edge edge = edges[i];
+				if (edge.Vert0 > vertex)
+					edge.Vert0--;
 
-				if (edges[i * 4 + 1] > vertex)
-					edges[i * 4 + 1]--;
+				if (edge.Vert1 > vertex)
+					edge.Vert1--;
+
+				edges[i] = edge;
 			}
 
-			if (nedges == 0)
+			if (edges.Count == 0)
 				return;
 
 			//Find edges surrounding the holes
-			PushBack(edges[0], hole, ref nhole);
-			PushBack(edges[1], hreg, ref nhreg);
-			PushBack(edges[2], harea, ref nharea);
+			hole.Add(edges[0].Vert0);
+			regions.Add(edges[0].Region);
+			areas.Add(edges[0].Area);
 
-			while (nedges > 0)
+			while (edges.Count > 0)
 			{
 				bool match = false;
 
-				for (int i = 0; i < nedges; i++)
+				for (int i = 0; i < edges.Count; i++)
 				{
-					int edgeA = i * 4 + 0;
-					int edgeB = i * 4 + 1;
-					int reg = i * 4 + 2;
-					int area = i * 4 + 3;
+					Edge edge = edges[i];
 					bool add = false;
 
-					if (hole[0] == edgeB)
+					if (hole[0] == edge.Vert1)
 					{
 						//segment matches beginning of hole boundary
-						PushFront(edgeA, hole, ref nhole);
-						PushFront(reg, hreg, ref nhreg);
-						PushFront(area, harea, ref nharea);
+						hole.Insert(0, edge.Vert0);
+						regions.Insert(0, edge.Region);
+						areas.Insert(0, edge.Area);
 						add = true;
 					}
-					else if (hole[nhole - 1] == edgeA)
+					else if (hole[hole.Count - 1] == edge.Vert0)
 					{
 						//segment matches end of hole boundary
-						PushBack(edgeB, hole, ref nhole);
-						PushBack(reg, hreg, ref nhreg);
-						PushBack(area, harea, ref nharea);
+						hole.Add(edge.Vert1);
+						regions.Add(edge.Region);
+						areas.Add(edge.Area);
 						add = true;
 					}
 
 					if (add)
 					{
 						//edge segment was added so remove it
-						edges[i * 4 + 0] = edges[(nedges - 1) * 4 + 0];
-						edges[i * 4 + 1] = edges[(nedges - 1) * 4 + 1];
-						edges[i * 4 + 2] = edges[(nedges - 1) * 4 + 2];
-						edges[i * 4 + 3] = edges[(nedges - 1) * 4 + 3];
-						--nedges;
+						edges[i] = edges[edges.Count - 1];
+						edges.RemoveAt(edges.Count - 1);
 						match = true;
-						--i;
+						i--;
 					}
 				}
 
@@ -796,23 +726,20 @@ namespace SharpNav
 					break;
 			}
 
-			Triangle[] tris = new Triangle[nhole];
-			var tverts = new ContourVertex[nhole];
-			int[] thole = new int[nhole];
+			Triangle[] tris = new Triangle[hole.Count];
+			var tverts = new ContourVertex[hole.Count];
+			int[] thole = new int[hole.Count];
 
 			//generate temp vertex array for triangulation
-			for (int i = 0; i < nhole; i++)
+			for (int i = 0; i < hole.Count; i++)
 			{
 				int pi = hole[i];
-				tverts[i].X = (int)verts[pi].X;
-				tverts[i].Y = (int)verts[pi].Y;
-				tverts[i].Z = (int)verts[pi].Z;
-				tverts[i].RegionId = 0;
+				tverts[i] = new ContourVertex(verts[pi], 0);
 				thole[i] = i;
 			}
 
 			//triangulate the hole
-			int ntris = Triangulate(nhole, tverts, thole, tris);
+			int ntris = Triangulate(tverts, thole, hole.Count, tris);
 			if (ntris < 0)
 				ntris = -ntris;
 
@@ -822,17 +749,12 @@ namespace SharpNav
 			for (int j = 0; j < ntris; j++)
 			{
 				Triangle t = tris[j];
-
-				if (t.Index0 != t.Index1 &&
-					t.Index0 != t.Index2 &&
-					t.Index1 != t.Index2)
+				if (t.Index0 != t.Index1 && t.Index0 != t.Index2 && t.Index1 != t.Index2)
 				{
-					Polygon p = new Polygon(numVertsPerPoly, AreaFlags.Null, 0, 0);
+					Polygon p = new Polygon(numVertsPerPoly, areas[t.Index0], regions[t.Index0], 0);
 					p.Vertices[0] = hole[t.Index0];
 					p.Vertices[1] = hole[t.Index1];
 					p.Vertices[2] = hole[t.Index2];
-					p.RegionId = hreg[t.Index0];
-					p.Area = (AreaFlags)harea[t.Index0];
 					mergePolys.Add(p);
 				}
 			}
@@ -897,7 +819,7 @@ namespace SharpNav
 			int[] firstEdge = new int[vertices.Count + maxEdgeCount];
 			int nextEdge = vertices.Count;
 			int edgeCount = 0;
-			Edge[] edges = new Edge[maxEdgeCount];
+			AdjacencyEdge[] edges = new AdjacencyEdge[maxEdgeCount];
 
 			for (int i = 0; i < vertices.Count; i++)
 				firstEdge[i] = NullId;
@@ -918,7 +840,7 @@ namespace SharpNav
 
 					if (v0 < v1)
 					{
-						Edge edge;
+						AdjacencyEdge edge;
 
 						//store vertices
 						edge.Vert0 = v0;
@@ -959,7 +881,7 @@ namespace SharpNav
 						//Iterate through all the edges
 						for (int e = firstEdge[v1]; e != NullId; e = firstEdge[nextEdge + e])
 						{
-							Edge edge = edges[e];
+							AdjacencyEdge edge = edges[e];
 							if (edge.Vert1 == v0 && edge.Poly0 == edge.Poly1)
 							{
 								edge.Poly1 = i;
@@ -975,7 +897,7 @@ namespace SharpNav
 			//store adjacency
 			for (int i = 0; i < edgeCount; i++)
 			{
-				Edge e = edges[i];
+				AdjacencyEdge e = edges[i];
 
 				//the endpoints belong to different polygons
 				if (e.Poly0 != e.Poly1)
@@ -987,32 +909,6 @@ namespace SharpNav
 			}
 		}
 
-		/// <summary>
-		/// Shift all existing elements to the right and insert new element at index 0
-		/// </summary>
-		/// <param name="v">Value of new element</param>
-		/// <param name="array">Array of elements</param>
-		/// <param name="an">Number of elements</param>
-		private static void PushFront(int v, int[] array, ref int an)
-		{
-			an++;
-			for (int i = an - 1; i > 0; i--)
-				array[i] = array[i - 1];
-			array[0] = v;
-		}
-
-		/// <summary>
-		/// Append new element to the end of the list
-		/// </summary>
-		/// <param name="v">Value of new element</param>
-		/// <param name="array">Array of elements</param>
-		/// <param name="an">Number of elements</param>
-		private static void PushBack(int v, int[] array, ref int an)
-		{
-			array[an] = v;
-			an++;
-		}
-		
 		private static bool ULeft(Vector3 a, Vector3 b, Vector3 c)
 		{
 			return (b.X - a.X) * (c.Z - a.Z) -
@@ -1022,6 +918,11 @@ namespace SharpNav
 		private static void SetDiagonalFlag(ref int index)
 		{
 			index |= DiagonalFlag;
+		}
+
+		private static int RemoveDiagonalFlag(int index)
+		{
+			return index & ~DiagonalFlag;
 		}
 
 		private static void RemoveDiagonalFlag(ref int index)
@@ -1095,10 +996,10 @@ namespace SharpNav
 			return true;
 		}
 
-		//HACK this is also in Contour, find a good place to move.
-		private static int RemoveDiagonalFlag(int index) { return index & ~DiagonalFlag; }
 		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
+		public static bool IsBoundaryEdge(int flag) { return (flag & NeighborEdgeFlag) != 0; }
+		public static bool IsInteriorEdge(int flag) { return (flag & NeighborEdgeFlag) == 0; }
 
 		public class Polygon
 		{
@@ -1165,7 +1066,7 @@ namespace SharpNav
 			public int Index2;
 		}
 
-		private struct Edge
+		private struct AdjacencyEdge
 		{
 			public int Vert0;
 			public int Vert1;
@@ -1175,6 +1076,39 @@ namespace SharpNav
 
 			public int Poly0;
 			public int Poly1;
+		}
+
+		private struct Edge
+		{
+			public int Vert0;
+			public int Vert1;
+			public int Region;
+			public AreaFlags Area;
+
+			public Edge(int vert0, int vert1, int region, AreaFlags area)
+			{
+				Vert0 = vert0;
+				Vert1 = vert1;
+				Region = region;
+				Area = area;
+			}
+		}
+
+		private class Vector3YRadiusEqualityComparer : IEqualityComparer<Vector3>
+		{
+			private const int hashConstX = unchecked((int)0x8da6b343);
+			private const int hashConstY = unchecked((int)0xd8163841);
+			private const int hashConstZ = unchecked((int)0xcb1ab31f);
+
+			public bool Equals(Vector3 left, Vector3 right)
+			{
+				return left.X == right.X && (Math.Abs(left.Y - right.Y) <= 2) && left.Z == right.Z;
+			}
+
+			public int GetHashCode(Vector3 obj)
+			{
+				return (hashConstX * (int)obj.X + hashConstZ * (int)obj.Z);
+			}
 		}
 	}
 }
