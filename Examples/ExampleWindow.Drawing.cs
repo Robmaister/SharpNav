@@ -505,14 +505,14 @@ namespace Examples
 
 			GL.Begin(BeginMode.Triangles);
 
-			for (int i = 0; i < polyMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
 				if (polyMesh.Polys[i].Area != AreaFlags.Walkable)
 					continue;
 
 				for (int j = 2; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					int vertIndex0 = polyMesh.Polys[i].Vertices[0];
@@ -540,16 +540,16 @@ namespace Examples
 			GL.LineWidth(1.5f);
 			GL.Begin(BeginMode.Lines);
 
-			for (int i = 0; i < polyMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
 				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 					if (PolyMesh.IsBoundaryEdge(polyMesh.Polys[i].NeighborEdges[j]))
 						continue;
 
-					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.NullId) ? 0 : j + 1;
 
 					int vertIndex0 = polyMesh.Polys[i].Vertices[j];
 					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];
@@ -567,17 +567,17 @@ namespace Examples
 			//boundary edges
 			GL.LineWidth(3.5f);
 			GL.Begin(BeginMode.Lines);
-			for (int i = 0; i < polyMesh.NPolys; i++)
+			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
 				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
 				{
-					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polyMesh.Polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					if (PolyMesh.IsInteriorEdge(polyMesh.Polys[i].NeighborEdges[j]))
 						continue;
 
-					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.MESH_NULL_IDX) ? 0 : j + 1;
+					int nj = (j + 1 >= polyMesh.NumVertsPerPoly || polyMesh.Polys[i].Vertices[j + 1] == PolyMesh.NullId) ? 0 : j + 1;
 
 					int vertIndex0 = polyMesh.Polys[i].Vertices[j];
 					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];

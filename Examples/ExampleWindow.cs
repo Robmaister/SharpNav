@@ -423,7 +423,7 @@ namespace Examples
 			parameters.verts = polyMesh.Verts;
 			parameters.vertCount = polyMesh.NVerts;
 			parameters.polys = polyMesh.Polys;
-			parameters.polyCount = polyMesh.NPolys;
+			parameters.polyCount = polyMesh.PolyCount;
 			parameters.numVertsPerPoly = polyMesh.NumVertsPerPoly;
 			parameters.detailMeshes = polyMeshDetail.Meshes;
 			parameters.detailVerts = polyMeshDetail.Verts;

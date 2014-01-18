@@ -117,7 +117,7 @@ namespace SharpNav
 		/// <param name="sampleMaxError"></param>
 		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
 		{
-			if (mesh.NVerts == 0 || mesh.NPolys == 0)
+			if (mesh.NVerts == 0 || mesh.PolyCount == 0)
 				return;
 
 			Vector3 origin = mesh.Bounds.Min;
@@ -129,11 +129,11 @@ namespace SharpNav
 			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
 
-			int[] bounds = new int[mesh.NPolys * 4];
+			int[] bounds = new int[mesh.PolyCount * 4];
 			Vector3[] poly = new Vector3[mesh.NumVertsPerPoly]; 
 
 			//find max size for polygon area
-			for (int i = 0; i < mesh.NPolys; i++)
+			for (int i = 0; i < mesh.PolyCount; i++)
 			{
 				int xmin, xmax, ymin, ymax;
 
@@ -144,7 +144,7 @@ namespace SharpNav
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					int v = mesh.Polys[i].Vertices[j];
@@ -171,7 +171,7 @@ namespace SharpNav
 
 			HeightPatch hp = new HeightPatch(0, 0, maxhw, maxhh);
 
-			this.nmeshes = mesh.NPolys;
+			this.nmeshes = mesh.PolyCount;
 			this.meshes = new MeshData[this.nmeshes];
 
 			int vcap = nPolyVerts + nPolyVerts / 2;
@@ -183,13 +183,13 @@ namespace SharpNav
 			this.ntris = 0;
 			this.tris = new TriangleData[tcap];
 
-			for (int i = 0; i < mesh.NPolys; i++)
+			for (int i = 0; i < mesh.PolyCount; i++)
 			{
 				//store polygon vertices for processing
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					if (mesh.Polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (mesh.Polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					int v = mesh.Polys[i].Vertices[j];

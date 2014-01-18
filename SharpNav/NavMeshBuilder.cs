@@ -131,7 +131,7 @@ namespace SharpNav
 				PolyMesh.Polygon p = parameters.polys[i];
 				for (int j = 0; j < nvp; j++)
 				{
-					if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (p.Vertices[j] == PolyMesh.NullId)
 						break;
 
 					edgeCount++;
@@ -160,7 +160,7 @@ namespace SharpNav
 					int nv = 0;
 					for (int j = 0; j < nvp; j++)
 					{
-						if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
+						if (p.Vertices[j] == PolyMesh.NullId)
 							break;
 
 						nv++;
@@ -180,7 +180,7 @@ namespace SharpNav
 					int nv = 0;
 					for (int j = 0; j < nvp; j++)
 					{
-						if (p.Vertices[j] == PolyMesh.MESH_NULL_IDX)
+						if (p.Vertices[j] == PolyMesh.NullId)
 							break;
 
 						nv++;
@@ -258,7 +258,7 @@ namespace SharpNav
 				navPolys[i].neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
 				{
-					if (parameters.polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (parameters.polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					navPolys[i].verts[j] = parameters.polys[i].Vertices[j];
@@ -452,7 +452,7 @@ namespace SharpNav
 
 				for (int j = 1; j < nvp; j++)
 				{
-					if (polys[i].Vertices[j] == PolyMesh.MESH_NULL_IDX)
+					if (polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
 					Vector3 v = verts[polys[i].Vertices[j]];

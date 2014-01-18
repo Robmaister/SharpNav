@@ -23,18 +23,16 @@ namespace SharpNav
 	public class PolyMesh
 	{
 		private const int VERTEX_BUCKET_COUNT = 1 << 12; //2 ^ 12 vertices
-		public const int MESH_NULL_IDX = -1;
+		public const int NullId = -1;
 		
 		private const int DiagonalFlag = unchecked((int)0x80000000);
 		private const int NeighborEdgeFlag = 0x8000;
 
 		private int nverts;
-		private int npolys;
 
 		private Vector3[] verts; //each vertex contains (x, y, z)
-		private Polygon[] polys;
-		
-		private int maxPolys;
+		private Polygon[] polygons;
+
 		private int numVertsPerPoly;
 
 		//copied data from CompactHeightfield
@@ -44,10 +42,10 @@ namespace SharpNav
 		private int borderSize;
 
 		public int NVerts { get { return nverts; } }
-		public int NPolys { get { return npolys; } }
+		public int PolyCount { get { return polygons.Length; } }
 		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
 		public Vector3[] Verts { get { return verts; } }
-		public Polygon[] Polys { get { return polys; } }
+		public Polygon[] Polys { get { return polygons; } }
 
 		public BBox3 Bounds { get { return bounds; } }
 		public float CellSize { get { return cellSize; } }
@@ -71,6 +69,7 @@ namespace SharpNav
 			this.borderSize = contSet.BorderSize;
 
 			//get maximum limits
+			//TODO move to ContourSet?
 			int maxVertices = 0;
 			int maxTris = 0;
 			int maxVertsPerCont = 0;
@@ -91,27 +90,11 @@ namespace SharpNav
 			int[] vFlags = new int[maxVertices];
 
 			//initialize the mesh members
-			this.verts = new Vector3[maxVertices]; 
-			this.polys = new Polygon[maxTris];
+			this.verts = new Vector3[maxVertices];
+			List<Polygon> polys = new List<Polygon>(maxTris);
 
 			this.nverts = 0;
-			this.npolys = 0;
 			this.numVertsPerPoly = numVertsPerPoly;
-			this.maxPolys = maxTris;
-
-			for (int i = 0; i < this.polys.Length; i++)
-			{
-				this.polys[i].Vertices = new int[numVertsPerPoly];
-				this.polys[i].NeighborEdges = new int[numVertsPerPoly];
-				this.polys[i].Area = new AreaFlags();
-				this.polys[i].RegionId = 0;
-
-				for (int j = 0; j < numVertsPerPoly; j++)
-				{
-					this.polys[i].Vertices[j] = MESH_NULL_IDX;
-					this.polys[i].NeighborEdges[j] = MESH_NULL_IDX;
-				}
-			}
 
 			//temporary variables needed for calculations
 			int[] nextVert = new int[maxVertices];
@@ -122,10 +105,8 @@ namespace SharpNav
 				firstVert[i] = -1;
 
 			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
-			Tris[] tris = new Tris[maxVertsPerCont];
-			Polygon[] polys = new Polygon[maxVertsPerCont + 1];
-			
-			int tempPolyIndex = maxVertsPerCont * numVertsPerPoly;
+			Triangle[] tris = new Triangle[maxVertsPerCont];
+			List<Polygon> contPolys = new List<Polygon>(maxVertsPerCont + 1);
 
 			//extract contour data
 			foreach (Contour cont in contSet)
@@ -147,69 +128,61 @@ namespace SharpNav
 				for (int i = 0; i < cont.Vertices.Length; i++)
 				{
 					int v = i;
+					ContourVertex cv = cont.Vertices[v];
 
 					//save the hash code for each vertex
-					indices[i] = AddVertex(cont.Vertices[v], this.verts, firstVert, nextVert, ref this.nverts);
+					indices[i] = AddVertex(cv, this.verts, firstVert, nextVert, ref this.nverts);
 
-					if (Region.IsBorderVertex(cont.Vertices[v].RegionId))
+					if (Region.IsBorderVertex(cv.RegionId))
 					{
 						//the vertex should be removed
 						vFlags[indices[i]] = 1;
 					}
 				}
-				
-				//builds initial polygons
-				int npolys = 0;
-				for (int i = 0; i < polys.Length; i++)
-				{
-					polys[i].Vertices = new int[numVertsPerPoly];
-					
-					for (int j = 0; j < numVertsPerPoly; j++)
-					{
-						polys[i].Vertices[j] = MESH_NULL_IDX;
-					}
-				}
+
+				contPolys.Clear();
 
 				//iterate through all the triangles
 				for (int i = 0; i < ntris; i++)
 				{
 					//make sure there are three distinct vertices. anything less can't be a polygon.
-					if (tris[i].VertexHash0 != tris[i].VertexHash1
-						&& tris[i].VertexHash0 != tris[i].VertexHash2
-						&& tris[i].VertexHash1 != tris[i].VertexHash2)
+					if (tris[i].Index0 != tris[i].Index1
+						&& tris[i].Index0 != tris[i].Index2
+						&& tris[i].Index1 != tris[i].Index2)
 					{
 						//each polygon has numVertsPerPoly
 						//index 0, 1, 2 store triangle vertices
 						//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-						polys[npolys].Vertices[0] = indices[tris[i].VertexHash0];
-						polys[npolys].Vertices[1] = indices[tris[i].VertexHash1];
-						polys[npolys].Vertices[2] = indices[tris[i].VertexHash2];
-						npolys++;
+						Polygon p = new Polygon(numVertsPerPoly, AreaFlags.Null, 0, 0);
+						p.Vertices[0] = indices[tris[i].Index0];
+						p.Vertices[1] = indices[tris[i].Index1];
+						p.Vertices[2] = indices[tris[i].Index2];
+						contPolys.Add(p);
 					}
 				}
 				
 				//no polygons generated, so skip
-				if (npolys == 0)
+				if (contPolys.Count == 0)
 					continue;
 
 				//merge polygons
 				if (numVertsPerPoly > 3)
 				{
-					for (;;)
+					while (true)
 					{
 						//find best polygons
 						int bestMergeVal = 0;
 						int bestPolyA = 0, bestPolyB = 0, bestEdgeA = 0, bestEdgeB = 0;
 
-						for (int i = 0; i < npolys - 1; i++)
+						for (int i = 0; i < contPolys.Count - 1; i++)
 						{
 							int pj = i;
 
-							for (int j = i + 1; j < npolys; j++)
+							for (int j = i + 1; j < contPolys.Count; j++)
 							{
 								int pk = j;
 								int ea = 0, eb = 0;
-								int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref ea, ref eb);
+								int v = GetPolyMergeValue(contPolys, pj, pk, this.verts, ref ea, ref eb);
 								if (v > bestMergeVal)
 								{
 									bestMergeVal = v;
@@ -225,28 +198,8 @@ namespace SharpNav
 						{
 							int pa = bestPolyA;
 							int pb = bestPolyB;
-							MergePolys(polys, pa, pb, bestEdgeA, bestEdgeB);
-							
-							//overwrite second polygon since it has already part of another polygon
-							int lastPoly = npolys - 1;
-
-							bool polygonsEqual = true;
-							for (int j = 0; j < numVertsPerPoly; j++)
-							{
-								if (polys[pb].Vertices[j] != polys[lastPoly].Vertices[j])
-								{
-									polygonsEqual = false;
-									break;
-								}
-							}
-
-							if (polygonsEqual == false)
-							{
-								for (int j = 0; j < numVertsPerPoly; j++)
-									polys[pb].Vertices[j] = polys[lastPoly].Vertices[j];
-							}
-
-							npolys--;
+							MergePolys(contPolys, pa, pb, bestEdgeA, bestEdgeB);
+							contPolys.RemoveAt(pb);
 						}
 						else
 						{
@@ -257,16 +210,14 @@ namespace SharpNav
 				}
 
 				//store polygons
-				for (int i = 0; i < npolys; i++)
+				for (int i = 0; i < contPolys.Count; i++)
 				{
-					for (int j = 0; j < numVertsPerPoly; j++)
-					{
-						this.polys[this.npolys].Vertices[j] = polys[i].Vertices[j];
-					}
-					this.polys[this.npolys].RegionId = cont.RegionId;
-					this.polys[this.npolys].Area = cont.Area;
+					Polygon p = contPolys[i];
+					Polygon p2 = new Polygon(numVertsPerPoly, cont.Area, cont.RegionId, 0);
 
-					this.npolys++;
+					Buffer.BlockCopy(p.Vertices, 0, p2.Vertices, 0, numVertsPerPoly * sizeof(int));
+
+					polys.Add(p2);
 				}
 			}
 
@@ -275,10 +226,10 @@ namespace SharpNav
 			{
 				if (vFlags[i] != 0)
 				{
-					if (!CanRemoveVertex(i))
+					if (!CanRemoveVertex(polys, i))
 						continue;
 					
-					RemoveVertex(i, maxTris);
+					RemoveVertex(polys, i);
 
 					//change flags
 					for (int j = i; j < this.nverts; j++)
@@ -289,50 +240,48 @@ namespace SharpNav
 			}
 
 			//calculate adjacency (edges)
-			BuildMeshAdjacency();
+			BuildMeshAdjacency(polys);
 			
 			//find portal edges
 			if (this.borderSize > 0)
 			{
 				//iterate through all the polygons
-				for (int i = 0; i < this.npolys; i++)
+				for (int i = 0; i < polys.Count; i++)
 				{
+					Polygon p = polys[i];
+
 					//iterate through all the vertices
 					for (int j = 0; j < numVertsPerPoly; j++)
 					{
-						if (this.polys[i].Vertices[j] == MESH_NULL_IDX)
+						if (p.Vertices[j] == NullId)
 							break;
 
 						//skip connected edges
-						if (this.polys[i].NeighborEdges[j] != MESH_NULL_IDX)
+						if (p.NeighborEdges[j] != NullId)
 							continue;
 
 						int nj = j + 1;
-						if (nj >= numVertsPerPoly || this.polys[i].Vertices[nj] == MESH_NULL_IDX)
+						if (nj >= numVertsPerPoly || p.Vertices[nj] == NullId)
 							nj = 0;
 
 						//grab two consecutive vertices
-						int va = this.polys[i].Vertices[j];
-						int vb = this.polys[i].Vertices[nj];
+						int va = p.Vertices[j];
+						int vb = p.Vertices[nj];
 
 						//set some flags
 						if (this.verts[va].X == 0 && this.verts[vb].X == 0)
-							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 0;
+							p.NeighborEdges[j] = NeighborEdgeFlag | 0;
 						else if (this.verts[va].Z == contSet.Height && this.verts[vb].Z == contSet.Height)
-							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 1;
+							p.NeighborEdges[j] = NeighborEdgeFlag | 1;
 						else if (this.verts[va].X == contSet.Width && this.verts[vb].X == contSet.Width)
-							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 2;
+							p.NeighborEdges[j] = NeighborEdgeFlag | 2;
 						else if (this.verts[va].Z == 0 && this.verts[vb].Z == 0)
-							this.polys[i].NeighborEdges[j] = NeighborEdgeFlag | 3;
+							p.NeighborEdges[j] = NeighborEdgeFlag | 3;
 					}
 				}
 			}
 
-			//user fills this in?
-			for (int i = 0; i < this.polys.Length; i++)
-			{
-				this.polys[i].Flags = 0;
-			}
+			this.polygons = polys.ToArray();
 		}
 
 		/// <summary>
@@ -344,10 +293,10 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private int Triangulate(int n, ContourVertex[] verts, int[] indices, Tris[] tris)
+		private int Triangulate(int n, ContourVertex[] verts, int[] indices, Triangle[] tris)
 		{
 			int ntris = 0;
-			Tris[] dst = tris;
+			Triangle[] dst = tris;
 
 			//last bit of index determines whether vertex can be removed
 			for (int i = 0; i < n; i++)
@@ -397,10 +346,10 @@ namespace SharpNav
 				int mi1 = Next(mi, n);
 				int mi2 = Next(mi1, n);
 
-				dst[ntris] = new Tris();
-				dst[ntris].VertexHash0 = RemoveDiagonalFlag(indices[mi]);
-				dst[ntris].VertexHash1 = RemoveDiagonalFlag(indices[mi1]);
-				dst[ntris].VertexHash2 = RemoveDiagonalFlag(indices[mi2]);
+				dst[ntris] = new Triangle();
+				dst[ntris].Index0 = RemoveDiagonalFlag(indices[mi]);
+				dst[ntris].Index1 = RemoveDiagonalFlag(indices[mi1]);
+				dst[ntris].Index2 = RemoveDiagonalFlag(indices[mi2]);
 				ntris++;
 
 				//remove P[i1]
@@ -432,10 +381,10 @@ namespace SharpNav
 			}
 
 			//append remaining triangle
-			dst[ntris] = new Tris();
-			dst[ntris].VertexHash0 = RemoveDiagonalFlag(indices[0]);
-			dst[ntris].VertexHash1 = RemoveDiagonalFlag(indices[1]);
-			dst[ntris].VertexHash2 = RemoveDiagonalFlag(indices[2]);
+			dst[ntris] = new Triangle();
+			dst[ntris].Index0 = RemoveDiagonalFlag(indices[0]);
+			dst[ntris].Index1 = RemoveDiagonalFlag(indices[1]);
+			dst[ntris].Index2 = RemoveDiagonalFlag(indices[2]);
 			ntris++;
 
 			//save triangle information
@@ -506,10 +455,10 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
-		private int GetPolyMergeValue(Polygon[] polys, int polyA, int polyB, Vector3[] verts, ref int edgeA, ref int edgeB)
+		private int GetPolyMergeValue(List<Polygon> polys, int polyA, int polyB, Vector3[] verts, ref int edgeA, ref int edgeB)
 		{
-			int numVertsA = CountPolyVerts(polys, polyA);
-			int numVertsB = CountPolyVerts(polys, polyB);
+			int numVertsA = polys[polyA].VertexCount;
+			int numVertsB = polys[polyB].VertexCount;
 
 			//don't merge if result is too big
 			if (numVertsA + numVertsB - 2 > numVertsPerPoly)
@@ -589,15 +538,15 @@ namespace SharpNav
 		/// <summary>
 		/// The two polygon arrrays are merged into a single array
 		/// </summary>
-		private void MergePolys(Polygon[] polys, int polyA, int polyB, int edgeA, int edgeB)
+		private void MergePolys(List<Polygon> polys, int polyA, int polyB, int edgeA, int edgeB)
 		{
-			int numA = CountPolyVerts(polys, polyA);
-			int numB = CountPolyVerts(polys, polyB);
+			int numA = polys[polyA].VertexCount;
+			int numB = polys[polyB].VertexCount;
 			int[] temp = new int[numA + numB];
 
 			//merge
 			for (int i = 0; i < numVertsPerPoly; i++)
-				temp[i] = MESH_NULL_IDX;
+				temp[i] = NullId;
 
 			int n = 0;
 
@@ -617,7 +566,7 @@ namespace SharpNav
 		/// <summary>
 		/// If vertex can't be removed, there is no need to spend time deleting it.
 		/// </summary>
-		private bool CanRemoveVertex(int remove)
+		private bool CanRemoveVertex(List<Polygon> polys, int remove)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
 
@@ -626,15 +575,16 @@ namespace SharpNav
 			int numTouchedVerts = 0;
 			int numRemainingEdges = 0;
 
-			for (int i = 0; i < this.npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i);
+				Polygon p = polys[i];
+				int nv = p.VertexCount;
 				int numRemoved = 0;
 				int numVerts = 0;
 
 				for (int j = 0; j < nv; j++)
 				{
-					if (this.polys[i].Vertices[j] == remove)
+					if (p.Vertices[j] == remove)
 					{
 						numTouchedVerts++;
 						numRemoved++;
@@ -659,17 +609,18 @@ namespace SharpNav
 			int nedges = 0;
 			int[] edges = new int[maxEdges * 3];
 
-			for (int i = 0; i < this.npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i);
+				Polygon p = polys[i];
+				int nv = p.VertexCount;
 
 				//collect edges which touch removed vertex
 				for (int j = 0, k = nv - 1; j < nv; k = j++)
 				{
-					if (this.polys[i].Vertices[j] == remove || this.polys[i].Vertices[k] == remove)
+					if (p.Vertices[j] == remove || p.Vertices[k] == remove)
 					{
 						//arrange edge so that a has the removed value
-						int a = polys[i].Vertices[j], b = polys[i].Vertices[k];
+						int a = p.Vertices[j], b = p.Vertices[k];
 						if (b == remove)
 						{
 							int temp = a;
@@ -721,21 +672,22 @@ namespace SharpNav
 		/// <summary>
 		/// Removing vertices will leave holes that have to be triangulated again.
 		/// </summary>
-		/// <param name="remove">Index in polygon array</param>
+		/// <param name="vertex">Index in polygon array</param>
 		/// <param name="maxTris">Maximum triangle count</param>
-		private void RemoveVertex(int remove, int maxTris)
+		private void RemoveVertex(List<Polygon> polys, int vertex)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
 
 			//count number of polygons to remove
 			int numRemovedVerts = 0;
-			for (int i = 0; i < this.npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i);
+				Polygon p = polys[i];
+				int nv = p.VertexCount;
 
 				for (int j = 0; j < nv; j++)
 				{
-					if (this.polys[i].Vertices[j] == remove)
+					if (p.Vertices[j] == vertex)
 						numRemovedVerts++;
 				}
 			}
@@ -753,50 +705,35 @@ namespace SharpNav
 			int[] harea = new int[numRemovedVerts * numVertsPerPoly];
 
 			//Iterate through all the polygons
-			for (int i = 0; i < this.npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i);
+				Polygon p = polys[i];
 				
-				//determine if any vertices need to be removed
-				bool hasRemove = false;
-				for (int j = 0; j < nv; j++)
+				if (p.ContainsVertex(vertex))
 				{
-					if (this.polys[i].Vertices[j] == remove)
-						hasRemove = true;
-				}
+					int nv = p.VertexCount;
 
-				if (hasRemove)
-				{
 					//collect edges which don't touch removed vertex
 					for (int j = 0, k = nv - 1; j < nv; k = j++)
 					{
-						if (this.polys[i].Vertices[j] != remove && this.polys[i].Vertices[k] != remove)
+						if (p.Vertices[j] != vertex && p.Vertices[k] != vertex)
 						{
 							int e = nedges * 4;
-							edges[e + 0] = this.polys[i].Vertices[k];
-							edges[e + 1] = this.polys[i].Vertices[j];
-							edges[e + 2] = this.polys[i].RegionId;
-							edges[e + 3] = (int)this.polys[i].Area;
+							edges[e + 0] = p.Vertices[k];
+							edges[e + 1] = p.Vertices[j];
+							edges[e + 2] = p.RegionId;
+							edges[e + 3] = (int)p.Area;
 							nedges++;
 						}
 					}
 
-					//remove polygon
-					for (int j = 0; j < numVertsPerPoly; j++)
-					{
-						this.polys[i].Vertices[j] = this.polys[this.npolys - 1].Vertices[j];
-						this.polys[i].NeighborEdges[j] = MESH_NULL_IDX;
-					}
-
-					this.polys[i].RegionId = this.polys[this.npolys - 1].RegionId;
-					this.polys[i].Area = this.polys[this.npolys - 1].Area;
-					this.npolys--;
-					--i;
+					polys.RemoveAt(i);
+					i--;
 				}
 			}
 
 			//remove vertex
-			for (int i = remove; i < this.nverts; i++)
+			for (int i = vertex; i < this.nverts; i++)
 			{
 				this.verts[i] = this.verts[i + 1];
 			}
@@ -804,23 +741,24 @@ namespace SharpNav
 			this.nverts--;
 
 			//adjust indices
-			for (int i = 0; i < this.npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
-				int nv = CountPolyVerts(this.polys, i);
+				Polygon p = polys[i];
+				int nv = p.VertexCount;
 
 				for (int j = 0; j < nv; j++)
 				{
-					if (this.polys[i].Vertices[j] > remove)
-						this.polys[i].Vertices[j]--;
+					if (p.Vertices[j] > vertex)
+						p.Vertices[j]--;
 				}
 			}
 
 			for (int i = 0; i < nedges; i++)
 			{
-				if (edges[i * 4 + 0] > remove)
+				if (edges[i * 4 + 0] > vertex)
 					edges[i * 4 + 0]--;
 
-				if (edges[i * 4 + 1] > remove)
+				if (edges[i * 4 + 1] > vertex)
 					edges[i * 4 + 1]--;
 			}
 
@@ -878,7 +816,7 @@ namespace SharpNav
 					break;
 			}
 
-			Tris[] tris = new Tris[nhole];
+			Triangle[] tris = new Triangle[nhole];
 			var tverts = new ContourVertex[nhole];
 			int[] thole = new int[nhole];
 
@@ -899,57 +837,46 @@ namespace SharpNav
 				ntris = -ntris;
 
 			//merge hole triangles back to polygons
-			Polygon[] polys = new Polygon[ntris + 1];
-			int[] pregs = new int[ntris];
-			int[] pareas = new int[ntris];
-
-			//builds initial polygons
-			int npolys = 0;
-			for (int j = 0; j < polys.Length; j++)
-			{
-				polys[j].Vertices = new int[numVertsPerPoly];
-
-				for (int k = 0; k < numVertsPerPoly; k++)
-				{
-					polys[j].Vertices[k] = MESH_NULL_IDX;
-				}
-			}
+			List<Polygon> mergePolys = new List<Polygon>(ntris + 1);
 
 			for (int j = 0; j < ntris; j++)
 			{
-				if (tris[j].VertexHash0 != tris[j].VertexHash1
-					&& tris[j].VertexHash0 != tris[j].VertexHash2
-					&& tris[j].VertexHash1 != tris[j].VertexHash2)
+				Triangle t = tris[j];
+
+				if (t.Index0 != t.Index1 &&
+					t.Index0 != t.Index2 &&
+					t.Index1 != t.Index2)
 				{
-					polys[npolys].Vertices[0] = hole[tris[j].VertexHash0];
-					polys[npolys].Vertices[1] = hole[tris[j].VertexHash1];
-					polys[npolys].Vertices[2] = hole[tris[j].VertexHash2];
-					pregs[npolys] = hreg[tris[j].VertexHash0];
-					pareas[npolys] = harea[tris[j].VertexHash0];
-					npolys++;
+					Polygon p = new Polygon(numVertsPerPoly, AreaFlags.Null, 0, 0);
+					p.Vertices[0] = hole[t.Index0];
+					p.Vertices[1] = hole[t.Index1];
+					p.Vertices[2] = hole[t.Index2];
+					p.RegionId = hreg[t.Index0];
+					p.Area = (AreaFlags)harea[t.Index0];
+					mergePolys.Add(p);
 				}
 			}
 
-			if (npolys == 0)
+			if (mergePolys.Count == 0)
 				return;
 
 			//merge polygons
 			if (numVertsPerPoly > 3)
 			{
-				for (;;)
+				while (true)
 				{
 					//find best polygons
 					int bestMergeVal = 0;
 					int bestPolyA = 0, bestPolyB = 0, bestEa = 0, bestEb = 0;
 
-					for (int j = 0; j < npolys - 1; j++)
+					for (int j = 0; j < mergePolys.Count - 1; j++)
 					{
 						int pj = j;
-						for (int k = j + 1; k < npolys; k++)
+						for (int k = j + 1; k < mergePolys.Count; k++)
 						{
 							int pk = k;
 							int edgeA = 0, edgeB = 0;
-							int v = GetPolyMergeValue(polys, pj, pk, this.verts, ref edgeA, ref edgeB);
+							int v = GetPolyMergeValue(mergePolys, pj, pk, this.verts, ref edgeA, ref edgeB);
 							if (v > bestMergeVal)
 							{
 								bestMergeVal = v;
@@ -965,18 +892,8 @@ namespace SharpNav
 					{
 						int polyA = bestPolyA;
 						int polyB = bestPolyB;
-						MergePolys(polys, polyA, polyB, bestEa, bestEb);
-						
-						//save space by overwriting second polygon with last polygon 
-						//since second polygon is no longer need
-						int lastPoly = npolys - 1;
-						
-						for (int k = 0; k < numVertsPerPoly; k++)
-							polys[polyB].Vertices[k] = polys[lastPoly].Vertices[k];
-						
-						pregs[bestPolyB] = pregs[npolys - 1];
-						pareas[bestPolyB] = pareas[npolys - 1];
-						npolys--;
+						MergePolys(mergePolys, polyA, polyB, bestEa, bestEb);
+						mergePolys.RemoveAt(polyB);
 					}
 					else
 					{
@@ -986,66 +903,52 @@ namespace SharpNav
 				}
 			}
 
-			//store polygons
-			for (int i = 0; i < npolys; i++)
-			{
-				//polygon count exceeds limit
-				if (this.npolys >= maxTris) 
-					break;
-
-				for (int j = 0; j < numVertsPerPoly; j++)
-				{
-					this.polys[this.npolys].Vertices[j] = polys[i].Vertices[j];
-					this.polys[this.npolys].NeighborEdges[j] = MESH_NULL_IDX;
-				}
-
-				this.polys[this.npolys].RegionId = pregs[i];
-				this.polys[this.npolys].Area = (AreaFlags)pareas[i];
-				this.npolys++;
-			}
+			//add merged polys back to the list.
+			polys.AddRange(mergePolys);
 		}
 
 		/// <summary>
 		/// Connect two adjacent vertices with edges.
 		/// </summary>
-		private void BuildMeshAdjacency()
+		private void BuildMeshAdjacency(List<Polygon> polys)
 		{
-			int maxEdgeCount = npolys * numVertsPerPoly;
+			int maxEdgeCount = polys.Count * numVertsPerPoly;
 			int[] firstEdge = new int[nverts + maxEdgeCount];
 			int nextEdge = nverts;
 			int edgeCount = 0;
 			Edge[] edges = new Edge[maxEdgeCount];
 
 			for (int i = 0; i < nverts; i++)
-				firstEdge[i] = MESH_NULL_IDX;
+				firstEdge[i] = NullId;
 
 			//Iterate through all the polygons
-			for (int i = 0; i < npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
+				Polygon p = polys[i];
 				//Iterate through all the vertices
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
-					if (polys[i].Vertices[j] == MESH_NULL_IDX)
+					if (p.Vertices[j] == NullId)
 						break;
 
 					//get closest two verts
-					int v0 = polys[i].Vertices[j];
-					int v1 = (j + 1 >= numVertsPerPoly || polys[i].Vertices[j + 1] == MESH_NULL_IDX) ? polys[i].Vertices[0] : polys[i].Vertices[j + 1];
+					int v0 = p.Vertices[j];
+					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
 
 					if (v0 < v1)
 					{
 						Edge edge;
 
 						//store vertices
-						edge.VertX = v0;
-						edge.VertY = v1;
+						edge.Vert0 = v0;
+						edge.Vert1 = v1;
 
 						//poly array stores index of polygon
 						//polyEdge stores the vertex
-						edge.PolyX = i;
-						edge.PolyEdgeX = j;
-						edge.PolyY = i;
-						edge.PolyEdgeY = 0;
+						edge.Poly0 = i;
+						edge.PolyEdge0 = j;
+						edge.Poly1 = i;
+						edge.PolyEdge1 = 0;
 
 						//insert edge
 						firstEdge[nextEdge + edgeCount] = firstEdge[v0];
@@ -1058,27 +961,28 @@ namespace SharpNav
 			}
 
 			//Iterate through all the polygons again
-			for (int i = 0; i < npolys; i++)
+			for (int i = 0; i < polys.Count; i++)
 			{
+				Polygon p = polys[i];
 				for (int j = 0; j < numVertsPerPoly; j++)
 				{
-					if (polys[i].Vertices[j] == MESH_NULL_IDX)
+					if (p.Vertices[j] == NullId)
 						break;
 
 					//get adjacent vertices
-					int v0 = polys[i].Vertices[j];
-					int v1 = (j + 1 >= numVertsPerPoly || polys[i].Vertices[j + 1] == MESH_NULL_IDX) ? polys[i].Vertices[0] : polys[i].Vertices[j + 1];
+					int v0 = p.Vertices[j];
+					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
 
 					if (v0 > v1)
 					{
 						//Iterate through all the edges
-						for (int e = firstEdge[v1]; e != MESH_NULL_IDX; e = firstEdge[nextEdge + e])
+						for (int e = firstEdge[v1]; e != NullId; e = firstEdge[nextEdge + e])
 						{
 							Edge edge = edges[e];
-							if (edge.VertY == v0 && edge.PolyX == edge.PolyY)
+							if (edge.Vert1 == v0 && edge.Poly0 == edge.Poly1)
 							{
-								edge.PolyY = i;
-								edge.PolyEdgeY = j;
+								edge.Poly1 = i;
+								edge.PolyEdge1 = j;
 								edges[e] = edge;
 								break;
 							}
@@ -1093,25 +997,13 @@ namespace SharpNav
 				Edge e = edges[i];
 
 				//the endpoints belong to different polygons
-				if (e.PolyX != e.PolyY)
+				if (e.Poly0 != e.Poly1)
 				{
 					//store other polygon number as part of extra info
-					polys[e.PolyX].NeighborEdges[e.PolyEdgeX] = e.PolyY;
-					polys[e.PolyY].NeighborEdges[e.PolyEdgeY] = e.PolyX;
+					polys[e.Poly0].NeighborEdges[e.PolyEdge0] = e.Poly1;
+					polys[e.Poly1].NeighborEdges[e.PolyEdge1] = e.Poly0;
 				}
 			}
-		}
-
-		/// <summary>
-		/// Count the number of vertices per polygon
-		/// </summary>
-		private int CountPolyVerts(Polygon[] polys, int polyIndex)
-		{
-			for (int i = 0; i < numVertsPerPoly; i++)
-				if (polys[polyIndex].Vertices[i] == MESH_NULL_IDX)
-					return i;
-
-			return numVertsPerPoly;
 		}
 
 		/// <summary>
@@ -1227,33 +1119,81 @@ namespace SharpNav
 		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
 		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
 
-		//TODO arrays in mutable structs 
-		public struct Polygon
+		public class Polygon
 		{
-			public int[] Vertices; //"numVertsPerPoly" elements
-			public int[] NeighborEdges; //"numVertsPerPoly" elements
-			public AreaFlags Area;
-			public int RegionId; 
-			public int Flags; 
+			private int[] vertices; //"numVertsPerPoly" elements
+			private int[] neighborEdges; //"numVertsPerPoly" elements
+			private AreaFlags area;
+			private int regionId;
+			private int flags;
+
+			public Polygon(int numVertsPerPoly, AreaFlags area, int regionId, int flags)
+			{
+				vertices = new int[numVertsPerPoly];
+				neighborEdges = new int[numVertsPerPoly];
+				this.area = area;
+				this.regionId = regionId;
+				this.flags = flags;
+
+				for (int i = 0; i < numVertsPerPoly; i++)
+				{
+					vertices[i] = NullId;
+					neighborEdges[i] = NullId;
+				}
+			}
+
+			public int[] Vertices { get { return vertices; } }
+			public int[] NeighborEdges { get { return neighborEdges; } }
+			public AreaFlags Area { get { return area; } set { area = value; } }
+			public int RegionId { get { return regionId; } set { regionId = value; } }
+			public int Flags { get { return flags; } set { flags = value; } }
+
+			public int VertexCount
+			{
+				get
+				{
+					for (int i = 0; i < vertices.Length; i++)
+						if (vertices[i] == NullId)
+							return i;
+
+					return vertices.Length;
+				}
+			}
+
+			public bool ContainsVertex(int vertex)
+			{
+				//iterate through all the vertices
+				for (int i = 0; i < vertices.Length; i++)
+				{
+					//find the vertex, return false if at end of defined polygon.
+					int v = vertices[i];
+					if (v == vertex)
+						return true;
+					else if (v == NullId)
+						return false;
+				}
+
+				return false;
+			}
 		}
 
-		private struct Tris
+		private struct Triangle
 		{
-			public int VertexHash0;
-			public int VertexHash1;
-			public int VertexHash2;
+			public int Index0;
+			public int Index1;
+			public int Index2;
 		}
 
 		private struct Edge
 		{
-			public int VertX;
-			public int VertY;
+			public int Vert0;
+			public int Vert1;
 
-			public int PolyEdgeX;
-			public int PolyEdgeY;
+			public int PolyEdge0;
+			public int PolyEdge1;
 
-			public int PolyX;
-			public int PolyY;
+			public int Poly0;
+			public int Poly1;
 		}
 	}
 }

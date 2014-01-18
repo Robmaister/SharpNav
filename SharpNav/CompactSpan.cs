@@ -120,10 +120,13 @@ namespace SharpNav
 
 		public static void OverlapMax(ref CompactSpan left, ref CompactSpan right, out int max)
 		{
-			if (left.Height == int.MaxValue && right.Height == int.MaxValue)
-				max = int.MaxValue;
-			else if (left.Height == int.MaxValue)
-				max = right.Minimum + right.Height;
+			if (left.Height == int.MaxValue)
+			{
+				if (right.Height == int.MaxValue)
+					max = int.MaxValue;
+				else
+					max = right.Minimum + right.Height;
+			}
 			else if (right.Height == int.MaxValue)
 				max = left.Minimum + left.Height;
 			else
