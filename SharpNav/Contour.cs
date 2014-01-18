@@ -23,10 +23,10 @@ namespace SharpNav
 		//raw vertices derived directly from CompactHeightfield
 		private ContourVertex[] rawVertices;
 
-		private int regionId;
-		private AreaFlags area;
+		private RegionId regionId;
+		private AreaId area;
 
-		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, int reg, AreaFlags area, int borderSize)
+		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, RegionId reg, AreaId area, int borderSize)
 		{
 			vertices = simplified.ToArray();
 			rawVertices = verts.ToArray();
@@ -66,7 +66,7 @@ namespace SharpNav
 			}
 		}
 
-		public AreaFlags Area
+		public AreaId Area
 		{
 			get
 			{
@@ -74,7 +74,7 @@ namespace SharpNav
 			}
 		}
 
-		public int RegionId
+		public RegionId RegionId
 		{
 			get
 			{

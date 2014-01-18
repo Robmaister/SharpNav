@@ -13,31 +13,32 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+
+	[Flags]
+	public enum RegionId : int
+	{
+		Null = 0,
+		VertexBorder = 0x20000000,
+		AreaBorder = 0x40000000,
+		Border = unchecked((int)0x80000000)
+	}
+
 	/// <summary>
 	/// A Region contains a group of adjacent spans.
 	/// </summary>
 	public class Region
 	{
-		/// <summary>
-		/// The border region flag.
-		/// </summary>
-		public const int BorderFlag = unchecked((int)0x80000000);
-
-		public const int VertexBorderFlag = unchecked((int)0x20000000);
-
-		public const int AreaBorderFlag = unchecked((int)0x40000000);
-
 		public const int IdMask = 0x1fffffff;
 
 		private int spanCount;
-		private int id;
-		private AreaFlags areaType;
+		private RegionId id;
+		private AreaId areaType;
 		private bool remap;
 		private bool visited;
-		private List<int> connections;
-		private List<int> floors;
+		private List<RegionId> connections;
+		private List<RegionId> floors;
 
-		public Region(int idNum)
+		public Region(RegionId idNum)
 		{
 			spanCount = 0;
 			id = idNum;
@@ -45,8 +46,8 @@ namespace SharpNav
 			remap = false;
 			visited = false;
 
-			connections = new List<int>();
-			floors = new List<int>();
+			connections = new List<RegionId>();
+			floors = new List<RegionId>();
 		}
 
 		public int SpanCount
@@ -55,13 +56,13 @@ namespace SharpNav
 			set { this.spanCount = value; }
 		}
 
-		public int Id 
+		public RegionId Id 
 		{ 
 			get { return id; }
 			set { this.id = value; }
 		}
 
-		public AreaFlags AreaType
+		public AreaId AreaType
 		{
 			set { this.areaType = value; }
 		}
@@ -78,78 +79,78 @@ namespace SharpNav
 			set { this.visited = value; }
 		}
 
-		public List<int> FloorRegions { get { return floors; } }
+		public List<RegionId> FloorRegions { get { return floors; } }
 
-		public List<int> Connections { get { return connections; } }
+		public List<RegionId> Connections { get { return connections; } }
 
-		public static int IdWithBorderFlag(int id)
+		public static RegionId IdWithBorderFlag(RegionId id)
 		{
-			return id | BorderFlag;
+			return id | RegionId.Border;
 		}
 
-		public static int RemoveFlags(int id)
+		public static RegionId RemoveFlags(RegionId id)
 		{
-			return id & IdMask;
+			return id & (RegionId)IdMask;
 		}
 
-		public static bool IsBorder(int id)
+		public static bool IsBorder(RegionId id)
 		{
-			return (id & BorderFlag) == BorderFlag;
+			return (id & RegionId.Border) == RegionId.Border;
 		}
 
-		public static bool IsNull(int id)
+		public static bool IsNull(RegionId id)
 		{
-			return id == 0;
+			return id == RegionId.Null;
 		}
 
-		public static bool IsBorderOrNull(int id)
+		public static bool IsBorderOrNull(RegionId id)
 		{
-			return id == 0 || (id & BorderFlag) == BorderFlag;
+			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
 		}
 
 		public bool IsBorder()
 		{
-			return (id & BorderFlag) == BorderFlag;
+			return (id & RegionId.Border) == RegionId.Border;
 		}
 
 		public bool IsNull()
 		{
-			return id == 0;
+			return id == RegionId.Null;
 		}
 
 		public bool IsBorderOrNull()
 		{
-			return id == 0 || (id & BorderFlag) == BorderFlag;
+			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
 		}
 
-		public static void SetBorderVertex(ref int region)
+		public static void SetBorderVertex(ref RegionId region)
 		{
-			region |= VertexBorderFlag;
+			region |= RegionId.VertexBorder;
 		}
 
-		public static void SetAreaBorder(ref int region)
+		public static void SetAreaBorder(ref RegionId region)
 		{
-			region |= AreaBorderFlag;
+			region |= RegionId.AreaBorder;
 		}
 
-		public static bool IsBorderVertex(int r)
+		public static bool IsBorderVertex(RegionId r)
 		{
-			return (r & VertexBorderFlag) != 0;
+			return (r & RegionId.VertexBorder) != 0;
 		}
 
-		public static bool IsAreaBorder(int r)
+		public static bool IsAreaBorder(RegionId r)
 		{
-			return (r & AreaBorderFlag) != 0;
+			return (r & RegionId.AreaBorder) != 0;
 		}
 
-		public static bool IsSameArea(int region1, int region2)
+		public static bool IsSameArea(RegionId region1, RegionId region2)
 		{
-			return (region1 & AreaBorderFlag) == (region2 & AreaBorderFlag);
+			return (region1 & RegionId.AreaBorder) == (region2 & RegionId.AreaBorder);
 		}
 
-		public static bool IsSameRegion(int region1, int region2)
+		public static bool IsSameRegion(RegionId region1, RegionId region2)
 		{
-			return (region1 & IdMask) == (region2 & IdMask);
+			return ((int)region1 & IdMask) == ((int)region2 & IdMask);
 		}
 
 		/// <summary>
@@ -180,7 +181,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="oldId">The value you want to replace</param>
 		/// <param name="newId">The new value that will be used</param>
-		public void ReplaceNeighbour(int oldId, int newId)
+		public void ReplaceNeighbour(RegionId oldId, RegionId newId)
 		{
 			//replace the connections
 			bool neiChanged = false;
@@ -239,7 +240,7 @@ namespace SharpNav
 		/// Only add a floor if it hasn't been added already
 		/// </summary>
 		/// <param name="n">The value of the floor</param>
-		public void AddUniqueFloorRegion(int n)
+		public void AddUniqueFloorRegion(RegionId n)
 		{
 			if (!floors.Contains(n))
 				floors.Add(n);
@@ -252,14 +253,14 @@ namespace SharpNav
 		/// <returns></returns>
 		public bool MergeWithRegion(Region otherRegion)
 		{
-			int thisId = id;
-			int otherId = otherRegion.id;
+			RegionId thisId = id;
+			RegionId otherId = otherRegion.id;
 
 			// Duplicate current neighbourhood.
-			List<int> thisConnected = new List<int>();
+			List<RegionId> thisConnected = new List<RegionId>();
 			for (int i = 0; i < connections.Count; ++i)
 				thisConnected.Add(connections[i]);
-			List<int> otherConnected = otherRegion.connections;
+			List<RegionId> otherConnected = otherRegion.connections;
 
 			// Find insertion point on this region
 			int insertInThis = -1;
@@ -290,7 +291,7 @@ namespace SharpNav
 				return false;
 
 			// Merge neighbours.
-			connections = new List<int>();
+			connections = new List<RegionId>();
 			for (int i = 0, ni = thisConnected.Count; i < ni - 1; ++i)
 				connections.Add(thisConnected[(insertInThis + 1 + i) % ni]);
 

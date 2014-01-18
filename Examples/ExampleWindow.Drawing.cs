@@ -401,11 +401,11 @@ namespace Examples
 						GL.PushMatrix();
 						var span = compactHeightfield.Spans[k];
 
-						int region = span.Region;
+						RegionId region = span.Region;
 						if (Region.IsBorder(region))
 							region = Region.RemoveFlags(region);
 
-						Color4 col = regionColors[region];
+						Color4 col = regionColors[(int)region];
 						GL.Color4(col);
 
 						var squarePosFinal = squarePos;
@@ -451,13 +451,13 @@ namespace Examples
 			
 			foreach (var c in contourSet)
 			{
-				int region = c.RegionId;
+				RegionId region = c.RegionId;
 
 				//skip border regions
 				if (Region.IsBorder(region))
 					continue;
 
-				Color4 col = regionColors[region];
+				Color4 col = regionColors[(int)region];
 				GL.Color4(col);
 
 				if (simplified)
@@ -507,7 +507,7 @@ namespace Examples
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
-				if (polyMesh.Polys[i].Area != AreaFlags.Walkable)
+				if (polyMesh.Polys[i].Area != AreaId.Walkable)
 					continue;
 
 				for (int j = 2; j < polyMesh.NumVertsPerPoly; j++)

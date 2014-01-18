@@ -42,7 +42,7 @@ namespace SharpNav
 		/// <summary>
 		/// The region that the vertex belongs to.
 		/// </summary>
-		public int RegionId;
+		public RegionId RegionId;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ContourVertex"/> struct.
@@ -51,7 +51,7 @@ namespace SharpNav
 		/// <param name="y">The Y coordinate.</param>
 		/// <param name="z">The Z coordinate.</param>
 		/// <param name="region">The region ID.</param>
-		public ContourVertex(int x, int y, int z, int region)
+		public ContourVertex(int x, int y, int z, RegionId region)
 		{
 			this.X = x;
 			this.Y = y;
@@ -59,7 +59,7 @@ namespace SharpNav
 			this.RegionId = region;
 		}
 
-		public ContourVertex(Vector3 vec, int region)
+		public ContourVertex(Vector3 vec, RegionId region)
 		{
 			this.X = (int)vec.X;
 			this.Y = (int)vec.Y;
@@ -77,7 +77,7 @@ namespace SharpNav
 			this.X = vert.X;
 			this.Y = vert.Y;
 			this.Z = vert.Z;
-			this.RegionId = index;
+			this.RegionId = (RegionId)index;
 		}
 
 		/// <summary>

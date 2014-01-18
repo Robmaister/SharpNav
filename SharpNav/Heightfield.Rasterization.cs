@@ -30,7 +30,7 @@ namespace SharpNav
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, AreaFlags[] areas)
+		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, AreaId[] areas)
 		{
 			RasterizeTrianglesIndexedWithAreas(verts, inds, 0, 1, 0, inds.Length / 3, areas);
 		}
@@ -45,7 +45,7 @@ namespace SharpNav
 		/// <param name="indexOffset">An offset into the index array.</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaFlags[] areas)
+		public void RasterizeTrianglesIndexedWithAreas(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaId[] areas)
 		{
 			int indexEnd = triCount * 3 + indexOffset;
 
@@ -85,7 +85,7 @@ namespace SharpNav
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, AreaFlags[] areas)
+		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, AreaId[] areas)
 		{
 			RasterizeTrianglesIndexedWithAreas(verts, inds, 0, 3, 0, inds.Length / 3, areas);
 		}
@@ -100,7 +100,7 @@ namespace SharpNav
 		/// <param name="indexOffset">An offset into the index array.</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaFlags[] areas)
+		public void RasterizeTrianglesIndexedWithAreas(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaId[] areas)
 		{
 			int indexEnd = triCount * 3 + indexOffset;
 
@@ -153,7 +153,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="tris">An array of triangles.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(Triangle3[] tris, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(Triangle3[] tris, AreaId[] areas)
 		{
 			RasterizeTrianglesWithAreas(tris, 0, tris.Length, areas);
 		}
@@ -165,7 +165,7 @@ namespace SharpNav
 		/// <param name="triOffset">An offset into the array.</param>
 		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(Triangle3[] tris, int triOffset, int triCount, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(Triangle3[] tris, int triOffset, int triCount, AreaId[] areas)
 		{
 			int triEnd = triOffset + triCount;
 
@@ -196,7 +196,7 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(Vector3[] verts, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(Vector3[] verts, AreaId[] areas)
 		{
 			RasterizeTrianglesWithAreas(verts, 0, 1, verts.Length / 3, areas);
 		}
@@ -209,7 +209,7 @@ namespace SharpNav
 		/// <param name="vertStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (1 Vector3 per vertex).</param>
 		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaId[] areas)
 		{
 			if (verts == null)
 				throw new ArgumentNullException("verts");
@@ -245,7 +245,7 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(float[] verts, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(float[] verts, AreaId[] areas)
 		{
 			RasterizeTrianglesWithAreas(verts, 0, 3, verts.Length / 9, areas);
 		}
@@ -258,7 +258,7 @@ namespace SharpNav
 		/// <param name="floatStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (3 floats per vertex).</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="areas">An array of area flags, one for each triangle.</param>
-		public void RasterizeTrianglesWithAreas(float[] verts, int floatOffset, int floatStride, int triCount, AreaFlags[] areas)
+		public void RasterizeTrianglesWithAreas(float[] verts, int floatOffset, int floatStride, int triCount, AreaId[] areas)
 		{
 			if (verts == null)
 				throw new ArgumentNullException("verts");
@@ -310,7 +310,7 @@ namespace SharpNav
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="area">The area flags for all the triangles.</param>
-		public void RasterizeTrianglesIndexed(Vector3[] verts, int[] inds, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTrianglesIndexed(Vector3[] verts, int[] inds, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTrianglesIndexed(verts, inds, 0, 1, 0, inds.Length / 3, area);
 		}
@@ -325,7 +325,7 @@ namespace SharpNav
 		/// <param name="indexOffset">An offset into the index array.</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTrianglesIndexed(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTrianglesIndexed(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaId area = AreaId.Walkable)
 		{
 			int indexEnd = triCount * 3 + indexOffset;
 
@@ -362,7 +362,7 @@ namespace SharpNav
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="area">The area flags for all the triangles.</param>
-		public void RasterizeTrianglesIndexed(float[] verts, int[] inds, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTrianglesIndexed(float[] verts, int[] inds, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTrianglesIndexed(verts, inds, 0, 3, 0, inds.Length / 3, area);
 		}
@@ -377,7 +377,7 @@ namespace SharpNav
 		/// <param name="indexOffset">An offset into the index array.</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTrianglesIndexed(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTrianglesIndexed(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaId area = AreaId.Walkable)
 		{
 			int indexEnd = triCount * 3 + indexOffset;
 
@@ -427,7 +427,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="tris">An array of triangles.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(Triangle3[] tris, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(Triangle3[] tris, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTriangles(tris, 0, tris.Length, area);
 		}
@@ -439,7 +439,7 @@ namespace SharpNav
 		/// <param name="triOffset">An offset into the array.</param>
 		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(Triangle3[] tris, int triOffset, int triCount, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(Triangle3[] tris, int triOffset, int triCount, AreaId area = AreaId.Walkable)
 		{
 			int triEnd = triOffset + triCount;
 
@@ -467,7 +467,7 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(Vector3[] verts, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(Vector3[] verts, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTriangles(verts, 0, 1, verts.Length / 3, area);
 		}
@@ -480,7 +480,7 @@ namespace SharpNav
 		/// <param name="vertStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (1 Vector3 per vertex).</param>
 		/// <param name="triCount">The number of triangles to rasterize, starting from the offset.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaId area = AreaId.Walkable)
 		{
 			int vertEnd = triCount * vertStride + vertOffset;
 
@@ -513,7 +513,7 @@ namespace SharpNav
 		/// </remarks>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(float[] verts, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(float[] verts, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTriangles(verts, 0, 3, verts.Length / 9, area);
 		}
@@ -526,7 +526,7 @@ namespace SharpNav
 		/// <param name="floatStride">The number of array elements that make up a vertex. A value of 0 is interpreted as tightly-packed data (3 floats per vertex).</param>
 		/// <param name="triCount">The number of triangles to rasterize.</param>
 		/// <param name="area">The area flags for all of the triangles.</param>
-		public void RasterizeTriangles(float[] verts, int floatOffset, int floatStride, int triCount, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangles(float[] verts, int floatOffset, int floatStride, int triCount, AreaId area = AreaId.Walkable)
 		{
 			int floatEnd = triCount * floatStride + floatOffset;
 
@@ -574,7 +574,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="tri">The triangle as a <see cref="Triangle3"/> struct.</param>
 		/// <param name="area">The area flags for the triangle.</param>
-		public void RasterizeTriangle(ref Triangle3 tri, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangle(ref Triangle3 tri, AreaId area = AreaId.Walkable)
 		{
 			RasterizeTriangle(ref tri.A, ref tri.B, ref tri.C, area);
 		}
@@ -592,7 +592,7 @@ namespace SharpNav
 		/// <param name="cy">The Y component of the third vertex of the triangle.</param>
 		/// <param name="cz">The Z component of the third vertex of the triangle.</param>
 		/// <param name="area">The area flags for the triangle.</param>
-		public void RasterizeTriangle(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangle(float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz, AreaId area = AreaId.Walkable)
 		{
 			Vector3 a, b, c;
 
@@ -616,7 +616,7 @@ namespace SharpNav
 		/// <param name="b">The second vertex of the triangle.</param>
 		/// <param name="c">The third vertex of the triangle.</param>
 		/// <param name="area">The area flags for the triangle.</param>
-		public void RasterizeTriangle(ref Vector3 a, ref Vector3 b, ref Vector3 c, AreaFlags area = AreaFlags.Walkable)
+		public void RasterizeTriangle(ref Vector3 a, ref Vector3 b, ref Vector3 c, AreaId area = AreaId.Walkable)
 		{
 			float invCellSize = 1f / cellSize;
 			float invCellHeight = 1f / cellHeight;

@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -28,7 +28,7 @@ namespace SharpNav
 		/// <summary>
 		/// The span area id
 		/// </summary>
-		public AreaFlags Area;
+		public AreaId Area;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Span"/> struct.
@@ -39,7 +39,7 @@ namespace SharpNav
 		{
 			Minimum = min;
 			Maximum = max;
-			Area = AreaFlags.Null;
+			Area = AreaId.Null;
 		}
 
 		/// <summary>
@@ -48,7 +48,7 @@ namespace SharpNav
 		/// <param name="min">The lowest value in the span.</param>
 		/// <param name="max">The highest value in the span.</param>
 		/// <param name="area">The area flags for the span.</param>
-		public Span(int min, int max, AreaFlags area)
+		public Span(int min, int max, AreaId area)
 		{
 			Minimum = min;
 			Maximum = max;

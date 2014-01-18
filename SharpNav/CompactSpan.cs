@@ -49,7 +49,7 @@ namespace SharpNav
 		/// <summary>
 		/// The region the span belongs to.
 		/// </summary>
-		public int Region;
+		public RegionId Region;
 
 		/// <summary>
 		/// A constant that means there is no connection for the values <see cref="ConnectionWest"/>,
@@ -70,7 +70,7 @@ namespace SharpNav
 			this.ConnectionNorth = NotConnected;
 			this.ConnectionEast = NotConnected;
 			this.ConnectionSouth = NotConnected;
-			this.Region = 0;
+			this.Region = RegionId.Null;
 		}
 
 		/// <summary>
@@ -160,7 +160,7 @@ namespace SharpNav
 			span.ConnectionNorth = NotConnected;
 			span.ConnectionEast = NotConnected;
 			span.ConnectionSouth = NotConnected;
-			span.Region = 0;
+			span.Region = RegionId.Null;
 		}
 
 		/// <summary>

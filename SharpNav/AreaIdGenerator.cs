@@ -22,74 +22,74 @@ using SharpDX;
 
 namespace SharpNav
 {
-	public class AreaFlagsGenerator
+	public class AreaIdGenerator
 	{
 		private IEnumerable<Triangle3> tris;
 		private int triCount;
-		private List<Tuple<Func<Triangle3, bool>, AreaFlags>> conditions;
-		private AreaFlags defaultArea;
+		private List<Tuple<Func<Triangle3, bool>, AreaId>> conditions;
+		private AreaId defaultArea;
 
-		private AreaFlagsGenerator(IEnumerable<Triangle3> verts, int triCount, AreaFlags defaultArea)
+		private AreaIdGenerator(IEnumerable<Triangle3> verts, int triCount, AreaId defaultArea)
 		{
 			this.tris = verts;
 			this.triCount = triCount;
 			this.defaultArea = defaultArea;
-			conditions = new List<Tuple<Func<Triangle3, bool>, AreaFlags>>();
+			conditions = new List<Tuple<Func<Triangle3, bool>, AreaId>>();
 		}
 
-		public static AreaFlagsGenerator From(Triangle3[] tris, AreaFlags area)
+		public static AreaIdGenerator From(Triangle3[] tris, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
 		}
 
-		public static AreaFlagsGenerator From(Triangle3[] tris, int triOffset, int triCount, AreaFlags area)
+		public static AreaIdGenerator From(Triangle3[] tris, int triOffset, int triCount, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
 		}
 
-		public static AreaFlagsGenerator From(Vector3[] verts, AreaFlags area)
+		public static AreaIdGenerator From(Vector3[] verts, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
 		}
 
-		public static AreaFlagsGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaFlags area)
+		public static AreaIdGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
 		}
 
-		public static AreaFlagsGenerator From(float[] verts, AreaFlags area)
+		public static AreaIdGenerator From(float[] verts, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
 		}
 
-		public static AreaFlagsGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, AreaFlags area)
+		public static AreaIdGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
 		}
 
-		public static AreaFlagsGenerator From(Vector3[] verts, int[] inds, AreaFlags area)
+		public static AreaIdGenerator From(Vector3[] verts, int[] inds, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
-		public static AreaFlagsGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaFlags area)
+		public static AreaIdGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
 		}
 
-		public static AreaFlagsGenerator From(float[] verts, int[] inds, AreaFlags area)
+		public static AreaIdGenerator From(float[] verts, int[] inds, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
-		public static AreaFlagsGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaFlags area)
+		public static AreaIdGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaId area)
 		{
-			return new AreaFlagsGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
+			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
 		}
 
-		public AreaFlags[] ToArray()
+		public AreaId[] ToArray()
 		{
-			AreaFlags[] areas = new AreaFlags[triCount];
+			AreaId[] areas = new AreaId[triCount];
 
 			int i = 0;
 			foreach (var tri in tris)
@@ -106,9 +106,9 @@ namespace SharpNav
 			return areas;
 		}
 
-		public AreaFlagsGenerator MarkAboveSlope(float angle, AreaFlags area)
+		public AreaIdGenerator MarkAboveSlope(float angle, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
 			{
 				Vector3 n = tri.Normal;
 				return Vector3.Dot(n, Vector3.UnitY) <= angle;
@@ -117,9 +117,9 @@ namespace SharpNav
 			return this;
 		}
 
-		public AreaFlagsGenerator MarkBelowSlope(float angle, AreaFlags area)
+		public AreaIdGenerator MarkBelowSlope(float angle, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
 			{
 				Vector3 n = tri.Normal;
 				return Vector3.Dot(n, Vector3.UnitY) >= angle;
@@ -128,9 +128,9 @@ namespace SharpNav
 			return this;
 		}
 
-		public AreaFlagsGenerator MarkAtSlope(float angle, float range, AreaFlags area)
+		public AreaIdGenerator MarkAtSlope(float angle, float range, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
 			{
 				Vector3 n = tri.Normal;
 				float ang = Vector3.Dot(n, Vector3.UnitY);
@@ -140,9 +140,9 @@ namespace SharpNav
 			return this;
 		}
 
-		public AreaFlagsGenerator MarkBelowHeight(float y, AreaFlags area)
+		public AreaIdGenerator MarkBelowHeight(float y, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
 			{
 				if (tri.A.Y <= y || tri.B.Y <= y || tri.C.Y <= y)
 					return true;
@@ -153,14 +153,14 @@ namespace SharpNav
 			return this;
 		}
 
-		public AreaFlagsGenerator MarkAtHeight(float y, float radius, AreaFlags area)
+		public AreaIdGenerator MarkAtHeight(float y, float radius, AreaId area)
 		{
 			throw new NotImplementedException();
 		}
 
-		public AreaFlagsGenerator MarkAboveHeight(float y, AreaFlags area)
+		public AreaIdGenerator MarkAboveHeight(float y, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaFlags>(tri =>
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
 			{
 				if (tri.A.Y >= y || tri.B.Y >= y || tri.C.Y >= y)
 					return true;
@@ -171,7 +171,7 @@ namespace SharpNav
 			return this;
 		}
 
-		public AreaFlagsGenerator MarkCustomFilter(Func<Triangle3, bool> func, AreaFlags area)
+		public AreaIdGenerator MarkCustomFilter(Func<Triangle3, bool> func, AreaId area)
 		{
 			conditions.Add(Tuple.Create(func, area));
 

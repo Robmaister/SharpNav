@@ -139,7 +139,7 @@ namespace SharpNav
 						//each polygon has numVertsPerPoly
 						//index 0, 1, 2 store triangle vertices
 						//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-						Polygon p = new Polygon(numVertsPerPoly, AreaFlags.Null, 0, 0);
+						Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, 0, 0);
 						p.Vertices[0] = indices[tris[i].Index0];
 						p.Vertices[1] = indices[tris[i].Index1];
 						p.Vertices[2] = indices[tris[i].Index2];
@@ -627,8 +627,8 @@ namespace SharpNav
 
 			List<Edge> edges = new List<Edge>(numRemovedVerts * numVertsPerPoly);
 			List<int> hole = new List<int>(numRemovedVerts * numVertsPerPoly);
-			List<int> regions = new List<int>(numRemovedVerts * numVertsPerPoly);
-			List<AreaFlags> areas = new List<AreaFlags>(numRemovedVerts * numVertsPerPoly);
+			List<RegionId> regions = new List<RegionId>(numRemovedVerts * numVertsPerPoly);
+			List<AreaId> areas = new List<AreaId>(numRemovedVerts * numVertsPerPoly);
 
 			//Iterate through all the polygons
 			for (int i = 0; i < polys.Count; i++)
@@ -1005,11 +1005,11 @@ namespace SharpNav
 		{
 			private int[] vertices; //"numVertsPerPoly" elements
 			private int[] neighborEdges; //"numVertsPerPoly" elements
-			private AreaFlags area;
-			private int regionId;
+			private AreaId area;
+			private RegionId regionId;
 			private int flags;
 
-			public Polygon(int numVertsPerPoly, AreaFlags area, int regionId, int flags)
+			public Polygon(int numVertsPerPoly, AreaId area, RegionId regionId, int flags)
 			{
 				vertices = new int[numVertsPerPoly];
 				neighborEdges = new int[numVertsPerPoly];
@@ -1026,8 +1026,8 @@ namespace SharpNav
 
 			public int[] Vertices { get { return vertices; } }
 			public int[] NeighborEdges { get { return neighborEdges; } }
-			public AreaFlags Area { get { return area; } set { area = value; } }
-			public int RegionId { get { return regionId; } set { regionId = value; } }
+			public AreaId Area { get { return area; } set { area = value; } }
+			public RegionId RegionId { get { return regionId; } set { regionId = value; } }
 			public int Flags { get { return flags; } set { flags = value; } }
 
 			public int VertexCount
@@ -1082,10 +1082,10 @@ namespace SharpNav
 		{
 			public int Vert0;
 			public int Vert1;
-			public int Region;
-			public AreaFlags Area;
+			public RegionId Region;
+			public AreaId Area;
 
-			public Edge(int vert0, int vert1, int region, AreaFlags area)
+			public Edge(int vert0, int vert1, RegionId region, AreaId area)
 			{
 				Vert0 = vert0;
 				Vert1 = vert1;

@@ -247,15 +247,15 @@ namespace SharpNav
 				List<Span> spans = c.MutableSpans;
 
 				//store the first span's data as the "previous" data
-				AreaFlags prevArea = AreaFlags.Null;
-				bool prevWalkable = prevArea != AreaFlags.Null;
+				AreaId prevArea = AreaId.Null;
+				bool prevWalkable = prevArea != AreaId.Null;
 				int prevMax = 0;
 
 				//iterate over all the spans in the cell
 				for (int j = 0; j < spans.Count; j++)
 				{
 					Span s = spans[j];
-					bool walkable = s.Area != AreaFlags.Null;
+					bool walkable = s.Area != AreaId.Null;
 
 					//if the current span isn't walkable but there's a walkable span right below it,
 					//mark this span as walkable too.
@@ -296,7 +296,7 @@ namespace SharpNav
 					//too low, not enough space to walk through
 					if ((spans[j + 1].Minimum - currentSpan.Maximum) <= walkableHeight)
 					{
-						currentSpan.Area = AreaFlags.Null;
+						currentSpan.Area = AreaId.Null;
 						spans[j] = currentSpan;
 					}
 				}
@@ -325,7 +325,7 @@ namespace SharpNav
 						Span currentSpan = spans[i];
 
 						// Skip non walkable spans.
-						if (currentSpan.Area == AreaFlags.Null)
+						if (currentSpan.Area == AreaId.Null)
 							continue;
 
 						int bottom = (int)currentSpan.Maximum;
@@ -386,12 +386,12 @@ namespace SharpNav
 						// The current span is close to a ledge if the drop to any
 						// neighbour span is less than the walkableClimb.
 						if (minHeight < -walkableClimb)
-							currentSpan.Area = AreaFlags.Null;
+							currentSpan.Area = AreaId.Null;
 
 						// If the difference between all neighbours is too large,
 						// we are at steep slope, mark the span as ledge.
 						if ((accessibleMax - accessibleMin) > walkableClimb)
-							currentSpan.Area = AreaFlags.Null;
+							currentSpan.Area = AreaId.Null;
 
 						//save span data
 						spans[i] = currentSpan;

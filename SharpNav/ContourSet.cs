@@ -80,7 +80,7 @@ namespace SharpNav
 						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
 							//obtain region id
-							int r = 0;
+							RegionId r = 0;
 							if (s.IsConnected(dir))
 							{
 								int dx = x + dir.GetHorizontalOffset();
@@ -123,7 +123,7 @@ namespace SharpNav
 							continue;
 						}
 
-						int reg = compactField.Spans[i].Region;
+						RegionId reg = compactField.Spans[i].Region;
 						if (Region.IsBorderOrNull(reg))
 							continue;
 						
@@ -261,7 +261,7 @@ namespace SharpNav
 			Direction startDir = dir;
 			int starti = i;
 
-			AreaFlags area = compactField.Areas[i];
+			AreaId area = compactField.Areas[i];
 
 			int iter = 0;
 			while (++iter < 40000)
@@ -291,7 +291,7 @@ namespace SharpNav
 							break;
 					}
 
-					int r = 0;
+					RegionId r = 0;
 					CompactSpan s = compactField.Spans[i];
 					if (s.IsConnected(dir))
 					{
@@ -372,7 +372,7 @@ namespace SharpNav
 			uint[] regs = { 0, 0, 0, 0 };
 
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
-			regs[0] = (uint)(openField.Spans[i].Region | ((byte)openField.Areas[i] << 16));
+			regs[0] = (uint)((int)openField.Spans[i].Region | ((byte)openField.Areas[i] << 16));
 
 			if (s.IsConnected(dir))
 			{
@@ -383,7 +383,7 @@ namespace SharpNav
 				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[1] = (uint)(openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
+				regs[1] = (uint)((int)openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dirp))
@@ -394,7 +394,7 @@ namespace SharpNav
 					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
+					regs[2] = (uint)((int)openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
 				}
 			}
 
@@ -407,7 +407,7 @@ namespace SharpNav
 				CompactSpan ds = openField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[3] = (uint)(openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
+				regs[3] = (uint)((int)openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dir))
@@ -418,7 +418,7 @@ namespace SharpNav
 					CompactSpan ds2 = openField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)(openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
+					regs[2] = (uint)((int)openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
 				}
 			}
 
@@ -434,8 +434,8 @@ namespace SharpNav
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
 
-				bool twoSameExteriors = Region.IsBorder((int)regs[a]) && Region.IsBorder((int)regs[b]) && regs[a] == regs[b];
-				bool twoSameInteriors = !(Region.IsBorder((int)regs[c]) || Region.IsBorder((int)regs[d]));
+				bool twoSameExteriors = Region.IsBorder((RegionId)regs[a]) && Region.IsBorder((RegionId)regs[b]) && regs[a] == regs[b];
+				bool twoSameInteriors = !(Region.IsBorder((RegionId)regs[c]) || Region.IsBorder((RegionId)regs[d]));
 				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
 				bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
 				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)
@@ -478,7 +478,7 @@ namespace SharpNav
 					
 					if (differentRegions || areaBorders)
 					{
-						simplified.Add(new ContourVertex(points[i].X, points[i].Y, points[i].Z, i));
+						simplified.Add(new ContourVertex(points[i], i));
 					}
 				}
 			}
@@ -490,12 +490,12 @@ namespace SharpNav
 				int lowerLeftX = points[0].X;
 				int lowerLeftY = points[0].Y;
 				int lowerLeftZ = points[0].Z;
-				int lowerLeftI = 0;
+				RegionId lowerLeftI = 0;
 				
 				int upperRightX = points[0].X;
 				int upperRightY = points[0].Y;
 				int upperRightZ = points[0].Z;
-				int upperRightI = 0;
+				RegionId upperRightI = 0;
 				
 				//iterate through points
 				for (int i = 0; i < points.Count; i++)
@@ -509,7 +509,7 @@ namespace SharpNav
 						lowerLeftX = x;
 						lowerLeftY = y;
 						lowerLeftZ = z;
-						lowerLeftI = i;
+						lowerLeftI = (RegionId)i;
 					}
 					
 					if (x > upperRightX || (x == upperRightX && z > upperRightZ))
@@ -517,7 +517,7 @@ namespace SharpNav
 						upperRightX = x;
 						upperRightY = y;
 						upperRightZ = z;
-						upperRightI = i;
+						upperRightI = (RegionId)i;
 					}
 				}
 				
@@ -535,11 +535,11 @@ namespace SharpNav
 				//obtain (x, z) coordinates, along with region id
 				int ax = simplified[i].X;
 				int az = simplified[i].Z;
-				int ai = simplified[i].RegionId;
+				RegionId ai = simplified[i].RegionId;
 
 				int bx = simplified[ii].X;
 				int bz = simplified[ii].Z;
-				int bi = simplified[ii].RegionId;
+				RegionId bi = simplified[ii].RegionId;
 
 				float maxDeviation = 0;
 				int maxi = -1;
@@ -549,14 +549,14 @@ namespace SharpNav
 				if (bx > ax || (bx == ax && bz > az))
 				{
 					cIncrement = 1;
-					ci = (ai + cIncrement) % numPoints;
-					endi = bi;
+					ci = (int)(ai + cIncrement) % numPoints;
+					endi = (int)bi;
 				}
 				else
 				{
 					cIncrement = numPoints - 1;
-					ci = (bi + cIncrement) % numPoints;
-					endi = ai;
+					ci = (int)(bi + cIncrement) % numPoints;
+					endi = (int)ai;
 				}
 
 				//tessellate only outer edges or edges between areas
@@ -609,15 +609,15 @@ namespace SharpNav
 					//get (x, z) coordinates along with region id
 					int ax = simplified[i].X;
 					int az = simplified[i].Z;
-					int ai = simplified[i].RegionId;
+					RegionId ai = simplified[i].RegionId;
 
 					int bx = simplified[ii].X;
 					int bz = simplified[ii].Z;
-					int bi = simplified[ii].RegionId;
+					RegionId bi = simplified[ii].RegionId;
 
 					//find maximum deviation from segment
 					int maxi = -1;
-					int ci = (ai + 1) % numPoints;
+					int ci = (int)(ai + 1) % numPoints;
 
 					//tessellate only outer edges or edges between areas
 					bool tess = false;
@@ -643,9 +643,9 @@ namespace SharpNav
 							if (n > 1)
 							{
 								if (bx > ax || (bx == ax && bz > az))
-									maxi = (ai + n / 2) % numPoints;
+									maxi = (int)(ai + n / 2) % numPoints;
 								else
-									maxi = (ai + (n + 1) / 2) % numPoints;
+									maxi = (int)(ai + (n + 1) / 2) % numPoints;
 							}
 						}
 					}
@@ -677,11 +677,11 @@ namespace SharpNav
 			{
 				ContourVertex sv = simplified[i];
 				//take edge vertex flag from current raw point and neighbor region from next raw point
-				int ai = (sv.RegionId + 1) % numPoints;
-				int bi = sv.RegionId;
+				int ai = (int)(sv.RegionId + 1) % numPoints;
+				RegionId bi = sv.RegionId;
 
 				//save new region id
-				sv.RegionId = (points[ai].RegionId & (Region.IdMask | Region.AreaBorderFlag)) | (points[bi].RegionId & Region.VertexBorderFlag);
+				sv.RegionId = (points[ai].RegionId & ((RegionId)Region.IdMask | RegionId.AreaBorder)) | (points[(int)bi].RegionId & RegionId.VertexBorder);
 
 				simplified[i] = sv;
 			}
