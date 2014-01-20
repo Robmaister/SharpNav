@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 using Gwen.Control;
 
@@ -64,10 +65,8 @@ namespace Examples
 
 		private SVector3 startPos;
 		private SVector3 endPos;
-		private int pathCount;
-		private int[] path;
-		private int smoothPathCount = 0;
-		private SVector3[] smoothPath = new SVector3[2048];
+		private List<int> path;
+		private List<SVector3> smoothPath;
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -408,12 +407,12 @@ namespace Examples
 
 			if (hasGenerated)
 			{
-				//GeneratePathfinding();
-
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 
 				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
+
+				GeneratePathfinding();
 			}
 		}
 
@@ -462,29 +461,23 @@ namespace Examples
 
 			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
-			path = new int[MAX_POLYS];
-			pathCount = 0;
-			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, path, ref pathCount, MAX_POLYS);
+			path = new List<int>(MAX_POLYS);
+			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, path);
 
 			//find a smooth path over the mesh surface
-			int npolys = pathCount;
-			int[] polys = new int[npolys];
-			for (int i = 0; i < polys.Length; i++)
-				polys[i] = path[i];
+			int npolys = path.Count;
+			int[] polys = path.ToArray();
 			SVector3 iterPos = new SVector3();
 			SVector3 targetPos = new SVector3();
 			navMeshQuery.ClosestPointOnPoly(startRef, startPos, ref iterPos);
 			navMeshQuery.ClosestPointOnPoly(polys[npolys - 1], endPos, ref targetPos);
 
-			int MAX_SMOOTH_COUNT = 2048;
-			smoothPath = new SVector3[MAX_SMOOTH_COUNT];
-			smoothPathCount = 0;
-			smoothPath[smoothPathCount] = iterPos;
-			smoothPathCount++;
+			smoothPath = new List<SVector3>(2048);
+			smoothPath.Add(iterPos);
 
 			float STEP_SIZE = 0.5f;
 			float SLOP = 0.01f;
-			while (npolys > 0 && smoothPathCount < MAX_SMOOTH_COUNT)
+			while (npolys > 0 && smoothPath.Count < smoothPath.Capacity)
 			{
 				//find location to steer towards
 				SVector3 steerPos = new SVector3();
@@ -513,10 +506,9 @@ namespace Examples
 
 				//move
 				SVector3 result = new SVector3();
-				int[] visited = new int[16];
-				int nvisited = 0;
-				navMeshQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, ref result, visited, ref nvisited, 16);
-				npolys = FixupCorridor(polys, npolys, MAX_POLYS, visited, nvisited);
+				List<int> visited = new List<int>(16);
+				navMeshQuery.MoveAlongSurface(polys[0], iterPos, moveTgt, ref result, visited);
+				npolys = FixupCorridor(polys, npolys, MAX_POLYS, visited);
 				float h = 0;
 				navMeshQuery.GetPolyHeight(polys[0], result, ref h);
 				result.Y = h;
@@ -527,19 +519,17 @@ namespace Examples
 				{
 					//reached end of path
 					iterPos = targetPos;
-					if (smoothPathCount < MAX_SMOOTH_COUNT)
+					if (smoothPath.Count < smoothPath.Capacity)
 					{
-						smoothPath[smoothPathCount] = iterPos;
-						smoothPathCount++;
+						smoothPath.Add(iterPos);
 					}
 					break;
 				}
 
 				//store results
-				if (smoothPathCount < MAX_SMOOTH_COUNT)
+				if (smoothPath.Count < smoothPath.Capacity)
 				{
-					smoothPath[smoothPathCount] = iterPos;
-					smoothPathCount++;
+					smoothPath.Add(iterPos);
 				}
 			}
 		}
@@ -566,7 +556,7 @@ namespace Examples
 			int[] steerPathFlags = new int[MAX_STEER_POINTS];
 			int[] steerPathPolys = new int[MAX_STEER_POINTS];
 			int nsteerPath = 0;
-			navMeshQuery.FindStraightPath(startPos, endPos, path, pathCount,
+			navMeshQuery.FindStraightPath(startPos, endPos, path, pathSize,
 				steerPath, steerPathFlags, steerPathPolys, ref nsteerPath, MAX_STEER_POINTS, 0);
 
 			if (nsteerPath == 0)
@@ -603,7 +593,7 @@ namespace Examples
 			return (dx * dx + dz * dz) < (r * r) && Math.Abs(dy) < h;
 		}
 
-		private int FixupCorridor(int[] path, int npath, int maxPath, int[] visited, int nvisited)
+		private int FixupCorridor(int[] path, int npath, int maxPath, List<int> visited)
 		{
 			int furthestPath = -1;
 			int furthestVisited = -1;
@@ -612,7 +602,7 @@ namespace Examples
 			for (int i = npath - 1; i >= 0; i--)
 			{
 				bool found = false;
-				for (int j = nvisited - 1; j >= 0; j--)
+				for (int j = visited.Count - 1; j >= 0; j--)
 				{
 					if (path[i] == visited[j])
 					{
@@ -632,7 +622,7 @@ namespace Examples
 
 			//concatenate paths
 			//adjust beginning of the buffer to include the visited
-			int req = nvisited - furthestVisited;
+			int req = visited.Count - furthestVisited;
 			int orig = Math.Min(furthestPath + 1, npath);
 			int size = Math.Max(0, npath - orig);
 			if (req + size > maxPath)
@@ -642,7 +632,7 @@ namespace Examples
 
 			//store visited
 			for (int i = 0; i < req; i++)
-				path[i] = visited[(nvisited - 1) - i];
+				path[i] = visited[(visited.Count - 1) - i];
 
 			return req + size;
 		}

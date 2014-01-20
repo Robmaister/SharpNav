@@ -651,11 +651,11 @@ namespace Examples
 			Color4 color = Color4.Cyan;
 
 			GL.Begin(BeginMode.Triangles);
-			for (int i = 0; i < pathCount; i++)
+			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
 					color = Color4.Cyan;
-				else if (i == pathCount - 1)
+				else if (i == path.Count - 1)
 					color = Color4.PaleVioletRed;
 				else
 					color = Color4.LightYellow;
@@ -689,11 +689,11 @@ namespace Examples
 			//neighbor edges
 			GL.LineWidth(1.5f);
 			GL.Begin(BeginMode.Lines);
-			for (int i = 0; i < pathCount; i++)
+			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
 					color = Color4.Blue;
-				else if (i == pathCount - 1)
+				else if (i == path.Count - 1)
 					color = Color4.Red;
 				else
 					color = Color4.Yellow;
@@ -721,7 +721,7 @@ namespace Examples
 			//steering path
 			GL.Color4(Color4.Black);
 			GL.Begin(BeginMode.Lines);
-			for (int i = 0; i < smoothPathCount - 1; i++)
+			for (int i = 0; i < smoothPath.Count - 1; i++)
 			{
 				SVector3 v0 = smoothPath[i];
 				GL.Vertex3(v0.X, v0.Y, v0.Z);

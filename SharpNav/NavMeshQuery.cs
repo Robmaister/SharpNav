@@ -323,14 +323,14 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
-		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, int[] path, ref int pathCount, int maxPath)
+		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, List<int> path)
 		{
-			pathCount = 0;
+			path.Clear();
 
 			if (startRef == 0 || endRef == 0)
 				return false;
 
-			if (maxPath == 0)
+			if (path.Capacity == 0)
 				return false;
 
 			//validate input
@@ -339,8 +339,7 @@ namespace SharpNav
 
 			if (startRef == endRef)
 			{
-				path[0] = startRef;
-				pathCount = 1;
+				path.Add(startRef);
 				return true;
 			}
 
@@ -484,18 +483,15 @@ namespace SharpNav
 			
 			//store path
 			node = prev;
-			int n = 0;
 			do
 			{
-				path[n++] = node.id;
-				if (n >= maxPath)
+				path.Add(node.id);
+				if (path.Count >= path.Capacity)
 					break;
 
 				node = m_nodePool.GetNodeAtIdx(node.pidx);
 			}
 			while (node != null);
-
-			pathCount = n;
 
 			return true;
 		}
@@ -720,14 +716,14 @@ namespace SharpNav
 		/// If movement distance is too large, the result will form an incomplete path.
 		/// </summary>
 		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, 
-			ref Vector3 resultPos, int[] visited, ref int visitedCount, int maxVisitedSize)
+			ref Vector3 resultPos, List<int> visited)
 		{
 			if (m_nav == null)
 				return false;
 			if (m_tinyNodePool == null)
 				return false;
 
-			visitedCount = 0;
+			visited.Clear();
 
 			//validate input
 			if (startRef == 0)
@@ -736,8 +732,7 @@ namespace SharpNav
 				return false;
 
 			int MAX_STACK = 48;
-			Node[] stack = new Node[MAX_STACK];
-			int nstack = 0;
+			Queue<Node> nodeQueue = new Queue<Node>(MAX_STACK);
 
 			m_tinyNodePool.Clear();
 
@@ -747,7 +742,7 @@ namespace SharpNav
 			startNode.total = 0;
 			startNode.id = startRef;
 			startNode.flags = NodeFlags.Closed;
-			stack[nstack++] = startNode;
+			nodeQueue.Enqueue(startNode);
 
 			Vector3 bestPos = startPos;
 			float bestDist = float.MaxValue;
@@ -760,13 +755,10 @@ namespace SharpNav
 
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			
-			while (nstack > 0)
+			while (nodeQueue.Count > 0)
 			{
 				//pop front
-				Node curNode = stack[0];
-				for (int i = 0; i < nstack - 1; i++)
-					stack[i] = stack[i + 1];
-				nstack--;
+				Node curNode = nodeQueue.Dequeue();
 
 				//get poly and tile
 				int curRef = curNode.id;
@@ -859,11 +851,11 @@ namespace SharpNav
 								continue;
 
 							//mark the node as visited and push to queue
-							if (nstack < MAX_STACK)
+							if (nodeQueue.Count < MAX_STACK)
 							{
 								neighbourNode.pidx = m_tinyNodePool.GetNodeIdx(curNode);
 								neighbourNode.flags |= NodeFlags.Closed;
-								stack[nstack++] = neighbourNode;
+								nodeQueue.Enqueue(neighbourNode);
 							}
 						}
 					}
@@ -871,7 +863,6 @@ namespace SharpNav
 			}
 
 			//reverse the path
-			int n = 0;
 			if (bestNode != null)
 			{
 				Node prev = null;
@@ -888,8 +879,8 @@ namespace SharpNav
 				node = prev;
 				do
 				{
-					visited[n++] = node.id;
-					if (n >= maxVisitedSize)
+					visited.Add(node.id);
+					if (visited.Count >= visited.Capacity)
 						break;
 
 					node = m_tinyNodePool.GetNodeAtIdx(node.pidx);
@@ -898,7 +889,6 @@ namespace SharpNav
 			}
 
 			resultPos = bestPos;
-			visitedCount = n;
 			
 			return true;
 		}
