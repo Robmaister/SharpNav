@@ -407,12 +407,12 @@ namespace Examples
 
 			if (hasGenerated)
 			{
+				GeneratePathfinding();
+
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 
 				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
-
-				GeneratePathfinding();
 			}
 		}
 

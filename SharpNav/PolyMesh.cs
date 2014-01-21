@@ -88,7 +88,7 @@ namespace SharpNav
 
 			this.numVertsPerPoly = numVertsPerPoly;
 
-			Dictionary<Vector3, int> vertDict = new Dictionary<Vector3, int>(new Vector3YRadiusEqualityComparer());
+			Dictionary<Vector3, int> vertDict = new Dictionary<Vector3, int>(new Vector3Extensions.RoughYEqualityComparer(2));
 
 			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
 			Triangle[] tris = new Triangle[maxVertsPerCont];
@@ -1091,23 +1091,6 @@ namespace SharpNav
 				Vert1 = vert1;
 				Region = region;
 				Area = area;
-			}
-		}
-
-		private class Vector3YRadiusEqualityComparer : IEqualityComparer<Vector3>
-		{
-			private const int hashConstX = unchecked((int)0x8da6b343);
-			private const int hashConstY = unchecked((int)0xd8163841);
-			private const int hashConstZ = unchecked((int)0xcb1ab31f);
-
-			public bool Equals(Vector3 left, Vector3 right)
-			{
-				return left.X == right.X && (Math.Abs(left.Y - right.Y) <= 2) && left.Z == right.Z;
-			}
-
-			public int GetHashCode(Vector3 obj)
-			{
-				return (hashConstX * (int)obj.X + hashConstZ * (int)obj.Z);
 			}
 		}
 	}

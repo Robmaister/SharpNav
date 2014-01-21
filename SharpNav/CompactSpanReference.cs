@@ -102,7 +102,7 @@ namespace SharpNav
 		{
 			CompactSpanReference? r = obj as CompactSpanReference?;
 			if (r.HasValue)
-				return (this == r.Value);
+				return this == r.Value;
 			return false;
 		}
 

@@ -35,8 +35,6 @@ namespace SharpNav
 		public const int EXT_LINK = 0x8000; //entity links to external entity
 		public const int NULL_LINK = unchecked((int)0xffffffff); //doesn't link to anything
 
-		public const int MAX_AREAS = 64; //max number of user defined area ids
-
 		public const int STRAIGHTPATH_START = 0x01; //vertex is in start position of path
 		public const int STRAIGHTPATH_END = 0x02; //vertex is in end position of path
 		public const int STRAIGHTPATH_OFFMESH_CONNECTION = 0x04; //vertex is at start of an off-mesh connection
@@ -55,7 +53,7 @@ namespace SharpNav
 			return overlap;
 		}
 
-		public static bool PointInPoly (Vector3 pt, Vector3[] verts, int nverts)
+		public static bool PointInPoly(Vector3 pt, Vector3[] verts, int nverts)
 		{
 			bool c = false;
 

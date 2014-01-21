@@ -45,7 +45,7 @@ namespace SharpNav
 		public Vector3[] offMeshConVerts; //(endpoint A, endpoint B)
 		public float[] offMeshConRadii;
 		public int[] offMeshConFlags;
-		public int[] offMeshConAreas;
+		public AreaId[] offMeshConAreas;
 		public int[] offMeshConDir; //0 = travel only in one direction, 1 = bidirectional
 		public uint[] offMeshConUserID;
 		public int offMeshConCount;

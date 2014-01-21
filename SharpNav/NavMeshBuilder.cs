@@ -252,7 +252,7 @@ namespace SharpNav
 				navPolys[i] = new Poly();
 				navPolys[i].vertCount = 0;
 				navPolys[i].flags = parameters.polys[i].Flags;
-				navPolys[i].Area = (int)parameters.polys[i].Area;
+				navPolys[i].Area = parameters.polys[i].Area;
 				navPolys[i].PolyType = PolygonType.Ground;
 				navPolys[i].verts = new int[nvp];
 				navPolys[i].neis = new int[nvp];

@@ -23,23 +23,20 @@ namespace SharpNav
 {
 	public class TiledNavMesh
 	{
-		private TiledNavMeshParams m_params;
-		private Vector3 m_origin;
-		private float m_tileWidth, m_tileHeight;
-		private int m_maxTiles;
-		private int m_tileLutSize; //tile hash lookup size
-		private int m_tileLutMask; //tile hash lookup mask
+		private TiledNavMeshParams parameters;
+		private Vector3 origin;
+		private float tileWidth, tileHeight;
+		private int maxTiles;
+		private int tileLookupTableSize; //tile hash lookup size
+		private int tileLookupTableMask; //tile hash lookup mask
 
-		private MeshTile[] m_posLookup; //tile hash lookup
-		private MeshTile m_nextFree; //freelist of tiles
-		private MeshTile[] m_tiles; //list of tiles
+		private MeshTile[] posLookup; //tile hash lookup
+		private MeshTile nextFree; //freelist of tiles
+		private MeshTile[] tiles; //list of tiles
 
-		private int m_saltBits; //number of salt bits in ID
-		private int m_tileBits; //number of tile bits in ID
-		private int m_polyBits; //number of poly bits in ID
-
-		public int GetMaxTiles() { return m_maxTiles; }
-		public MeshTile GetTile(int i) { return m_tiles[i]; }
+		private int saltBits; //number of salt bits in ID
+		private int tileBits; //number of tile bits in ID
+		private int polyBits; //number of poly bits in ID
 
 		public int GetReference(int polyBase, int poly)
 		{
@@ -77,43 +74,53 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
+		public MeshTile this[int index]
+		{
+			get
+			{
+				return tiles[index];
+			}
+		}
+
+		public int TileCount { get { return maxTiles; } }
+
 		public bool InitTileNavMesh(TiledNavMeshParams parameters)
 		{
-			m_params = parameters;
-			m_origin = parameters.origin;
-			m_tileWidth = parameters.tileWidth;
-			m_tileHeight = parameters.tileHeight;
+			this.parameters = parameters;
+			origin = parameters.origin;
+			tileWidth = parameters.tileWidth;
+			tileHeight = parameters.tileHeight;
 
 			//init tiles
-			m_maxTiles = parameters.maxTiles;
-			m_tileLutSize = MathHelper.NextPowerOfTwo(parameters.maxTiles / 4);
-			if (m_tileLutSize == 0)
-				m_tileLutSize = 1;
-			m_tileLutMask = m_tileLutSize - 1;
+			maxTiles = parameters.maxTiles;
+			tileLookupTableSize = MathHelper.NextPowerOfTwo(parameters.maxTiles / 4);
+			if (tileLookupTableSize == 0)
+				tileLookupTableSize = 1;
+			tileLookupTableMask = tileLookupTableSize - 1;
 
-			m_tiles = new MeshTile[m_maxTiles];
-			m_posLookup = new MeshTile[m_tileLutSize];
-			for (int i = 0; i < m_tiles.Length; i++)
-				m_tiles[i] = new MeshTile();
-			for (int i = 0; i < m_posLookup.Length; i++)
-				m_posLookup[i] = null;
+			tiles = new MeshTile[maxTiles];
+			posLookup = new MeshTile[tileLookupTableSize];
+			for (int i = 0; i < tiles.Length; i++)
+				tiles[i] = new MeshTile();
+			for (int i = 0; i < posLookup.Length; i++)
+				posLookup[i] = null;
 
 			//create a linked list of tiles
-			m_nextFree = null;
-			for (int i = m_maxTiles - 1; i >= 0; i--)
+			nextFree = null;
+			for (int i = maxTiles - 1; i >= 0; i--)
 			{
-				m_tiles[i].salt = 1;
-				m_tiles[i].next = m_nextFree;
-				m_nextFree = m_tiles[i];
+				tiles[i].salt = 1;
+				tiles[i].next = nextFree;
+				nextFree = tiles[i];
 			}
 			
 			//init ID generator values
-			m_tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxTiles));
-			m_polyBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxPolys));
+			tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxTiles));
+			polyBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxPolys));
 
 			//only allow 31 salt bits, since salt mask is calculated using 32-bit int and it will overflow
-			m_saltBits = Math.Min(31, 32 - m_tileBits - m_polyBits);
-			if (m_saltBits < 10)
+			saltBits = Math.Min(31, 32 - tileBits - polyBits);
+			if (saltBits < 10)
 				return false;
 
 			return true;
@@ -136,10 +143,10 @@ namespace SharpNav
 			MeshTile tile = null;
 			if (lastRef == 0)
 			{
-				if (m_nextFree != null)
+				if (nextFree != null)
 				{
-					tile = m_nextFree;
-					m_nextFree = tile.next;
+					tile = nextFree;
+					nextFree = tile.next;
 					tile.next = null;
 				}
 			}
@@ -147,13 +154,13 @@ namespace SharpNav
 			{
 				//try to relocate tile to specific index with the same salt
 				int tileIndex = DecodePolyIdTile(lastRef);
-				if (tileIndex >= m_maxTiles)
+				if (tileIndex >= maxTiles)
 					return;
 
 				//try to find specific tile id from free list
-				MeshTile target = m_tiles[tileIndex];
+				MeshTile target = tiles[tileIndex];
 				MeshTile prev = null;
-				tile = m_nextFree;
+				tile = nextFree;
 				while (tile != null && tile != target)
 				{
 					prev = tile;
@@ -166,7 +173,7 @@ namespace SharpNav
 
 				//remove from freelist
 				if (prev == null)
-					m_nextFree = tile.next;
+					nextFree = tile.next;
 				else
 					prev.next = tile.next;
 
@@ -179,9 +186,9 @@ namespace SharpNav
 				return;
 
 			//insert tile into position LookUp Table (lut)
-			int h = ComputeTileHash(header.x, header.y, m_tileLutMask);
-			tile.next = m_posLookup[h];
-			m_posLookup[h] = tile;
+			int h = ComputeTileHash(header.x, header.y, tileLookupTableMask);
+			tile.next = posLookup[h];
+			posLookup[h] = tile;
 
 			if (header.bvNodeCount == 0)
 				tile.bvTree = null;
@@ -276,7 +283,7 @@ namespace SharpNav
 					int idx = AllocLink(tile);
 					if (idx != PathfinderCommon.NULL_LINK)
 					{
-						tile.links[idx].reference = GetReference(polyBase, (tile.polys[i].neis[j] - 1)); 
+						tile.links[idx].reference = GetReference(polyBase, tile.polys[i].neis[j] - 1);
 						tile.links[idx].edge = j;
 						tile.links[idx].side = 0xff;
 						tile.links[idx].bmin = tile.links[idx].bmax = 0;
@@ -788,9 +795,9 @@ namespace SharpNav
 				return 0;
 
 			int it = 0;
-			for (int i = 0; i < m_tiles.Length; i++)
+			for (int i = 0; i < tiles.Length; i++)
 			{
-				if (m_tiles[i] == tile)
+				if (tiles[i] == tile)
 				{
 					it = i;
 					break;
@@ -803,8 +810,8 @@ namespace SharpNav
 		public MeshTile GetTileAt(int x, int y, int layer)
 		{
 			//find tile based off hash
-			int h = ComputeTileHash(x, y, m_tileLutMask);
-			MeshTile tile = m_posLookup[h];
+			int h = ComputeTileHash(x, y, tileLookupTableMask);
+			MeshTile tile = posLookup[h];
 			
 			while (tile != null)
 			{
@@ -822,8 +829,8 @@ namespace SharpNav
 			int n = 0;
 
 			//find tile based on hash
-			int h = ComputeTileHash(x, y, m_tileLutMask);
-			MeshTile tile = m_posLookup[h];
+			int h = ComputeTileHash(x, y, tileLookupTableMask);
+			MeshTile tile = posLookup[h];
 			
 			while (tile != null)
 			{
@@ -899,9 +906,9 @@ namespace SharpNav
 				return 0;
 
 			int it = 0;
-			for (int i = 0; i < m_tiles.Length; i++)
+			for (int i = 0; i < tiles.Length; i++)
 			{
-				if (m_tiles[i] == tile)
+				if (tiles[i] == tile)
 				{
 					it = i;
 					break;
@@ -919,17 +926,17 @@ namespace SharpNav
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
 			
-			if (indexTile >= m_maxTiles)
+			if (indexTile >= maxTiles)
 				return false;
 
-			if (m_tiles[indexTile].salt != salt || m_tiles[indexTile].header == null)
+			if (tiles[indexTile].salt != salt || tiles[indexTile].header == null)
 				return false;
 
-			if (indexPoly >= m_tiles[indexTile].header.polyCount)
+			if (indexPoly >= tiles[indexTile].header.polyCount)
 				return false;
 
-			tile = m_tiles[indexTile];
-			poly = m_tiles[indexTile].polys[indexPoly];
+			tile = tiles[indexTile];
+			poly = tiles[indexTile].polys[indexPoly];
 			return true;
 		}
 
@@ -940,8 +947,8 @@ namespace SharpNav
 		{
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
-			tile = m_tiles[indexTile];
-			poly = m_tiles[indexTile].polys[indexPoly];
+			tile = tiles[indexTile];
+			poly = tiles[indexTile].polys[indexPoly];
 		}
 
 		public bool IsValidPolyRef(int reference)
@@ -952,13 +959,13 @@ namespace SharpNav
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
 
-			if (indexTile >= m_maxTiles)
+			if (indexTile >= maxTiles)
 				return false;
 
-			if (m_tiles[indexTile].salt != salt || m_tiles[indexTile].header == null)
+			if (tiles[indexTile].salt != salt || tiles[indexTile].header == null)
 				return false;
 
-			if (indexPoly >= m_tiles[indexTile].header.polyCount)
+			if (indexPoly >= tiles[indexTile].header.polyCount)
 				return false;
 
 			return true;
@@ -967,39 +974,39 @@ namespace SharpNav
 		//decode a standard polygon reference
 		public void DecodePolyId(int reference, ref int salt, ref int indexTile, ref int indexPoly)
 		{
-			int saltMask = (1 << m_saltBits) - 1;
-			int tileMask = (1 << m_tileBits) - 1;
-			int polyMask = (1 << m_polyBits) - 1;
-			salt = (reference >> (m_polyBits + m_tileBits)) & saltMask;
-			indexTile = (reference >> m_polyBits) & tileMask;
+			int saltMask = (1 << saltBits) - 1;
+			int tileMask = (1 << tileBits) - 1;
+			int polyMask = (1 << polyBits) - 1;
+			salt = (reference >> (polyBits + tileBits)) & saltMask;
+			indexTile = (reference >> polyBits) & tileMask;
 			indexPoly = reference & polyMask;
 		}
 
 		//extract a tile's salt value from the specified polygon reference
 		public int DecodePolyIdSalt(int reference)
 		{
-			int saltMask = (1 << m_saltBits) - 1;
-			return ((reference >> (m_polyBits + m_tileBits)) & saltMask);
+			int saltMask = (1 << saltBits) - 1;
+			return (reference >> (polyBits + tileBits)) & saltMask;
 		}
 
 		//extract a tile's index from the specified polygon reference
 		public int DecodePolyIdTile(int reference)
 		{
-			int tileMask = (1 << m_tileBits) - 1;
-			return ((reference >> m_polyBits) & tileMask);
+			int tileMask = (1 << tileBits) - 1;
+			return (reference >> polyBits) & tileMask;
 		}
 
 		//extract a polygon's index (within its tile) from the specified polygon reference
 		public int DecodePolyIdPoly(int reference)
 		{
-			int polyMask = (1 << m_polyBits) - 1;
-			return (reference & polyMask);
+			int polyMask = (1 << polyBits) - 1;
+			return reference & polyMask;
 		}
 
 		//derive a standard polygon reference
 		public int EncodePolyId(int salt, int indexTile, int indexPoly)
 		{
-			return (salt << (int)(m_polyBits + m_tileBits)) | (indexTile << (int)m_polyBits) | indexPoly;
+			return (salt << (int)(polyBits + tileBits)) | (indexTile << (int)polyBits) | indexPoly;
 		}
 	}
 }

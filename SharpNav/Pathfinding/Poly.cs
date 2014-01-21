@@ -16,34 +16,11 @@ namespace SharpNav.Pathfinding
 		public int[] neis; //packed data representing neighbor polygons references and flags for each edge
 		public int flags; //user defined polygon flags
 		public int vertCount;
-		private byte areaAndType; //bit packed area ID and polygon type.
+		private AreaId area;
+		private PolygonType polyType;
 
-		private const int PolyTypeMask = 0xc0;
-		private const int AreaMask = 0x3f;
+		public AreaId Area { get { return area; } set { area = value; } }
 
-		public int Area
-		{
-			get
-			{
-				return areaAndType & AreaMask;
-			}
-
-			set
-			{
-				areaAndType = (byte)((areaAndType & PolyTypeMask) | ((value % PathfinderCommon.MAX_AREAS) & AreaMask));
-			}
-		}
-
-		public PolygonType PolyType
-		{
-			get
-			{
-				return (PolygonType)(areaAndType >> 6);
-			}
-			set
-			{
-				areaAndType = (byte)((areaAndType & AreaMask) | ((int)value << 6));
-			}
-		}
+		public PolygonType PolyType { get { return polyType; } set { polyType = value; } }
 	}
 }

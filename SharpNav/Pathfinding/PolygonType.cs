@@ -13,7 +13,7 @@ namespace SharpNav.Pathfinding
 	/// Flags representing the type of a navmesh polygon.
 	/// </summary>
 	[Flags]
-	public enum PolygonType
+	public enum PolygonType : byte
 	{
 		/// <summary>A polygon that is part of the navmesh.</summary>
 		Ground = 0,

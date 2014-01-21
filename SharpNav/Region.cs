@@ -108,21 +108,6 @@ namespace SharpNav
 			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
 		}
 
-		public bool IsBorder()
-		{
-			return (id & RegionId.Border) == RegionId.Border;
-		}
-
-		public bool IsNull()
-		{
-			return id == RegionId.Null;
-		}
-
-		public bool IsBorderOrNull()
-		{
-			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
-		}
-
 		public static void SetBorderVertex(ref RegionId region)
 		{
 			region |= RegionId.VertexBorder;
@@ -151,6 +136,21 @@ namespace SharpNav
 		public static bool IsSameRegion(RegionId region1, RegionId region2)
 		{
 			return ((int)region1 & IdMask) == ((int)region2 & IdMask);
+		}
+
+		public bool IsBorder()
+		{
+			return (id & RegionId.Border) == RegionId.Border;
+		}
+
+		public bool IsNull()
+		{
+			return id == RegionId.Null;
+		}
+
+		public bool IsBorderOrNull()
+		{
+			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
 		}
 
 		/// <summary>

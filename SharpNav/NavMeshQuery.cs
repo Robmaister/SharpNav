@@ -29,33 +29,33 @@ namespace SharpNav
 	{
 		private const float H_SCALE = 0.999f;
 
-		private TiledNavMesh m_nav;
-		private float[] m_areaCost; 
-		private NodePool m_tinyNodePool;
-		private NodePool m_nodePool;
-		private PriorityQueue<Node> m_openList;
+		private TiledNavMesh nav;
+		private float[] areaCost; 
+		private NodePool tinyNodePool;
+		private NodePool nodePool;
+		private PriorityQueue<Node> openList;
 
 		public NavMeshQuery(TiledNavMesh nav, int maxNodes)
 		{
-			m_nav = nav;
+			this.nav = nav;
 
-			m_areaCost = new float[PathfinderCommon.MAX_AREAS];
-			for (int i = 0; i < PathfinderCommon.MAX_AREAS; i++)
-				m_areaCost[i] = 1.0f;
+			areaCost = new float[byte.MaxValue + 1];
+			for (int i = 0; i < areaCost.Length; i++)
+				areaCost[i] = 1.0f;
 
-			m_nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
-			m_tinyNodePool = new NodePool(64, 32);
-			m_openList = new PriorityQueue<Node>(maxNodes);
+			nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
+			tinyNodePool = new NodePool(64, 32);
+			openList = new PriorityQueue<Node>(maxNodes);
 		}
 
 		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
 		{
-			return (pa - pb).Length() * m_areaCost[curPoly.Area];
+			return (pa - pb).Length() * areaCost[(int)curPoly.Area];
 		}
 
 		public bool FindRandomPoint(ref int randomRef, ref Vector3 randomPt)
 		{
-			if (m_nav == null)
+			if (nav == null)
 				return false;
 
 			Random randObj = new Random();
@@ -65,9 +65,9 @@ namespace SharpNav
 			MeshTile tile = null;
 			float tsum = 0.0f;
 			
-			for (int i = 0; i < m_nav.GetMaxTiles(); i++)
+			for (int i = 0; i < nav.TileCount; i++)
 			{
-				MeshTile t = m_nav.GetTile(i);
+				MeshTile t = nav[i];
 				
 				if (t == null || t.header == null)
 					continue;
@@ -86,7 +86,7 @@ namespace SharpNav
 			//randomly pick one polygon weighted by polygon area
 			Poly poly = null;
 			int polyRef = 0;
-			int polyBase = m_nav.GetPolyRefBase(tile);
+			int polyBase = nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
 			for (int i = 0; i < tile.header.polyCount; i++)
@@ -149,35 +149,35 @@ namespace SharpNav
 
 		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref int randomRef, ref Vector3 randomPt)
 		{
-			if (m_nav == null)
+			if (nav == null)
 				return false;
 
-			if (m_nodePool == null)
+			if (nodePool == null)
 				return false;
 
-			if (m_openList == null)
+			if (openList == null)
 				return false;
 
 			//validate input
-			if (startRef == 0 || !m_nav.IsValidPolyRef(startRef))
+			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
 				return false;
 
 			Random randObj = new Random();
 			MeshTile startTile = null;
 			Poly startPoly = null;
-			m_nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
+			nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
 
-			m_nodePool.Clear();
-			m_openList.Clear();
+			nodePool.Clear();
+			openList.Clear();
 
-			Node startNode = m_nodePool.GetNode(startRef);
+			Node startNode = nodePool.GetNode(startRef);
 			startNode.pos = centerPos;
 			startNode.pidx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
 			startNode.id = startRef;
 			startNode.flags = NodeFlags.Open;
-			m_openList.Push(startNode);
+			openList.Push(startNode);
 
 			float radiusSqr = radius * radius;
 			float areaSum = 0.0f;
@@ -186,16 +186,16 @@ namespace SharpNav
 			Poly randomPoly = null;
 			int randomPolyRef = 0;
 
-			while (m_openList.Count > 0)
+			while (openList.Count > 0)
 			{
-				Node bestNode = m_openList.Pop();
+				Node bestNode = openList.Pop();
 				SetNodeFlagClosed(ref bestNode);
 
 				//get poly and tile
 				int bestRef = bestNode.id;
 				MeshTile bestTile = null;
 				Poly bestPoly = null;
-				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
+				nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
 
 				//place random locations on ground
 				if (bestPoly.PolyType == PolygonType.Ground)
@@ -225,9 +225,9 @@ namespace SharpNav
 				MeshTile parentTile = null;
 				Poly parentPoly = null;
 				if (bestNode.pidx != 0)
-					parentRef = m_nodePool.GetNodeAtIdx(bestNode.pidx).id;
+					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
 				if (parentRef != 0)
-					m_nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
+					nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
 
 				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
@@ -240,7 +240,7 @@ namespace SharpNav
 					//expand to neighbour
 					MeshTile neighbourTile = null;
 					Poly neighbourPoly = null;
-					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
+					nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
@@ -254,7 +254,7 @@ namespace SharpNav
 					if (distSqr > radiusSqr)
 						continue;
 
-					Node neighbourNode = m_nodePool.GetNode(neighbourRef);
+					Node neighbourNode = nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
 						continue;
 
@@ -273,17 +273,17 @@ namespace SharpNav
 
 					neighbourNode.id = neighbourRef;
 					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
-					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
+					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
 					neighbourNode.total = total;
 
 					if (IsInOpenList(neighbourNode))
 					{
-						m_openList.Modify(neighbourNode);
+						openList.Modify(neighbourNode);
 					}
 					else
 					{
 						neighbourNode.flags = NodeFlags.Open;
-						m_openList.Push(neighbourNode);
+						openList.Push(neighbourNode);
 					}
 				}
 			}
@@ -334,7 +334,7 @@ namespace SharpNav
 				return false;
 
 			//validate input
-			if (!m_nav.IsValidPolyRef(startRef) || !m_nav.IsValidPolyRef(endRef))
+			if (!nav.IsValidPolyRef(startRef) || !nav.IsValidPolyRef(endRef))
 				return false;
 
 			if (startRef == endRef)
@@ -343,25 +343,25 @@ namespace SharpNav
 				return true;
 			}
 
-			m_nodePool.Clear();
-			m_openList.Clear();
+			nodePool.Clear();
+			openList.Clear();
 
-			Node startNode = m_nodePool.GetNode(startRef);
+			Node startNode = nodePool.GetNode(startRef);
 			startNode.pos = startPos;
 			startNode.pidx = 0;
 			startNode.cost = 0;
 			startNode.total = (startPos - endPos).Length() * H_SCALE;
 			startNode.id = startRef;
 			startNode.flags = NodeFlags.Open;
-			m_openList.Push(startNode);
+			openList.Push(startNode);
 
 			Node lastBestNode = startNode;
 			float lastBestTotalCost = startNode.total;
 
-			while (m_openList.Count > 0)
+			while (openList.Count > 0)
 			{
 				//remove node from open list and put it in closed list
-				Node bestNode = m_openList.Pop();
+				Node bestNode = openList.Pop();
 				SetNodeFlagClosed(ref bestNode);
 
 				//reached the goal. stop searching
@@ -375,16 +375,16 @@ namespace SharpNav
 				int bestRef = bestNode.id;
 				MeshTile bestTile = null;
 				Poly bestPoly = null;
-				m_nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
+				nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
 
 				//get parent poly and tile
 				int parentRef = 0;
 				MeshTile parentTile = null;
 				Poly parentPoly = null;
 				if (bestNode.pidx != 0)
-					parentRef = m_nodePool.GetNodeAtIdx(bestNode.pidx).id;
+					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
 				if (parentRef != 0)
-					m_nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
+					nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
 
 				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
@@ -397,9 +397,9 @@ namespace SharpNav
 					//get neighbour poly and tile
 					MeshTile neighbourTile = null;
 					Poly neighbourPoly = null;
-					m_nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
+					nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
 
-					Node neighbourNode = m_nodePool.GetNode(neighbourRef);
+					Node neighbourNode = nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
 						continue;
 
@@ -443,7 +443,7 @@ namespace SharpNav
 						continue;
 
 					//add or update the node
-					neighbourNode.pidx = m_nodePool.GetNodeIdx(bestNode);
+					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
 					neighbourNode.id = neighbourRef;
 					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
 					neighbourNode.cost = cost;
@@ -452,13 +452,13 @@ namespace SharpNav
 					if (IsInOpenList(neighbourNode))
 					{
 						//already in open, update node location
-						m_openList.Modify(neighbourNode);
+						openList.Modify(neighbourNode);
 					}
 					else
 					{
 						//put the node in the open list
 						SetNodeFlagOpen(ref neighbourNode);
-						m_openList.Push(neighbourNode);
+						openList.Push(neighbourNode);
 					}
 
 					//update nearest node to target so far
@@ -475,8 +475,8 @@ namespace SharpNav
 			Node node = lastBestNode;
 			do
 			{
-				Node next = m_nodePool.GetNodeAtIdx(node.pidx);
-				node.pidx = m_nodePool.GetNodeIdx(prev);
+				Node next = nodePool.GetNodeAtIdx(node.pidx);
+				node.pidx = nodePool.GetNodeIdx(prev);
 				prev = node;
 				node = next;
 			} while (node != null);
@@ -489,7 +489,7 @@ namespace SharpNav
 				if (path.Count >= path.Capacity)
 					break;
 
-				node = m_nodePool.GetNodeAtIdx(node.pidx);
+				node = nodePool.GetNodeAtIdx(node.pidx);
 			}
 			while (node != null);
 
@@ -718,9 +718,9 @@ namespace SharpNav
 		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, 
 			ref Vector3 resultPos, List<int> visited)
 		{
-			if (m_nav == null)
+			if (nav == null)
 				return false;
-			if (m_tinyNodePool == null)
+			if (tinyNodePool == null)
 				return false;
 
 			visited.Clear();
@@ -728,15 +728,15 @@ namespace SharpNav
 			//validate input
 			if (startRef == 0)
 				return false;
-			if (!m_nav.IsValidPolyRef(startRef))
+			if (!nav.IsValidPolyRef(startRef))
 				return false;
 
 			int MAX_STACK = 48;
 			Queue<Node> nodeQueue = new Queue<Node>(MAX_STACK);
 
-			m_tinyNodePool.Clear();
+			tinyNodePool.Clear();
 
-			Node startNode = m_tinyNodePool.GetNode(startRef);
+			Node startNode = tinyNodePool.GetNode(startRef);
 			startNode.pidx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
@@ -764,7 +764,7 @@ namespace SharpNav
 				int curRef = curNode.id;
 				MeshTile curTile = null;
 				Poly curPoly = null;
-				m_nav.GetTileAndPolyByRefUnsafe(curRef, ref curTile, ref curPoly);
+				nav.GetTileAndPolyByRefUnsafe(curRef, ref curTile, ref curPoly);
 
 				//collect vertices
 				int nverts = curPoly.vertCount;
@@ -799,7 +799,7 @@ namespace SharpNav
 								{
 									MeshTile neiTile = null;
 									Poly neiPoly = null;
-									m_nav.GetTileAndPolyByRefUnsafe(link.reference, ref neiTile, ref neiPoly);
+									nav.GetTileAndPolyByRefUnsafe(link.reference, ref neiTile, ref neiPoly);
 									
 									if (nneis < MAX_NEIS)
 										neis[nneis++] = link.reference;
@@ -810,7 +810,7 @@ namespace SharpNav
 					else if (curPoly.neis[j] != 0)
 					{
 						int idx = curPoly.neis[j] - 1;
-						int reference = m_nav.GetPolyRefBase(curTile) | idx;
+						int reference = nav.GetPolyRefBase(curTile) | idx;
 						neis[nneis++] = reference; //internal edge, encode id
 					}
 
@@ -834,7 +834,7 @@ namespace SharpNav
 						for (int k = 0; k < nneis; k++)
 						{
 							//skip if no node can be allocated
-							Node neighbourNode = m_tinyNodePool.GetNode(neis[k]);
+							Node neighbourNode = tinyNodePool.GetNode(neis[k]);
 							if (neighbourNode == null)
 								continue;
 							
@@ -853,7 +853,7 @@ namespace SharpNav
 							//mark the node as visited and push to queue
 							if (nodeQueue.Count < MAX_STACK)
 							{
-								neighbourNode.pidx = m_tinyNodePool.GetNodeIdx(curNode);
+								neighbourNode.pidx = tinyNodePool.GetNodeIdx(curNode);
 								neighbourNode.flags |= NodeFlags.Closed;
 								nodeQueue.Enqueue(neighbourNode);
 							}
@@ -869,8 +869,8 @@ namespace SharpNav
 				Node node = bestNode;
 				do
 				{
-					Node next = m_tinyNodePool.GetNodeAtIdx(node.pidx);
-					node.pidx = m_tinyNodePool.GetNodeIdx(prev);
+					Node next = tinyNodePool.GetNodeAtIdx(node.pidx);
+					node.pidx = tinyNodePool.GetNodeIdx(prev);
 					prev = node;
 					node = next;
 				} while (node != null);
@@ -883,7 +883,7 @@ namespace SharpNav
 					if (visited.Count >= visited.Capacity)
 						break;
 
-					node = m_tinyNodePool.GetNodeAtIdx(node.pidx);
+					node = tinyNodePool.GetNodeAtIdx(node.pidx);
 				}
 				while (node != null);
 			}
@@ -914,13 +914,13 @@ namespace SharpNav
 		{
 			MeshTile fromTile = null;
 			Poly fromPoly = null;
-			if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+			if (nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
 				return false;
 			fromType = fromPoly.PolyType;
 
 			MeshTile toTile = null;
 			Poly toPoly = null;
-			if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+			if (nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
 				return false;
 			toType = toPoly.PolyType;
 
@@ -1003,13 +1003,13 @@ namespace SharpNav
 
 		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest)
 		{
-			if (m_nav == null)
+			if (nav == null)
 				return false;
 
 			MeshTile tile = null;
 			Poly poly = null;
 
-			if (m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
 				return false;
 
 			if (tile == null)
@@ -1023,7 +1023,7 @@ namespace SharpNav
 		{
 			MeshTile tile = null;
 			Poly poly = null;
-			if (m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
 				return false;
 
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
@@ -1112,13 +1112,13 @@ namespace SharpNav
 				int from = path[i];
 				MeshTile fromTile = null;
 				Poly fromPoly = null;
-				if (m_nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+				if (nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
 					return false;
 
 				int to = path[i + 1];
 				MeshTile toTile = null;
 				Poly toPoly = null;
-				if (m_nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+				if (nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
 					return false;
 
 				Vector3 left = new Vector3();
@@ -1155,12 +1155,12 @@ namespace SharpNav
 		/// </summary>
 		public bool GetPolyHeight(int reference, Vector3 pos, ref float height)
 		{
-			if (m_nav == null)
+			if (nav == null)
 				return false;
 
 			MeshTile tile = null;
 			Poly poly = null;
-			if (!m_nav.GetTileAndPolyByRef(reference, ref tile, ref poly))
+			if (!nav.GetTileAndPolyByRef(reference, ref tile, ref poly))
 				return false;
 
 			//off-mesh connections don't have detail polygons
