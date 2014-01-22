@@ -106,7 +106,7 @@ namespace SharpNav
 					indices[i] = i;
 
 				//Form triangles inside the area bounded by the contours
-				int ntris = Triangulate(cont.Vertices, indices, cont.Vertices.Length, tris);
+				int ntris = Triangulate(cont.Vertices, indices, tris);
 				if (ntris <= 0) //TODO notify user when this happens. Logging?
 					ntris = -ntris;
 
@@ -272,16 +272,17 @@ namespace SharpNav
 		/// <param name="n">The number of vertices</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns></returns>
-		private static int Triangulate(ContourVertex[] verts, int[] indices, int n, Triangle[] tris)
+		private static int Triangulate(ContourVertex[] verts, int[] indices, Triangle[] tris)
 		{
 			int ntris = 0;
+			int n = verts.Length;
 
 			//last bit of index determines whether vertex can be removed
 			for (int i = 0; i < n; i++)
 			{
 				int i1 = Next(i, n);
 				int i2 = Next(i1, n);
-				if (Diagonal(i, i2, n, verts, indices))
+				if (Diagonal(i, i2, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[i1]);
 				}
@@ -293,7 +294,7 @@ namespace SharpNav
 				//find the minimum distance betwee two vertices. 
 				//also, save their index
 				int minLen = -1;
-				int mini = -1;
+				int minIndex = -1;
 				for (int i = 0; i < n; i++)
 				{
 					int i1 = Next(i, n);
@@ -310,17 +311,17 @@ namespace SharpNav
 						if (minLen < 0 || len < minLen)
 						{
 							minLen = len;
-							mini = i;
+							minIndex = i;
 						}
 					}
 				}
 
-				if (mini == -1)
+				if (minIndex == -1)
 				{
 					return -ntris;
 				}
 
-				int mi = mini;
+				int mi = minIndex;
 				int mi1 = Next(mi, n);
 				int mi2 = Next(mi1, n);
 
@@ -339,7 +340,7 @@ namespace SharpNav
 				mi = Prev(mi1, n);
 
 				//update diagonal flags
-				if (Diagonal(Prev(mi, n), mi1, n, verts, indices))
+				if (Diagonal(Prev(mi, n), mi1, verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi]);
 				}
@@ -348,7 +349,7 @@ namespace SharpNav
 					RemoveDiagonalFlag(ref indices[mi]);
 				}
 
-				if (Diagonal(mi, Next(mi1, n), n, verts, indices))
+				if (Diagonal(mi, Next(mi1, n), verts, indices))
 				{
 					SetDiagonalFlag(ref indices[mi1]);
 				}
@@ -616,9 +617,8 @@ namespace SharpNav
 			for (int i = 0; i < polys.Count; i++)
 			{
 				Polygon p = polys[i];
-				int nv = p.VertexCount;
 
-				for (int j = 0; j < nv; j++)
+				for (int j = 0; j < p.VertexCount; j++)
 				{
 					if (p.Vertices[j] == vertex)
 						numRemovedVerts++;
@@ -657,9 +657,8 @@ namespace SharpNav
 			for (int i = 0; i < polys.Count; i++)
 			{
 				Polygon p = polys[i];
-				int nv = p.VertexCount;
 
-				for (int j = 0; j < nv; j++)
+				for (int j = 0; j < p.VertexCount; j++)
 				{
 					if (p.Vertices[j] > vertex)
 						p.Vertices[j]--;
@@ -733,13 +732,13 @@ namespace SharpNav
 			//generate temp vertex array for triangulation
 			for (int i = 0; i < hole.Count; i++)
 			{
-				int pi = hole[i];
-				tverts[i] = new ContourVertex(verts[pi], 0);
+				int polyIndex = hole[i];
+				tverts[i] = new ContourVertex(verts[polyIndex], 0);
 				thole[i] = i;
 			}
 
 			//triangulate the hole
-			int ntris = Triangulate(tverts, thole, hole.Count, tris);
+			int ntris = Triangulate(tverts, thole, tris);
 			if (ntris < 0)
 				ntris = -ntris;
 
@@ -818,8 +817,7 @@ namespace SharpNav
 			int maxEdgeCount = polys.Count * numVertsPerPoly;
 			int[] firstEdge = new int[vertices.Count + maxEdgeCount];
 			int nextEdge = vertices.Count;
-			int edgeCount = 0;
-			AdjacencyEdge[] edges = new AdjacencyEdge[maxEdgeCount];
+			List<AdjacencyEdge> edges = new List<AdjacencyEdge>(maxEdgeCount);
 
 			for (int i = 0; i < vertices.Count; i++)
 				firstEdge[i] = NullId;
@@ -854,11 +852,10 @@ namespace SharpNav
 						edge.PolyEdge1 = 0;
 
 						//insert edge
-						firstEdge[nextEdge + edgeCount] = firstEdge[v0];
-						firstEdge[v0] = edgeCount;
+						firstEdge[nextEdge + edges.Count] = firstEdge[v0];
+						firstEdge[v0] = edges.Count;
 
-						edges[edgeCount] = edge;
-						edgeCount++;
+						edges.Add(edge);
 					}
 				}
 			}
@@ -895,7 +892,7 @@ namespace SharpNav
 			}
 
 			//store adjacency
-			for (int i = 0; i < edgeCount; i++)
+			for (int i = 0; i < edges.Count; i++)
 			{
 				AdjacencyEdge e = edges[i];
 
@@ -938,21 +935,21 @@ namespace SharpNav
 		/// <summary>
 		/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
 		/// </summary>
-		public static bool Diagonal(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		public static bool Diagonal(int i, int j, ContourVertex[] verts, int[] indices)
 		{
-			return InCone(i, j, n, verts, indices) && Diagonalie(i, j, n, verts, indices);
+			return InCone(i, j, verts, indices) && Diagonalie(i, j, verts, indices);
 		}
 
 		/// <summary>
 		/// true if and only if diagonal (i, j) is strictly internal to polygon 
 		/// in neighborhood of i endpoint
 		/// </summary>
-		public static bool InCone(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		public static bool InCone(int i, int j, ContourVertex[] verts, int[] indices)
 		{
 			int pi = RemoveDiagonalFlag(indices[i]);
 			int pj = RemoveDiagonalFlag(indices[j]);
-			int pi1 = RemoveDiagonalFlag(indices[Next(i, n)]);
-			int pin1 = RemoveDiagonalFlag(indices[Prev(i, n)]);
+			int pi1 = RemoveDiagonalFlag(indices[Next(i, verts.Length)]);
+			int pin1 = RemoveDiagonalFlag(indices[Prev(i, verts.Length)]);
 
 			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
 			if (ContourVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
@@ -966,15 +963,15 @@ namespace SharpNav
 		/// true if and only if (v[i], v[j]) is internal or external diagonal
 		/// ignoring edges incident to v[i] or v[j]
 		/// </summary>
-		public static bool Diagonalie(int i, int j, int n, ContourVertex[] verts, int[] indices)
+		public static bool Diagonalie(int i, int j, ContourVertex[] verts, int[] indices)
 		{
 			int d0 = RemoveDiagonalFlag(indices[i]);
 			int d1 = RemoveDiagonalFlag(indices[j]);
 
 			//for each edge (k, k + 1)
-			for (int k = 0; k < n; k++)
+			for (int k = 0; k < verts.Length; k++)
 			{
-				int k1 = Next(k, n);
+				int k1 = Next(k, verts.Length);
 
 				//skip edges incident to i or j
 				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))

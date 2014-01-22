@@ -191,7 +191,6 @@ namespace SharpNav
 		/// <returns>The number of vertices stored in outVertices.</returns>
 		internal static int ClipPolygonToPlane(Vector3[] inVertices, Vector3[] outVertices, int numVerts, float planeX, float planeZ, float planeD)
 		{
-			
 			for (int i = 0; i < numVerts; i++)
 				distances[i] = planeX * inVertices[i].X + planeZ * inVertices[i].Z + planeD;
 
@@ -224,7 +223,6 @@ namespace SharpNav
 
 		internal static class Distance
 		{
-
 			/// <summary>
 			/// Find the 3D distance between a point (x, y, z) and a segment PQ
 			/// </summary>

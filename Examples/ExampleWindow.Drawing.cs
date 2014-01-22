@@ -617,7 +617,7 @@ namespace Examples
 			GL.Color4(color);
 
 			GL.Begin(BeginMode.Triangles);
-			for (int i = 0; i < polyMeshDetail.NMeshes; i++)
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				PolyMeshDetail.MeshData m = polyMeshDetail.Meshes[i];
 

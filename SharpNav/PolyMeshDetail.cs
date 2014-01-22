@@ -37,13 +37,16 @@ namespace SharpNav
 			-1, 0
 		};
 		
-		private int nmeshes;
-		private int nverts;
-		private int ntris;
-
 		private MeshData[] meshes;
 		private Vector3[] verts;
 		private TriangleData[] tris;
+
+		public int MeshCount { get { return meshes.Length; } }
+		public int VertCount { get { return verts.Length; } }
+		public int TrisCount { get { return tris.Length; } }
+		public MeshData[] Meshes { get { return meshes; } }
+		public Vector3[] Verts { get { return verts; } }
+		public TriangleData[] Tris { get { return tris; } }
 
 		/// <summary>
 		/// Use the CompactHeightfield data to add the height detail to the mesh. 
@@ -51,8 +54,8 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="mesh">Basic mesh</param>
 		/// <param name="openField">Compact heightfield data</param>
-		/// <param name="sampleDist"></param>
-		/// <param name="sampleMaxError"></param>
+		/// <param name="sampleDist">Sampling distance</param>
+		/// <param name="sampleMaxError">Maximum sampling error allowed</param>
 		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
 		{
 			if (mesh.VertCount == 0 || mesh.PolyCount == 0)
@@ -60,11 +63,6 @@ namespace SharpNav
 
 			Vector3 origin = mesh.Bounds.Min;
 
-			List<EdgeInfo> edges = new List<EdgeInfo>(16);
-			List<TriangleData> tris = new List<TriangleData>(128);
-			List<SamplingData> samples = new List<SamplingData>(128);
-			Vector3[] verts = new Vector3[256];
-			int nPolyVerts = 0;
 			int maxhw = 0, maxhh = 0;
 
 			BBox3[] bounds = new BBox3[mesh.PolyCount];
@@ -94,8 +92,6 @@ namespace SharpNav
 					xmax = bounds[i].Max.X = Math.Max(xmax, mesh.Verts[v].X);
 					zmin = bounds[i].Min.Z = Math.Min(zmin, mesh.Verts[v].Z);
 					zmax = bounds[i].Max.Z = Math.Max(zmax, mesh.Verts[v].Z);
-
-					nPolyVerts++;
 				}
 
 				xmin = bounds[i].Min.X = Math.Max(0, xmin - 1);
@@ -112,11 +108,7 @@ namespace SharpNav
 
 			HeightPatch hp = new HeightPatch(0, 0, maxhw, maxhh);
 
-			this.nmeshes = mesh.PolyCount;
-			this.meshes = new MeshData[this.nmeshes];
-
-			this.nverts = 0;
-			this.ntris = 0;
+			this.meshes = new MeshData[mesh.PolyCount];
 
 			for (int i = 0; i < mesh.PolyCount; i++)
 			{
@@ -136,18 +128,23 @@ namespace SharpNav
 
 				//get height data from area of polygon
 				hp.Resize((int)bounds[i].Min.X, (int)bounds[i].Min.Z, (int)(bounds[i].Max.X - bounds[i].Min.X), (int)(bounds[i].Max.Z - bounds[i].Min.Z));
-				GetHeightData(openField, mesh.Polys, i, npoly, mesh.Verts, mesh.BorderSize, hp);
+				GetHeightData(openField, mesh.Polys[i], npoly, mesh.Verts, mesh.BorderSize, hp);
 
-				int nverts = 0;
-				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, 
-					verts, ref nverts, tris, edges, samples);
+				List<Vector3> tempVerts = new List<Vector3>();
+				List<TriangleData> tempTris = new List<TriangleData>(128);
+				List<EdgeInfo> edges = new List<EdgeInfo>(16);
+				List<SamplingData> samples = new List<SamplingData>(128);
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp,
+					tempVerts, tempTris, edges, samples);
 
 				//more detail verts
-				for (int j = 0; j < nverts; j++)
+				for (int j = 0; j < tempVerts.Count; j++)
 				{
-					verts[j].X += origin.X;
-					verts[j].Y += origin.Y + openField.CellHeight;
-					verts[j].Z += origin.Z;
+					Vector3 tempVert = new Vector3();
+					tempVert.X = tempVerts[j].X + origin.X;
+					tempVert.Y = tempVerts[j].Y + origin.Y + openField.CellHeight;
+					tempVert.Z = tempVerts[j].Z + origin.Z;
+					tempVerts[j] = tempVert;
 				}
 
 				for (int j = 0; j < npoly; j++)
@@ -158,50 +155,31 @@ namespace SharpNav
 				}
 
 				//save data
-				int ntris = tris.Count;
-
-				this.meshes[i].VertexIndex = this.nverts;
-				this.meshes[i].VertexCount = nverts;
-				this.meshes[i].TriangleIndex = this.ntris;
-				this.meshes[i].TriangleCount = ntris;
+				this.meshes[i].VertexIndex = storedVertices.Count;
+				this.meshes[i].VertexCount = tempVerts.Count;
+				this.meshes[i].TriangleIndex = storedTriangles.Count;
+				this.meshes[i].TriangleCount = tempTris.Count;
 
 				//store vertices
-				for (int j = 0; j < nverts; j++)
-				{
-					storedVertices.Add(verts[j]);
-					this.nverts++;
-				}
-
+				storedVertices.AddRange(tempVerts);
+				
 				//store triangles
-				for (int j = 0; j < ntris; j++)
+				for (int j = 0; j < tempTris.Count; j++)
 				{
 					int t = j;
 					TriangleData ti;
-					ti.VertexHash0 = tris[t].VertexHash0;
-					ti.VertexHash1 = tris[t].VertexHash1;
-					ti.VertexHash2 = tris[t].VertexHash2;
-					ti.Flags = GetTriFlags(verts, tris[t].VertexHash0, tris[t].VertexHash1, tris[t].VertexHash2, poly, npoly);
+					ti.VertexHash0 = tempTris[t].VertexHash0;
+					ti.VertexHash1 = tempTris[t].VertexHash1;
+					ti.VertexHash2 = tempTris[t].VertexHash2;
+					ti.Flags = GetTriFlags(tempVerts.ToArray(), tempTris[t].VertexHash0, tempTris[t].VertexHash1, tempTris[t].VertexHash2, poly, npoly);
 					
 					storedTriangles.Add(ti);
-					this.ntris++;
 				}
 			}
 
 			this.verts = storedVertices.ToArray();
 			this.tris = storedTriangles.ToArray();
 		}
-
-		public int NMeshes { get { return nmeshes; } }
-
-		public int NVerts { get { return nverts; } }
-
-		public int NTris { get { return ntris; } }
-
-		public MeshData[] Meshes { get { return meshes; } }
-
-		public Vector3[] Verts { get { return verts; } }
-
-		public TriangleData[] Tris { get { return tris; } }
 
 		/// <summary>
 		/// Determine which edges of the triangle are part of the polygon
@@ -259,12 +237,12 @@ namespace SharpNav
 		/// Floodfill heightfield to get 2D height data, starting at vertex locations
 		/// </summary>
 		/// <param name="compactField">Original heightfield data</param>
-		/// <param name="poly">Polygon vertices</param>
-		/// <param name="npoly">Number of polygons</param>
-		/// <param name="verts"></param>
-		/// <param name="borderSize"></param>
-		/// <param name="hp">Heightpatch which extracts heightfield data</param>
-		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon[] poly, int polyStartIndex, int numVertsPerPoly, Vector3[] verts, int borderSize, HeightPatch hp)
+		/// <param name="poly">Polygon in PolyMesh</param>
+		/// <param name="numVertsPerPoly">Number of vertices per polygon</param>
+		/// <param name="verts">PolyMesh Vertices</param>
+		/// <param name="borderSize">Heightfield border size</param>
+		/// <param name="hp">HeightPatch which extracts heightfield data</param>
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int numVertsPerPoly, Vector3[] verts, int borderSize, HeightPatch hp)
 		{
 			var stack = new Stack<CompactSpanReference>();
 
@@ -277,9 +255,9 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					int ax = (int)verts[poly[polyStartIndex].Vertices[j]].X + VertexOffset[k * 2 + 0];
-					int ay = (int)verts[poly[polyStartIndex].Vertices[j]].Y;
-					int az = (int)verts[poly[polyStartIndex].Vertices[j]].Z + VertexOffset[k * 2 + 1];
+					int ax = (int)verts[poly.Vertices[j]].X + VertexOffset[k * 2 + 0];
+					int ay = (int)verts[poly.Vertices[j]].Y;
+					int az = (int)verts[poly.Vertices[j]].Z + VertexOffset[k * 2 + 1];
 
 					//skip if out of bounds
 					if (ax < hp.X || ax >= hp.X + hp.Width ||
@@ -318,8 +296,8 @@ namespace SharpNav
 			int pcx = 0, pcz = 0;
 			for (int j = 0; j < numVertsPerPoly; j++)
 			{
-				pcx += (int)verts[poly[polyStartIndex].Vertices[j]].X;
-				pcz += (int)verts[poly[polyStartIndex].Vertices[j]].Z;
+				pcx += (int)verts[poly.Vertices[j]].X;
+				pcz += (int)verts[poly.Vertices[j]].Z;
 			}
 
 			pcx /= numVertsPerPoly;
@@ -458,29 +436,23 @@ namespace SharpNav
 		/// <param name="openField">CompactHeightfield</param>
 		/// <param name="hp">HeightPatch</param>
 		/// <param name="verts">Detail verts</param>
-		/// <param name="nverts">Numver of detail verts</param>
 		/// <param name="tris">Detail triangles</param>
 		/// <param name="edges">Edges</param>
 		/// <param name="samples">Samples</param>
 		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, 
-			Vector3[] verts, ref int nverts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
+			List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
 			const int MAX_VERTS_PER_EDGE = 32;
 			Vector3[] edge = new Vector3[MAX_VERTS_PER_EDGE + 1];
-			float[] hull = new float[MAX_VERTS];
-			int nhull = 0;
-
-			nverts = 0;
+			List<float> hull = new List<float>(MAX_VERTS);
 
 			//fill up vertex array
 			for (int i = 0; i < numMeshVerts; ++i)
 			{
-				verts[i] = polyMeshVerts[i];
+				verts.Add(polyMeshVerts[i]);
 			}
-
-			nverts = numMeshVerts;
 
 			float cs = openField.CellSize;
 			float ics = 1.0f / cs;
@@ -522,8 +494,8 @@ namespace SharpNav
 					float dz = polyMeshVerts[vi].Z - polyMeshVerts[vj].Z;
 					float d = (float)Math.Sqrt(dx * dx + dz * dz);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
-					if (nverts + nn >= MAX_VERTS)
-						nn = MAX_VERTS - 1 - nverts;
+					if (verts.Count + nn >= MAX_VERTS)
+						nn = MAX_VERTS - 1 - verts.Count;
 
 					for (int k = 0; k <= nn; k++)
 					{
@@ -580,25 +552,23 @@ namespace SharpNav
 						}
 					}
 
-					hull[nhull++] = j;
+					hull.Add(j);
 
 					//add new vertices
 					if (swapped)
 					{
 						for (int k = nidx - 2; k > 0; k--)
 						{
-							verts[nverts] = edge[idx[k]];
-							hull[nhull++] = nverts;
-							nverts++;
+							hull.Add(verts.Count);
+							verts.Add(edge[idx[k]]);
 						}
 					}
 					else
 					{
 						for (int k = 1; k < nidx - 1; k++)
 						{
-							verts[nverts] = edge[idx[k]];
-							hull[nhull++] = nverts;
-							nverts++;
+							hull.Add(verts.Count);
+							verts.Add(edge[idx[k]]);
 						}
 					}
 				}
@@ -608,12 +578,12 @@ namespace SharpNav
 			edges.Clear();
 			tris.Clear();
 			
-			DelaunayHull(nverts, verts, nhull, hull, tris, edges);
+			DelaunayHull(verts, hull, tris, edges);
 
 			if (tris.Count == 0)
 			{
 				//add default data
-				for (int i = 2; i < nverts; i++)
+				for (int i = 2; i < verts.Count; i++)
 					tris.Add(new TriangleData(0, i - 1, i));
 
 				return;
@@ -664,13 +634,13 @@ namespace SharpNav
 				//added samples
 				for (int iter = 0; iter < samples.Count; iter++)
 				{
-					if (nverts >= MAX_VERTS)
+					if (verts.Count >= MAX_VERTS)
 						break;
 
 					//find sample with most error
-					Vector3 bestpt = new Vector3();
-					float bestd = 0;
-					int besti = -1;
+					Vector3 bestPt = new Vector3();
+					float bestDistance = 0;
+					int bestIndex = -1;
 
 					for (int i = 0; i < samples.Count; i++)
 					{
@@ -683,31 +653,30 @@ namespace SharpNav
 						pt.X = samples[i].X * sampleDist + GetJitterX(i) * openField.CellSize * 0.1f;
 						pt.Y = samples[i].Y * openField.CellHeight;
 						pt.Z = samples[i].Z * sampleDist + GetJitterY(i) * openField.CellSize * 0.1f;
-						float d = DistanceToTriMesh(pt, verts, tris);
+						float d = DistanceToTriMesh(pt, verts.ToArray(), tris);
 
 						if (d < 0)
 							continue;
 
-						if (d > bestd)
+						if (d > bestDistance)
 						{
-							bestd = d;
-							besti = i;
-							bestpt = pt;
+							bestDistance = d;
+							bestIndex = i;
+							bestPt = pt;
 						}
 					}
 
-					if (bestd <= sampleMaxError || besti == -1)
+					if (bestDistance <= sampleMaxError || bestIndex == -1)
 						break;
 
-					samples[besti].IsSampled = true;
+					samples[bestIndex].IsSampled = true;
 
-					verts[nverts] = bestpt;
-					nverts++;
+					verts.Add(bestPt);
 
 					//create new triangulation
 					edges.Clear();
 					tris.Clear();
-					DelaunayHull(nverts, verts, nhull, hull, tris, edges);
+					DelaunayHull(verts, hull, tris, edges);
 				}
 			}
 
@@ -785,41 +754,26 @@ namespace SharpNav
 		/// "For a set S of points in the Euclidean plane, the unique triangulation DT(S) of S such that no point in S 
 		/// is inside the circumcircle of any triangle in DT(S)." (Dictionary.com)
 		/// </summary>
-		/// <param name="npts">Number of vertices</param>
 		/// <param name="pts">Vertex data (each vertex has 3 elements x,y,z)</param>
-		/// <param name="nhull">?</param>
 		/// <param name="hull">?</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
-		private void DelaunayHull(int npts, Vector3[] pts, int nhull, float[] hull, List<TriangleData> tris, List<EdgeInfo> edges)
+		private void DelaunayHull(List<Vector3> pts, List<float> hull, List<TriangleData> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
-			int nedges = 0;
-			int maxEdges = npts * 10;
-			edges = new List<EdgeInfo>(maxEdges);
+			edges = new List<EdgeInfo>(pts.Count * 10);
 
-			//HACK should be an array, or algorithm should add edges as it goes
-			for (int i = 0; i < maxEdges; i++)
-			{
-				EdgeInfo e = new EdgeInfo();
-				e.EndPt0 = 0;
-				e.EndPt1 = 0;
-				e.LeftFace = 0;
-				e.RightFace = 0;
-				edges.Add(e);
-			}
-
-			for (int i = 0, j = nhull - 1; i < nhull; j = i++)
-				AddEdge(edges, ref nedges, maxEdges, (int)hull[j], (int)hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
+			for (int i = 0, j = hull.Count - 1; i < hull.Count; j = i++)
+				AddEdge(edges, (int)hull[j], (int)hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
 
 			int currentEdge = 0;
-			while (currentEdge < nedges)
+			while (currentEdge < edges.Count)
 			{
 				if (edges[currentEdge].LeftFace == (int)EdgeValues.Undefined)
-					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
+					CompleteFacet(pts.ToArray(), pts.Count, edges, ref nfaces, currentEdge);
 				
 				if (edges[currentEdge].RightFace == (int)EdgeValues.Undefined)
-					CompleteFacet(pts, npts, edges, ref nedges, maxEdges, ref nfaces, currentEdge);
+					CompleteFacet(pts.ToArray(), pts.Count, edges, ref nfaces, currentEdge);
 				
 				currentEdge++;
 			}
@@ -829,7 +783,7 @@ namespace SharpNav
 			for (int i = 0; i < nfaces; i++)
 				tris.Add(new TriangleData(-1, -1, -1, -1));
 
-			for (int i = 0; i < nedges; i++)
+			for (int i = 0; i < edges.Count; i++)
 			{
 				if (edges[i].RightFace >= 0)
 				{
@@ -891,7 +845,7 @@ namespace SharpNav
 			}
 		}
 
-		private void CompleteFacet(Vector3[] pts, int npts, List<EdgeInfo> edges, ref int nedges, int maxEdges, ref int nfaces, int e)
+		private void CompleteFacet(Vector3[] pts, int npts, List<EdgeInfo> edges, ref int nfaces, int e)
 		{
 			const float EPS = 1e-5f;
 
@@ -955,10 +909,10 @@ namespace SharpNav
 					else
 					{
 						//inside epsilon circumcircle
-						if (OverlapEdges(pts, edges, nedges, s, u))
+						if (OverlapEdges(pts, edges, s, u))
 							continue;
 
-						if (OverlapEdges(pts, edges, nedges, t, u))
+						if (OverlapEdges(pts, edges, t, u))
 							continue;
 
 						//edge is valid
@@ -973,15 +927,15 @@ namespace SharpNav
 			{
 				UpdateLeftFace(edges, e, s, t, nfaces);
 
-				e = FindEdge(edges, nedges, pt, s);
+				e = FindEdge(edges, pt, s);
 				if (e == (int)EdgeValues.Undefined)
-					AddEdge(edges, ref nedges, maxEdges, pt, s, nfaces, (int)EdgeValues.Undefined);
+					AddEdge(edges, pt, s, nfaces, (int)EdgeValues.Undefined);
 				else
 					UpdateLeftFace(edges, e, pt, s, nfaces);
 
-				e = FindEdge(edges, nedges, t, pt);
+				e = FindEdge(edges, t, pt);
 				if (e == (int)EdgeValues.Undefined)
-					AddEdge(edges, ref nedges, maxEdges, t, pt, nfaces, (int)EdgeValues.Undefined);
+					AddEdge(edges, t, pt, nfaces, (int)EdgeValues.Undefined);
 				else
 					UpdateLeftFace(edges, e, t, pt, nfaces);
 
@@ -993,23 +947,24 @@ namespace SharpNav
 			}
 		}
 
-		private int AddEdge(List<EdgeInfo> edges, ref int nedges, int maxEdges, int s, int t, int l, int r)
+		private int AddEdge(List<EdgeInfo> edges, int s, int t, int leftFace, int rightFace)
 		{
-			if (nedges >= maxEdges)
+			if (edges.Count >= edges.Capacity)
 			{
 				return (int)EdgeValues.Undefined;
 			}
 
 			//add edge
-			int e = FindEdge(edges, nedges, s, t);
+			int e = FindEdge(edges, s, t);
 			if (e == (int)EdgeValues.Undefined)
 			{
-				int edge = nedges;
-				edges[edge].EndPt0 = s;
-				edges[edge].EndPt1 = t;
-				edges[edge].LeftFace = l;
-				edges[edge].RightFace = r;
-				return nedges++;
+				EdgeInfo edge = new EdgeInfo();
+				edge.EndPt0 = s;
+				edge.EndPt1 = t;
+				edge.LeftFace = leftFace;
+				edge.RightFace = rightFace;
+				edges.Add(edge);
+				return edges.Count - 1;
 			}
 			else
 			{
@@ -1017,9 +972,9 @@ namespace SharpNav
 			}
 		}
 
-		private int FindEdge(List<EdgeInfo> edges, int nedges, int s, int t)
+		private int FindEdge(List<EdgeInfo> edges, int s, int t)
 		{
-			for (int i = 0; i < nedges; i++)
+			for (int i = 0; i < edges.Count; i++)
 			{
 				if ((edges[i].EndPt0 == s && edges[i].EndPt1 == t) || (edges[i].EndPt0 == t && edges[i].EndPt1 == s))
 					return i;
@@ -1028,9 +983,9 @@ namespace SharpNav
 			return (int)EdgeValues.Undefined;
 		}
 
-		private bool OverlapEdges(Vector3[] pts, List<EdgeInfo> edges, int nedges, int s1, int t1)
+		private bool OverlapEdges(Vector3[] pts, List<EdgeInfo> edges, int s1, int t1)
 		{
-			for (int i = 0; i < nedges; i++)
+			for (int i = 0; i < edges.Count; i++)
 			{
 				int s0 = edges[i].EndPt0;
 				int t0 = edges[i].EndPt1;

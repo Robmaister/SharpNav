@@ -426,9 +426,9 @@ namespace Examples
 			parameters.numVertsPerPoly = polyMesh.NumVertsPerPoly;
 			parameters.detailMeshes = polyMeshDetail.Meshes;
 			parameters.detailVerts = polyMeshDetail.Verts;
-			parameters.detailVertsCount = polyMeshDetail.NVerts;
+			parameters.detailVertsCount = polyMeshDetail.VertCount;
 			parameters.detailTris = polyMeshDetail.Tris;
-			parameters.detailTriCount = polyMeshDetail.NTris;
+			parameters.detailTriCount = polyMeshDetail.TrisCount;
 			//no support for offmesh connections
 			parameters.offMeshConVerts = null;
 			parameters.offMeshConRadii = null;

@@ -660,8 +660,8 @@ namespace SharpNav
 			bounds.Max = center + extents;
 
 			//get nearby polygons from proximity grid
-			int[] polys = new int[128];
-			int polyCount = QueryPolygonsInTile(tile, bounds, polys, 128);
+			List<int> polys = new List<int>(128);
+			int polyCount = QueryPolygonsInTile(tile, bounds, polys);
 
 			//find nearest polygon amongst the nearby polygons
 			int nearest = 0;
@@ -684,7 +684,7 @@ namespace SharpNav
 			return nearest;
 		}
 
-		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, int[] polys, int maxPolys)
+		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, List<int> polys)
 		{
 			if (tile.bvTree.Length != 0)
 			{
@@ -716,7 +716,6 @@ namespace SharpNav
 
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
-				int n = 0;
 				
 				while (node < end)
 				{
@@ -725,8 +724,8 @@ namespace SharpNav
 
 					if (isLeafNode && overlap)
 					{
-						if (n < maxPolys)
-							polys[n++] = GetReference(polyBase, tile.bvTree[node].index);
+						if (polys.Count < polys.Capacity)
+							polys.Add(GetReference(polyBase, tile.bvTree[node].index));
 					}
 
 					if (overlap || isLeafNode)
@@ -740,13 +739,12 @@ namespace SharpNav
 					}
 				}
 
-				return n;
+				return polys.Count;
 			}
 			else
 			{
 				Vector3 bmin = new Vector3();
 				Vector3 bmax = new Vector3();
-				int n = 0;
 				int polyBase = GetPolyRefBase(tile);
 
 				for (int i = 0; i < tile.header.polyCount; i++)
@@ -770,12 +768,12 @@ namespace SharpNav
 
 					if (PathfinderCommon.OverlapQuantBounds(qbounds.Min, qbounds.Max, bmin, bmax))
 					{
-						if (n < maxPolys)
-							polys[n++] = GetReference(polyBase, i);
+						if (polys.Count < polys.Capacity)
+							polys.Add(GetReference(polyBase, i));
 					}
 				}
 
-				return n;
+				return polys.Count;
 			}
 		}
 
