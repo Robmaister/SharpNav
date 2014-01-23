@@ -43,6 +43,11 @@ namespace SharpNav
 		public BVNode[] NavBvTree { get { return navBvTree; } }
 		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
 
+		/// <summary>
+		/// Add all the PolyMesh and PolyMeshDetail attributes to the Navigation Mesh.
+		/// Then, add Off-Mesh connection support.
+		/// </summary>
+		/// <param name="parameters">All the member variables that create the Navigation Mesh</param>
 		public NavMeshBuilder(NavMeshCreateParams parameters)
 		{
 			if (parameters.numVertsPerPoly > PathfinderCommon.VERTS_PER_POLYGON)
@@ -378,6 +383,12 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Decide which sector the offmesh point is a part of.
+		/// </summary>
+		/// <param name="pt">The point</param>
+		/// <param name="bounds">The bounds</param>
+		/// <returns>An integer representing a sector</returns>
 		public int ClassifyOffMeshPoint(Vector3 pt, BBox3 bounds)
 		{
 			const int xPlus = 1;
@@ -421,6 +432,17 @@ namespace SharpNav
 			return 0xff;
 		}
 
+		/// <summary>
+		/// Create a bounding volume tree for all the polygons.
+		/// </summary>
+		/// <param name="verts">Vertices</param>
+		/// <param name="polys">Polygons</param>
+		/// <param name="npolys">Number of polygons</param>
+		/// <param name="nvp">Number of vertices per polygon</param>
+		/// <param name="cellSize">CompactHeightfield cell size</param>
+		/// <param name="cellHeight">CompactHeightfield cell height</param>
+		/// <param name="nodes">The resulting nodes</param>
+		/// <returns></returns>
 		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
 		{
 			//build bounding volume tree
@@ -457,23 +479,32 @@ namespace SharpNav
 			return curNode;
 		}
 
-		public void Subdivide(List<BVNode> items, int imin, int imax, ref int curNode, BVNode[] nodes)
+		/// <summary>
+		/// Continue splitting a list of bounding volume nodes along the longest bounding axis,
+		/// until there is only one node left.
+		/// </summary>
+		/// <param name="items">A list of bounding volume nodes</param>
+		/// <param name="indexMin">Minimum index</param>
+		/// <param name="indexMax">Maximum Index</param>
+		/// <param name="curNode">The current Node being examined</param>
+		/// <param name="nodes">The resulting nodes</param>
+		public void Subdivide(List<BVNode> items, int indexMin, int indexMax, ref int curNode, BVNode[] nodes)
 		{
-			int inum = imax - imin;
+			int indexNum = indexMax - indexMin;
 			int icur = curNode;
 
 			int oldNode = curNode;
 			curNode++;
 
-			if (inum == 1)
+			if (indexNum == 1)
 			{
 				//leaf
-				nodes[oldNode] = items[imin];
+				nodes[oldNode] = items[indexMin];
 			}
 			else
 			{
 				//split
-				CalcExtends(items.ToArray(), imin, imax, ref nodes[oldNode].bounds);
+				CalcExtends(items.ToArray(), indexMin, indexMax, ref nodes[oldNode].bounds);
 
 				BBox3 b = nodes[oldNode].bounds;
 				int axis = LongestAxis((int)(b.Max.X - b.Min.X), (int)(b.Max.Y - b.Min.Y), (int)(b.Max.Z - b.Min.Z));
@@ -482,44 +513,58 @@ namespace SharpNav
 				{
 					//sort along x-axis
 					CompareItemX compX = new CompareItemX();
-					items.Sort(imin, inum, compX);
+					items.Sort(indexMin, indexNum, compX);
 				}
 				else if (axis == 1)
 				{
 					//sort along y-axis
 					CompareItemY compY = new CompareItemY();
-					items.Sort(imin, inum, compY);
+					items.Sort(indexMin, indexNum, compY);
 				}
 				else if (axis == 2)
 				{
 					CompareItemZ compZ = new CompareItemZ();
-					items.Sort(imin, inum, compZ);
+					items.Sort(indexMin, indexNum, compZ);
 				}
 
-				int isplit = imin + inum / 2;
+				int isplit = indexMin + indexNum / 2;
 
 				//left 
-				Subdivide(items, imin, isplit, ref curNode, nodes);
+				Subdivide(items, indexMin, isplit, ref curNode, nodes);
 
 				//right
-				Subdivide(items, isplit, imax, ref curNode, nodes);
+				Subdivide(items, isplit, indexMax, ref curNode, nodes);
 
 				int iescape = curNode - icur;
 				nodes[oldNode].index = -iescape; //negative index means escape
 			}
 		}
 
-		public void CalcExtends(BVNode[] items, int minItems, int maxItems, ref BBox3 bounds)
+		/// <summary> 
+		/// Find the local minimum and maximum for a set of Bounding Volume Nodes
+		/// </summary>
+		/// <param name="items">An array of bounding volume nodes</param>
+		/// <param name="minIndex">The minimum index</param>
+		/// <param name="maxIndex">The maximum index</param>
+		/// <param name="bounds">The resulting bounds</param>
+		public void CalcExtends(BVNode[] items, int minIndex, int maxIndex, ref BBox3 bounds)
 		{
-			bounds = items[minItems].bounds;
+			bounds = items[minIndex].bounds;
 
-			for (int i = minItems + 1; i < maxItems; i++)
+			for (int i = minIndex + 1; i < maxIndex; i++)
 			{
 				Vector3Extensions.ComponentMin(ref items[i].bounds.Min, ref bounds.Min, out bounds.Min);
 				Vector3Extensions.ComponentMax(ref items[i].bounds.Max, ref bounds.Max, out bounds.Max);
 			}
 		}
 
+		/// <summary>
+		///Determine whether the bounding x, y, or z axis contains the longest distance 
+		/// </summary>
+		/// <param name="x">Length of bounding x-axis</param>
+		/// <param name="y">Length of bounding y-axis</param>
+		/// <param name="z">Length of bounding z-axis</param>
+		/// <returns>Returns the a specific axis (x, y, or z)</returns>
 		public int LongestAxis(int x, int y, int z)
 		{
 			int axis = 0;

@@ -52,6 +52,10 @@ namespace SharpNav
 			public int maxPolys;
 		}
 
+		/// <summary>
+		/// Link all the polygons in the mesh together for pathfinding purposes.
+		/// </summary>
+		/// <param name="data">The Navigation Mesh data</param>
 		public TiledNavMesh(NavMeshBuilder data)
 		{
 			//if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
@@ -84,6 +88,11 @@ namespace SharpNav
 
 		public int TileCount { get { return maxTiles; } }
 
+		/// <summary>
+		/// Initialize the Tiled Navigation Mesh variables and arrays.
+		/// </summary>
+		/// <param name="parameters">Tiled Navigation Mesh attributes</param>
+		/// <returns>True if initialization is successful</returns>
 		public bool InitTileNavMesh(TiledNavMeshParams parameters)
 		{
 			this.parameters = parameters;
@@ -126,6 +135,13 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Build a tile and link all the polygons togther, both internally and externally.
+		/// Make sure to link off-mesh connections as well.
+		/// </summary>
+		/// <param name="data">Navigation Mesh data</param>
+		/// <param name="lastRef">Last polygon reference</param>
+		/// <param name="result">Last tile reference</param>
 		public void AddTile(NavMeshBuilder data, int lastRef, ref int result)
 		{
 			//make sure data is in right format
@@ -257,7 +273,7 @@ namespace SharpNav
 		/// <summary>
 		/// Allocate links for each of the tile's polygons' vertices
 		/// </summary>
-		/// <param name="tile"></param>
+		/// <param name="tile">A tile contains a set of polygons, which are linked to each other</param>
 		public void ConnectIntLinks(ref MeshTile tile)
 		{
 			if (tile == null)
@@ -265,30 +281,36 @@ namespace SharpNav
 
 			int polyBase = GetPolyRefBase(tile);
 
+			//Iterate through all the polygons
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
+				//The polygon links will end in a null link
 				tile.polys[i].firstLink = PathfinderCommon.NULL_LINK;
 
+				//Avoid Off-Mesh Connection polygons
 				if (tile.polys[i].PolyType == PolygonType.OffMeshConnection)
 					continue;
 
-				//build edge links backwards so that the links will be in the linked list
-				//from lowest index to highest
+				//Build edge links
 				for (int j = tile.polys[i].vertCount - 1; j >= 0; j--)
 				{
-					//skip hard and non-internal edges
+					//Skip hard and non-internal edges
 					if (tile.polys[i].neis[j] == 0 || (tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) != 0)
 						continue;
 
+					//Allocate a new link if possible
 					int idx = AllocLink(tile);
+
+					//Allocation of link should be successful
 					if (idx != PathfinderCommon.NULL_LINK)
 					{
+						//Initialize a new link
 						tile.links[idx].reference = GetReference(polyBase, tile.polys[i].neis[j] - 1);
 						tile.links[idx].edge = j;
 						tile.links[idx].side = 0xff;
 						tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
-						//add to linked list
+						//Add to polygon's links list
 						tile.links[idx].next = tile.polys[i].firstLink;
 						tile.polys[i].firstLink = idx;
 					}
@@ -296,6 +318,10 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Begin creating off-mesh links between the tile polygons.
+		/// </summary>
+		/// <param name="tile">Current Tile</param>
 		public void BaseOffMeshLinks(ref MeshTile tile)
 		{
 			if (tile == null)
@@ -303,73 +329,81 @@ namespace SharpNav
 
 			int polyBase = GetPolyRefBase(tile);
 
-			//base off-mesh connection start points
+			//Base off-mesh connection start points
 			for (int i = 0; i < tile.header.offMeshConCount; i++)
 			{
 				int con = i;
 				int poly = tile.offMeshCons[con].poly;
 
-				Vector3 ext = new Vector3(tile.offMeshCons[con].radius, tile.header.walkableClimb, tile.offMeshCons[con].radius);
+				Vector3 extents = new Vector3(tile.offMeshCons[con].radius, tile.header.walkableClimb, tile.offMeshCons[con].radius);
 				
-				//find polygon to connect to
+				//Find polygon to connect to
 				Vector3 p = tile.offMeshCons[con].pos0;
 				Vector3 nearestPt = new Vector3();
-				int reference = FindNearestPolyInTile(tile, p, ext, ref nearestPt);
+				int reference = FindNearestPolyInTile(tile, p, extents, ref nearestPt);
 				if (reference == 0)
 					continue;
 
-				//do extra checks
+				//Do extra checks
 				if ((nearestPt.X - p.X) * (nearestPt.X - p.X) + (nearestPt.Z - p.Z) * (nearestPt.Z - p.Z) >
 					tile.offMeshCons[con].radius * tile.offMeshCons[con].radius)
 					continue;
 
-				//make sure location is on current mesh
+				//Make sure location is on current mesh
 				tile.verts[tile.polys[poly].verts[0]] = nearestPt;
 
-				//link off-mesh connection to target poly
+				//Link off-mesh connection to target poly
 				int idx = AllocLink(tile);
 				if (idx != PathfinderCommon.NULL_LINK)
 				{
+					//Initialize a new link
 					tile.links[idx].reference = reference;
 					tile.links[idx].edge = 0;
 					tile.links[idx].side = 0xff;
 					tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
-					//add to linked list
+					//Add to polygon's links list
 					tile.links[idx].next = tile.polys[poly].firstLink;
 					tile.polys[poly].firstLink = idx;
 				}
 
-				//start end-point always conects back to off-mesh connection
+				//Start end-point always conects back to off-mesh connection
 				int tidx = AllocLink(tile);
 				if (tidx != PathfinderCommon.NULL_LINK)
 				{
+					//Initialize a new link
 					int landPolyIdx = DecodePolyIdPoly(reference);
 					tile.links[idx].reference = GetReference(polyBase, tile.offMeshCons[con].poly);
 					tile.links[idx].edge = 0xff;
 					tile.links[idx].side = 0xff;
 					tile.links[idx].bmin = tile.links[idx].bmax = 0;
 
-					//add to linked list
+					//Add to polygon's links list
 					tile.links[idx].next = tile.polys[landPolyIdx].firstLink;
 					tile.polys[landPolyIdx].firstLink = tidx;
 				}
 			}
 		}
 
+		/// <summary>
+		/// Connect polygons from two different tiles.
+		/// </summary>
+		/// <param name="tile">Current Tile</param>
+		/// <param name="target">Target Tile</param>
+		/// <param name="side">Polygon edge</param>
 		public void ConnectExtLinks(ref MeshTile tile, ref MeshTile target, int side)
 		{
 			if (tile == null)
 				return;
 
-			//connect border links
+			//Connect border links
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
 				int nv = tile.polys[i].vertCount;
 
 				for (int j = 0; j < nv; j++)
 				{
-					//skip non-portal edges
+					//Skip non-portal edges
 					if ((tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) == 0)
 						continue;
 
@@ -377,15 +411,17 @@ namespace SharpNav
 					if (side != -1 && dir != side)
 						continue;
 
-					//create new links
+					//Create new links
 					Vector3 va = tile.verts[tile.polys[i].verts[j]];
 					Vector3 vb = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
 					int[] nei = new int[4];
 					float[] neia = new float[4 * 2];
 					int nnei = FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia, 4);
 
+					//Iterate through neighbors
 					for (int k = 0; k < nnei; k++)
 					{
+						//Allocate a new link if possible
 						int idx = AllocLink(tile);
 
 						if (idx != PathfinderCommon.NULL_LINK)
@@ -397,7 +433,7 @@ namespace SharpNav
 							tile.links[idx].next = tile.polys[i].firstLink;
 							tile.polys[i].firstLink = idx;
 
-							//compress portal limits to a value
+							//Compress portal limits to a value
 							if (dir == 0 || dir == 4)
 							{
 								float tmin = (neia[k * 2 + 0] - va.Z) / (vb.Z - va.Z);
@@ -434,14 +470,31 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Find the opposite side
+		/// </summary>
+		/// <param name="side">Current side</param>
+		/// <returns>Opposite side</returns>
+		public int OppositeTile(int side)
+		{
+			return (side + 4) % 8;
+		}
+
+		/// <summary>
+		/// Connect Off-Mesh links between polygons from two different tiles.
+		/// </summary>
+		/// <param name="tile">Current Tile</param>
+		/// <param name="target">Target Tile</param>
+		/// <param name="side">Polygon edge</param>
 		public void ConnectExtOffMeshLinks(ref MeshTile tile, ref MeshTile target, int side)
 		{
 			if (tile == null)
 				return;
 
-			//connect off-mesh links, specifically links which land from target tile to this tile
+			//Connect off-mesh links, specifically links which land from target tile to this tile
 			int oppositeSide = (side == -1) ? 0xff : OppositeTile(side);
 
+			//Iterate through all the off-mesh connections of target tile
 			for (int i = 0; i < target.header.offMeshConCount; i++)
 			{
 				OffMeshConnection targetCon = target.offMeshCons[i];
@@ -450,28 +503,28 @@ namespace SharpNav
 
 				Poly targetPoly = target.polys[targetCon.poly];
 
-				//skip off-mesh connections which start location could not be connected at all
+				//Skip off-mesh connections which start location could not be connected at all
 				if (targetPoly.firstLink == PathfinderCommon.NULL_LINK)
 					continue;
 
-				Vector3 ext = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
+				Vector3 extents = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
 
-				//find polygon to connect to
+				//Find polygon to connect to
 				Vector3 p = targetCon.pos1;
 				Vector3 nearestPt = new Vector3();
-				int reference = FindNearestPolyInTile(tile, p, ext, ref nearestPt);
+				int reference = FindNearestPolyInTile(tile, p, extents, ref nearestPt);
 				if (reference == 0)
 					continue;
 
-				//further check
+				//Further checks
 				if ((nearestPt.X - p.X) * (nearestPt.X - p.X) + (nearestPt.Z - p.Z) * (nearestPt.Z - p.Z) >
 					(targetCon.radius * targetCon.radius))
 					continue;
 
-				//make sure the location is on the current mesh
+				//Make sure the location is on the current mesh
 				target.verts[targetPoly.verts[1]] = nearestPt;
 
-				//link off-mesh connection to target poly
+				//Link off-mesh connection to target poly
 				int idx = AllocLink(target);
 				if (idx != PathfinderCommon.NULL_LINK)
 				{
@@ -505,11 +558,17 @@ namespace SharpNav
 			}
 		}
 
-		public int OppositeTile(int side)
-		{
-			return (side + 4) % 8;
-		}
-
+		/// <summary>
+		/// Search for neighbor polygons in the tile.
+		/// </summary>
+		/// <param name="va">Vertex A</param>
+		/// <param name="vb">Vertex B</param>
+		/// <param name="tile">Current tile</param>
+		/// <param name="side">Polygon edge</param>
+		/// <param name="con">Resulting Connection polygon</param>
+		/// <param name="conarea">Resulting Connection area</param>
+		/// <param name="maxcon">Maximum number of connections</param>
+		/// <returns>Number of neighboring polys</returns>
 		public int FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, int[] con, float[] conarea, int maxcon)
 		{
 			if (tile == null)
@@ -520,7 +579,7 @@ namespace SharpNav
 			CalcSlabEndPoints(va, vb, amin, amax, side);
 			float apos = GetSlabCoord(va, side);
 
-			//remove links pointing to 'side' and compact the links array
+			//Remove links pointing to 'side' and compact the links array
 			float[] bmin = new float[2];
 			float[] bmax = new float[2];
 			int m = PathfinderCommon.EXT_LINK | side;
@@ -528,31 +587,35 @@ namespace SharpNav
 
 			int polyBase = GetPolyRefBase(tile);
 
+			//Iterate through all the tile's polygons
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
 				int nv = tile.polys[i].vertCount;
 
+				//Iterate through all the vertices
 				for (int j = 0; j < nv; j++)
 				{
-					//skip edges which do not point to the right side
+					//Skip edges which do not point to the right side
 					if (tile.polys[i].neis[j] != m)
 						continue;
 
+					//Grab two adjacent vertices
 					Vector3 vc = tile.verts[tile.polys[i].verts[j]];
 					Vector3 vd = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
 					float bpos = GetSlabCoord(vc, side);
 
-					//segments are not close enough
+					//Segments are not close enough
 					if (Math.Abs(apos - bpos) > 0.01f)
 						continue;
 
-					//check if the segments touch
+					//Check if the segments touch
 					CalcSlabEndPoints(vc, vd, bmin, bmax, side);
 
+					//Skip if slabs don't overlap
 					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.header.walkableClimb))
 						continue;
 
-					//add return value
+					//Add return value
 					if (n < maxcon)
 					{
 						conarea[n * 2 + 0] = Math.Max(amin[0], bmin[0]);
@@ -568,6 +631,14 @@ namespace SharpNav
 			return n;
 		}
 
+		/// <summary>
+		/// Find the slab endpoints based off of the 'side' value.
+		/// </summary>
+		/// <param name="va">Vertex A</param>
+		/// <param name="vb">Vertex B</param>
+		/// <param name="bmin">Minimum bounds</param>
+		/// <param name="bmax">Maximum bounds</param>
+		/// <param name="side">Side</param>
 		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, float[] bmin, float[] bmax, int side)
 		{
 			if (side == 0 || side == 4)
@@ -610,6 +681,12 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Return the proper slab coordinate value depending on the 'side' value.
+		/// </summary>
+		/// <param name="va">Vertex A</param>
+		/// <param name="side">Side</param>
+		/// <returns>Slab coordinate value</returns>
 		public float GetSlabCoord(Vector3 va, int side)
 		{
 			if (side == 0 || side == 4)
@@ -620,16 +697,26 @@ namespace SharpNav
 			return 0;
 		}
 
+		/// <summary>
+		/// Check if two slabs overlap.
+		/// </summary>
+		/// <param name="amin">Minimum bounds A</param>
+		/// <param name="amax">Maximum bounds A</param>
+		/// <param name="bmin">Minimum bounds B</param>
+		/// <param name="bmax">Maximum bounds B</param>
+		/// <param name="px">Point's x</param>
+		/// <param name="py">Point's y</param>
+		/// <returns>True if slabs overlap</returns>
 		public bool OverlapSlabs(float[] amin, float[] amax, float[] bmin, float[] bmax, float px, float py)
 		{
-			//check for horizontal overlap
-			//segment shrunk a little so that slabs which touch at endpoints aren't connected
+			//Check for horizontal overlap
+			//Segment shrunk a little so that slabs which touch at endpoints aren't connected
 			float minx = Math.Max(amin[0] + px, bmin[0] + px);
 			float maxx = Math.Min(amax[0] - px, bmax[0] - px);
 			if (minx > maxx)
 				return false;
 
-			//check vertical overlap
+			//Check vertical overlap
 			float ad = (amax[1] - amin[1]) / (amax[0] - amin[0]);
 			float ak = amin[1] - ad * amin[0];
 			float bd = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
@@ -641,32 +728,41 @@ namespace SharpNav
 			float dmin = bminy - aminy;
 			float dmax = bmaxy - amaxy;
 
-			//crossing segments always overlap
+			//Crossing segments always overlap
 			if (dmin * dmax < 0)
 				return true;
 
-			//check for overlap at endpoints
-			float thr = (py * 2) * (py * 2);
-			if (dmin * dmin <= thr || dmax * dmax <= thr)
+			//Check for overlap at endpoints
+			float threshold = (py * 2) * (py * 2);
+			if (dmin * dmin <= threshold || dmax * dmax <= threshold)
 				return true;
 
 			return false;
 		}
 
+		/// <summary>
+		/// Find the closest polygon possible in the tile under certain constraints.
+		/// </summary>
+		/// <param name="tile">Current tile</param>
+		/// <param name="center">Center starting point</param>
+		/// <param name="extents">Range of search</param>
+		/// <param name="nearestPt">Resulting nearest point</param>
+		/// <returns>Polygon Reference which contains nearest point</returns>
 		public int FindNearestPolyInTile(MeshTile tile, Vector3 center, Vector3 extents, ref Vector3 nearestPt)
 		{
 			BBox3 bounds;
 			bounds.Min = center - extents;
 			bounds.Max = center + extents;
 
-			//get nearby polygons from proximity grid
+			//Get nearby polygons from proximity grid
 			List<int> polys = new List<int>(128);
 			int polyCount = QueryPolygonsInTile(tile, bounds, polys);
 
-			//find nearest polygon amongst the nearby polygons
+			//Find nearest polygon amongst the nearby polygons
 			int nearest = 0;
 			float nearestDistanceSqr = float.MaxValue;
 
+			//Iterate throuh all the polygons
 			for (int i = 0; i < polyCount; i++)
 			{
 				int reference = polys[i];
@@ -684,6 +780,13 @@ namespace SharpNav
 			return nearest;
 		}
 
+		/// <summary>
+		/// Find all the polygons within a certain bounding box.
+		/// </summary>
+		/// <param name="tile">Current tile</param>
+		/// <param name="qbounds">Bounds</param>
+		/// <param name="polys">List of polygons</param>
+		/// <returns>Number of polygons found</returns>
 		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, List<int> polys)
 		{
 			if (tile.bvTree.Length != 0)
@@ -777,6 +880,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Allocate a new link if possible.
+		/// </summary>
+		/// <param name="tile">Current tile</param>
+		/// <returns>New link number</returns>
 		public int AllocLink(MeshTile tile)
 		{
 			if (tile.linksFreeList == PathfinderCommon.NULL_LINK)
@@ -787,6 +895,11 @@ namespace SharpNav
 			return link;
 		}
 
+		/// <summary>
+		/// Get the tile reference
+		/// </summary>
+		/// <param name="tile">Tile to look for</param>
+		/// <returns>Tile reference</returns>
 		public int GetTileRef(MeshTile tile)
 		{
 			if (tile == null)
@@ -805,39 +918,59 @@ namespace SharpNav
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
+		/// <summary>
+		/// Find the tile at a specific location
+		/// </summary>
+		/// <param name="x">X-coordinate</param>
+		/// <param name="y">Y-coordinate</param>
+		/// <param name="layer">Layer number</param>
+		/// <returns></returns>
 		public MeshTile GetTileAt(int x, int y, int layer)
 		{
-			//find tile based off hash
+			//Find tile based off hash
 			int h = ComputeTileHash(x, y, tileLookupTableMask);
 			MeshTile tile = posLookup[h];
 			
 			while (tile != null)
 			{
+				//Found
 				if (tile.header != null && tile.header.x == x && tile.header.y == y && tile.header.layer == layer)
 					return tile;
 
+				//Keep searching
 				tile = tile.next;
 			}
 			
 			return null;
 		}
 
+		/// <summary>
+		/// Find and add a tile if it is found
+		/// </summary>
+		/// <param name="x">X-coordinate</param>
+		/// <param name="y">Y-coordinate</param>
+		/// <param name="tiles">Tile array</param>
+		/// <param name="maxTiles">Maximum number of tiles allowed</param>
+		/// <returns>Number of tiles satisfying condition</returns>
 		public int GetTilesAt(int x, int y, MeshTile[] tiles, int maxTiles)
 		{
 			int n = 0;
 
-			//find tile based on hash
+			//Find tile based on hash
 			int h = ComputeTileHash(x, y, tileLookupTableMask);
 			MeshTile tile = posLookup[h];
 			
 			while (tile != null)
 			{
+				//Tile found. 
+				//Add to tile array
 				if (tile.header != null && tile.header.x == x && tile.header.y == y)
 				{
 					if (n < maxTiles)
 						tiles[n++] = tile;
 				}
 
+				//Keep searching
 				tile = tile.next;
 			}
 
@@ -889,6 +1022,13 @@ namespace SharpNav
 			return GetTilesAt(nx, ny, tiles, maxTiles);
 		}
 
+		/// <summary>
+		/// Compute the tile hash code, which can be used in a hash table for quick lookup.
+		/// </summary>
+		/// <param name="x">X-coordinate</param>
+		/// <param name="y">Y-coordinate</param>
+		/// <param name="mask">Mask</param>
+		/// <returns>Tile hash code</returns>
 		public int ComputeTileHash(int x, int y, int mask)
 		{
 			//choose large multiplicative constants which are primes
@@ -898,6 +1038,11 @@ namespace SharpNav
 			return (int)(n & mask);
 		}
 		
+		/// <summary>
+		/// Get the base reference for the polygons in a tile.
+		/// </summary>
+		/// <param name="tile">Current Tile</param>
+		/// <returns>Base poly reference</returns>
 		public int GetPolyRefBase(MeshTile tile)
 		{
 			if (tile == null)
@@ -916,14 +1061,23 @@ namespace SharpNav
 			return EncodePolyId(tile.salt, it, 0);
 		}
 
+		/// <summary>
+		/// Retrieve the tile and poly based off of a polygon reference
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="tile">Resulting tile</param>
+		/// <param name="poly">Resulting poly</param>
+		/// <returns>True if tile and poly successfully retrieved</returns>
 		public bool GetTileAndPolyByRef(int reference, ref MeshTile tile, ref Poly poly)
 		{
 			if (reference == 0)
 				return false;
 
+			//Get tile and poly indices
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
 			
+			//Make sure indices are valid
 			if (indexTile >= maxTiles)
 				return false;
 
@@ -933,6 +1087,7 @@ namespace SharpNav
 			if (indexPoly >= tiles[indexTile].header.polyCount)
 				return false;
 
+			//Retrieve tile and poly
 			tile = tiles[indexTile];
 			poly = tiles[indexTile].polys[indexPoly];
 			return true;
@@ -941,6 +1096,9 @@ namespace SharpNav
 		/// <summary>
 		/// Only use this function if it is known that the provided polygon reference is valid.
 		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="tile">Resulting tile</param>
+		/// <param name="poly">Resulting poly</param>
 		public void GetTileAndPolyByRefUnsafe(int reference, ref MeshTile tile, ref Poly poly)
 		{
 			int salt = 0, indexTile = 0, indexPoly = 0;
@@ -949,6 +1107,11 @@ namespace SharpNav
 			poly = tiles[indexTile].polys[indexPoly];
 		}
 
+		/// <summary>
+		/// Check if polygon reference is valid.
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <returns>True if valid</returns>
 		public bool IsValidPolyRef(int reference)
 		{
 			if (reference == 0)
@@ -969,7 +1132,13 @@ namespace SharpNav
 			return true;
 		}
 
-		//decode a standard polygon reference
+		/// <summary>
+		/// Decode a standard polygon reference 
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="salt">Resulting salt value</param>
+		/// <param name="indexTile">Resulting tile index</param>
+		/// <param name="indexPoly">Resulting poly index</param>
 		public void DecodePolyId(int reference, ref int salt, ref int indexTile, ref int indexPoly)
 		{
 			int saltMask = (1 << saltBits) - 1;
@@ -980,28 +1149,46 @@ namespace SharpNav
 			indexPoly = reference & polyMask;
 		}
 
-		//extract a tile's salt value from the specified polygon reference
+		/// <summary>
+		/// Extract a tile's salt value from the specified polygon reference 
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <returns>Salt value</returns>
 		public int DecodePolyIdSalt(int reference)
 		{
 			int saltMask = (1 << saltBits) - 1;
 			return (reference >> (polyBits + tileBits)) & saltMask;
 		}
 
-		//extract a tile's index from the specified polygon reference
+		/// <summary>
+		/// Extract a tile's index from the specified polygon reference
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <returns>Tile index</returns>
 		public int DecodePolyIdTile(int reference)
 		{
 			int tileMask = (1 << tileBits) - 1;
 			return (reference >> polyBits) & tileMask;
 		}
 
-		//extract a polygon's index (within its tile) from the specified polygon reference
+		/// <summary>
+		/// Extract a polygon's index (within its tile) from the specified polygon reference 
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <returns>Poly index</returns>
 		public int DecodePolyIdPoly(int reference)
 		{
 			int polyMask = (1 << polyBits) - 1;
 			return reference & polyMask;
 		}
 
-		//derive a standard polygon reference
+		/// <summary>
+		/// Derive a standard polygon reference, which compresses salt, tile index, and poly index together
+		/// </summary>
+		/// <param name="salt">Salt value</param>
+		/// <param name="indexTile">Tile index</param>
+		/// <param name="indexPoly">Poly index</param>
+		/// <returns>Polygon reference</returns>
 		public int EncodePolyId(int salt, int indexTile, int indexPoly)
 		{
 			return (salt << (int)(polyBits + tileBits)) | (indexTile << (int)polyBits) | indexPoly;

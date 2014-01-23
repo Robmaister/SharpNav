@@ -325,11 +325,13 @@ namespace SharpNav
 		/// </summary>
 		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, List<int> path)
 		{
+			//reset path of polygons
 			path.Clear();
 
 			if (startRef == 0 || endRef == 0)
 				return false;
 
+			//path can't store any elements
 			if (path.Capacity == 0)
 				return false;
 
@@ -337,6 +339,7 @@ namespace SharpNav
 			if (!nav.IsValidPolyRef(startRef) || !nav.IsValidPolyRef(endRef))
 				return false;
 
+			//special case: both start and end are in the same polygon
 			if (startRef == endRef)
 			{
 				path.Add(startRef);
@@ -346,6 +349,7 @@ namespace SharpNav
 			nodePool.Clear();
 			openList.Clear();
 
+			//initial node is located at the starting position
 			Node startNode = nodePool.GetNode(startRef);
 			startNode.pos = startPos;
 			startNode.pidx = 0;
@@ -386,6 +390,7 @@ namespace SharpNav
 				if (parentRef != 0)
 					nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
 
+				//examine neighbors
 				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
 					int neighbourRef = bestTile.links[i].reference;
@@ -470,28 +475,19 @@ namespace SharpNav
 				}
 			}
 
-			//reverse the path
-			Node prev = null;
+			//save path
 			Node node = lastBestNode;
-			do
-			{
-				Node next = nodePool.GetNodeAtIdx(node.pidx);
-				node.pidx = nodePool.GetNodeIdx(prev);
-				prev = node;
-				node = next;
-			} while (node != null);
-			
-			//store path
-			node = prev;
 			do
 			{
 				path.Add(node.id);
 				if (path.Count >= path.Capacity)
 					break;
-
+		
 				node = nodePool.GetNodeAtIdx(node.pidx);
-			}
-			while (node != null);
+			} while (node != null);
+			
+			//reverse the path since it's backwards
+			path.Reverse();
 
 			return true;
 		}
@@ -862,21 +858,10 @@ namespace SharpNav
 				}
 			}
 
-			//reverse the path
 			if (bestNode != null)
 			{
-				Node prev = null;
+				//save the path
 				Node node = bestNode;
-				do
-				{
-					Node next = tinyNodePool.GetNodeAtIdx(node.pidx);
-					node.pidx = tinyNodePool.GetNodeIdx(prev);
-					prev = node;
-					node = next;
-				} while (node != null);
-
-				//store path
-				node = prev;
 				do
 				{
 					visited.Add(node.id);
@@ -884,8 +869,10 @@ namespace SharpNav
 						break;
 
 					node = tinyNodePool.GetNodeAtIdx(node.pidx);
-				}
-				while (node != null);
+				} while (node != null);
+
+				//reverse the path since it's backwards
+				visited.Reverse();
 			}
 
 			resultPos = bestPos;
