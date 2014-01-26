@@ -225,8 +225,8 @@ namespace SharpNav
 				Vector3 pt2 = vb;
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (MathHelper.Distance.PointToSegment2D(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr 
-					&& MathHelper.Distance.PointToSegment2D(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
+				if (MathHelper.Distance.PointToSegment2DSquared(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr 
+					&& MathHelper.Distance.PointToSegment2DSquared(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
 					return 1;
 			}
 
@@ -528,7 +528,7 @@ namespace SharpNav
 						int maxi = 0;
 						for (int m = a + 1; m < b; m++)
 						{
-							float dev = MathHelper.Distance.PointToSegment(ref edge[m], ref edge[va], ref edge[vb]);
+							float dev = MathHelper.Distance.PointToSegmentSquared(ref edge[m], ref edge[va], ref edge[vb]);
 							if (dev > maxd)
 							{
 								maxd = dev;
@@ -1048,7 +1048,7 @@ namespace SharpNav
 				int va = tris[i].VertexHash0;
 				int vb = tris[i].VertexHash1;
 				int vc = tris[i].VertexHash2;
-				float d = DistancePointTri(p, verts[va], verts[vb], verts[vc]);
+				float d = MathHelper.Distance.PointToTriangle(p, verts[va], verts[vb], verts[vc]);
 				if (d < dmin)
 					dmin = d;
 			}
@@ -1057,36 +1057,6 @@ namespace SharpNav
 				return -1;
 
 			return dmin;
-		}
-
-		private float DistancePointTri(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
-		{
-			Vector3 v0 = c - a;
-			Vector3 v1 = b - a;
-			Vector3 v2 = p - a;
-
-			float dot00, dot01, dot02, dot11, dot12;
-
-			Vector3Extensions.Dot2D(ref v0, ref v0, out dot00);
-			Vector3Extensions.Dot2D(ref v0, ref v1, out dot01);
-			Vector3Extensions.Dot2D(ref v0, ref v2, out dot02);
-			Vector3Extensions.Dot2D(ref v1, ref v1, out dot11);
-			Vector3Extensions.Dot2D(ref v1, ref v2, out dot12);
-
-			//compute barycentric coordinates
-			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
-			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-			//if point lies inside triangle, return interpolated y-coordinate
-			float EPS = 1E-4f;
-			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
-			{
-				float y = a.Y + v0.Y * u + v1.Y * v;
-				return Math.Abs(y - p.Y);
-			}
-
-			return float.MaxValue;
 		}
 
 		public struct MeshData

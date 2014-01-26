@@ -768,7 +768,7 @@ namespace SharpNav
 					verts[i] = curTile.verts[curPoly.verts[i]];
 
 				//if target is inside poly, stop search
-				if (PathfinderCommon.PointInPoly(endPos, verts, nverts))
+				if (MathHelper.IsPointInPoly(endPos, verts, nverts))
 				{
 					bestNode = curNode;
 					bestPos = endPos;
@@ -1190,7 +1190,7 @@ namespace SharpNav
 					}
 
 					float h = 0;
-					if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
+					if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
 					{
 						height = h;
 						return true;

@@ -53,25 +53,6 @@ namespace SharpNav
 			return overlap;
 		}
 
-		public static bool PointInPoly(Vector3 pt, Vector3[] verts, int nverts)
-		{
-			bool c = false;
-
-			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
-			{
-				int vi = i;
-				int vj = j;
-
-				if (((verts[vi].Z > pt.Z) != (verts[vj].Z > pt.Z)) &&
-					(pt.X < (verts[vj].X - verts[vi].X) * (pt.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
-				{
-					c = !c;
-				}
-			}
-
-			return c;
-		}
-
 		public static void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
 		{
 			int indexPoly = 0;
@@ -149,43 +130,12 @@ namespace SharpNav
 				}
 
 				float h = 0;
-				if (PathfinderCommon.ClosestHeightPointTriangle(pos, v[0], v[1], v[2], ref h))
+				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
 				{
 					closest.Y = h;
 					break;
 				}
 			}
-		}
-
-		public static bool ClosestHeightPointTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
-		{
-			Vector3 v0 = c - a;
-			Vector3 v1 = b - a;
-			Vector3 v2 = p - a;
-
-			float dot00, dot01, dot02, dot11, dot12;
-
-			Vector3Extensions.Dot2D(ref v0, ref v0, out dot00);
-			Vector3Extensions.Dot2D(ref v0, ref v1, out dot01);
-			Vector3Extensions.Dot2D(ref v0, ref v2, out dot02);
-			Vector3Extensions.Dot2D(ref v1, ref v1, out dot11);
-			Vector3Extensions.Dot2D(ref v1, ref v2, out dot12);
-
-			//compute barycentric coordinates
-			float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
-			float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-			float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-			float EPS = 1E-4f;
-
-			//if point lies inside triangle, return interpolated y-coordinate
-			if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
-			{
-				h = a.Y + v0.Y * u + v1.Y * v;
-				return true;
-			}
-
-			return false;
 		}
 
 		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, ref Vector3 pt)

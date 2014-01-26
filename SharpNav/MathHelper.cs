@@ -221,6 +221,31 @@ namespace SharpNav
 			return m;
 		}
 
+		/// <summary>
+		/// Determine whether the point is inside the polygon
+		/// </summary>
+		/// <param name="pt">Point</param>
+		/// <param name="verts">Vertices</param>
+		/// <param name="nverts">Number of vertices</param>
+		/// <returns></returns>
+		internal static bool IsPointInPoly(Vector3 pt, Vector3[] verts, int nverts)
+		{
+			bool c = false;
+
+			for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+			{
+				Vector3 vi = verts[i];
+				Vector3 vj = verts[j];
+				if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
+					(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
+				{
+					c = !c;
+				}
+			}
+
+			return c;
+		}
+
 		internal static class Distance
 		{
 			/// <summary>
@@ -230,7 +255,7 @@ namespace SharpNav
 			/// <param name="p">The coordinate of point P in the segment PQ.</param>
 			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
 			/// <returns>The distance between the point and the segment.</returns>
-			internal static float PointToSegment(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+			internal static float PointToSegmentSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
 			{
 				//distance from P to Q
 				Vector3 pq = q - p;
@@ -260,41 +285,6 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Find the 2d distance between a point and a segment PQ
-			/// </summary>
-			/// <param name="pt">The coordinate of the point.</param>
-			/// <param name="p">The coordinate of point P in the segment PQ.</param>
-			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
-			/// <returns>The distance between the point and the segment.</returns>
-			internal static float PointToSegment2D(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
-			{
-				//distance from P to Q in the xz plane
-				float segmentDeltaX = q.X - p.X;
-				float segmentDeltaZ = q.Z - p.Z;
-
-				//distance from P to lone point in xz plane
-				float dx = pt.X - p.X;
-				float dz = pt.Z - p.Z;
-
-				float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
-				float t = segmentDeltaX * dx + segmentDeltaZ * dz;
-
-				if (segmentMagnitudeSquared > 0)
-					t /= segmentMagnitudeSquared;
-
-				//keep t between 0 and 1
-				if (t < 0)
-					t = 0;
-				else if (t > 1)
-					t = 1;
-
-				dx = p.X + t * segmentDeltaX - pt.X;
-				dz = p.Z + t * segmentDeltaZ - pt.Z;
-
-				return dx * dx + dz * dz;
-			}
-
-			/// <summary>
 			/// Find the 2d distance between a point (x, z) and a segment PQ, where P is (px, pz) and Q is (qx, qz).
 			/// </summary>
 			/// <param name="x">The X coordinate of the point.</param>
@@ -304,7 +294,7 @@ namespace SharpNav
 			/// <param name="qx">The X coordinate of point Q in the segment PQ.</param>
 			/// <param name="qz">The Z coordinate of point Q in the segment PQ.</param>
 			/// <returns>The distance between the point and the segment.</returns>
-			internal static float PointToSegment2D(int x, int z, int px, int pz, int qx, int qz)
+			internal static float PointToSegment2DSquared(int x, int z, int px, int pz, int qx, int qz)
 			{
 				float segmentDeltaX = qx - px;
 				float segmentDeltaZ = qz - pz;
@@ -328,6 +318,19 @@ namespace SharpNav
 
 				return dx * dx + dz * dz;
 			}
+			
+			/// <summary>
+			/// Find the 2d distance between a point and a segment PQ
+			/// </summary>
+			/// <param name="pt">The coordinate of the point.</param>
+			/// <param name="p">The coordinate of point P in the segment PQ.</param>
+			/// <param name="q">The coordinate of point Q in the segment PQ.</param>
+			/// <returns>The distance between the point and the segment.</returns>
+			internal static float PointToSegment2DSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q)
+			{
+				float t = 0;
+				return PointToSegment2DSquared(ref pt, ref p, ref q, out t);
+			}
 
 			/// <summary>
 			/// Find the 2d distance between a point and a segment PQ
@@ -339,23 +342,28 @@ namespace SharpNav
 			/// <returns>The distance between the point and the segment.</returns>
 			internal static float PointToSegment2DSquared(ref Vector3 pt, ref Vector3 p, ref Vector3 q, out float t)
 			{
-				float pqx = q.X - p.X;
-				float pqz = q.Z - p.Z;
+				//distance from P to Q in the xz plane
+				float segmentDeltaX = q.X - p.X;
+				float segmentDeltaZ = q.Z - p.Z;
+
+				//distance from P to lone point in xz plane
 				float dx = pt.X - p.X;
 				float dz = pt.Z - p.Z;
-				float d = pqx * pqx + pqz * pqz;
-				t = pqx * dx + pqz * dz;
 
-				if (d > 0)
-					t /= d;
+				float segmentMagnitudeSquared = segmentDeltaX * segmentDeltaX + segmentDeltaZ * segmentDeltaZ;
+				t = segmentDeltaX * dx + segmentDeltaZ * dz;
 
+				if (segmentMagnitudeSquared > 0)
+					t /= segmentMagnitudeSquared;
+
+				//keep t between 0 and 1
 				if (t < 0)
 					t = 0;
 				else if (t > 1)
 					t = 1;
 
-				dx = p.X + t * pqx - pt.X;
-				dz = p.Z + t * pqz - pt.Z;
+				dx = p.X + t * segmentDeltaX - pt.X;
+				dz = p.Z + t * segmentDeltaZ - pt.Z;
 
 				return dx * dx + dz * dz;
 			}
@@ -367,26 +375,13 @@ namespace SharpNav
 			/// <param name="verts">Vertex data</param>
 			/// <param name="nverts">Number of vertices</param>
 			/// <returns></returns>
-			internal static float PointToPolygonEdgeSquared(Vector3 p, Vector3[] verts, int nverts)
+			internal static float PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts)
 			{
 				float dmin = float.MaxValue;
-				bool c = false;
-
 				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
-				{
-					int vi = i;
-					int vj = j;
+					dmin = Math.Min(dmin, MathHelper.Distance.PointToSegment2DSquared(ref pt, ref verts[j], ref verts[i]));
 
-					if (((verts[vi].Z > p.Z) != (verts[vj].Z > p.Z)) &&
-						(p.X < (verts[vj].X - verts[vi].X) * (p.Z - verts[vi].Z) / (verts[vj].Z - verts[vi].Z) + verts[vi].X))
-					{
-						c = !c;
-					}
-
-					dmin = Math.Min(dmin, MathHelper.Distance.PointToSegment2D(ref p, ref verts[vj], ref verts[vi]));
-				}
-
-				return c ? -dmin : dmin;
+				return IsPointInPoly(pt, verts, nverts) ? -dmin : dmin;
 			}
 
 			/// <summary>
@@ -400,22 +395,70 @@ namespace SharpNav
 			/// <returns></returns>
 			internal static bool PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts, float[] edgeDist, float[] edgeT)
 			{
-				bool c = false;
-
 				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
-				{
-					Vector3 vi = verts[i];
-					Vector3 vj = verts[j];
-					if (((vi.Z > pt.Z) != (vj.Z > pt.Z)) &&
-						(pt.X < (vj.X - vi.X) * (pt.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
-					{
-						c = !c;
-					}
+					edgeDist[j] = PointToSegment2DSquared(ref pt, ref verts[j], ref verts[i], out edgeT[j]);
 
-					edgeDist[j] = PointToSegment2DSquared(ref pt, ref vj, ref vi, out edgeT[j]);
+				return IsPointInPoly(pt, verts, nverts);
+			}
+
+			/// <summary>
+			/// Find the distance between a point P and triangle ABC.
+			/// </summary>
+			/// <param name="p">The point</param>
+			/// <param name="a">Triangle Vertex A</param>
+			/// <param name="b">Triangle Vertex B</param>
+			/// <param name="c">Triangle Vertex C</param>
+			/// <returns></returns>
+			internal static float PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
+			{
+				//If the point lies inside the triangle, return the interpolated y-coordinate
+				float h = 0;
+				if (PointToTriangle(p, a, b, c, ref h))
+				{
+					return Math.Abs(h - p.Y);
 				}
 
-				return c;
+				return float.MaxValue;
+			}
+
+			/// <summary>
+			/// Find the distance between a point P and triangle ABC.
+			/// </summary>
+			/// <param name="p">The point</param>
+			/// <param name="a">Triangle Vertex A</param>
+			/// <param name="b">Triangle Vertex B</param>
+			/// <param name="c">Triangle Vertex C</param>
+			/// <param name="h">Height</param>
+			/// <returns></returns>
+			internal static bool PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
+			{
+				Vector3 v0 = c - a;
+				Vector3 v1 = b - a;
+				Vector3 v2 = p - a;
+
+				float dot00, dot01, dot02, dot11, dot12;
+
+				Vector3Extensions.Dot2D(ref v0, ref v0, out dot00);
+				Vector3Extensions.Dot2D(ref v0, ref v1, out dot01);
+				Vector3Extensions.Dot2D(ref v0, ref v2, out dot02);
+				Vector3Extensions.Dot2D(ref v1, ref v1, out dot11);
+				Vector3Extensions.Dot2D(ref v1, ref v2, out dot12);
+
+				//compute barycentric coordinates
+				float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+				float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+				float EPS = 1E-4f;
+
+				//if point lies inside triangle, return interpolated y-coordinate
+				if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
+				{
+					h = a.Y + v0.Y * u + v1.Y * v;
+					return true;
+				}
+
+				return false;
 			}
 		}
 
