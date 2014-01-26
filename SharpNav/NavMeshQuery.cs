@@ -53,6 +53,28 @@ namespace SharpNav
 			return (pa - pb).Length() * areaCost[(int)curPoly.Area];
 		}
 
+		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
+		{
+			Random r = new Random();
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			for (int j = 0; j < poly.vertCount; j++)
+				verts[j] = tile.verts[poly.verts[j]];
+
+			float s = (float)r.NextDouble();
+			float t = (float)r.NextDouble();
+
+			randomPt = new Vector3();
+			PathfinderCommon.RandomPointInConvexPoly(verts, poly.vertCount, areas, s, t, out randomPt);
+
+			float h = 0.0f;
+			if (!GetPolyHeight(polyRef, randomPt, ref h))
+				return false;
+
+			randomPt.Y = h;
+			return true;
+		}
+
 		public bool FindRandomPoint(ref int randomRef, ref Vector3 randomPt)
 		{
 			if (nav == null)
@@ -121,30 +143,8 @@ namespace SharpNav
 			if (poly == null)
 				return false;
 
-			//randomly pick point on polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			for (int j = 0; j < poly.vertCount; j++)
-			{
-				verts[j] = tile.verts[poly.verts[j]];
-			}
-
-			float s = (float)randObj.NextDouble();
-			float t1 = (float)randObj.NextDouble();
-
-			Vector3 pt = new Vector3();
-			PathfinderCommon.RandomPointInConvexPoly(verts, poly.vertCount, areas, s, t1, ref pt);
-
-			float h = 0.0f;
-			if (!GetPolyHeight(polyRef, pt, ref h))
-				return false;
-
-			pt.Y = h;
-
-			randomPt = pt;
 			randomRef = polyRef;
-
-			return true;
+			return FindRandomPointOnPoly(tile, poly, polyRef, out randomPt);
 		}
 
 		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref int randomRef, ref Vector3 randomPt)
@@ -291,30 +291,8 @@ namespace SharpNav
 			if (randomPoly == null)
 				return false;
 
-			//randomly pick point on polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			for (int j = 0; j < randomPoly.vertCount; j++)
-			{
-				verts[j] = randomTile.verts[randomPoly.verts[j]];
-			}
-
-			float s = (float)randObj.NextDouble();
-			float t = (float)randObj.NextDouble();
-
-			Vector3 pt = new Vector3();
-			PathfinderCommon.RandomPointInConvexPoly(verts, randomPoly.vertCount, areas, s, t, ref pt);
-
-			float h = 0.0f;
-			if (!GetPolyHeight(randomPolyRef, pt, ref h))
-				return false;
-
-			pt.Y = h;
-
-			randomPt = pt;
 			randomRef = randomPolyRef;
-			
-			return true;
+			return FindRandomPointOnPoly(randomTile, randomPoly, randomPolyRef, out randomPt);
 		}
 
 		/// <summary>
@@ -890,9 +868,7 @@ namespace SharpNav
 			if (!GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right))
 				return false;
 
-			mid.X = (left.X + right.X) * 0.5f;
-			mid.Y = (left.Y + right.Y) * 0.5f;
-			mid.Z = (left.Z + right.Z) * 0.5f;
+			mid = (left + right) * 0.5f;
 
 			return true;
 		}
@@ -1013,41 +989,7 @@ namespace SharpNav
 			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
 				return false;
 
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int nv = 0;
-			for (int i = 0; i < poly.vertCount; i++)
-			{
-				verts[nv] = tile.verts[poly.verts[i]];
-				nv++;
-			}
-
-			bool inside = MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, nv, edged, edget);
-			if (inside)
-			{
-				//point is inside the polygon
-				closest = pos;
-			}
-			else
-			{
-				//point is outside the polygon
-				//clamp to nearest edge
-				float dmin = float.MaxValue;
-				int imin = -1;
-				for (int i = 0; i < nv; i++)
-				{
-					if (edged[i] < dmin)
-					{
-						dmin = edged[i];
-						imin = i;
-					}
-				}
-				Vector3 va = verts[imin];
-				Vector3 vb = verts[(imin + 1) % nv];
-				closest = Vector3.Lerp(va, vb, edget[imin]);
-			}
-
+			PathfinderCommon.ClosestPointOnPolyBoundary(tile, poly, pos, out closest);
 			return true;
 		}
 
@@ -1153,12 +1095,9 @@ namespace SharpNav
 			//off-mesh connections don't have detail polygons
 			if (poly.PolyType == PolygonType.OffMeshConnection)
 			{
-				Vector3 v0 = tile.verts[poly.verts[0]];
-				Vector3 v1 = tile.verts[poly.verts[1]];
-				float d0 = (pos - v0).Length();
-				float d1 = (pos - v1).Length();
-				float u = d0 / (d0 + d1);
-				height = v0.Y + (v1.Y - v0.Y) * u;
+				Vector3 closest;
+				PathfinderCommon.ClosestPointOnPolyOffMeshConnection(tile, poly, pos, out closest);
+				height = closest.Y;
 				return true;
 			}
 			else
@@ -1173,28 +1112,11 @@ namespace SharpNav
 					}
 				}
 
-				PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
-
-				//find height at the location
-				for (int j = 0; j < pd.TriangleCount; j++)
+				float h = 0;
+				if (PathfinderCommon.ClosestHeight(tile, indexPoly, pos, out h))
 				{
-					PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
-					Vector3[] v = new Vector3[3];
-
-					for (int k = 0; k < 3; k++)
-					{
-						if (t[k] < poly.vertCount)
-							v[k] = tile.verts[poly.verts[t[k]]];
-						else
-							v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
-					}
-
-					float h = 0;
-					if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
-					{
-						height = h;
-						return true;
-					}
+					height = h;
+					return true;
 				}
 			}
 

@@ -72,48 +72,61 @@ namespace SharpNav
 		{
 			Poly poly = tile.polys[indexPoly];
 
-			//off-mesh connections don't have detail polygons
+			//Off-mesh connections don't have detail polygons
 			if (tile.polys[indexPoly].PolyType == PolygonType.OffMeshConnection)
 			{
-				Vector3 v0 = tile.verts[poly.verts[0]];
-				Vector3 v1 = tile.verts[poly.verts[1]];
-				float d0 = (pos - v0).Length();
-				float d1 = (pos - v1).Length();
-				float u = d0 / (d0 + d1);
-				closest = Vector3.Lerp(v0, v1, u);
+				ClosestPointOnPolyOffMeshConnection(tile, poly, pos, out closest);
 				return;
 			}
 
-			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
+			ClosestPointOnPolyBoundary(tile, poly, pos, out closest);
 
-			//clamp point to be inside the polygon
+			float h;
+			if (ClosestHeight(tile, indexPoly, pos, out h))
+				closest.Y = h;
+		}
+
+		public static void ClosestPointOnPolyBoundary(MeshTile tile, Poly poly, Vector3 pos, out Vector3 closest)
+		{
+			//Clamp point to be inside the polygon
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edged = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edget = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int nv = poly.vertCount;
-			for (int i = 0; i < nv; i++)
+			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			int numPolyVerts = poly.vertCount;
+			for (int i = 0; i < numPolyVerts; i++)
 				verts[i] = tile.verts[poly.verts[i]];
 
-			closest = pos;
-			if (!MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, nv, edged, edget))
+			bool inside = MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT);
+			if (inside)
 			{
-				//point is outside polygon so clamp to nearest edge
-				float dmin = float.MaxValue;
-				int imin = -1;
-
-				for (int i = 0; i < nv; i++)
+				//Point is inside the polygon
+				closest = pos;
+			}
+			else
+			{
+				//Point is outside the polygon
+				//Clamp to nearest edge
+				float minDistance = float.MaxValue;
+				int minIndex = -1;
+				for (int i = 0; i < numPolyVerts; i++)
 				{
-					if (edged[i] < dmin)
+					if (edgeDistance[i] < minDistance)
 					{
-						dmin = edged[i];
-						imin = i;
+						minDistance = edgeDistance[i];
+						minIndex = i;
 					}
 				}
-
-				Vector3 va = verts[imin];
-				Vector3 vb = verts[(imin + 1) % nv];
-				closest = Vector3.Lerp(va, vb, edget[imin]);
+				Vector3 va = verts[minIndex];
+				Vector3 vb = verts[(minIndex + 1) % numPolyVerts];
+				closest = Vector3.Lerp(va, vb, edgeT[minIndex]);
 			}
+		}
+
+		public static bool ClosestHeight(MeshTile tile, int indexPoly, Vector3 pos, out float h)
+		{
+			Poly poly = tile.polys[indexPoly];
+			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
+			h = 0;
 
 			//find height at the location
 			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
@@ -129,18 +142,26 @@ namespace SharpNav
 						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
 				}
 
-				float h = 0;
 				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
-				{
-					closest.Y = h;
-					break;
-				}
+					return true;
 			}
+
+			return false;
 		}
 
-		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, ref Vector3 pt)
+		public static void ClosestPointOnPolyOffMeshConnection(MeshTile tile, Poly poly, Vector3 pos, out Vector3 closest)
 		{
-			//calculate triangle areas
+			Vector3 v0 = tile.verts[poly.verts[0]];
+			Vector3 v1 = tile.verts[poly.verts[1]];
+			float d0 = (pos - v0).Length();
+			float d1 = (pos - v1).Length();
+			float u = d0 / (d0 + d1);
+			closest = Vector3.Lerp(v0, v1, u);
+		}
+
+		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, out Vector3 pt)
+		{
+			//Calculate triangle areas
 			float areaSum = 0.0f;
 			float area;
 			for (int i = 2; i < npts; i++)
@@ -150,22 +171,22 @@ namespace SharpNav
 				areas[i] = area;
 			}
 
-			//find sub triangle weighted by area
-			float thr = s * areaSum;
-			float acc = 0.0f;
+			//Find sub triangle weighted by area
+			float threshold = s * areaSum;
+			float accumulatedArea = 0.0f;
 			float u = 0.0f;
-			int tri = 0;
+			int triangleVertex = 0;
 			for (int i = 2; i < npts; i++)
 			{
-				float dacc = areas[i];
-				if (thr >= acc && thr < (acc + dacc))
+				float currentArea = areas[i];
+				if (threshold >= accumulatedArea && threshold < (accumulatedArea + currentArea))
 				{
-					u = (thr - acc) / dacc;
-					tri = i;
+					u = (threshold - accumulatedArea) / currentArea;
+					triangleVertex = i;
 					break;
 				}
 
-				acc += dacc;
+				accumulatedArea += currentArea;
 			}
 
 			float v = (float)Math.Sqrt(t);
@@ -173,13 +194,11 @@ namespace SharpNav
 			float a = 1 - v;
 			float b = (1 - u) * v;
 			float c = u * v;
-			Vector3 pa = pts[0];
-			Vector3 pb = pts[tri - 1];
-			Vector3 pc = pts[tri];
+			Vector3 pointA = pts[0];
+			Vector3 pointB = pts[triangleVertex - 1];
+			Vector3 pointC = pts[triangleVertex];
 
-			pt.X = a * pa.X + b * pb.X + c * pc.X;
-			pt.Y = a * pa.Y + b * pb.Y + c * pc.Y;
-			pt.Z = a * pa.Z + b * pb.Z + c * pc.Z;
+			pt = a * pointA + b * pointB + c * pointC;
 		}
 
 		public class MeshHeader
