@@ -38,11 +38,6 @@ namespace SharpNav
 		private int tileBits; //number of tile bits in ID
 		private int polyBits; //number of poly bits in ID
 
-		public int GetReference(int polyBase, int poly)
-		{
-			return polyBase | poly;
-		}
-
 		public struct TiledNavMeshParams
 		{
 			public Vector3 origin;
@@ -224,7 +219,7 @@ namespace SharpNav
 			for (int i = 0; i < header.maxLinkCount; i++)
 				tile.links[i] = new Link();
 
-			tile.links[header.maxLinkCount - 1].next = PathfinderCommon.NULL_LINK;
+			SetNullLink(ref tile.links[header.maxLinkCount - 1].next);
 			for (int i = 0; i < header.maxLinkCount - 1; i++)
 				tile.links[i].next = i + 1;
 
@@ -285,7 +280,7 @@ namespace SharpNav
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
 				//The polygon links will end in a null link
-				tile.polys[i].firstLink = PathfinderCommon.NULL_LINK;
+				SetNullLink(ref tile.polys[i].firstLink);
 
 				//Avoid Off-Mesh Connection polygons
 				if (tile.polys[i].PolyType == PolygonType.OffMeshConnection)
@@ -295,14 +290,14 @@ namespace SharpNav
 				for (int j = tile.polys[i].vertCount - 1; j >= 0; j--)
 				{
 					//Skip hard and non-internal edges
-					if (tile.polys[i].neis[j] == 0 || (tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) != 0)
+					if (tile.polys[i].neis[j] == 0 || IsExternalLink(tile.polys[i].neis[j]))
 						continue;
 
 					//Allocate a new link if possible
 					int idx = AllocLink(tile);
 
 					//Allocation of link should be successful
-					if (idx != PathfinderCommon.NULL_LINK)
+					if (IsLinkAllocated(idx))
 					{
 						//Initialize a new link
 						tile.links[idx].reference = GetReference(polyBase, tile.polys[i].neis[j] - 1);
@@ -354,7 +349,7 @@ namespace SharpNav
 
 				//Link off-mesh connection to target poly
 				int idx = AllocLink(tile);
-				if (idx != PathfinderCommon.NULL_LINK)
+				if (IsLinkAllocated(idx))
 				{
 					//Initialize a new link
 					tile.links[idx].reference = reference;
@@ -369,7 +364,7 @@ namespace SharpNav
 
 				//Start end-point always conects back to off-mesh connection
 				int tidx = AllocLink(tile);
-				if (tidx != PathfinderCommon.NULL_LINK)
+				if (IsLinkAllocated(tidx))
 				{
 					//Initialize a new link
 					int landPolyIdx = DecodePolyIdPoly(reference);
@@ -399,9 +394,9 @@ namespace SharpNav
 			//Connect border links
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
-				int nv = tile.polys[i].vertCount;
+				int numPolyVerts = tile.polys[i].vertCount;
 
-				for (int j = 0; j < nv; j++)
+				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip non-portal edges
 					if ((tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) == 0)
@@ -413,18 +408,18 @@ namespace SharpNav
 
 					//Create new links
 					Vector3 va = tile.verts[tile.polys[i].verts[j]];
-					Vector3 vb = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
-					int[] nei = new int[4];
-					float[] neia = new float[4 * 2];
-					int nnei = FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia, 4);
+					Vector3 vb = tile.verts[tile.polys[i].verts[(j + 1) % numPolyVerts]];
+					List<int> nei = new List<int>(4);
+					List<float> neia = new List<float>(4 * 2);
+					FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia);
 
 					//Iterate through neighbors
-					for (int k = 0; k < nnei; k++)
+					for (int k = 0; k < nei.Count; k++)
 					{
 						//Allocate a new link if possible
 						int idx = AllocLink(tile);
 
-						if (idx != PathfinderCommon.NULL_LINK)
+						if (IsLinkAllocated(idx))
 						{
 							tile.links[idx].reference = nei[k];
 							tile.links[idx].edge = j;
@@ -504,7 +499,7 @@ namespace SharpNav
 				Poly targetPoly = target.polys[targetCon.poly];
 
 				//Skip off-mesh connections which start location could not be connected at all
-				if (targetPoly.firstLink == PathfinderCommon.NULL_LINK)
+				if (!IsLinkAllocated(targetPoly.firstLink))
 					continue;
 
 				Vector3 extents = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
@@ -526,7 +521,7 @@ namespace SharpNav
 
 				//Link off-mesh connection to target poly
 				int idx = AllocLink(target);
-				if (idx != PathfinderCommon.NULL_LINK)
+				if (IsLinkAllocated(idx))
 				{
 					target.links[idx].reference = reference;
 					target.links[idx].edge = i;
@@ -542,7 +537,7 @@ namespace SharpNav
 				if ((targetCon.flags & PathfinderCommon.OFFMESH_CON_BIDIR) != 0)
 				{
 					int tidx = AllocLink(tile);
-					if (tidx != PathfinderCommon.NULL_LINK)
+					if (IsLinkAllocated(tidx))
 					{
 						int landPolyIdx = DecodePolyIdPoly(reference);
 						tile.links[tidx].reference = GetReference(GetPolyRefBase(target), targetCon.poly);
@@ -569,39 +564,37 @@ namespace SharpNav
 		/// <param name="conarea">Resulting Connection area</param>
 		/// <param name="maxcon">Maximum number of connections</param>
 		/// <returns>Number of neighboring polys</returns>
-		public int FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, int[] con, float[] conarea, int maxcon)
+		public void FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, List<int> con, List<float> conarea)
 		{
 			if (tile == null)
-				return 0;
+				return;
 
-			float[] amin = new float[2];
-			float[] amax = new float[2];
+			Vector3 amin = new Vector3();
+			Vector3 amax = new Vector3();
 			CalcSlabEndPoints(va, vb, amin, amax, side);
 			float apos = GetSlabCoord(va, side);
 
 			//Remove links pointing to 'side' and compact the links array
-			float[] bmin = new float[2];
-			float[] bmax = new float[2];
-			int m = PathfinderCommon.EXT_LINK | side;
-			int n = 0;
+			Vector3 bmin = new Vector3();
+			Vector3 bmax = new Vector3();
 
 			int polyBase = GetPolyRefBase(tile);
 
 			//Iterate through all the tile's polygons
 			for (int i = 0; i < tile.header.polyCount; i++)
 			{
-				int nv = tile.polys[i].vertCount;
+				int numPolyVerts = tile.polys[i].vertCount;
 
 				//Iterate through all the vertices
-				for (int j = 0; j < nv; j++)
+				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip edges which do not point to the right side
-					if (tile.polys[i].neis[j] != m)
+					if (tile.polys[i].neis[j] != (PathfinderCommon.EXT_LINK | side))
 						continue;
 
 					//Grab two adjacent vertices
 					Vector3 vc = tile.verts[tile.polys[i].verts[j]];
-					Vector3 vd = tile.verts[tile.polys[i].verts[(j + 1) % nv]];
+					Vector3 vd = tile.verts[tile.polys[i].verts[(j + 1) % numPolyVerts]];
 					float bpos = GetSlabCoord(vc, side);
 
 					//Segments are not close enough
@@ -616,19 +609,16 @@ namespace SharpNav
 						continue;
 
 					//Add return value
-					if (n < maxcon)
+					if (con.Count < con.Capacity)
 					{
-						conarea[n * 2 + 0] = Math.Max(amin[0], bmin[0]);
-						conarea[n * 2 + 1] = Math.Min(amax[0], bmax[0]);
-						con[n] = GetReference(polyBase, i);
-						n++;
+						conarea.Add(Math.Max(amin[0], bmin[0]));
+						conarea.Add(Math.Min(amax[0], bmax[0]));
+						con.Add(GetReference(polyBase, i));
 					}
 
 					break;
 				}
 			}
-
-			return n;
 		}
 
 		/// <summary>
@@ -639,7 +629,7 @@ namespace SharpNav
 		/// <param name="bmin">Minimum bounds</param>
 		/// <param name="bmax">Maximum bounds</param>
 		/// <param name="side">Side</param>
-		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, float[] bmin, float[] bmax, int side)
+		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector3 bmin, Vector3 bmax, int side)
 		{
 			if (side == 0 || side == 4)
 			{
@@ -707,26 +697,26 @@ namespace SharpNav
 		/// <param name="px">Point's x</param>
 		/// <param name="py">Point's y</param>
 		/// <returns>True if slabs overlap</returns>
-		public bool OverlapSlabs(float[] amin, float[] amax, float[] bmin, float[] bmax, float px, float py)
+		public bool OverlapSlabs(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax, float px, float py)
 		{
 			//Check for horizontal overlap
 			//Segment shrunk a little so that slabs which touch at endpoints aren't connected
-			float minx = Math.Max(amin[0] + px, bmin[0] + px);
-			float maxx = Math.Min(amax[0] - px, bmax[0] - px);
-			if (minx > maxx)
+			float minX = Math.Max(amin[0] + px, bmin[0] + px);
+			float maxX = Math.Min(amax[0] - px, bmax[0] - px);
+			if (minX > maxX)
 				return false;
 
 			//Check vertical overlap
-			float ad = (amax[1] - amin[1]) / (amax[0] - amin[0]);
-			float ak = amin[1] - ad * amin[0];
-			float bd = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
-			float bk = bmin[1] - bd * bmin[0];
-			float aminy = ad * minx + ak;
-			float amaxy = ad * maxx + ak;
-			float bminy = bd * minx + bk;
-			float bmaxy = bd * maxx + bk;
-			float dmin = bminy - aminy;
-			float dmax = bmaxy - amaxy;
+			float aSlope = (amax[1] - amin[1]) / (amax[0] - amin[0]);
+			float aConstant = amin[1] - aSlope * amin[0];
+			float bSlope = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
+			float bConstant = bmin[1] - bSlope * bmin[0];
+			float aMinY = aSlope * minX + aConstant;
+			float aMaxY = aSlope * maxX + aConstant;
+			float bMinY = bSlope * minX + bConstant;
+			float bMaxY = bSlope * maxX + bConstant;
+			float dmin = bMinY - aMinY;
+			float dmax = bMaxY - aMaxY;
 
 			//Crossing segments always overlap
 			if (dmin * dmax < 0)
@@ -859,9 +849,7 @@ namespace SharpNav
 						continue;
 
 					//calculate polygon bounds
-					bmin = tile.verts[poly.verts[0]];
-					bmax = bmin;
-
+					bmax = bmin = tile.verts[poly.verts[0]];
 					for (int j = 1; j < poly.vertCount; j++)
 					{
 						int index = poly.verts[j];
@@ -887,7 +875,7 @@ namespace SharpNav
 		/// <returns>New link number</returns>
 		public int AllocLink(MeshTile tile)
 		{
-			if (tile.linksFreeList == PathfinderCommon.NULL_LINK)
+			if (!IsLinkAllocated(tile.linksFreeList))
 				return PathfinderCommon.NULL_LINK;
 
 			int link = tile.linksFreeList;
@@ -1036,6 +1024,26 @@ namespace SharpNav
 			uint h2 = 0xd8163841;
 			uint n = (uint)(h1 * x + h2 * y);
 			return (int)(n & mask);
+		}
+
+		public int GetReference(int polyBase, int poly)
+		{
+			return polyBase | poly;
+		}
+
+		public void SetNullLink(ref int index)
+		{
+			index = PathfinderCommon.NULL_LINK;
+		}
+
+		public bool IsLinkAllocated(int index)
+		{
+			return index != PathfinderCommon.NULL_LINK;
+		}
+
+		public bool IsExternalLink(int neighbor)
+		{
+			return (neighbor & PathfinderCommon.EXT_LINK) != 0;
 		}
 		
 		/// <summary>

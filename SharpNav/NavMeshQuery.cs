@@ -757,9 +757,7 @@ namespace SharpNav
 				for (int i = 0, j = curPoly.vertCount - 1; i < curPoly.vertCount; j = i++)
 				{
 					//find links to neighbors
-					int MAX_NEIS = 8;
-					int nneis = 0;
-					int[] neis = new int[MAX_NEIS];
+					List<int> neis = new List<int>(8);
 
 					if ((curPoly.neis[j] & PathfinderCommon.EXT_LINK) != 0)
 					{
@@ -775,8 +773,8 @@ namespace SharpNav
 									Poly neiPoly = null;
 									nav.GetTileAndPolyByRefUnsafe(link.reference, ref neiTile, ref neiPoly);
 									
-									if (nneis < MAX_NEIS)
-										neis[nneis++] = link.reference;
+									if (neis.Count < neis.Capacity)
+										neis.Add(link.reference);
 								}
 							}
 						}
@@ -785,27 +783,25 @@ namespace SharpNav
 					{
 						int idx = curPoly.neis[j] - 1;
 						int reference = nav.GetPolyRefBase(curTile) | idx;
-						neis[nneis++] = reference; //internal edge, encode id
+						neis.Add(reference); //internal edge, encode id
 					}
 
-					if (nneis == 0)
+					if (neis.Count == 0)
 					{
 						//wall edge, calculate distance
-						Vector3 vj = verts[j];
-						Vector3 vi = verts[i];
 						float tseg = 0;
-						float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref endPos, ref vj, ref vi, out tseg);
+						float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref endPos, ref verts[j], ref verts[i], out tseg);
 						if (distSqr < bestDist)
 						{
 							//update nearest distance
-							bestPos = Vector3.Lerp(vj, vi, tseg);
+							bestPos = Vector3.Lerp(verts[j], verts[i], tseg);
 							bestDist = distSqr;
 							bestNode = curNode;
 						}
 					}
 					else
 					{
-						for (int k = 0; k < nneis; k++)
+						for (int k = 0; k < neis.Count; k++)
 						{
 							//skip if no node can be allocated
 							Node neighbourNode = tinyNodePool.GetNode(neis[k]);
@@ -817,10 +813,7 @@ namespace SharpNav
 								continue;
 
 							//skip the link if too far from search constraint
-							Vector3 vj = verts[j];
-							Vector3 vi = verts[i];
-							float tseg = 0;
-							float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref searchPos, ref vj, ref vi, out tseg);
+							float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref searchPos, ref verts[j], ref verts[i]);
 							if (distSqr > searchRadSqr)
 								continue;
 
