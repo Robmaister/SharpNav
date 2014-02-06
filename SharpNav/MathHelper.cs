@@ -246,6 +246,9 @@ namespace SharpNav
 			return c;
 		}
 
+		/// <summary>
+		/// Contains helper methods to calculate the distance between two objects.
+		/// </summary>
 		internal static class Distance
 		{
 			/// <summary>
@@ -462,6 +465,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Contains helper methods to check for intersection between two objects.
+		/// </summary>
 		internal static class Intersection
 		{
 			/// <summary>

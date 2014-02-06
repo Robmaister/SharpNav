@@ -34,10 +34,37 @@ namespace SharpNav
 				data[i] = UnsetHeight;
 		}
 
-		public int X { get { return xmin; } }
-		public int Y { get { return ymin; } }
-		public int Width { get { return width; } }
-		public int Height { get { return height; } }
+		public int X
+		{
+			get
+			{
+				return xmin;
+			}
+		}
+
+		public int Y
+		{
+			get
+			{
+				return ymin;
+			}
+		}
+
+		public int Width
+		{
+			get
+			{
+				return width;
+			}
+		}
+
+		public int Height
+		{
+			get
+			{
+				return height;
+			}
+		}
 
 		public int this[int index]
 		{
@@ -45,6 +72,7 @@ namespace SharpNav
 			{
 				return data[index];
 			}
+
 			set
 			{
 				data[index] = value;

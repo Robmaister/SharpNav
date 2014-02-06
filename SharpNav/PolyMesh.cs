@@ -38,17 +38,6 @@ namespace SharpNav
 		private float cellHeight;
 		private int borderSize;
 
-		public int VertCount { get { return vertices.Length; } }
-		public int PolyCount { get { return polygons.Length; } }
-		public int NumVertsPerPoly { get { return numVertsPerPoly; } }
-		public Vector3[] Verts { get { return vertices; } }
-		public Polygon[] Polys { get { return polygons; } }
-
-		public BBox3 Bounds { get { return bounds; } }
-		public float CellSize { get { return cellSize; } }
-		public float CellHeight { get { return cellHeight; } }
-		public int BorderSize { get { return borderSize; } }
-
 		/// <summary>
 		/// Create polygons out of a set of contours
 		/// </summary>
@@ -261,6 +250,78 @@ namespace SharpNav
 
 			this.vertices = verts.ToArray();
 			this.polygons = polys.ToArray();
+		}
+
+		public int VertCount
+		{
+			get
+			{
+				return vertices.Length;
+			}
+		}
+
+		public int PolyCount
+		{
+			get
+			{
+				return polygons.Length;
+			}
+		}
+
+		public int NumVertsPerPoly
+		{
+			get
+			{
+				return numVertsPerPoly;
+			}
+		}
+
+		public Vector3[] Verts
+		{
+			get
+			{
+				return vertices;
+			}
+		}
+
+		public Polygon[] Polys
+		{
+			get
+			{
+				return polygons;
+			}
+		}
+
+		public BBox3 Bounds
+		{
+			get
+			{
+				return bounds;
+			}
+		}
+
+		public float CellSize
+		{
+			get
+			{
+				return cellSize;
+			}
+		}
+
+		public float CellHeight
+		{
+			get
+			{
+				return cellHeight;
+			}
+		}
+
+		public int BorderSize
+		{
+			get
+			{
+				return borderSize;
+			}
 		}
 
 		/// <summary>

@@ -24,8 +24,28 @@ namespace SharpNav
 			this.index = i;
 		}
 
-		public int X { get { return x; } }
-		public int Y { get { return y; } }
-		public int Index { get { return index; } }
+		public int X
+		{
+			get
+			{
+				return x;
+			}
+		}
+
+		public int Y
+		{
+			get
+			{
+				return y;
+			}
+		}
+
+		public int Index
+		{
+			get
+			{
+				return index;
+			}
+		}
 	}
 }

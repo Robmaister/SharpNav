@@ -34,15 +34,6 @@ namespace SharpNav
 		private BVNode[] navBvTree;
 		private OffMeshConnection[] offMeshCons;
 
-		public PathfinderCommon.MeshHeader Header { get { return header; } }
-		public Vector3[] NavVerts { get { return navVerts; } }
-		public Poly[] NavPolys { get { return navPolys; } }
-		public PolyMeshDetail.MeshData[] NavDMeshes { get { return navDMeshes; } }
-		public Vector3[] NavDVerts { get { return navDVerts; } }
-		public PolyMeshDetail.TriangleData[] NavDTris { get { return navDTris; } }
-		public BVNode[] NavBvTree { get { return navBvTree; } }
-		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
-
 		/// <summary>
 		/// Add all the PolyMesh and PolyMeshDetail attributes to the Navigation Mesh.
 		/// Then, add Off-Mesh connection support.
@@ -162,7 +153,7 @@ namespace SharpNav
 				{
 					int numDetailVerts = parameters.detailMeshes[i].VertexCount;
 					int numPolyVerts = parameters.polys[i].VertexCount;
-					uniqueDetailVertCount += (numDetailVerts - numPolyVerts);
+					uniqueDetailVertCount += numDetailVerts - numPolyVerts;
 				}
 			}
 			else
@@ -383,6 +374,15 @@ namespace SharpNav
 			}
 		}
 
+		public PathfinderCommon.MeshHeader Header { get { return header; } }
+		public Vector3[] NavVerts { get { return navVerts; } }
+		public Poly[] NavPolys { get { return navPolys; } }
+		public PolyMeshDetail.MeshData[] NavDMeshes { get { return navDMeshes; } }
+		public Vector3[] NavDVerts { get { return navDVerts; } }
+		public PolyMeshDetail.TriangleData[] NavDTris { get { return navDTris; } }
+		public BVNode[] NavBvTree { get { return navBvTree; } }
+		public OffMeshConnection[] OffMeshCons { get { return offMeshCons; } }
+
 		/// <summary>
 		/// Decide which sector the offmesh point is a part of.
 		/// </summary>
@@ -559,7 +559,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		///Determine whether the bounding x, y, or z axis contains the longest distance 
+		/// Determine whether the bounding x, y, or z axis contains the longest distance 
 		/// </summary>
 		/// <param name="x">Length of bounding x-axis</param>
 		/// <param name="y">Length of bounding y-axis</param>

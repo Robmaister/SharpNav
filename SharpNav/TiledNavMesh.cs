@@ -38,15 +38,6 @@ namespace SharpNav
 		private int tileBits; //number of tile bits in ID
 		private int polyBits; //number of poly bits in ID
 
-		public struct TiledNavMeshParams
-		{
-			public Vector3 origin;
-			public float tileWidth;
-			public float tileHeight;
-			public int maxTiles;
-			public int maxPolys;
-		}
-
 		/// <summary>
 		/// Link all the polygons in the mesh together for pathfinding purposes.
 		/// </summary>
@@ -141,6 +132,7 @@ namespace SharpNav
 		{
 			//make sure data is in right format
 			PathfinderCommon.MeshHeader header = data.Header;
+
 			//if (header.magic != PathfinderCommon.NAVMESH_MAGIC)
 			//	return;
 			//if (header.version != PathfinderCommon.NAVMESH_VERSION)
@@ -1200,6 +1192,15 @@ namespace SharpNav
 		public int EncodePolyId(int salt, int indexTile, int indexPoly)
 		{
 			return (salt << (int)(polyBits + tileBits)) | (indexTile << (int)polyBits) | indexPoly;
+		}
+
+		public struct TiledNavMeshParams
+		{
+			public Vector3 origin;
+			public float tileWidth;
+			public float tileHeight;
+			public int maxTiles;
+			public int maxPolys;
 		}
 	}
 }

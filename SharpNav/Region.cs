@@ -13,7 +13,6 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-
 	[Flags]
 	public enum RegionId : int
 	{
@@ -52,36 +51,84 @@ namespace SharpNav
 
 		public int SpanCount
 		{
-			get { return spanCount; }
-			set { this.spanCount = value; }
+			get
+			{
+				return spanCount;
+			}
+
+			set
+			{
+				this.spanCount = value;
+			}
 		}
 
 		public RegionId Id 
-		{ 
-			get { return id; }
-			set { this.id = value; }
+		{
+			get
+			{
+				return id;
+			}
+
+			set
+			{
+				this.id = value;
+			}
 		}
 
 		public AreaId AreaType
 		{
-			set { this.areaType = value; }
+			get
+			{
+				return areaType;
+			}
+
+			set
+			{
+				this.areaType = value;
+			}
 		}
 
 		public bool Remap 
 		{
-			get { return remap; }
-			set { this.remap = value; } 
+			get
+			{
+				return remap;
+			}
+
+			set
+			{
+				this.remap = value;
+			}
 		}
 
 		public bool Visited
 		{
-			get { return visited; }
-			set { this.visited = value; }
+			get
+			{
+				return visited;
+			}
+
+			set
+			{
+				this.visited = value;
+			}
 		}
 
-		public List<RegionId> FloorRegions { get { return floors; } }
+		public List<RegionId> FloorRegions
+		{
+			get
+			{
+				return floors;
+			}
+		}
 
-		public List<RegionId> Connections { get { return connections; } }
+		public List<RegionId> Connections
+		{
+			get
+			{
+				return connections;
+			}
+		}
 
 		public static RegionId IdWithBorderFlag(RegionId id)
 		{

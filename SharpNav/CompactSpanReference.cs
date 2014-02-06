@@ -41,17 +41,35 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the X coordinate of the referenced span.
 		/// </summary>
-		public int X { get { return x; } }
+		public int X
+		{
+			get
+			{
+				return x;
+			}
+		}
 
 		/// <summary>
 		/// Gets the Y coordinate of the referenced span.
 		/// </summary>
-		public int Y { get { return y; } }
+		public int Y
+		{
+			get
+			{
+				return y;
+			}
+		}
 
 		/// <summary>
 		/// Gets the index of the referenced span in the spans array.
 		/// </summary>
-		public int Index { get { return index; } }
+		public int Index
+		{
+			get
+			{
+				return index;
+			}
+		}
 
 		/// <summary>
 		/// Compares two instances of <see cref="CompactSpanReference"/> for equality.

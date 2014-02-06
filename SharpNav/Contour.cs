@@ -50,9 +50,21 @@ namespace SharpNav
 			}
 		}
 
-		public ContourVertex[] Vertices { get { return vertices; } }
+		public ContourVertex[] Vertices
+		{
+			get
+			{
+				return vertices;
+			}
+		}
 
-		public ContourVertex[] RawVertices { get { return rawVertices; } }
+		public ContourVertex[] RawVertices
+		{
+			get
+			{
+				return rawVertices;
+			}
+		}
 
 		//TODO operator overload == and != with null?
 		public bool IsNull

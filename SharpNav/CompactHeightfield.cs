@@ -455,6 +455,18 @@ namespace SharpNav
 				spans[i].Region = regions[i];
 		}
 
+		private static void AppendStacks(List<CompactSpanReference> source, List<CompactSpanReference> destination, RegionId[] regions)
+		{
+			for (int j = 0; j < source.Count; j++)
+			{
+				var spanRef = source[j];
+				if (spanRef.Index < 0 || regions[spanRef.Index] != 0)
+					continue;
+
+				destination.Add(spanRef);
+			}
+		}
+
 		/// <summary>
 		/// Discards regions that are too small. 
 		/// </summary>
@@ -1337,18 +1349,6 @@ namespace SharpNav
 						stacks[sId].Add(new CompactSpanReference(x, y, i));
 					}
 				}
-			}
-		}
-
-		private static void AppendStacks(List<CompactSpanReference> source, List<CompactSpanReference> destination, RegionId[] regions)
-		{
-			for (int j = 0; j < source.Count; j++)
-			{
-				var spanRef = source[j];
-				if (spanRef.Index < 0 || regions[spanRef.Index] != 0)
-					continue;
-
-				destination.Add(spanRef);
 			}
 		}
 	}

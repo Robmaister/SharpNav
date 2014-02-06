@@ -438,7 +438,7 @@ namespace Examples
 			parameters.offMeshConUserID = null;
 			parameters.offMeshConCount = 0;
 			parameters.walkableHeight = settings.MaxHeight;
-			parameters.walkableRadius = 1; //not really used, but set a default value anyway
+			parameters.walkableRadius = settings.ErodeRadius;
 			parameters.walkableClimb = settings.MaxClimb;
 			parameters.bounds = polyMesh.Bounds;
 			parameters.cellSize = polyMesh.CellSize;

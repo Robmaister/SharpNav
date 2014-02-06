@@ -36,6 +36,9 @@ namespace SharpNav
 		South = 3
 	}
 
+	/// <summary>
+	/// A set of extension methods to make using the Direction enum a lot simpler.
+	/// </summary>
 	public static class DirectionExtensions
 	{
 		private static readonly int[] OffsetsX = { -1, 0, 1, 0 };

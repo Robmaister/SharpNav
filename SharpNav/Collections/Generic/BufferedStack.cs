@@ -38,9 +38,21 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
-		public int Count { get { return last + 1; } }
+		public int Count
+		{
+			get
+			{
+				return last + 1;
+			}
+		}
 
-		bool ICollection<T>.IsReadOnly { get { return false; } }
+		bool ICollection<T>.IsReadOnly
+		{
+			get
+			{
+				return false;
+			}
+		}
 
 		public T this[int index]
 		{

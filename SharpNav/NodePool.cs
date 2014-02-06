@@ -15,23 +15,23 @@ namespace SharpNav
 	/// </summary>
 	public class NodePool
 	{
-		private List<Node> m_nodes;
+		private int hashSize;
+		private List<Node> nodes;
 		private Dictionary<int, Node> nodeDict;
-		private int m_maxNodes;
-		private static int m_hashSize;
+		private int maxNodes;
 
 		public NodePool(int maxNodes, int hashSize)
 		{
-			m_maxNodes = maxNodes;
-			m_hashSize = hashSize;
+			this.maxNodes = maxNodes;
+			this.hashSize = hashSize;
 
-			m_nodes = new List<Node>(m_maxNodes);
-			nodeDict = new Dictionary<int, Node>(new IntNodeIdComparer());
+			nodes = new List<Node>(maxNodes);
+			nodeDict = new Dictionary<int, Node>(new IntNodeIdComparer(hashSize));
 		}
 
 		public void Clear()
 		{
-			m_nodes.Clear();
+			nodes.Clear();
 			nodeDict.Clear();
 		}
 
@@ -54,7 +54,7 @@ namespace SharpNav
 				return node;
 			}
 
-			if (m_nodes.Count >= m_maxNodes)
+			if (nodes.Count >= maxNodes)
 				return null;
 
 			Node newNode = new Node();
@@ -64,7 +64,7 @@ namespace SharpNav
 			newNode.id = id;
 			newNode.flags = 0;
 			
-			m_nodes.Add(newNode);
+			nodes.Add(newNode);
 			nodeDict.Add(id, newNode);
 
 			return newNode;
@@ -75,9 +75,9 @@ namespace SharpNav
 			if (node == null)
 				return 0;
 
-			for (int i = 0; i < m_nodes.Count; i++)
+			for (int i = 0; i < nodes.Count; i++)
 			{
-				if (m_nodes[i] == node)
+				if (nodes[i] == node)
 					return i + 1;
 			}
 
@@ -86,14 +86,21 @@ namespace SharpNav
 
 		public Node GetNodeAtIdx(int idx)
 		{
-			if (idx <= 0 || idx > m_nodes.Count)
+			if (idx <= 0 || idx > nodes.Count)
 				return null;
 
-			return m_nodes[idx - 1]; 
+			return nodes[idx - 1]; 
 		}
 
 		private class IntNodeIdComparer : IEqualityComparer<int>
 		{
+			private int hashSize;
+
+			public IntNodeIdComparer(int hashSize)
+			{
+				this.hashSize = hashSize;
+			}
+
 			public bool Equals(int left, int right)
 			{
 				return left == right;
@@ -108,7 +115,7 @@ namespace SharpNav
 				obj += ~(obj << 11);
 				obj ^= obj >> 16;
 
-				return obj & (m_hashSize - 1);
+				return obj & (hashSize - 1);
 			}
 		}
 	}

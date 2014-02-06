@@ -41,13 +41,6 @@ namespace SharpNav
 		private Vector3[] verts;
 		private TriangleData[] tris;
 
-		public int MeshCount { get { return meshes.Length; } }
-		public int VertCount { get { return verts.Length; } }
-		public int TrisCount { get { return tris.Length; } }
-		public MeshData[] Meshes { get { return meshes; } }
-		public Vector3[] Verts { get { return verts; } }
-		public TriangleData[] Tris { get { return tris; } }
-
 		/// <summary>
 		/// Use the CompactHeightfield data to add the height detail to the mesh. 
 		/// Triangulate the added detail to form a complete navigation mesh.
@@ -134,8 +127,7 @@ namespace SharpNav
 				List<TriangleData> tempTris = new List<TriangleData>(128);
 				List<EdgeInfo> edges = new List<EdgeInfo>(16);
 				List<SamplingData> samples = new List<SamplingData>(128);
-				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp,
-					tempVerts, tempTris, edges, samples);
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, tempVerts, tempTris, edges, samples);
 
 				//more detail verts
 				for (int j = 0; j < tempVerts.Count; j++)
@@ -179,6 +171,54 @@ namespace SharpNav
 
 			this.verts = storedVertices.ToArray();
 			this.tris = storedTriangles.ToArray();
+		}
+
+		public int MeshCount
+		{
+			get
+			{
+				return meshes.Length;
+			}
+		}
+
+		public int VertCount
+		{
+			get
+			{
+				return verts.Length;
+			}
+		}
+
+		public int TrisCount
+		{
+			get
+			{
+				return tris.Length;
+			}
+		}
+
+		public MeshData[] Meshes
+		{
+			get
+			{
+				return meshes;
+			}
+		}
+
+		public Vector3[] Verts
+		{
+			get
+			{
+				return verts;
+			}
+		}
+
+		public TriangleData[] Tris
+		{
+			get
+			{
+				return tris;
+			}
 		}
 
 		/// <summary>
@@ -439,8 +479,7 @@ namespace SharpNav
 		/// <param name="tris">Detail triangles</param>
 		/// <param name="edges">Edges</param>
 		/// <param name="samples">Samples</param>
-		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, 
-			List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
+		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -717,9 +756,17 @@ namespace SharpNav
 			if (h == HeightPatch.UnsetHeight)
 			{
 				//go in counterclockwise direction starting from west, ending in northwest
-				int[] off = { -1, 0,	-1, -1,		0, -1, 
-							   1, -1,	 1, 0,		1, 1, 
-							   0, 1,    -1, 1 };
+				int[] off =
+				{
+					-1,  0,
+					-1, -1,
+					 0, -1,
+					 1, -1,
+					 1,  0,
+					 1,  1,
+					 0,  1,
+					-1,  1
+				};
 
 				float dmin = float.MaxValue;
 

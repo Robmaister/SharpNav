@@ -462,7 +462,8 @@ namespace SharpNav
 					break;
 		
 				node = nodePool.GetNodeAtIdx(node.pidx);
-			} while (node != null);
+			}
+			while (node != null);
 			
 			//reverse the path since it's backwards
 			path.Reverse();
@@ -473,8 +474,7 @@ namespace SharpNav
 		/// <summary>
 		/// Add vertices and portals to a regular path computed from the method FindPath().
 		/// </summary>
-		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize,
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			straightPathCount = 0;
 
@@ -489,8 +489,7 @@ namespace SharpNav
 			Vector3 closestEndPos = new Vector3();
 			ClosestPointOnPolyBoundary(path[pathSize - 1], endPos, ref closestEndPos);
 
-			stat = AppendVertex(closestStartPos, PathfinderCommon.STRAIGHTPATH_START, path[0], 
-				straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+			stat = AppendVertex(closestStartPos, PathfinderCommon.STRAIGHTPATH_START, path[0], straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 			if (!stat)
 				return true;
@@ -532,12 +531,10 @@ namespace SharpNav
 							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
 							{
 								//append portals
-								stat = AppendPortals(apexIndex, i, closestEndPos, path,
-									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+								stat = AppendPortals(apexIndex, i, closestEndPos, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 							}
 
-							stat = AppendVertex(closestEndPos, 0, path[i],
-								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+							stat = AppendVertex(closestEndPos, 0, path[i], straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 							return true;
 						}
@@ -577,8 +574,7 @@ namespace SharpNav
 							//append portals along current straight path segment
 							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
 							{
-								stat = AppendPortals(apexIndex, leftIndex, portalLeft, path,
-									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+								stat = AppendPortals(apexIndex, leftIndex, portalLeft, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
 								if (stat != true)
 									return true;
@@ -596,8 +592,7 @@ namespace SharpNav
 							int reference = leftPolyRef;
 
 							//append or update vertex
-							stat = AppendVertex(portalApex, flags, reference,
-								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+							stat = AppendVertex(portalApex, flags, reference, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 							if (stat != true)
 								return true;
@@ -630,8 +625,7 @@ namespace SharpNav
 						{
 							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
 							{
-								stat = AppendPortals(apexIndex, rightIndex, portalRight, path,
-									straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+								stat = AppendPortals(apexIndex, rightIndex, portalRight, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
 								if (stat != true)
 									return true;
@@ -649,8 +643,7 @@ namespace SharpNav
 							int reference = rightPolyRef;
 
 							//append or update vertex
-							stat = AppendVertex(portalApex, flags, reference,
-								straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+							stat = AppendVertex(portalApex, flags, reference, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 							if (stat != true)
 								return true;
@@ -671,16 +664,14 @@ namespace SharpNav
 				//append portals along the current straight line segment
 				if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
 				{
-					stat = AppendPortals(apexIndex, pathSize - 1, closestEndPos, path,
-						straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
+					stat = AppendPortals(apexIndex, pathSize - 1, closestEndPos, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
 					if (stat != true)
 						return true;
 				}
 			}
 
-			stat = AppendVertex(closestEndPos, PathfinderCommon.STRAIGHTPATH_END, 0,
-				straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+			stat = AppendVertex(closestEndPos, PathfinderCommon.STRAIGHTPATH_END, 0, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 			return true;
 		}
@@ -689,8 +680,7 @@ namespace SharpNav
 		/// This method is optimized for small delta movement and a small number of polygons.
 		/// If movement distance is too large, the result will form an incomplete path.
 		/// </summary>
-		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, 
-			ref Vector3 resultPos, List<int> visited)
+		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, ref Vector3 resultPos, List<int> visited)
 		{
 			if (nav == null)
 				return false;
@@ -840,7 +830,8 @@ namespace SharpNav
 						break;
 
 					node = tinyNodePool.GetNodeAtIdx(node.pidx);
-				} while (node != null);
+				}
+				while (node != null);
 
 				//reverse the path since it's backwards
 				visited.Reverse();
@@ -986,8 +977,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendVertex(Vector3 pos, int flags, int reference,
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		public bool AppendVertex(Vector3 pos, int flags, int reference, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
 		{
 			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
 			{
@@ -1021,8 +1011,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path,
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -1061,8 +1050,7 @@ namespace SharpNav
 				{
 					Vector3 pt = Vector3.Lerp(left, right, t);
 
-					stat = AppendVertex(pt, 0, path[i + 1],
-						straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+					stat = AppendVertex(pt, 0, path[i + 1], straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 					if (stat != true)
 						return true;

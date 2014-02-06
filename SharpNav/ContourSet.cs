@@ -231,6 +231,11 @@ namespace SharpNav
 			}
 		}
 
+		bool ICollection<Contour>.IsReadOnly
+		{
+			get { return true; }
+		}
+
 		public bool Contains(Contour item)
 		{
 			return contours.Contains(item);
@@ -433,7 +438,6 @@ namespace SharpNav
 
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
-
 				bool twoSameExteriors = Region.IsBorder((RegionId)regs[a]) && Region.IsBorder((RegionId)regs[b]) && regs[a] == regs[b];
 				bool twoSameInteriors = !(Region.IsBorder((RegionId)regs[c]) || Region.IsBorder((RegionId)regs[d]));
 				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
@@ -750,11 +754,6 @@ namespace SharpNav
 		void ICollection<Contour>.Clear()
 		{
 			throw new InvalidOperationException();
-		}
-
-		bool ICollection<Contour>.IsReadOnly
-		{
-			get { return true; }
 		}
 
 		bool ICollection<Contour>.Remove(Contour item)

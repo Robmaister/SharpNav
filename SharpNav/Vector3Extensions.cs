@@ -94,8 +94,8 @@ namespace SharpNav
 
 		internal class RoughYEqualityComparer : IEqualityComparer<Vector3>
 		{
-			private const int hashConstX = unchecked((int)0x8da6b343);
-			private const int hashConstZ = unchecked((int)0xcb1ab31f);
+			private const int HashConstX = unchecked((int)0x8da6b343);
+			private const int HashConstZ = unchecked((int)0xcb1ab31f);
 
 			private float epsilonY;
 
@@ -111,7 +111,7 @@ namespace SharpNav
 
 			public int GetHashCode(Vector3 obj)
 			{
-				return hashConstX * (int)obj.X + hashConstZ * (int)obj.Z;
+				return HashConstX * (int)obj.X + HashConstZ * (int)obj.Z;
 			}
 		}
 	}
