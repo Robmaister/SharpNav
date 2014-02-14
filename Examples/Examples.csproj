@@ -11,6 +11,8 @@
     <AssemblyName>Examples</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -38,22 +40,26 @@
     <DefineConstants>OPENTK</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
     <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
     <OutputPath>bin\SharpDX\</OutputPath>
     <Prefer32Bit>true</Prefer32Bit>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>bin\MonoGame\</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
     <OutputPath>bin\XNA\</OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
+    <WarningLevel>4</WarningLevel>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gwen">
@@ -88,7 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
-      <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
+      <Project>{0E3C6E73-CCE6-4148-B847-36487FFEA225}</Project>
       <Name>SharpNav</Name>
     </ProjectReference>
   </ItemGroup>

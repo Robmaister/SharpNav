@@ -1104,6 +1104,72 @@ namespace SharpNav
 			return false;
 		}
 
+
+
+		/// <summary>
+		/// Finds the nearest polu.
+		/// </summary>
+		/// <returns><c>true</c>, if nearest polu was found, <c>false</c> otherwise.</returns>
+		/// <param name="center">Center.</param>
+		/// <param name="extents">Extents.</param>
+		/// <param name="nearestRef">Nearest reference.</param>
+		/// <param name="neareastPt">Neareast point.</param>
+		/*public bool findNearestPolu(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 neareastPt)
+		{
+			nearestRef = 0;
+
+			// Get nearby polygons from proximity grid.
+			List<int> polys=new List<int>[128];
+			int polycount = 0; 
+			if (queryPolygons (center, extents, polys)) {
+				return false;
+			}
+
+			int nearest = 0;
+			float nearestDistanceSqr = FLT_MAX;
+			bool nearestOverPoly = false;
+			for (int i = 0; i < polys.Count; ++i) {
+				
+			}
+		
+		}*/
+		/// <summary>
+		/// Queries the polygons.
+		/// </summary>
+		/// <returns><c>true</c>, if polygons was queryed, <c>false</c> otherwise.</returns>
+		/// <param name="center">Center.</param>
+		/// <param name="extent">Extent.</param>
+		/// <param name="polys">Polys.</param>
+		public bool queryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
+		{
+			Vector3 bmin = new Vector3();
+			Vector3 bmax = new Vector3();
+			bmin = center - extent;
+			bmax = center + extent;
+
+			const int MAX_NETS = 32;
+			MeshTile []neis = new MeshTile[MAX_NETS];
+
+			int n = 0;                  
+			int minx = 0, miny = 0, maxx = 0, maxy = 0;
+			nav.calcTileLoc (bmin, ref minx, ref miny);
+			nav.calcTileLoc (bmax, ref maxx, ref minx);
+			BBox3 bounds = new BBox3 (bmin, bmax);
+			for (int y = miny; y <= maxy; ++y) {
+				for (int x = minx; x <= maxx; ++x) {
+					int nneis = nav.GetTilesAt (x, y, neis, MAX_NETS);
+					for (int j = 0; j < nneis; ++j) {
+						n += nav.QueryPolygonsInTile (neis [j], bounds, polys);
+						if (n >= polys.Capacity) {
+							return true;
+						}
+					}
+				}
+			}
+			return true;
+
+		}
+
 		public bool IsInOpenList(Node node)
 		{
 			return (node.flags & NodeFlags.Open) != 0;

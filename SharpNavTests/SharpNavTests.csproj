@@ -11,6 +11,8 @@
     <AssemblyName>SharpNavTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,16 +38,19 @@
     <DefineConstants>OPENTK</DefineConstants>
     <Optimize>true</Optimize>
     <SignAssembly>true</SignAssembly>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
     <OutputPath>bin\SharpDX\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>SHARPDX</DefineConstants>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>bin\MonoGame\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>MONOGAME</DefineConstants>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
     <OutputPath>bin\XNA\</OutputPath>
@@ -53,17 +58,17 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <DefineConstants>XNA</DefineConstants>
     <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SharpNavTests.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Binaries\nunit.framework.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\Binaries\nunit.framework.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
     <Reference Include="MonoGame.Framework" />
@@ -89,7 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
-      <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
+      <Project>{0E3C6E73-CCE6-4148-B847-36487FFEA225}</Project>
       <Name>SharpNav</Name>
     </ProjectReference>
   </ItemGroup>

@@ -1202,5 +1202,16 @@ namespace SharpNav
 			public int maxTiles;
 			public int maxPolys;
 		}
+		/// <summary>
+		/// Calculates the tile location.
+		/// </summary>
+		/// <param name="pos">Position.</param>
+		/// <param name="tx">Tx.</param>
+		/// <param name="ty">Ty.</param>
+		public void calcTileLoc(Vector3 pos, ref int tx, ref int ty)
+		{
+			tx = (int)Math.Floor ((pos.X - origin.X) / tileWidth);
+			ty = (int)Math.Floor ((pos.Z - origin.Z) / tileHeight);
+		}
 	}
 }

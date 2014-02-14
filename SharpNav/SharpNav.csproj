@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,16 +39,19 @@
     <DefineConstants>TRACE;OPENTK</DefineConstants>
     <Optimize>true</Optimize>
     <SignAssembly>true</SignAssembly>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
     <OutputPath>bin\SharpDX\</OutputPath>
     <DefineConstants>TRACE;SHARPDX</DefineConstants>
     <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>bin\MonoGame\</OutputPath>
     <DefineConstants>TRACE;MONOGAME</DefineConstants>
     <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
@@ -57,6 +62,7 @@
     <Optimize>true</Optimize>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
