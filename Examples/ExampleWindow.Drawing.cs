@@ -192,7 +192,7 @@ namespace Examples
 			GL.VertexPointer(3, VertexPointerType.Float, 0, 0);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
 			GL.NormalPointer(NormalPointerType.Float, 0, 0);
-			GL.DrawArrays(BeginMode.Triangles, 0, levelNumVerts);
+			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumVerts);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
@@ -238,7 +238,7 @@ namespace Examples
 						Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Height, cellSize.Z, out spanScale);
 						GL.MultMatrix(ref spanScale);
 
-						GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(PrimitiveType.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
 						GL.PopMatrix();
 					}
 				}
@@ -300,7 +300,7 @@ namespace Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -357,7 +357,7 @@ namespace Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -415,7 +415,7 @@ namespace Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -447,7 +447,7 @@ namespace Examples
 			GL.MultMatrix(ref squareScale);
 
 			GL.LineWidth(5f);
-			GL.Begin(BeginMode.Lines);
+			GL.Begin(PrimitiveType.Lines);
 			
 			foreach (var c in contourSet)
 			{
@@ -503,7 +503,7 @@ namespace Examples
 			color.A = 0.5f;
 			GL.Color4(color);
 
-			GL.Begin(BeginMode.Triangles);
+			GL.Begin(PrimitiveType.Triangles);
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
@@ -538,7 +538,7 @@ namespace Examples
 			GL.Color4(Color4.Purple);
 
 			GL.LineWidth(1.5f);
-			GL.Begin(BeginMode.Lines);
+			GL.Begin(PrimitiveType.Lines);
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
@@ -566,7 +566,7 @@ namespace Examples
 
 			//boundary edges
 			GL.LineWidth(3.5f);
-			GL.Begin(BeginMode.Lines);
+			GL.Begin(PrimitiveType.Lines);
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
 				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
@@ -593,7 +593,7 @@ namespace Examples
 			GL.End();
 
 			GL.PointSize(4.8f);
-			GL.Begin(BeginMode.Points);
+			GL.Begin(PrimitiveType.Points);
 
 			for (int i = 0; i < polyMesh.VertCount; i++)
 			{
@@ -616,7 +616,7 @@ namespace Examples
 			color.A = 0.5f;
 			GL.Color4(color);
 
-			GL.Begin(BeginMode.Triangles);
+			GL.Begin(PrimitiveType.Triangles);
 			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				PolyMeshDetail.MeshData m = polyMeshDetail.Meshes[i];
@@ -650,7 +650,7 @@ namespace Examples
 
 			Color4 color = Color4.Cyan;
 
-			GL.Begin(BeginMode.Triangles);
+			GL.Begin(PrimitiveType.Triangles);
 			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
@@ -688,7 +688,7 @@ namespace Examples
 
 			//neighbor edges
 			GL.LineWidth(1.5f);
-			GL.Begin(BeginMode.Lines);
+			GL.Begin(PrimitiveType.Lines);
 			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
@@ -720,7 +720,7 @@ namespace Examples
 
 			//steering path
 			GL.Color4(Color4.Black);
-			GL.Begin(BeginMode.Lines);
+			GL.Begin(PrimitiveType.Lines);
 			for (int i = 0; i < smoothPath.Count - 1; i++)
 			{
 				SVector3 v0 = smoothPath[i];

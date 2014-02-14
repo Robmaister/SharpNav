@@ -126,7 +126,6 @@ namespace SharpNav
 		{
 			Poly poly = tile.polys[indexPoly];
 			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
-			h = 0;
 
 			//find height at the location
 			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
@@ -142,10 +141,11 @@ namespace SharpNav
 						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
 				}
 
-				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
+				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
 					return true;
 			}
 
+			h = float.MaxValue;
 			return false;
 		}
 

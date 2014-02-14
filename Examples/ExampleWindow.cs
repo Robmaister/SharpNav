@@ -413,6 +413,10 @@ namespace Examples
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 
 				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
+				Console.WriteLine("Rasterized " + level.GetTriangles().Length + " triangles.");
+				Console.WriteLine("Generated " + contourSet.Count + " regions.");
+				Console.WriteLine("PolyMesh contains " + polyMesh.VertCount + " vertices in " + polyMesh.PolyCount + " polys.");
+				Console.WriteLine("PolyMeshDetail contains " + polyMeshDetail.VertCount + " vertices and " + polyMeshDetail.TrisCount + " tris in " + polyMeshDetail.MeshCount + " meshes.");
 			}
 		}
 

@@ -66,6 +66,20 @@ namespace SharpNav
 #endif
 		}
 
+		internal static float Distance2D(Vector3 a, Vector3 b)
+		{
+			float result;
+			Distance2D(ref a, ref b, out result);
+			return result;
+		}
+
+		internal static void Distance2D(ref Vector3 a, ref Vector3 b, out float dist)
+		{
+			float dx = b.X - a.X;
+			float dz = b.Z - a.Z;
+			dist = (float)Math.Sqrt(dx * dx + dz * dz);
+		}
+
 		/// <summary>
 		/// Calculate the dot product of two vectors projected onto the XZ plane.
 		/// </summary>
@@ -75,6 +89,13 @@ namespace SharpNav
 		internal static void Dot2D(ref Vector3 left, ref Vector3 right, out float result)
 		{
 			result = left.X * right.X + left.Z * right.Z;
+		}
+
+		internal static float Cross2D(Vector3 p1, Vector3 p2, Vector3 p3)
+		{
+			float result;
+			Cross2D(ref p1, ref p2, ref p3, out result);
+			return result;
 		}
 
 		internal static void Cross2D(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, out float result)

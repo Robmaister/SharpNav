@@ -158,14 +158,7 @@ namespace SharpNav
 				//store triangles
 				for (int j = 0; j < tempTris.Count; j++)
 				{
-					int t = j;
-					TriangleData ti;
-					ti.VertexHash0 = tempTris[t].VertexHash0;
-					ti.VertexHash1 = tempTris[t].VertexHash1;
-					ti.VertexHash2 = tempTris[t].VertexHash2;
-					ti.Flags = GetTriFlags(tempVerts.ToArray(), tempTris[t].VertexHash0, tempTris[t].VertexHash1, tempTris[t].VertexHash2, poly, npoly);
-					
-					storedTriangles.Add(ti);
+					storedTriangles.Add(new TriangleData(tempTris[j], tempVerts, poly));
 				}
 			}
 
@@ -222,30 +215,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determine which edges of the triangle are part of the polygon
-		/// </summary>
-		/// <param name="verts">Vertices containing triangles</param>
-		/// <param name="va">Triangle vertex A</param>
-		/// <param name="vb">Triangle vertex B</param>
-		/// <param name="vc">Triangle vertex C</param>
-		/// <param name="vpoly">Polygon vertex data</param>
-		/// <param name="npoly">Number of polygons</param>
-		/// <returns></returns>
-		private int GetTriFlags(Vector3[] verts, int va, int vb, int vc, Vector3[] vpoly, int npoly)
-		{
-			int flags = 0;
-
-			//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
-			//each bit stores whether two vertices are close enough to a polygon edge 
-			//since triangle has three vertices, there are three distinct pairs of vertices (va,vb), (vb,vc) and (vc,va)
-			flags |= GetEdgeFlags(verts[va], verts[vb], vpoly, npoly) << 0;
-			flags |= GetEdgeFlags(verts[vb], verts[vc], vpoly, npoly) << 2;
-			flags |= GetEdgeFlags(verts[vc], verts[va], vpoly, npoly) << 4;
-			
-			return flags;
-		}
-
-		/// <summary>
 		/// Determine whether an edge of the triangle is part of the polygon (1 if true, 0 if false)
 		/// </summary>
 		/// <param name="verts">Vertices containing triangles</param>
@@ -254,12 +223,12 @@ namespace SharpNav
 		/// <param name="vpoly">Polygon vertex data</param>
 		/// <param name="npoly">Number of polygons</param>
 		/// <returns></returns>
-		private int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly, int npoly)
+		private static int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly)
 		{
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
 
-			for (int i = 0, j = npoly - 1; i < npoly; j = i++)
+			for (int i = 0, j = vpoly.Length - 1; i < vpoly.Length; j = i++)
 			{
 				Vector3 pt1 = va;
 				Vector3 pt2 = vb;
@@ -485,7 +454,7 @@ namespace SharpNav
 			const int MAX_TRIS = 255;
 			const int MAX_VERTS_PER_EDGE = 32;
 			Vector3[] edge = new Vector3[MAX_VERTS_PER_EDGE + 1];
-			List<float> hull = new List<float>(MAX_VERTS);
+			List<int> hull = new List<int>(MAX_VERTS);
 
 			//fill up vertex array
 			for (int i = 0; i < numMeshVerts; ++i)
@@ -516,15 +485,12 @@ namespace SharpNav
 							swapped = true;
 						}
 					}
-					else
+					else if (polyMeshVerts[vj].X > polyMeshVerts[vi].X)
 					{
-						if (polyMeshVerts[vj].X > polyMeshVerts[vi].X)
-						{
-							float temp = polyMeshVerts[vj].X;
-							polyMeshVerts[vj].X = polyMeshVerts[vi].X;
-							polyMeshVerts[vi].X = temp;
-							swapped = true;
-						}
+						float temp = polyMeshVerts[vj].X;
+						polyMeshVerts[vj].X = polyMeshVerts[vi].X;
+						polyMeshVerts[vi].X = temp;
+						swapped = true;
 					}
 
 					//create samples along the edge
@@ -621,6 +587,7 @@ namespace SharpNav
 
 			if (tris.Count == 0)
 			{
+				Console.WriteLine("Can't triangulate polygon, adding default data.");
 				//add default data
 				for (int i = 2; i < verts.Count; i++)
 					tris.Add(new TriangleData(0, i - 1, i));
@@ -728,6 +695,8 @@ namespace SharpNav
 			return;
 		}
 
+		#region Black Magic
+
 		private float GetJitterX(int i)
 		{
 			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
@@ -737,6 +706,8 @@ namespace SharpNav
 		{
 			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
 		}
+
+		#endregion
 
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
@@ -805,77 +776,77 @@ namespace SharpNav
 		/// <param name="hull">?</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
-		private void DelaunayHull(List<Vector3> pts, List<float> hull, List<TriangleData> tris, List<EdgeInfo> edges)
+		private void DelaunayHull(List<Vector3> pts, List<int> hull, List<TriangleData> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
 			edges = new List<EdgeInfo>(pts.Count * 10);
 
 			for (int i = 0, j = hull.Count - 1; i < hull.Count; j = i++)
-				AddEdge(edges, (int)hull[j], (int)hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
+				AddEdge(edges, hull[j], hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
 
 			int currentEdge = 0;
 			while (currentEdge < edges.Count)
 			{
 				if (edges[currentEdge].LeftFace == (int)EdgeValues.Undefined)
-					CompleteFacet(pts.ToArray(), pts.Count, edges, ref nfaces, currentEdge);
+					CompleteFacet(pts, edges, ref nfaces, currentEdge);
 				
 				if (edges[currentEdge].RightFace == (int)EdgeValues.Undefined)
-					CompleteFacet(pts.ToArray(), pts.Count, edges, ref nfaces, currentEdge);
+					CompleteFacet(pts, edges, ref nfaces, currentEdge);
 				
 				currentEdge++;
 			}
 
 			//create triangles
-			tris = new List<TriangleData>();
+			tris.Clear();
 			for (int i = 0; i < nfaces; i++)
 				tris.Add(new TriangleData(-1, -1, -1, -1));
 
 			for (int i = 0; i < edges.Count; i++)
 			{
-				if (edges[i].RightFace >= 0)
+				EdgeInfo e = edges[i];
+
+				if (e.RightFace >= 0)
 				{
 					//left face
-					int t = edges[i].RightFace;
-					var tri = tris[t];
+					var tri = tris[e.RightFace];
 					
 					if (tri.VertexHash0 == -1)
 					{
-						tri.VertexHash0 = edges[i].EndPt0;
-						tri.VertexHash1 = edges[i].EndPt1;
+						tri.VertexHash0 = e.EndPt0;
+						tri.VertexHash1 = e.EndPt1;
 					}
-					else if (tri.VertexHash0 == edges[i].EndPt1)
+					else if (tri.VertexHash0 == e.EndPt1)
 					{
-						tri.VertexHash2 = edges[i].EndPt0;
+						tri.VertexHash2 = e.EndPt0;
 					}
-					else if (tri.VertexHash1 == edges[i].EndPt0)
+					else if (tri.VertexHash1 == e.EndPt0)
 					{
-						tri.VertexHash2 = edges[i].EndPt1;
+						tri.VertexHash2 = e.EndPt1;
 					}
 
-					tris[t] = tri;
+					tris[e.RightFace] = tri;
 				}
 
-				if (edges[i].LeftFace >= 0)
+				if (e.LeftFace >= 0)
 				{
 					//right
-					int t = edges[i].LeftFace;
-					var tri = tris[t];
+					var tri = tris[e.LeftFace];
 					
 					if (tri.VertexHash0 == -1)
 					{
-						tri.VertexHash0 = edges[i].EndPt1;
-						tri.VertexHash1 = edges[i].EndPt0;
+						tri.VertexHash0 = e.EndPt1;
+						tri.VertexHash1 = e.EndPt0;
 					}
-					else if (tri.VertexHash0 == edges[i].EndPt0)
+					else if (tri.VertexHash0 == e.EndPt0)
 					{
-						tri.VertexHash2 = edges[i].EndPt1;
+						tri.VertexHash2 = e.EndPt1;
 					}
-					else if (tri.VertexHash1 == edges[i].EndPt1)
+					else if (tri.VertexHash1 == e.EndPt1)
 					{
-						tri.VertexHash2 = edges[i].EndPt0;
+						tri.VertexHash2 = e.EndPt0;
 					}
 
-					tris[t] = tri;
+					tris[e.LeftFace] = tri;
 				}
 			}
 
@@ -892,23 +863,23 @@ namespace SharpNav
 			}
 		}
 
-		private void CompleteFacet(Vector3[] pts, int npts, List<EdgeInfo> edges, ref int nfaces, int e)
+		private void CompleteFacet(List<Vector3> pts, List<EdgeInfo> edges, ref int nfaces, int curEdge)
 		{
 			const float EPS = 1e-5f;
 
-			int edgePos = e; 
+			EdgeInfo e = edges[curEdge];
 
 			//cache s and t
 			int s, t;
-			if (edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
+			if (e.LeftFace == (int)EdgeValues.Undefined)
 			{
-				s = edges[edgePos].EndPt0;
-				t = edges[edgePos].EndPt1;
+				s = e.EndPt0;
+				t = e.EndPt1;
 			}
-			else if (edges[edgePos].RightFace == (int)EdgeValues.Undefined)
+			else if (e.RightFace == (int)EdgeValues.Undefined)
 			{
-				s = edges[edgePos].EndPt1;
-				t = edges[edgePos].EndPt0;
+				s = e.EndPt1;
+				t = e.EndPt0;
 			}
 			else
 			{
@@ -917,29 +888,27 @@ namespace SharpNav
 			}
 
 			//find best point on left edge
-			int pt = npts;
-			Vector3 c = new Vector3();
+			int pt = pts.Count;
+			Vector3 c = Vector3.Zero;
 			float r = -1;
 			float cross;
-			for (int u = 0; u < npts; u++)
+			for (int u = 0; u < pts.Count; u++)
 			{
 				if (u == s || u == t)
 					continue;
 
-				Vector3Extensions.Cross2D(ref pts[s], ref pts[t], ref pts[u], out cross);
+				cross = Vector3Extensions.Cross2D(pts[s], pts[t], pts[u]);
 				if (cross > EPS)
 				{
 					if (r < 0)
 					{
 						//update circle now
 						pt = u;
-						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], ref c, out r);
 						continue;
 					}
 
-					float dx = c.X - pts[u].X;
-					float dy = c.Z - pts[u].Z;
-					float d = (float)Math.Sqrt(dx * dx + dy * dy);
+					float d = Vector3Extensions.Distance2D(c, pts[u]);
 					float tol = 0.001f;
 
 					if (d > r * (1 + tol))
@@ -951,7 +920,7 @@ namespace SharpNav
 					{
 						//inside circumcircle, update
 						pt = u;
-						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], ref c, out r);
 					}
 					else
 					{
@@ -964,33 +933,43 @@ namespace SharpNav
 
 						//edge is valid
 						pt = u;
-						CircumCircle(pts[s], pts[t], pts[u], c, ref r);
+						CircumCircle(pts[s], pts[t], pts[u], ref c, out r);
 					}
 				}
 			}
 
 			//add new triangle or update edge if s-t on hull
-			if (pt < npts)
+			if (pt < pts.Count)
 			{
-				UpdateLeftFace(edges, e, s, t, nfaces);
+				EdgeInfo.UpdateLeftFace(ref e, s, t, nfaces);
+				edges[curEdge] = e;
 
-				e = FindEdge(edges, pt, s);
-				if (e == (int)EdgeValues.Undefined)
+				curEdge = FindEdge(edges, pt, s);
+				if (curEdge == (int)EdgeValues.Undefined)
 					AddEdge(edges, pt, s, nfaces, (int)EdgeValues.Undefined);
 				else
-					UpdateLeftFace(edges, e, pt, s, nfaces);
+				{
+					e = edges[curEdge];
+					EdgeInfo.UpdateLeftFace(ref e, pt, s, nfaces);
+					edges[curEdge] = e;
+				}
 
-				e = FindEdge(edges, t, pt);
-				if (e == (int)EdgeValues.Undefined)
+				curEdge = FindEdge(edges, t, pt);
+				if (curEdge == (int)EdgeValues.Undefined)
 					AddEdge(edges, t, pt, nfaces, (int)EdgeValues.Undefined);
 				else
-					UpdateLeftFace(edges, e, t, pt, nfaces);
+				{
+					e = edges[curEdge];
+					EdgeInfo.UpdateLeftFace(ref e, t, pt, nfaces);
+					edges[curEdge] = e;
+				}
 
 				nfaces++;
 			}
 			else
 			{
-				UpdateLeftFace(edges, e, s, t, (int)EdgeValues.Hull);
+				EdgeInfo.UpdateLeftFace(ref e, s, t, (int)EdgeValues.Hull);
+				edges[curEdge] = e;
 			}
 		}
 
@@ -1030,8 +1009,10 @@ namespace SharpNav
 			return (int)EdgeValues.Undefined;
 		}
 
-		private bool OverlapEdges(Vector3[] pts, List<EdgeInfo> edges, int s1, int t1)
+		private bool OverlapEdges(List<Vector3> pts, List<EdgeInfo> edges, int s1, int t1)
 		{
+			Vector3 ps1 = pts[s1], pt1 = pts[t1];
+
 			for (int i = 0; i < edges.Count; i++)
 			{
 				int s0 = edges[i].EndPt0;
@@ -1041,22 +1022,17 @@ namespace SharpNav
 				if (s0 == s1 || s0 == t1 || t0 == s1 || t0 == t1)
 					continue;
 
-				if (MathHelper.Intersection.SegmentSegment2D(ref pts[s0], ref pts[t0], ref pts[s1], ref pts[t1]))
+				Vector3 ps0 = pts[s0], pt0 = pts[t0];
+				if (MathHelper.Intersection.SegmentSegment2D(ref ps0, ref pt0, ref ps1, ref pt1))
 					return true;
 			}
 
 			return false;
 		}
 
-		private void UpdateLeftFace(List<EdgeInfo> edges, int edgePos, int s, int t, int f)
-		{
-			if (edges[edgePos].EndPt0 == s && edges[edgePos].EndPt1 == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
-				edges[edgePos].LeftFace = f;
-			else if (edges[edgePos].EndPt1 == s && edges[edgePos].EndPt0 == t && edges[edgePos].LeftFace == (int)EdgeValues.Undefined)
-				edges[edgePos].RightFace = f;
-		}
+		
 
-		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 c, ref float r)
+		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, ref Vector3 c, out float r)
 		{
 			float EPS = 1e-6f;
 			float cp;
@@ -1138,6 +1114,14 @@ namespace SharpNav
 				Flags = flags;
 			}
 
+			public TriangleData(TriangleData data, List<Vector3> verts, Vector3[] vpoly)
+			{
+				VertexHash0 = data.VertexHash0;
+				VertexHash1 = data.VertexHash1;
+				VertexHash2 = data.VertexHash2;
+				GetTriFlags(ref data, verts, vpoly, out Flags);
+			}
+
 			public int this[int index]
 			{
 				get
@@ -1154,14 +1138,44 @@ namespace SharpNav
 					}
 				}
 			}
+
+			/// <summary>
+			/// Determine which edges of the triangle are part of the polygon
+			/// </summary>
+			/// <param name="verts">Vertices containing triangles</param>
+			/// <param name="va">Triangle vertex A</param>
+			/// <param name="vb">Triangle vertex B</param>
+			/// <param name="vc">Triangle vertex C</param>
+			/// <param name="vpoly">Polygon vertex data</param>
+			/// <param name="npoly">Number of polygons</param>
+			/// <returns></returns>
+			public static void GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly, out int flags)
+			{
+				flags = 0;
+
+				//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
+				//each bit stores whether two vertices are close enough to a polygon edge 
+				//since triangle has three vertices, there are three distinct pairs of vertices (va,vb), (vb,vc) and (vc,va)
+				flags |= GetEdgeFlags(verts[t.VertexHash0], verts[t.VertexHash1], vpoly) << 0;
+				flags |= GetEdgeFlags(verts[t.VertexHash1], verts[t.VertexHash2], vpoly) << 2;
+				flags |= GetEdgeFlags(verts[t.VertexHash2], verts[t.VertexHash0], vpoly) << 4;
+			}
 		}
 
-		private class EdgeInfo
+		private struct EdgeInfo
 		{
 			public int EndPt0;
 			public int EndPt1;
 			public int LeftFace;
 			public int RightFace;
+
+			public static void UpdateLeftFace(ref EdgeInfo e, int s, int t, int f)
+			{
+				if (e.EndPt0 == s && e.EndPt1 == t && e.LeftFace == (int)EdgeValues.Undefined)
+					e.LeftFace = f;
+				else if (e.EndPt1 == s && e.EndPt0 == t && e.RightFace == (int)EdgeValues.Undefined)
+					e.RightFace = f;
+			}
 		}
 
 		private class SamplingData

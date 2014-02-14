@@ -415,8 +415,8 @@ namespace SharpNav
 			internal static float PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
 			{
 				//If the point lies inside the triangle, return the interpolated y-coordinate
-				float h = 0;
-				if (PointToTriangle(p, a, b, c, ref h))
+				float h;
+				if (PointToTriangle(p, a, b, c, out h))
 				{
 					return Math.Abs(h - p.Y);
 				}
@@ -433,7 +433,7 @@ namespace SharpNav
 			/// <param name="c">Triangle Vertex C</param>
 			/// <param name="h">Height</param>
 			/// <returns></returns>
-			internal static bool PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, ref float h)
+			internal static bool PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, out float height)
 			{
 				Vector3 v0 = c - a;
 				Vector3 v1 = b - a;
@@ -457,10 +457,11 @@ namespace SharpNav
 				//if point lies inside triangle, return interpolated y-coordinate
 				if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
 				{
-					h = a.Y + v0.Y * u + v1.Y * v;
+					height = a.Y + v0.Y * u + v1.Y * v;
 					return true;
 				}
 
+				height = float.MaxValue;
 				return false;
 			}
 		}
