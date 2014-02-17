@@ -966,6 +966,100 @@ namespace SharpNav
 			return true;
 		}
 
+		public bool ClosestPointOnPolyOverPoly(int reference, Vector3 pos, ref Vector3 closest, ref bool posOverPoly)
+		{
+			MeshTile tile = null;
+			Poly poly = null;
+			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+				return false;
+			if (tile == null)
+				return false;
+
+			if (poly.PolyType == PolygonType.OffMeshConnection)
+			{
+				Vector3 v0 = tile.verts[poly.verts[0]];
+				Vector3 v1 = tile.verts[poly.verts[1]];
+				float d0 = (pos - v0).Length();
+				float d1 = (pos - v1).Length();
+				float u = d0 / (d0 + d1);
+				closest = Vector3.Lerp(v0, v1, u);
+				if (posOverPoly)
+					posOverPoly = false;
+				return true;
+			}
+
+			int indexPoly = 0;
+			for (int i = 0; i < tile.polys.Length; i++)
+			{
+				if (tile.polys[i] == poly)
+				{
+					indexPoly = i;
+					break;
+				}
+			}
+			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
+
+			//Clamp point to be inside the polygon
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			int numPolyVerts = poly.vertCount;
+			for (int i = 0; i < numPolyVerts; i++)
+				verts[i] = tile.verts[poly.verts[i]];
+
+			closest = pos;
+			if (!MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT))
+			{
+				//Point is outside the polygon
+				//Clamp to nearest edge
+				float minDistance = float.MaxValue;
+				int minIndex = -1;
+				for (int i = 0; i < numPolyVerts; i++)
+				{
+					if (edgeDistance[i] < minDistance)
+					{
+						minDistance = edgeDistance[i];
+						minIndex = i;
+					}
+				}
+				Vector3 va = verts[minIndex];
+				Vector3 vb = verts[(minIndex + 1) % numPolyVerts];
+				closest = Vector3.Lerp(va, vb, edgeT[minIndex]);
+
+				if (posOverPoly)
+					posOverPoly = false;
+			}
+			else
+			{
+				if (posOverPoly)
+					posOverPoly = false;
+			}
+
+			//find height at the location
+			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
+			{
+				PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
+				Vector3[] v = new Vector3[3];
+
+				for (int k = 0; k < 3; k++)
+				{
+					if (t[k] < poly.vertCount)
+						v[k] = tile.verts[poly.verts[t[k]]];
+					else
+						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
+				}
+
+				float h=0;
+				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
+				{
+					closest.Y = h;
+					break;
+				}
+			}
+
+			return true;
+		}
+
 		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
 		{
 			MeshTile tile = null;
@@ -1114,25 +1208,61 @@ namespace SharpNav
 		/// <param name="extents">Extents.</param>
 		/// <param name="nearestRef">Nearest reference.</param>
 		/// <param name="neareastPt">Neareast point.</param>
-		/*public bool findNearestPolu(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 neareastPt)
+		public bool findNearestPoly(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 nearestPt)
 		{
 			nearestRef = 0;
 
 			// Get nearby polygons from proximity grid.
-			List<int> polys=new List<int>[128];
+			List<int> polys = new List<int> (128);
 			int polycount = 0; 
-			if (queryPolygons (center, extents, polys)) {
+			if (!queryPolygons (ref center, ref extents, polys)) {
 				return false;
 			}
 
 			int nearest = 0;
-			float nearestDistanceSqr = FLT_MAX;
+			float nearestDistanceSqr = float.MaxValue;
 			bool nearestOverPoly = false;
 			for (int i = 0; i < polys.Count; ++i) {
-				
+				int refe = polys [i];
+				Vector3 closestPtPoly=new Vector3();
+				Vector3 diff = new Vector3 ();
+				bool posOverPoly = false;
+				float d = 0;
+				ClosestPointOnPolyOverPoly (refe, center, ref closestPtPoly, ref posOverPoly);
+
+				// If a point is directly over a polygon and closer than
+				// climb height, favor that instead of straight line nearest point.
+				diff = center - closestPtPoly;
+				if (posOverPoly) {
+					MeshTile tile = null;
+					Poly poly = null;
+					nav.GetTileAndPolyByRefUnsafe (polys [i], ref tile, ref poly);
+					d = Math.Abs (diff.Y) - tile.header.walkableClimb;
+					d = d > 0 ? d * d : 0;
+
+				}
+				else {
+
+					d = diff.LengthSquared();
+				}
+
+				if (d < nearestDistanceSqr || (!nearestOverPoly && posOverPoly)) {
+					if (nearestPt is Vector3) {
+						nearestPt = closestPtPoly;
+					}
+					nearestDistanceSqr = d;
+					nearestOverPoly = posOverPoly;
+					nearest = refe;
+				}
+
 			}
+
+			if (nearestRef is int) {
+				nearestRef = nearest;
+			}
+			return true;
 		
-		}*/
+		}
 		/// <summary>
 		/// Queries the polygons.
 		/// </summary>
