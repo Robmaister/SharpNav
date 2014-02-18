@@ -966,7 +966,7 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool ClosestPointOnPolyOverPoly(int reference, Vector3 pos, ref Vector3 closest, ref bool posOverPoly)
+		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest, ref bool posOverPoly)
 		{
 			MeshTile tile = null;
 			Poly poly = null;
@@ -1198,106 +1198,107 @@ namespace SharpNav
 			return false;
 		}
 
-
-
 		/// <summary>
-		/// Finds the nearest polu.
+		/// Finds the nearest poly.
 		/// </summary>
-		/// <returns><c>true</c>, if nearest polu was found, <c>false</c> otherwise.</returns>
 		/// <param name="center">Center.</param>
 		/// <param name="extents">Extents.</param>
 		/// <param name="nearestRef">Nearest reference.</param>
 		/// <param name="neareastPt">Neareast point.</param>
-		public bool findNearestPoly(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 nearestPt)
+		/// <returns><c>True</c>, if the nearest poly was found, <c>false</c> otherwise.</returns>
+		public bool FindNearestPoly(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 nearestPt)
 		{
 			nearestRef = 0;
 
 			// Get nearby polygons from proximity grid.
-			List<int> polys = new List<int> (128);
-			int polycount = 0; 
-			if (!queryPolygons (ref center, ref extents, polys)) {
+			List<int> polys = new List<int>(128);
+			if (!QueryPolygons(ref center, ref extents, polys)) 
+			{
 				return false;
 			}
 
 			int nearest = 0;
 			float nearestDistanceSqr = float.MaxValue;
-			bool nearestOverPoly = false;
-			for (int i = 0; i < polys.Count; ++i) {
-				int refe = polys [i];
-				Vector3 closestPtPoly=new Vector3();
-				Vector3 diff = new Vector3 ();
+			for (int i = 0; i < polys.Count; ++i) 
+			{
+				int reference = polys[i];
+				Vector3 closestPtPoly = new Vector3();
+				Vector3 diff = new Vector3();
 				bool posOverPoly = false;
 				float d = 0;
-				ClosestPointOnPolyOverPoly (refe, center, ref closestPtPoly, ref posOverPoly);
+				ClosestPointOnPoly(reference, center, ref closestPtPoly, ref posOverPoly);
 
 				// If a point is directly over a polygon and closer than
 				// climb height, favor that instead of straight line nearest point.
 				diff = center - closestPtPoly;
-				if (posOverPoly) {
+				if (posOverPoly) 
+				{
 					MeshTile tile = null;
 					Poly poly = null;
-					nav.GetTileAndPolyByRefUnsafe (polys [i], ref tile, ref poly);
-					d = Math.Abs (diff.Y) - tile.header.walkableClimb;
+					nav.GetTileAndPolyByRefUnsafe(polys[i], ref tile, ref poly);
+					d = Math.Abs(diff.Y) - tile.header.walkableClimb;
 					d = d > 0 ? d * d : 0;
-
 				}
-				else {
-
+				else 
+				{
 					d = diff.LengthSquared();
 				}
 
-				if (d < nearestDistanceSqr || (!nearestOverPoly && posOverPoly)) {
-					if (nearestPt is Vector3) {
+				if (d < nearestDistanceSqr) 
+				{
+					if (nearestPt.Length() != 0)
 						nearestPt = closestPtPoly;
-					}
 					nearestDistanceSqr = d;
-					nearestOverPoly = posOverPoly;
-					nearest = refe;
+					nearest = reference;
 				}
 
 			}
 
-			if (nearestRef is int) {
+			if (nearestRef != 0)
 				nearestRef = nearest;
-			}
-			return true;
 		
+			return true;
 		}
 		/// <summary>
-		/// Queries the polygons.
+		/// Finds nearby polygons within a certain range.
 		/// </summary>
-		/// <returns><c>true</c>, if polygons was queryed, <c>false</c> otherwise.</returns>
-		/// <param name="center">Center.</param>
-		/// <param name="extent">Extent.</param>
-		/// <param name="polys">Polys.</param>
-		public bool queryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
+		/// <param name="center">The starting point</param>
+		/// <param name="extent">The range to search within</param>
+		/// <param name="polys">A list of polygons</param>
+		/// <returns><c>True</c>, if polygons was queried, <c>False</c> if otherwise.</returns>
+		public bool QueryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
 		{
 			Vector3 bmin = new Vector3();
 			Vector3 bmax = new Vector3();
 			bmin = center - extent;
 			bmax = center + extent;
-
-			const int MAX_NETS = 32;
-			MeshTile []neis = new MeshTile[MAX_NETS];
-
-			int n = 0;                  
+             
 			int minx = 0, miny = 0, maxx = 0, maxy = 0;
 			nav.calcTileLoc (bmin, ref minx, ref miny);
 			nav.calcTileLoc (bmax, ref maxx, ref minx);
+
+			const int MAX_NETS = 32;
+			MeshTile[] neis = new MeshTile[MAX_NETS];
+			
 			BBox3 bounds = new BBox3 (bmin, bmax);
-			for (int y = miny; y <= maxy; ++y) {
-				for (int x = minx; x <= maxx; ++x) {
-					int nneis = nav.GetTilesAt (x, y, neis, MAX_NETS);
-					for (int j = 0; j < nneis; ++j) {
-						n += nav.QueryPolygonsInTile (neis [j], bounds, polys);
-						if (n >= polys.Capacity) {
+			int n = 0;     
+			for (int y = miny; y <= maxy; ++y) 
+			{
+				for (int x = minx; x <= maxx; ++x) 
+				{
+					int nneis = nav.GetTilesAt(x, y, neis, MAX_NETS);
+					for (int j = 0; j < nneis; ++j) 
+					{
+						n += nav.QueryPolygonsInTile(neis[j], bounds, polys);
+						if (n >= polys.Capacity) 
+						{
 							return true;
 						}
 					}
 				}
 			}
-			return true;
 
+			return true;
 		}
 
 		public bool IsInOpenList(Node node)
