@@ -1,4 +1,4 @@
-﻿#region License
+﻿﻿#region License
 /**
  * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
@@ -1049,8 +1049,8 @@ namespace SharpNav
 						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
 				}
 
-				float h=0;
-				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], ref h))
+				float h;
+				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
 				{
 					closest.Y = h;
 					break;
