@@ -662,9 +662,9 @@ namespace Examples
 				GL.Color4(color);
 
 				int polyRef = path[i];
-				MeshTile tile = null;
-				Poly poly = null;
-				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
+				MeshTile tile;
+				Poly poly;
+				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
 				for (int j = 2; j < poly.vertCount; j++)
 				{
@@ -700,9 +700,9 @@ namespace Examples
 				GL.Color4(color);
 
 				int polyRef = path[i];
-				MeshTile tile = null;
-				Poly poly = null;
-				tiledNavMesh.GetTileAndPolyByRefUnsafe(polyRef, ref tile, ref poly);
+				MeshTile tile;
+				Poly poly;
+				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
 				for (int j = 0; j < poly.vertCount; j++)
 				{
