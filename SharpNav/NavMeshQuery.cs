@@ -1199,7 +1199,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Finds the nearest poly.
+		/// Find the nearest poly within a certain range.
 		/// </summary>
 		/// <param name="center">Center.</param>
 		/// <param name="extents">Extents.</param>
@@ -1259,6 +1259,7 @@ namespace SharpNav
 		
 			return true;
 		}
+
 		/// <summary>
 		/// Finds nearby polygons within a certain range.
 		/// </summary>

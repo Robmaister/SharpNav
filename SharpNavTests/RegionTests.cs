@@ -24,8 +24,9 @@ namespace SharpNavTests
 			reg.AddUniqueFloorRegion((RegionId)10);
 			reg.AddUniqueFloorRegion((RegionId)10);
 			reg.AddUniqueFloorRegion((RegionId)20);
-			
-			Assert.AreEqual(reg.FloorRegions[1], 20);
+
+			Assert.AreEqual((int)reg.FloorRegions[0], 10);
+			Assert.AreEqual((int)reg.FloorRegions[1], 20);
 			Assert.AreEqual(reg.FloorRegions.Count, 2);
 		}
 
@@ -39,7 +40,7 @@ namespace SharpNavTests
 			reg.Connections.Add((RegionId)20);
 			reg.RemoveAdjacentNeighbours();
 
-			Assert.AreEqual(reg.Connections[1], 20);
+			Assert.AreEqual((int)reg.Connections[1], 20);
 		}
 
 		[Test]
@@ -69,8 +70,8 @@ namespace SharpNavTests
 
 			reg.ReplaceNeighbour((RegionId)10, 0);
 
-			Assert.AreEqual(reg.Connections[0], 0);
-			Assert.AreEqual(reg.FloorRegions[0], 0);
+			Assert.AreEqual((int)reg.Connections[0], 0);
+			Assert.AreEqual((int)reg.FloorRegions[0], 0);
 		}
 
 		[Test]
