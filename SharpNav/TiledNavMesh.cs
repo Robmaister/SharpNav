@@ -1068,8 +1068,11 @@ namespace SharpNav
 		/// <param name="tile">Resulting tile</param>
 		/// <param name="poly">Resulting poly</param>
 		/// <returns>True if tile and poly successfully retrieved</returns>
-		public bool GetTileAndPolyByRef(int reference, ref MeshTile tile, ref Poly poly)
+		public bool TryGetTileAndPolyByRef(int reference, out MeshTile tile, out Poly poly)
 		{
+			tile = null;
+			poly = null;
+
 			if (reference == 0)
 				return false;
 
@@ -1099,7 +1102,7 @@ namespace SharpNav
 		/// <param name="reference">Polygon reference</param>
 		/// <param name="tile">Resulting tile</param>
 		/// <param name="poly">Resulting poly</param>
-		public void GetTileAndPolyByRefUnsafe(int reference, ref MeshTile tile, ref Poly poly)
+		public void TryGetTileAndPolyByRefUnsafe(int reference, out MeshTile tile, out Poly poly)
 		{
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
@@ -1208,7 +1211,7 @@ namespace SharpNav
 		/// <param name="pos">Position.</param>
 		/// <param name="tx">Tx.</param>
 		/// <param name="ty">Ty.</param>
-		public void calcTileLoc(Vector3 pos, ref int tx, ref int ty)
+		public void CalcTileLoc(Vector3 pos, ref int tx, ref int ty)
 		{
 			tx = (int)Math.Floor ((pos.X - origin.X) / tileWidth);
 			ty = (int)Math.Floor ((pos.Z - origin.Z) / tileHeight);

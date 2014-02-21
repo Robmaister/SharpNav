@@ -163,9 +163,9 @@ namespace SharpNav
 				return false;
 
 			Random randObj = new Random();
-			MeshTile startTile = null;
-			Poly startPoly = null;
-			nav.GetTileAndPolyByRefUnsafe(startRef, ref startTile, ref startPoly);
+			MeshTile startTile;
+			Poly startPoly;
+			nav.TryGetTileAndPolyByRefUnsafe(startRef, out startTile, out startPoly);
 
 			nodePool.Clear();
 			openList.Clear();
@@ -193,9 +193,9 @@ namespace SharpNav
 
 				//get poly and tile
 				int bestRef = bestNode.id;
-				MeshTile bestTile = null;
-				Poly bestPoly = null;
-				nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
+				MeshTile bestTile;
+				Poly bestPoly;
+				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
 
 				//place random locations on ground
 				if (bestPoly.PolyType == PolygonType.Ground)
@@ -222,12 +222,12 @@ namespace SharpNav
 
 				//get parent poly and tile
 				int parentRef = 0;
-				MeshTile parentTile = null;
-				Poly parentPoly = null;
+				MeshTile parentTile;
+				Poly parentPoly;
 				if (bestNode.pidx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
 				if (parentRef != 0)
-					nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
+					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
 				{
@@ -238,9 +238,9 @@ namespace SharpNav
 						continue;
 
 					//expand to neighbour
-					MeshTile neighbourTile = null;
-					Poly neighbourPoly = null;
-					nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
+					MeshTile neighbourTile;
+					Poly neighbourPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
@@ -248,7 +248,7 @@ namespace SharpNav
 					if (!GetPortalPoints(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb))
 						continue;
 
-				 	//if circle isn't touching next polygon, skip it
+					//if circle isn't touching next polygon, skip it
 					float tseg;
 					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
@@ -355,18 +355,18 @@ namespace SharpNav
 
 				//get current poly and tile
 				int bestRef = bestNode.id;
-				MeshTile bestTile = null;
-				Poly bestPoly = null;
-				nav.GetTileAndPolyByRefUnsafe(bestRef, ref bestTile, ref bestPoly);
+				MeshTile bestTile;
+				Poly bestPoly;
+				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
 
 				//get parent poly and tile
 				int parentRef = 0;
-				MeshTile parentTile = null;
-				Poly parentPoly = null;
+				MeshTile parentTile;
+				Poly parentPoly;
 				if (bestNode.pidx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
 				if (parentRef != 0)
-					nav.GetTileAndPolyByRefUnsafe(parentRef, ref parentTile, ref parentPoly);
+					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				//examine neighbors
 				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
@@ -378,9 +378,9 @@ namespace SharpNav
 						continue;
 
 					//get neighbour poly and tile
-					MeshTile neighbourTile = null;
-					Poly neighbourPoly = null;
-					nav.GetTileAndPolyByRefUnsafe(neighbourRef, ref neighbourTile, ref neighbourPoly);
+					MeshTile neighbourTile;
+					Poly neighbourPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
 
 					Node neighbourNode = nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
@@ -726,9 +726,9 @@ namespace SharpNav
 
 				//get poly and tile
 				int curRef = curNode.id;
-				MeshTile curTile = null;
-				Poly curPoly = null;
-				nav.GetTileAndPolyByRefUnsafe(curRef, ref curTile, ref curPoly);
+				MeshTile curTile;
+				Poly curPoly;
+				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
 
 				//collect vertices
 				int nverts = curPoly.vertCount;
@@ -759,9 +759,9 @@ namespace SharpNav
 							{
 								if (link.reference != 0)
 								{
-									MeshTile neiTile = null;
-									Poly neiPoly = null;
-									nav.GetTileAndPolyByRefUnsafe(link.reference, ref neiTile, ref neiPoly);
+									MeshTile neiTile;
+									Poly neiPoly;
+									nav.TryGetTileAndPolyByRefUnsafe(link.reference, out neiTile, out neiPoly);
 									
 									if (neis.Count < neis.Capacity)
 										neis.Add(link.reference);
@@ -859,15 +859,15 @@ namespace SharpNav
 
 		public bool GetPortalPoints(int from, int to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
 		{
-			MeshTile fromTile = null;
-			Poly fromPoly = null;
-			if (nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+			MeshTile fromTile;
+			Poly fromPoly;
+			if (nav.TryGetTileAndPolyByRef(from, out fromTile, out fromPoly) == false)
 				return false;
 			fromType = fromPoly.PolyType;
 
-			MeshTile toTile = null;
-			Poly toPoly = null;
-			if (nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+			MeshTile toTile;
+			Poly toPoly;
+			if (nav.TryGetTileAndPolyByRef(to, out toTile, out toPoly) == false)
 				return false;
 			toType = toPoly.PolyType;
 
@@ -953,10 +953,10 @@ namespace SharpNav
 			if (nav == null)
 				return false;
 
-			MeshTile tile = null;
-			Poly poly = null;
+			MeshTile tile;
+			Poly poly;
 
-			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
 				return false;
 
 			if (tile == null)
@@ -968,9 +968,9 @@ namespace SharpNav
 
 		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest, ref bool posOverPoly)
 		{
-			MeshTile tile = null;
-			Poly poly = null;
-			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			MeshTile tile;
+			Poly poly;
+			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
 				return false;
 			if (tile == null)
 				return false;
@@ -997,6 +997,7 @@ namespace SharpNav
 					break;
 				}
 			}
+
 			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
 
 			//Clamp point to be inside the polygon
@@ -1062,9 +1063,9 @@ namespace SharpNav
 
 		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
 		{
-			MeshTile tile = null;
-			Poly poly = null;
-			if (nav.GetTileAndPolyByRef(reference, ref tile, ref poly) == false)
+			MeshTile tile;
+			Poly poly;
+			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
 				return false;
 
 			PathfinderCommon.ClosestPointOnPolyBoundary(tile, poly, pos, out closest);
@@ -1115,15 +1116,15 @@ namespace SharpNav
 			{
 				//calculate portal
 				int from = path[i];
-				MeshTile fromTile = null;
-				Poly fromPoly = null;
-				if (nav.GetTileAndPolyByRef(from, ref fromTile, ref fromPoly) == false)
+				MeshTile fromTile;
+				Poly fromPoly;
+				if (nav.TryGetTileAndPolyByRef(from, out fromTile, out fromPoly) == false)
 					return false;
 
 				int to = path[i + 1];
-				MeshTile toTile = null;
-				Poly toPoly = null;
-				if (nav.GetTileAndPolyByRef(to, ref toTile, ref toPoly) == false)
+				MeshTile toTile;
+				Poly toPoly;
+				if (nav.TryGetTileAndPolyByRef(to, out toTile, out toPoly) == false)
 					return false;
 
 				Vector3 left = new Vector3();
@@ -1162,9 +1163,9 @@ namespace SharpNav
 			if (nav == null)
 				return false;
 
-			MeshTile tile = null;
-			Poly poly = null;
-			if (!nav.GetTileAndPolyByRef(reference, ref tile, ref poly))
+			MeshTile tile;
+			Poly poly;
+			if (!nav.TryGetTileAndPolyByRef(reference, out tile, out poly))
 				return false;
 
 			//off-mesh connections don't have detail polygons
@@ -1206,16 +1207,15 @@ namespace SharpNav
 		/// <param name="nearestRef">Nearest reference.</param>
 		/// <param name="neareastPt">Neareast point.</param>
 		/// <returns><c>True</c>, if the nearest poly was found, <c>false</c> otherwise.</returns>
-		public bool FindNearestPoly(ref Vector3 center, ref Vector3 extents, int nearestRef, ref Vector3 nearestPt)
+		public bool FindNearestPoly(ref Vector3 center, ref Vector3 extents, out int nearestRef, out Vector3 nearestPt)
 		{
 			nearestRef = 0;
+			nearestPt = Vector3.Zero;
 
 			// Get nearby polygons from proximity grid.
 			List<int> polys = new List<int>(128);
 			if (!QueryPolygons(ref center, ref extents, polys)) 
-			{
 				return false;
-			}
 
 			int nearest = 0;
 			float nearestDistanceSqr = float.MaxValue;
@@ -1233,9 +1233,9 @@ namespace SharpNav
 				diff = center - closestPtPoly;
 				if (posOverPoly) 
 				{
-					MeshTile tile = null;
-					Poly poly = null;
-					nav.GetTileAndPolyByRefUnsafe(polys[i], ref tile, ref poly);
+					MeshTile tile;
+					Poly poly;
+					nav.TryGetTileAndPolyByRefUnsafe(polys[i], out tile, out poly);
 					d = Math.Abs(diff.Y) - tile.header.walkableClimb;
 					d = d > 0 ? d * d : 0;
 				}
@@ -1254,8 +1254,7 @@ namespace SharpNav
 
 			}
 
-			if (nearestRef != 0)
-				nearestRef = nearest;
+			nearestRef = nearest;
 		
 			return true;
 		}
@@ -1273,10 +1272,10 @@ namespace SharpNav
 			Vector3 bmax = new Vector3();
 			bmin = center - extent;
 			bmax = center + extent;
-             
+
 			int minx = 0, miny = 0, maxx = 0, maxy = 0;
-			nav.calcTileLoc (bmin, ref minx, ref miny);
-			nav.calcTileLoc (bmax, ref maxx, ref minx);
+			nav.CalcTileLoc (bmin, ref minx, ref miny);
+			nav.CalcTileLoc (bmax, ref maxx, ref minx);
 
 			const int MAX_NETS = 32;
 			MeshTile[] neis = new MeshTile[MAX_NETS];
