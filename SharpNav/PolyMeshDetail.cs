@@ -619,20 +619,13 @@ namespace SharpNav
 				{
 					for (int x = x0; x < x1; x++)
 					{
-						Vector3 pt = new Vector3();
-						pt.X = x * sampleDist;
-						pt.Y = (bounds.Max.Y + bounds.Min.Y) * 0.5f;
-						pt.Z = z * sampleDist;
+						Vector3 pt = new Vector3(x * sampleDist, (bounds.Max.Y + bounds.Min.Y) * 0.5f, z * sampleDist);
 
 						//make sure samples aren't too close to edge
 						if (MathHelper.Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist / 2)
 							continue;
 
-						SamplingData sd = new SamplingData();
-						sd.X = x;
-						sd.Y = (int)GetHeight(pt, ics, openField.CellHeight, hp);
-						sd.Z = z;
-						sd.IsSampled = false;
+						SamplingData sd = new SamplingData(x, GetHeight(pt, ics, openField.CellHeight, hp), z, false);
 						samples.Add(sd);
 					}
 				}
@@ -675,7 +668,9 @@ namespace SharpNav
 					if (bestDistance <= sampleMaxError || bestIndex == -1)
 						break;
 
-					samples[bestIndex].IsSampled = true;
+					SamplingData sd = samples[bestIndex];
+					sd.IsSampled = true;
+					samples[bestIndex] = sd;
 
 					verts.Add(bestPt);
 
@@ -716,13 +711,13 @@ namespace SharpNav
 		/// <param name="invCellSize">Reciprocal of cell size</param>
 		/// <param name="cellHeight">Cell height</param>
 		/// <param name="hp">Height patch</param>
-		private float GetHeight(Vector3 loc, float invCellSize, float cellHeight, HeightPatch hp)
+		private int GetHeight(Vector3 loc, float invCellSize, float cellHeight, HeightPatch hp)
 		{
 			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
 			int iz = (int)Math.Floor(loc.Z * invCellSize + 0.01f);
 			ix = MathHelper.Clamp(ix - hp.X, 0, hp.Width - 1);
 			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Height - 1);
-			int h = hp[ix + iz * hp.Width];
+			int h = hp[ix, iz];
 
 			if (h == HeightPatch.UnsetHeight)
 			{
@@ -749,7 +744,7 @@ namespace SharpNav
 					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Height)
 						continue;
 
-					int nh = hp[nx + nz * hp.Width];
+					int nh = hp[nx, nz];
 					if (nh == HeightPatch.UnsetHeight)
 						continue;
 
@@ -779,7 +774,7 @@ namespace SharpNav
 		private void DelaunayHull(List<Vector3> pts, List<int> hull, List<TriangleData> tris, List<EdgeInfo> edges)
 		{
 			int nfaces = 0;
-			edges = new List<EdgeInfo>(pts.Count * 10);
+			edges.Clear();
 
 			for (int i = 0, j = hull.Count - 1; i < hull.Count; j = i++)
 				AddEdge(edges, hull[j], hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
@@ -975,6 +970,7 @@ namespace SharpNav
 
 		private int AddEdge(List<EdgeInfo> edges, int s, int t, int leftFace, int rightFace)
 		{
+			//TODO can grow larger since this is a list now.
 			if (edges.Count >= edges.Capacity)
 			{
 				return (int)EdgeValues.Undefined;
@@ -984,12 +980,10 @@ namespace SharpNav
 			int e = FindEdge(edges, s, t);
 			if (e == (int)EdgeValues.Undefined)
 			{
-				EdgeInfo edge = new EdgeInfo();
-				edge.EndPt0 = s;
-				edge.EndPt1 = t;
-				edge.LeftFace = leftFace;
-				edge.RightFace = rightFace;
+				EdgeInfo edge = new EdgeInfo(s, t, leftFace, rightFace);
 				edges.Add(edge);
+
+				//list stores count, necessary to return?
 				return edges.Count - 1;
 			}
 			else
@@ -1169,6 +1163,14 @@ namespace SharpNav
 			public int LeftFace;
 			public int RightFace;
 
+			public EdgeInfo(int endPt0, int endPt1, int leftFace, int rightFace)
+			{
+				this.EndPt0 = endPt0;
+				this.EndPt1 = endPt1;
+				this.LeftFace = leftFace;
+				this.RightFace = rightFace;
+			}
+
 			public static void UpdateLeftFace(ref EdgeInfo e, int s, int t, int f)
 			{
 				if (e.EndPt0 == s && e.EndPt1 == t && e.LeftFace == (int)EdgeValues.Undefined)
@@ -1178,12 +1180,20 @@ namespace SharpNav
 			}
 		}
 
-		private class SamplingData
+		private struct SamplingData
 		{
 			public int X;
 			public int Y;
 			public int Z;
 			public bool IsSampled;
+
+			public SamplingData(int x, int y, int z, bool isSampled)
+			{
+				this.X = x;
+				this.Y = y;
+				this.Z = z;
+				this.IsSampled = isSampled;
+			}
 		}
 
 		/// <summary>

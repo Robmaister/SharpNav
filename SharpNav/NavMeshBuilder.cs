@@ -191,7 +191,6 @@ namespace SharpNav
 			header.detailMeshCount = parameters.polyCount;
 			header.detailVertCount = uniqueDetailVertCount;
 			header.detailTriCount = detailTriCount;
-			header.bvQuantFactor = 1.0f / parameters.cellSize;
 			header.offMeshBase = parameters.polyCount;
 			header.walkableHeight = parameters.walkableHeight;
 			header.walkableRadius = parameters.walkableRadius;
@@ -347,7 +346,7 @@ namespace SharpNav
 			if (parameters.buildBvTree)
 			{
 				//build tree
-				CreateBVTree(parameters.verts, parameters.polys, parameters.polyCount, nvp, parameters.cellSize, parameters.cellHeight, navBvTree);
+				CreateBVTree(parameters.verts, parameters.polys, nvp, parameters.cellSize, parameters.cellHeight, navBvTree);
 			}
 
 			//store off-mesh connections
@@ -443,24 +442,25 @@ namespace SharpNav
 		/// <param name="cellHeight">CompactHeightfield cell height</param>
 		/// <param name="nodes">The resulting nodes</param>
 		/// <returns></returns>
-		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int npolys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
+		public int CreateBVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int nvp, float cellSize, float cellHeight, BVNode[] nodes)
 		{
 			//build bounding volume tree
 			List<BVNode> items = new List<BVNode>();
-			for (int i = 0; i < npolys; i++)
+			for (int i = 0; i < polys.Length; i++)
 			{
 				BVNode tempNode = new BVNode();
 				tempNode.index = i;
 
 				//calcuate polygon bounds
 				tempNode.bounds.Min = tempNode.bounds.Max = verts[polys[i].Vertices[0]];
-				
+
+				PolyMesh.Polygon pi = polys[i];
 				for (int j = 1; j < nvp; j++)
 				{
-					if (polys[i].Vertices[j] == PolyMesh.NullId)
+					if (pi.Vertices[j] == PolyMesh.NullId)
 						break;
 
-					Vector3 v = verts[polys[i].Vertices[j]];
+					Vector3 v = verts[pi.Vertices[j]];
 					Vector3Extensions.ComponentMin(ref tempNode.bounds.Min, ref v, out tempNode.bounds.Min);
 					Vector3Extensions.ComponentMax(ref tempNode.bounds.Max, ref v, out tempNode.bounds.Max);
 				}
@@ -474,7 +474,7 @@ namespace SharpNav
 			}
 
 			int curNode = 0;
-			Subdivide(items, 0, npolys, ref curNode, nodes);
+			Subdivide(items, 0, items.Count, ref curNode, nodes);
 
 			return curNode;
 		}
@@ -504,7 +504,7 @@ namespace SharpNav
 			else
 			{
 				//split
-				CalcExtends(items.ToArray(), indexMin, indexMax, ref nodes[oldNode].bounds);
+				CalcExtends(items, indexMin, indexMax, ref nodes[oldNode].bounds);
 
 				BBox3 b = nodes[oldNode].bounds;
 				int axis = LongestAxis((int)(b.Max.X - b.Min.X), (int)(b.Max.Y - b.Min.Y), (int)(b.Max.Z - b.Min.Z));
@@ -547,14 +547,15 @@ namespace SharpNav
 		/// <param name="minIndex">The minimum index</param>
 		/// <param name="maxIndex">The maximum index</param>
 		/// <param name="bounds">The resulting bounds</param>
-		public void CalcExtends(BVNode[] items, int minIndex, int maxIndex, ref BBox3 bounds)
+		public void CalcExtends(List<BVNode> items, int minIndex, int maxIndex, ref BBox3 bounds)
 		{
 			bounds = items[minIndex].bounds;
 
 			for (int i = minIndex + 1; i < maxIndex; i++)
 			{
-				Vector3Extensions.ComponentMin(ref items[i].bounds.Min, ref bounds.Min, out bounds.Min);
-				Vector3Extensions.ComponentMax(ref items[i].bounds.Max, ref bounds.Max, out bounds.Max);
+				BVNode it = items[i];
+				Vector3Extensions.ComponentMin(ref it.bounds.Min, ref bounds.Min, out bounds.Min);
+				Vector3Extensions.ComponentMax(ref it.bounds.Max, ref bounds.Max, out bounds.Max);
 			}
 		}
 

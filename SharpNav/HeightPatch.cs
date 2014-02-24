@@ -79,6 +79,19 @@ namespace SharpNav
 			}
 		}
 
+		public int this[int x, int z]
+		{
+			get
+			{
+				return data[z * width + x];
+			}
+
+			set
+			{
+				data[z * width + x] = value;
+			}
+		}
+
 		public bool IsSet(int index)
 		{
 			return data[index] != UnsetHeight;

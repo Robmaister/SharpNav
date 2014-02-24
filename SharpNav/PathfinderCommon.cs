@@ -44,15 +44,6 @@ namespace SharpNav
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
-		public static bool OverlapQuantBounds(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax)
-		{
-			bool overlap = true;
-			overlap = (amin.X > bmax.X || amax.X < bmin.X) ? false : overlap;
-			overlap = (amin.Y > bmax.Y || amax.Y < bmin.Y) ? false : overlap;
-			overlap = (amin.Z > bmax.Z || amax.Z < bmin.Z) ? false : overlap;
-			return overlap;
-		}
-
 		public static void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
 		{
 			int indexPoly = 0;
@@ -224,8 +215,6 @@ namespace SharpNav
 			public float walkableRadius;
 			public float walkableClimb;
 			public BBox3 bounds;
-
-			public float bvQuantFactor; //bounding volume quantization facto
 		}
 	}
 }

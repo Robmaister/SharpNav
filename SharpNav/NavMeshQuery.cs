@@ -966,11 +966,14 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest, ref bool posOverPoly)
+		public bool ClosestPointOnPoly(int reference, Vector3 pos, out Vector3 closest, out bool posOverPoly)
 		{
+			posOverPoly = false;
+			closest = Vector3.Zero;
+
 			MeshTile tile;
 			Poly poly;
-			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
+			if (!nav.TryGetTileAndPolyByRef(reference, out tile, out poly))
 				return false;
 			if (tile == null)
 				return false;
@@ -983,8 +986,6 @@ namespace SharpNav
 				float d1 = (pos - v1).Length();
 				float u = d0 / (d0 + d1);
 				closest = Vector3.Lerp(v0, v1, u);
-				if (posOverPoly)
-					posOverPoly = false;
 				return true;
 			}
 
@@ -1026,32 +1027,35 @@ namespace SharpNav
 				Vector3 va = verts[minIndex];
 				Vector3 vb = verts[(minIndex + 1) % numPolyVerts];
 				closest = Vector3.Lerp(va, vb, edgeT[minIndex]);
-
-				if (posOverPoly)
-					posOverPoly = false;
 			}
 			else
 			{
-				if (posOverPoly)
-					posOverPoly = false;
+				posOverPoly = false;
 			}
 
 			//find height at the location
 			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
 			{
 				PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
-				Vector3[] v = new Vector3[3];
+				Vector3 va, vb, vc;
 
-				for (int k = 0; k < 3; k++)
-				{
-					if (t[k] < poly.vertCount)
-						v[k] = tile.verts[poly.verts[t[k]]];
-					else
-						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
-				}
+				if (t.VertexHash0 < poly.vertCount)
+					va = tile.verts[poly.verts[t.VertexHash0]];
+				else
+					va = tile.detailVerts[pd.VertexIndex + (t.VertexHash0 - poly.vertCount)];
+
+				if (t.VertexHash1 < poly.vertCount)
+					vb = tile.verts[poly.verts[t.VertexHash1]];
+				else
+					vb = tile.detailVerts[pd.VertexIndex + (t.VertexHash1 - poly.vertCount)];
+
+				if (t.VertexHash2 < poly.vertCount)
+					vc = tile.verts[poly.verts[t.VertexHash2]];
+				else
+					vc = tile.detailVerts[pd.VertexIndex + (t.VertexHash2 - poly.vertCount)];
 
 				float h;
-				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
+				if (MathHelper.Distance.PointToTriangle(pos, va, vb, vc, out h))
 				{
 					closest.Y = h;
 					break;
@@ -1217,21 +1221,19 @@ namespace SharpNav
 			if (!QueryPolygons(ref center, ref extents, polys)) 
 				return false;
 
-			int nearest = 0;
 			float nearestDistanceSqr = float.MaxValue;
-			for (int i = 0; i < polys.Count; ++i) 
+			for (int i = 0; i < polys.Count; i++) 
 			{
 				int reference = polys[i];
-				Vector3 closestPtPoly = new Vector3();
-				Vector3 diff = new Vector3();
-				bool posOverPoly = false;
-				float d = 0;
-				ClosestPointOnPoly(reference, center, ref closestPtPoly, ref posOverPoly);
+				Vector3 closestPtPoly;
+				bool posOverPoly;
+				ClosestPointOnPoly(reference, center, out closestPtPoly, out posOverPoly);
 
 				// If a point is directly over a polygon and closer than
 				// climb height, favor that instead of straight line nearest point.
-				diff = center - closestPtPoly;
-				if (posOverPoly) 
+				Vector3 diff = center - closestPtPoly;
+				float d = 0;
+				if (posOverPoly)
 				{
 					MeshTile tile;
 					Poly poly;
@@ -1239,22 +1241,18 @@ namespace SharpNav
 					d = Math.Abs(diff.Y) - tile.header.walkableClimb;
 					d = d > 0 ? d * d : 0;
 				}
-				else 
+				else
 				{
 					d = diff.LengthSquared();
 				}
 
-				if (d < nearestDistanceSqr) 
+				if (d < nearestDistanceSqr)
 				{
-					if (nearestPt.Length() != 0)
-						nearestPt = closestPtPoly;
+					nearestPt = closestPtPoly;
 					nearestDistanceSqr = d;
-					nearest = reference;
+					nearestRef = reference;
 				}
-
 			}
-
-			nearestRef = nearest;
 		
 			return true;
 		}
@@ -1268,26 +1266,23 @@ namespace SharpNav
 		/// <returns><c>True</c>, if polygons was queried, <c>False</c> if otherwise.</returns>
 		public bool QueryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
 		{
-			Vector3 bmin = new Vector3();
-			Vector3 bmax = new Vector3();
-			bmin = center - extent;
-			bmax = center + extent;
+			Vector3 bmin = center - extent;
+			Vector3 bmax = center + extent;
 
-			int minx = 0, miny = 0, maxx = 0, maxy = 0;
-			nav.CalcTileLoc (bmin, ref minx, ref miny);
-			nav.CalcTileLoc (bmax, ref maxx, ref minx);
+			int minx, miny, maxx, maxy;
+			nav.CalcTileLoc(ref bmin, out minx, out miny);
+			nav.CalcTileLoc(ref bmax, out maxx, out maxy);
 
-			const int MAX_NETS = 32;
-			MeshTile[] neis = new MeshTile[MAX_NETS];
+			MeshTile[] neis = new MeshTile[32];
 			
 			BBox3 bounds = new BBox3 (bmin, bmax);
-			int n = 0;     
-			for (int y = miny; y <= maxy; ++y) 
+			int n = 0;
+			for (int y = miny; y <= maxy; y++)
 			{
-				for (int x = minx; x <= maxx; ++x) 
+				for (int x = minx; x <= maxx; x++)
 				{
-					int nneis = nav.GetTilesAt(x, y, neis, MAX_NETS);
-					for (int j = 0; j < nneis; ++j) 
+					int nneis = nav.GetTilesAt(x, y, neis);
+					for (int j = 0; j < nneis; j++)
 					{
 						n += nav.QueryPolygonsInTile(neis[j], bounds, polys);
 						if (n >= polys.Capacity) 

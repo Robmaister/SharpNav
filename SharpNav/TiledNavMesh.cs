@@ -223,12 +223,11 @@ namespace SharpNav
 			BaseOffMeshLinks(ref tile);
 
 			//create connections with neighbor tiles
-			const int MAX_NEIS = 32;
-			MeshTile[] neis = new MeshTile[MAX_NEIS];
+			MeshTile[] neis = new MeshTile[32];
 			int nneis;
 
 			//connect with layers in current tile
-			nneis = GetTilesAt(header.x, header.y, neis, MAX_NEIS);
+			nneis = GetTilesAt(header.x, header.y, neis);
 			for (int j = 0; j < nneis; j++)
 			{
 				if (neis[j] != tile)
@@ -244,7 +243,7 @@ namespace SharpNav
 			//connect with neighbour tiles
 			for (int i = 0; i < 8; i++)
 			{
-				nneis = GetNeighbourTilesAt(header.x, header.y, i, neis, MAX_NEIS);
+				nneis = GetNeighbourTilesAt(header.x, header.y, i, neis);
 				for (int j = 0; j < nneis; j++)
 				{
 					ConnectExtLinks(ref tile, ref neis[j], i);
@@ -777,40 +776,31 @@ namespace SharpNav
 				int end = tile.header.bvNodeCount;
 				Vector3 tbmin = tile.header.bounds.Min;
 				Vector3 tbmax = tile.header.bounds.Max;
-				float qfac = tile.header.bvQuantFactor;
-
-				//calculate quantized box
-				Vector3 bmin = new Vector3();
-				Vector3 bmax = new Vector3();
 				
 				//Clamp query box to world box
-				float minx = MathHelper.Clamp(qbounds.Min.X, tbmin.X, tbmax.X) - tbmin.X;
-				float miny = MathHelper.Clamp(qbounds.Min.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				float minz = MathHelper.Clamp(qbounds.Min.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-				float maxx = MathHelper.Clamp(qbounds.Max.X, tbmin.X, tbmax.X) - tbmin.X;
-				float maxy = MathHelper.Clamp(qbounds.Max.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				float maxz = MathHelper.Clamp(qbounds.Max.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-
-				//quantize
-				bmin.X = (int)(qfac * minx) & 0xfffe;
-				bmin.Y = (int)(qfac * miny) & 0xfffe;
-				bmin.Z = (int)(qfac * minz) & 0xfffe;
-				bmax.X = (int)(qfac * maxx + 1) | 1;
-				bmax.Y = (int)(qfac * maxy + 1) | 1;
-				bmax.Z = (int)(qfac * maxz + 1) | 1;
+				Vector3 qbmin = qbounds.Min;
+				Vector3 qbmax = qbounds.Max;
+				BBox3 b;
+				b.Min.X = MathHelper.Clamp(qbmin.X, tbmin.X, tbmax.X) - tbmin.X;
+				b.Min.Y = MathHelper.Clamp(qbmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				b.Min.Z = MathHelper.Clamp(qbmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+				b.Max.X = MathHelper.Clamp(qbmax.X, tbmin.X, tbmax.X) - tbmin.X;
+				b.Max.Y = MathHelper.Clamp(qbmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				b.Max.Z = MathHelper.Clamp(qbmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
 
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
 				
 				while (node < end)
 				{
-					bool overlap = PathfinderCommon.OverlapQuantBounds(bmin, bmax, tile.bvTree[node].bounds.Min, tile.bvTree[node].bounds.Max);
-					bool isLeafNode = tile.bvTree[node].index >= 0;
+					BVNode bvNode = tile.bvTree[node];
+					bool overlap = BBox3.Overlapping(ref b, ref bvNode.bounds);
+					bool isLeafNode = bvNode.index >= 0;
 
 					if (isLeafNode && overlap)
 					{
 						if (polys.Count < polys.Capacity)
-							polys.Add(GetReference(polyBase, tile.bvTree[node].index));
+							polys.Add(GetReference(polyBase, bvNode.index));
 					}
 
 					if (overlap || isLeafNode)
@@ -819,7 +809,7 @@ namespace SharpNav
 					}
 					else
 					{
-						int escapeIndex = -tile.bvTree[node].index;
+						int escapeIndex = -bvNode.index;
 						node += escapeIndex;
 					}
 				}
@@ -828,8 +818,7 @@ namespace SharpNav
 			}
 			else
 			{
-				Vector3 bmin = new Vector3();
-				Vector3 bmax = new Vector3();
+				BBox3 b;
 				int polyBase = GetPolyRefBase(tile);
 
 				for (int i = 0; i < tile.header.polyCount; i++)
@@ -841,15 +830,15 @@ namespace SharpNav
 						continue;
 
 					//calculate polygon bounds
-					bmax = bmin = tile.verts[poly.verts[0]];
+					b.Max = b.Min = tile.verts[poly.verts[0]];
 					for (int j = 1; j < poly.vertCount; j++)
 					{
-						int index = poly.verts[j];
-						Vector3Extensions.ComponentMin(ref bmin, ref tile.verts[index], out bmin);
-						Vector3Extensions.ComponentMax(ref bmax, ref tile.verts[index], out bmax);
+						Vector3 v = tile.verts[poly.verts[j]];
+						Vector3Extensions.ComponentMin(ref b.Min, ref v, out b.Min);
+						Vector3Extensions.ComponentMax(ref b.Max, ref v, out b.Max);
 					}
 
-					if (PathfinderCommon.OverlapQuantBounds(qbounds.Min, qbounds.Max, bmin, bmax))
+					if (BBox3.Overlapping(ref qbounds, ref b))
 					{
 						if (polys.Count < polys.Capacity)
 							polys.Add(GetReference(polyBase, i));
@@ -932,7 +921,7 @@ namespace SharpNav
 		/// <param name="tiles">Tile array</param>
 		/// <param name="maxTiles">Maximum number of tiles allowed</param>
 		/// <returns>Number of tiles satisfying condition</returns>
-		public int GetTilesAt(int x, int y, MeshTile[] tiles, int maxTiles)
+		public int GetTilesAt(int x, int y, MeshTile[] tiles)
 		{
 			int n = 0;
 
@@ -946,7 +935,7 @@ namespace SharpNav
 				//Add to tile array
 				if (tile.header != null && tile.header.x == x && tile.header.y == y)
 				{
-					if (n < maxTiles)
+					if (n < tiles.Length)
 						tiles[n++] = tile;
 				}
 
@@ -957,7 +946,7 @@ namespace SharpNav
 			return n;
 		}
 
-		public int GetNeighbourTilesAt(int x, int y, int side, MeshTile[] tiles, int maxTiles)
+		public int GetNeighbourTilesAt(int x, int y, int side, MeshTile[] tiles)
 		{
 			int nx = x, ny = y;
 			switch (side)
@@ -999,7 +988,7 @@ namespace SharpNav
 					break;
 			}
 
-			return GetTilesAt(nx, ny, tiles, maxTiles);
+			return GetTilesAt(nx, ny, tiles);
 		}
 
 		/// <summary>
@@ -1211,7 +1200,7 @@ namespace SharpNav
 		/// <param name="pos">Position.</param>
 		/// <param name="tx">Tx.</param>
 		/// <param name="ty">Ty.</param>
-		public void CalcTileLoc(Vector3 pos, ref int tx, ref int ty)
+		public void CalcTileLoc(ref Vector3 pos, out int tx, out int ty)
 		{
 			tx = (int)Math.Floor ((pos.X - origin.X) / tileWidth);
 			ty = (int)Math.Floor ((pos.Z - origin.Z) / tileHeight);
