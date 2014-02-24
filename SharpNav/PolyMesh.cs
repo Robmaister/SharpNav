@@ -332,7 +332,7 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="n">The number of vertices</param>
 		/// <param name="tris">Triangles array</param>
-		/// <returns></returns>
+		/// <returns>The number of triangles.</returns>
 		private static int Triangulate(ContourVertex[] verts, int[] indices, Triangle[] tris)
 		{
 			int ntris = 0;
@@ -433,7 +433,10 @@ namespace SharpNav
 		/// <summary>
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
-		/// <returns></returns>
+		/// <param name="vertDict">Vertex dictionary that maps coordinates to index</param>
+		/// <param name="cv">Contour Vertex</param>
+		/// <param name="verts">The list of vertices</param>
+		/// <returns>The vertex index</returns>
 		private static int AddVertex(Dictionary<Vector3, int> vertDict, ContourVertex cv, List<Vector3> verts)
 		{
 			Vector3 v = new Vector3(cv.X, cv.Y, cv.Z);
@@ -452,6 +455,13 @@ namespace SharpNav
 		/// <summary>
 		/// Try to merge two polygons. If possible, return the distance squared between two vertices.
 		/// </summary>
+		/// <param name="polys">Polygon list</param>
+		/// <param name="polyA">Polygon A</param>
+		/// <param name="polyB">Polygon B</param>
+		/// <param name="verts">Vertex list</param>
+		/// <param name="edgeA">Shared edge's endpoint A</param>
+		/// <param name="edgeB">Shared edge's endpoint B</param>
+		/// <returns>The distance between two vertices</returns>
 		private static int GetPolyMergeValue(List<Polygon> polys, int polyA, int polyB, List<Vector3> verts, out int edgeA, out int edgeB)
 		{
 			int numVertsA = polys[polyA].VertexCount;
@@ -535,6 +545,11 @@ namespace SharpNav
 		/// <summary>
 		/// The two polygon arrrays are merged into a single array
 		/// </summary>
+		/// <param name="polys">The polygon list</param>
+		/// <param name="polyA">Polygon A</param>
+		/// <param name="polyB">Polygon B</param>
+		/// <param name="edgeA">Starting edge for polygon A</param>
+		/// <param name="edgeB">Starting edge for polygon B</param>
 		private void MergePolys(List<Polygon> polys, int polyA, int polyB, int edgeA, int edgeB)
 		{
 			int numA = polys[polyA].VertexCount;
@@ -563,6 +578,9 @@ namespace SharpNav
 		/// <summary>
 		/// If vertex can't be removed, there is no need to spend time deleting it.
 		/// </summary>
+		/// <param name="polys">The polygon list</param>
+		/// <param name="remove">The vertex index</param>
+		/// <returns>True, if vertex can be removed. False, if otherwise.</returns>
 		private static bool CanRemoveVertex(List<Polygon> polys, int remove)
 		{
 			//count number of polygons to remove
@@ -667,8 +685,9 @@ namespace SharpNav
 		/// <summary>
 		/// Removing vertices will leave holes that have to be triangulated again.
 		/// </summary>
-		/// <param name="vertex">Index in polygon array</param>
-		/// <param name="maxTris">Maximum triangle count</param>
+		/// <param name="verts">A list of vertices</param>
+		/// <param name="polys">A list of polygons</param>
+		/// <param name="vertex">The vertex to remove</param>
 		private void RemoveVertex(List<Vector3> verts, List<Polygon> polys, int vertex)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
@@ -873,6 +892,9 @@ namespace SharpNav
 		/// <summary>
 		/// Connect two adjacent vertices with edges.
 		/// </summary>
+		/// <param name="vertices">The vertex list</param>
+		/// <param name="polys">The polygon list</param>
+		/// <param name="numVertsPerPoly">Number of vertices per polygon</param>
 		private static void BuildMeshAdjacency(List<Vector3> vertices, List<Polygon> polys, int numVertsPerPoly)
 		{
 			int maxEdgeCount = polys.Count * numVertsPerPoly;
@@ -994,17 +1016,27 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// true if and only if (v[i], v[j]) is a proper internal diagonal of polygon
+		/// True if and only if (v[i], v[j]) is a proper internal diagonal of polygon.
 		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal diagonal. False, if otherwise.</returns>
 		public static bool Diagonal(int i, int j, ContourVertex[] verts, int[] indices)
 		{
 			return InCone(i, j, verts, indices) && Diagonalie(i, j, verts, indices);
 		}
 
 		/// <summary>
-		/// true if and only if diagonal (i, j) is strictly internal to polygon 
-		/// in neighborhood of i endpoint
+		/// True if and only if diagonal (i, j) is strictly internal to polygon 
+		/// in neighborhood of i endpoint.
 		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal. False, if otherwise.</returns>
 		public static bool InCone(int i, int j, ContourVertex[] verts, int[] indices)
 		{
 			int pi = RemoveDiagonalFlag(indices[i]);
@@ -1021,9 +1053,14 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// true if and only if (v[i], v[j]) is internal or external diagonal
-		/// ignoring edges incident to v[i] or v[j]
+		/// True if and only if (v[i], v[j]) is internal or external diagonal
+		/// ignoring edges incident to v[i] or v[j].
 		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal or external diagonal. False, if otherwise.</returns>
 		public static bool Diagonalie(int i, int j, ContourVertex[] verts, int[] indices)
 		{
 			int d0 = RemoveDiagonalFlag(indices[i]);

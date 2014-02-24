@@ -968,6 +968,15 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Add an edge to the edge list if it hasn't been done so already
+		/// </summary>
+		/// <param name="edges">Edge list</param>
+		/// <param name="s">Endpt 0</param>
+		/// <param name="t">Endpt 1</param>
+		/// <param name="leftFace">Left face value</param>
+		/// <param name="rightFace">Right face value</param>
+		/// <returns>If new edge added, return indec. Otherwise, return undefined.</returns>
 		private int AddEdge(List<EdgeInfo> edges, int s, int t, int leftFace, int rightFace)
 		{
 			//TODO can grow larger since this is a list now.
@@ -992,6 +1001,13 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Search for an edge within the edge list
+		/// </summary>
+		/// <param name="edges">Edge list</param>
+		/// <param name="s">Endpt 0</param>
+		/// <param name="t">Endpt 1</param>
+		/// <returns>If found, return the edge's index. Otherwise, return undefined.</returns>
 		private int FindEdge(List<EdgeInfo> edges, int s, int t)
 		{
 			for (int i = 0; i < edges.Count; i++)
@@ -1003,6 +1019,14 @@ namespace SharpNav
 			return (int)EdgeValues.Undefined;
 		}
 
+		/// <summary>
+		/// Determine whether edges overlap with the points
+		/// </summary>
+		/// <param name="pts">Individual points</param>
+		/// <param name="edges">Edge list</param>
+		/// <param name="s1">An edge's endpt 0</param>
+		/// <param name="t1">An edge's endpt1</param>
+		/// <returns></returns>
 		private bool OverlapEdges(List<Vector3> pts, List<EdgeInfo> edges, int s1, int t1)
 		{
 			Vector3 ps1 = pts[s1], pt1 = pts[t1];
@@ -1024,8 +1048,16 @@ namespace SharpNav
 			return false;
 		}
 
-		
-
+		/// <summary>
+		/// Form a triangle ABC out of the three vectors and calculate the center and radius 
+		/// of the resulting circumcircle
+		/// </summary>
+		/// <param name="p1">Point A</param>
+		/// <param name="p2">Point B</param>
+		/// <param name="p3">point C</param>
+		/// <param name="c">Circumcirlce center</param>
+		/// <param name="r">Circumcircle radius</param>
+		/// <returns>True, if a circumcirle can be found. False, if otherwise.</returns>
 		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, ref Vector3 c, out float r)
 		{
 			float EPS = 1e-6f;
@@ -1056,6 +1088,13 @@ namespace SharpNav
 			return false;
 		}
 
+		/// <summary>
+		/// Find the distance from a point to a triangle mesh.
+		/// </summary>
+		/// <param name="p">Individual point</param>
+		/// <param name="verts">Vertex array</param>
+		/// <param name="tris">Triange list</param>
+		/// <returns>The distance</returns>
 		private float DistanceToTriMesh(Vector3 p, Vector3[] verts, List<TriangleData> tris)
 		{
 			float dmin = float.MaxValue;
