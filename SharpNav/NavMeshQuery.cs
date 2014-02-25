@@ -48,11 +48,26 @@ namespace SharpNav
 			openList = new PriorityQueue<Node>(maxNodes);
 		}
 
+		/// <summary>
+		/// The cost between two points may vary depending on the type of polygon.
+		/// </summary>
+		/// <param name="pa">Point A</param>
+		/// <param name="pb">Point B</param>
+		/// <param name="curPoly">Current polygon</param>
+		/// <returns>Cost</returns>
 		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
 		{
 			return (pa - pb).Length() * areaCost[(int)curPoly.Area];
 		}
 
+		/// <summary>
+		/// Find a random point on a polygon.
+		/// </summary>
+		/// <param name="tile">The current mesh tile</param>
+		/// <param name="poly">The current polygon</param>
+		/// <param name="polyRef">Polygon reference</param>
+		/// <param name="randomPt">Resulting random point</param>
+		/// <returns>True, if point found. False, if otherwise</returns>
 		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
 		{
 			Random r = new Random();
@@ -75,6 +90,12 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Find a random point.
+		/// </summary>
+		/// <param name="randomRef">Resulting polygon reference containing random point</param>
+		/// <param name="randomPt">Resulting random point</param>
+		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool FindRandomPoint(ref int randomRef, ref Vector3 randomPt)
 		{
 			if (nav == null)
@@ -147,6 +168,15 @@ namespace SharpNav
 			return FindRandomPointOnPoly(tile, poly, polyRef, out randomPt);
 		}
 
+		/// <summary>
+		/// Find a random point that is a certain distance away from another point.
+		/// </summary>
+		/// <param name="startRef">Starting point's polygon reference</param>
+		/// <param name="centerPos">Starting point</param>
+		/// <param name="radius">Circle's radius</param>
+		/// <param name="randomRef">Resulting polygon reference of random point</param>
+		/// <param name="randomPt">Resulting random point</param>
+		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, ref int randomRef, ref Vector3 randomPt)
 		{
 			if (nav == null)
@@ -301,6 +331,12 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
+		/// <param name="startRef">Starting point's polygon reference</param>
+		/// <param name="endRef">Ending point's polygon reference</param>
+		/// <param name="startPos">Starting point</param>
+		/// <param name="endPos">Ending point</param>
+		/// <param name="path">The path of polygon references</param>
+		/// <returns>True, if path found. False, if otherwise.</returns>
 		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, List<int> path)
 		{
 			//reset path of polygons
@@ -474,7 +510,19 @@ namespace SharpNav
 		/// <summary>
 		/// Add vertices and portals to a regular path computed from the method FindPath().
 		/// </summary>
-		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		/// <param name="startPos">Starting position</param>
+		/// <param name="endPos">Ending position</param>
+		/// <param name="path">Path of polygon references</param>
+		/// <param name="pathSize">Length of path</param>
+		/// <param name="straightPath">An array of points on the straight path</param>
+		/// <param name="straightPathFlags">An array of flags</param>
+		/// <param name="straightPathRefs">An array of polygon references</param>
+		/// <param name="straightPathCount">The number of points on the path</param>
+		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
+		/// <param name="options">Options flag</param>
+		/// <returns>True, if path found. False, if otherwise.</returns>
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, 
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			straightPathCount = 0;
 
@@ -680,6 +728,12 @@ namespace SharpNav
 		/// This method is optimized for small delta movement and a small number of polygons.
 		/// If movement distance is too large, the result will form an incomplete path.
 		/// </summary>
+		/// <param name="startRef">Starting polygon reference</param>
+		/// <param name="startPos">Start position</param>
+		/// <param name="endPos">End position</param>
+		/// <param name="resultPos">Intermediate point</param>
+		/// <param name="visited">Visited polygon references</param>
+		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, ref Vector3 resultPos, List<int> visited)
 		{
 			if (nav == null)
@@ -845,6 +899,14 @@ namespace SharpNav
 		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
+		/// <param name="from">"From" polygon reference</param>
+		/// <param name="fromPoly">"From" polygon data</param>
+		/// <param name="fromTile">"From" mesh tile</param>
+		/// <param name="to">"To" polygon reference</param>
+		/// <param name="toPoly">"To" polygon data</param>
+		/// <param name="toTile">"To" mesh tile</param>
+		/// <param name="mid">Edge midpoint</param>
+		/// <returns>True, if midpoint found. False, if otherwise.</returns>
 		public bool GetEdgeMidPoint(int from, Poly fromPoly, MeshTile fromTile, int to, Poly toPoly, MeshTile toTile, ref Vector3 mid)
 		{
 			Vector3 left = new Vector3();
@@ -857,6 +919,16 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Find points on the left and right side.
+		/// </summary>
+		/// <param name="from">"From" polygon reference</param>
+		/// <param name="to">"To" polygon reference</param>
+		/// <param name="left">Point on the left side</param>
+		/// <param name="right">Point on the right side</param>
+		/// <param name="fromType">Polygon type of "From" polygon</param>
+		/// <param name="toType">Polygon type of "To" polygon</param>
+		/// <returns>True, if points found. False, if otherwise.</returns>
 		public bool GetPortalPoints(int from, int to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
 		{
 			MeshTile fromTile;
@@ -874,6 +946,18 @@ namespace SharpNav
 			return GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right);
 		}
 
+		/// <summary>
+		/// Find points on the left and right side.
+		/// </summary>
+		/// <param name="from">"From" polygon reference</param>
+		/// <param name="fromPoly">"From" polygon data</param>
+		/// <param name="fromTile">"From" mesh tile</param>
+		/// <param name="to">"To" polygon reference</param>
+		/// <param name="toPoly">"To" polygon data</param>
+		/// <param name="toTile">"To" mesh tile</param>
+		/// <param name="left">Resulting point on the left side</param>
+		/// <param name="right">Resulting point on the right side</param>
+		/// <returns>True, if points found. False, if otherwise.</returns>
 		public bool GetPortalPoints(int from, Poly fromPoly, MeshTile fromTile, int to, Poly toPoly, MeshTile toTile, ref Vector3 left, ref Vector3 right)
 		{
 			//find the link that points to the 'to' polygon
@@ -948,6 +1032,13 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Given a point on the polygon, find the closest point
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="pos">Given point</param>
+		/// <param name="closest">Resulting closest point</param>
+		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest)
 		{
 			if (nav == null)
@@ -966,6 +1057,14 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Given a point on the polygon, find the closest point
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="pos">Current position</param>
+		/// <param name="closest">Resulting closest position</param>
+		/// <param name="posOverPoly">Determines whether the position can be found on the polygon</param>
+		/// <returns>True, if the closest point is found. False, if otherwise.</returns>
 		public bool ClosestPointOnPoly(int reference, Vector3 pos, out Vector3 closest, out bool posOverPoly)
 		{
 			posOverPoly = false;
@@ -1065,6 +1164,13 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Given a point on a polygon, find the closest point which lies on the polygon boundary.
+		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="pos">Current position</param>
+		/// <param name="closest">Resulting closest point</param>
+		/// <returns>True, if the closest point is found. False, if otherwise.</returns>
 		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
 		{
 			MeshTile tile;
@@ -1076,7 +1182,20 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendVertex(Vector3 pos, int flags, int reference, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		/// <summary>
+		/// Add a vertex to the straight path.
+		/// </summary>
+		/// <param name="pos"></param>
+		/// <param name="flags"></param>
+		/// <param name="reference"></param>
+		/// <param name="straightPath">An array of points on the straight path</param>
+		/// <param name="straightPathFlags">An array of flags</param>
+		/// <param name="straightPathRefs">An array of polygon references</param>
+		/// <param name="straightPathCount">The number of points on the path</param>
+		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
+		/// <returns>True, if end of path hasn't been reached yet and path isn't full. False, if otherwise.</returns>
+		public bool AppendVertex(Vector3 pos, int flags, int reference, 
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
 		{
 			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
 			{
@@ -1110,7 +1229,22 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+		/// <summary>
+		/// Update the vertices on the straight path
+		/// </summary>
+		/// <param name="startIdx">Original path's starting index</param>
+		/// <param name="endIdx">Original path's end index</param>
+		/// <param name="endPos">The end position</param>
+		/// <param name="path">The original path of polygon references</param>
+		/// <param name="straightPath">An array of points on the straight path</param>
+		/// <param name="straightPathFlags">An array of flags</param>
+		/// <param name="straightPathRefs">An array of polygon references</param>
+		/// <param name="straightPathCount">The number of points on the path</param>
+		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
+		/// <param name="options">Options flag</param>
+		/// <returns></returns>
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, 
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -1160,8 +1294,12 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Return false if the provided position is outside the xz-bounds
+		/// Return false if the provided position is outside the xz-bounds.
 		/// </summary>
+		/// <param name="reference">Polygon reference</param>
+		/// <param name="pos">Current position</param>
+		/// <param name="height">Resulting polygon height</param>
+		/// <returns>True, if height found. False, if otherwise.</returns>
 		public bool GetPolyHeight(int reference, Vector3 pos, ref float height)
 		{
 			if (nav == null)
@@ -1210,7 +1348,7 @@ namespace SharpNav
 		/// <param name="extents">Extents.</param>
 		/// <param name="nearestRef">Nearest reference.</param>
 		/// <param name="neareastPt">Neareast point.</param>
-		/// <returns><c>True</c>, if the nearest poly was found, <c>false</c> otherwise.</returns>
+		/// <returns>True, if the nearest poly was found, False, if otherwise.</returns>
 		public bool FindNearestPoly(ref Vector3 center, ref Vector3 extents, out int nearestRef, out Vector3 nearestPt)
 		{
 			nearestRef = 0;
@@ -1263,7 +1401,7 @@ namespace SharpNav
 		/// <param name="center">The starting point</param>
 		/// <param name="extent">The range to search within</param>
 		/// <param name="polys">A list of polygons</param>
-		/// <returns><c>True</c>, if polygons was queried, <c>False</c> if otherwise.</returns>
+		/// <returns>True, if successful. False, if otherwise.</returns>
 		public bool QueryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
 		{
 			Vector3 bmin = center - extent;

@@ -44,6 +44,13 @@ namespace SharpNav
 
 		public const int OFFMESH_CON_BIDIR = 1; //bidirectional
 
+		/// <summary>
+		/// Given a point, find the closest point on that poly.
+		/// </summary>
+		/// <param name="tile">The current tile.</param>
+		/// <param name="poly">The current polygon.</param>
+		/// <param name="pos">The current position</param>
+		/// <param name="closest">Reference to the closest point</param>
 		public static void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
 		{
 			int indexPoly = 0;
@@ -59,6 +66,13 @@ namespace SharpNav
 			ClosestPointOnPolyInTile(tile, indexPoly, pos, ref closest);
 		}
 
+		/// <summary>
+		/// Given a point, find the closest point on that poly.
+		/// </summary>
+		/// <param name="tile">The current tile</param>
+		/// <param name="indexPoly">The current poly's index</param>
+		/// <param name="pos">The current position</param>
+		/// <param name="closest">Reference to the closest point</param>
 		public static void ClosestPointOnPolyInTile(MeshTile tile, int indexPoly, Vector3 pos, ref Vector3 closest)
 		{
 			Poly poly = tile.polys[indexPoly];
@@ -77,6 +91,13 @@ namespace SharpNav
 				closest.Y = h;
 		}
 
+		/// <summary>
+		/// Given a point, find the closest point on that poly.
+		/// </summary>
+		/// <param name="tile">The current tile.</param>
+		/// <param name="poly">The current polygon.</param>
+		/// <param name="pos">The current position</param>
+		/// <param name="closest">Reference to the closest point</param>
 		public static void ClosestPointOnPolyBoundary(MeshTile tile, Poly poly, Vector3 pos, out Vector3 closest)
 		{
 			//Clamp point to be inside the polygon
@@ -113,6 +134,14 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Find the distance from a point to a triangle.
+		/// </summary>
+		/// <param name="tile">Current mesh tile</param>
+		/// <param name="indexPoly">Current polygon's index</param>
+		/// <param name="pos">Current position</param>
+		/// <param name="h">Resulting height</param>
+		/// <returns>True, if a height is found. False, if otherwise.</returns>
 		public static bool ClosestHeight(MeshTile tile, int indexPoly, Vector3 pos, out float h)
 		{
 			Poly poly = tile.polys[indexPoly];
@@ -140,6 +169,13 @@ namespace SharpNav
 			return false;
 		}
 
+		/// <summary>
+		/// Find the closest point on an offmesh connection, which is in between the two points.
+		/// </summary>
+		/// <param name="tile">Current mesh tile.</param>
+		/// <param name="poly">Current polygon</param>
+		/// <param name="pos">Current position</param>
+		/// <param name="closest">Resulting point that is closest.</param>
 		public static void ClosestPointOnPolyOffMeshConnection(MeshTile tile, Poly poly, Vector3 pos, out Vector3 closest)
 		{
 			Vector3 v0 = tile.verts[poly.verts[0]];
@@ -150,6 +186,15 @@ namespace SharpNav
 			closest = Vector3.Lerp(v0, v1, u);
 		}
 
+		/// <summary>
+		/// Generate an accurate sample of random points in the convex polygon and pick a point.
+		/// </summary>
+		/// <param name="pts">The polygon's points data</param>
+		/// <param name="npts">The number of points</param>
+		/// <param name="areas">The triangle areas</param>
+		/// <param name="s">A random float</param>
+		/// <param name="t">Another random float</param>
+		/// <param name="pt">The resulting point</param>
 		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, out Vector3 pt)
 		{
 			//Calculate triangle areas

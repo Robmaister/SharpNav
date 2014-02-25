@@ -20,6 +20,11 @@ namespace SharpNav
 		private Dictionary<int, Node> nodeDict;
 		private int maxNodes;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="maxNodes"></param>
+		/// <param name="hashSize"></param>
 		public NodePool(int maxNodes, int hashSize)
 		{
 			this.maxNodes = maxNodes;
@@ -29,12 +34,20 @@ namespace SharpNav
 			nodeDict = new Dictionary<int, Node>(new IntNodeIdComparer(hashSize));
 		}
 
+		/// <summary>
+		/// Reset all the data.
+		/// </summary>
 		public void Clear()
 		{
 			nodes.Clear();
 			nodeDict.Clear();
 		}
 
+		/// <summary>
+		/// Try to find a node.
+		/// </summary>
+		/// <param name="id">Node's id</param>
+		/// <returns>The node, if found. Null, if otherwise.</returns>
 		public Node FindNode(int id)
 		{
 			Node node;
@@ -46,6 +59,11 @@ namespace SharpNav
 			return null;
 		}
 
+		/// <summary>
+		/// Try to find the node. If it doesn't exist, create a new node.
+		/// </summary>
+		/// <param name="id">Node's id</param>
+		/// <returns>The node</returns>
 		public Node GetNode(int id)
 		{
 			Node node;
@@ -84,6 +102,11 @@ namespace SharpNav
 			return 0;
 		}
 
+		/// <summary>
+		/// Return a node at a certain index. If index is out-of-bounds, return null.
+		/// </summary>
+		/// <param name="idx">Node index</param>
+		/// <returns></returns>
 		public Node GetNodeAtIdx(int idx)
 		{
 			if (idx <= 0 || idx > nodes.Count)
@@ -92,6 +115,9 @@ namespace SharpNav
 			return nodes[idx - 1]; 
 		}
 
+		/// <summary>
+		/// Determine whether two nodes are equal
+		/// </summary>
 		private class IntNodeIdComparer : IEqualityComparer<int>
 		{
 			private int hashSize;
