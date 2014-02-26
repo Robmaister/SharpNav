@@ -1431,7 +1431,7 @@ namespace SharpNav
 				}
 			}
 
-			return true;
+			return polys.Count != 0;
 		}
 
 		public bool IsInOpenList(Node node)

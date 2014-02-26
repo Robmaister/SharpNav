@@ -136,5 +136,10 @@ namespace SharpNav.Geometry
 			//TODO write a better hash code
 			return Min.GetHashCode() ^ Max.GetHashCode();
 		}
+
+		public override string ToString()
+		{
+			return "{ Min : " + Min.ToString() + ", Max : " + Max.ToString() + " }";
+		}
 	}
 }

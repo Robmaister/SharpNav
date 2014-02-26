@@ -260,6 +260,7 @@ namespace SharpNav
 			public float walkableRadius;
 			public float walkableClimb;
 			public BBox3 bounds;
+			public float bvQuantFactor;
 		}
 	}
 }

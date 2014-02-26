@@ -197,6 +197,7 @@ namespace SharpNav
 			header.walkableClimb = parameters.walkableClimb;
 			header.offMeshConCount = storedOffMeshConCount;
 			header.bvNodeCount = parameters.buildBvTree ? parameters.polyCount * 2 : 0;
+			header.bvQuantFactor = 1f / parameters.cellSize;
 
 			int offMeshVertsBase = parameters.vertCount;
 			int offMeshPolyBase = parameters.polyCount;

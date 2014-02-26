@@ -788,6 +788,13 @@ namespace SharpNav
 				b.Max.Y = MathHelper.Clamp(qbmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
 				b.Max.Z = MathHelper.Clamp(qbmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
 
+				b.Min.X = b.Min.X * tile.header.bvQuantFactor;
+				b.Min.Y = b.Min.Y * tile.header.bvQuantFactor;
+				b.Min.Z = b.Min.Z * tile.header.bvQuantFactor;
+				b.Max.X = b.Max.X * tile.header.bvQuantFactor;
+				b.Max.Y = b.Max.Y * tile.header.bvQuantFactor;
+				b.Max.Z = b.Max.Z * tile.header.bvQuantFactor;
+
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
 				
