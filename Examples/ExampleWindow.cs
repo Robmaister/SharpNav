@@ -455,19 +455,16 @@ namespace Examples
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
 
 			//Find random start and end points on the poly mesh
-			/*int startRef = 0;
-			startPos = new SVector3();
-			navMeshQuery.FindRandomPoint(ref startRef, ref startPos);*/
+			/*int startRef;
+			navMeshQuery.FindRandomPoint(out startRef, out startPos);*/
 
-			int startRef = 0;
-			startPos = new SVector3();
+			int startRef;
 			SVector3 c = new SVector3(10, 0, 0);
 			SVector3 e = new SVector3(5, 5, 5);
 			navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
 
-			int endRef = 0;
-			endPos = new SVector3();
-			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, ref endRef, ref endPos);
+			int endRef;
+			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out endRef, out endPos);
 
 			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
