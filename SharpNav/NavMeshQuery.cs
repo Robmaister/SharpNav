@@ -61,7 +61,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Find a random point on a polygon.
+		/// Find a random point on a polygon. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
 		/// </summary>
 		/// <param name="tile">The current mesh tile</param>
 		/// <param name="poly">The current polygon</param>
@@ -102,7 +102,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Find a random point.
+		/// Find a random point. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
 		/// </summary>
 		/// <param name="randomRef">Resulting polygon reference containing random point</param>
 		/// <param name="randomPt">Resulting random point</param>
@@ -192,7 +192,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Find a random point that is a certain distance away from another point.
+		/// Find a random point that is a certain distance away from another point. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
 		/// </summary>
 		/// <param name="startRef">Starting point's polygon reference</param>
 		/// <param name="centerPos">Starting point</param>
