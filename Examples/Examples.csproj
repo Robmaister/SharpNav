@@ -61,6 +61,9 @@
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
+    <OutputPath>bin\Unity3D\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gwen">
       <HintPath>..\Binaries\Gwen.dll</HintPath>

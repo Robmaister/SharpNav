@@ -60,6 +60,13 @@
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
+    <OutputPath>bin\Unity3D\</OutputPath>
+	<Optimize>true</Optimize>
+	<DefineConstants>UNITY3D</DefineConstants>
+	<WarningLevel>4</WarningLevel>
+	<ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
+  </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SharpNavTests.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -83,6 +90,9 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'XNA'">
     <Reference Include="Microsoft.Xna.Framework" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'Unity3D'">
+    <Reference Include="UnityEngine" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\Generic\BufferedStackTests.cs" />

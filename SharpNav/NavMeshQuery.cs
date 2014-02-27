@@ -18,6 +18,8 @@ using Microsoft.Xna.Framework;
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
+#elif UNITY3D
+using UnityEngine;
 #endif
 
 namespace SharpNav
@@ -70,7 +72,7 @@ namespace SharpNav
 		/// <returns>True, if point found. False, if otherwise</returns>
 		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
 		{
-			return FindRandomPointOnPoly(tile, poly, polyRef, new Random(), out randomPt);
+			return FindRandomPointOnPoly(tile, poly, polyRef, new System.Random(), out randomPt);
 		}
 
 		/// <summary>
@@ -81,7 +83,7 @@ namespace SharpNav
 		/// <param name="polyRef">Polygon reference</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise</returns>
-		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, Random rand, out Vector3 randomPt)
+		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, System.Random rand, out Vector3 randomPt)
 		{
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
@@ -109,7 +111,7 @@ namespace SharpNav
 		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool FindRandomPoint(out int randomRef, out Vector3 randomPt)
 		{
-			return FindRandomPoint(new Random(), out randomRef, out randomPt);
+			return FindRandomPoint(new System.Random(), out randomRef, out randomPt);
 		}
 
 		/// <summary>
@@ -118,7 +120,7 @@ namespace SharpNav
 		/// <param name="randomRef">Resulting polygon reference containing random point</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPoint(Random rand, out int randomRef, out Vector3 randomPt)
+		public bool FindRandomPoint(System.Random rand, out int randomRef, out Vector3 randomPt)
 		{
 			randomRef = 0;
 			randomPt = Vector3.Zero;
@@ -202,7 +204,7 @@ namespace SharpNav
 		/// <returns>True, if point found. False, if otherwise.</returns>
 		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, out int randomRef, out Vector3 randomPt)
 		{
-			return FindRandomPointAroundCircle(startRef, centerPos, radius, new Random(), out randomRef, out randomPt);
+			return FindRandomPointAroundCircle(startRef, centerPos, radius, new System.Random(), out randomRef, out randomPt);
 		}
 
 		/// <summary>
@@ -214,7 +216,7 @@ namespace SharpNav
 		/// <param name="randomRef">Resulting polygon reference of random point</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, Random rand, out int randomRef, out Vector3 randomPt)
+		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, System.Random rand, out int randomRef, out Vector3 randomPt)
 		{
 			randomRef = 0;
 			randomPt = Vector3.Zero;

@@ -14,6 +14,8 @@ using Microsoft.Xna.Framework;
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
+#elif UNITY3D
+using UnityEngine;
 #endif
 
 namespace SharpNav
@@ -48,10 +50,24 @@ namespace SharpNav
 
 #endif
 
+#if UNITY3D
+		internal static float Length(this Vector3 v)
+		{
+			return v.magnitude;
+		}
+
+		internal static float LengthSquared(this Vector3 v)
+		{
+			return v.sqrMagnitude;
+		}
+#endif
+
 		internal static void ComponentMin(ref Vector3 left, ref Vector3 right, out Vector3 result)
 		{
 #if OPENTK || STANDALONE
 			Vector3.ComponentMin(ref left, ref right, out result);
+#elif UNITY3D
+			result = Vector3.Min(left, right);
 #else
 			Vector3.Min(ref left, ref right, out result);
 #endif
@@ -61,6 +77,8 @@ namespace SharpNav
 		{
 #if OPENTK || STANDALONE
 			Vector3.ComponentMax(ref left, ref right, out result);
+#elif UNITY3D
+			result = Vector3.Min(left, right);
 #else
 			Vector3.Max(ref left, ref right, out result);
 #endif

@@ -22,7 +22,7 @@ SOFTWARE.
  */
 #endregion
 
-#if !MONOGAME && !OPENTK && !SHARPDX && !XNA
+#if !MONOGAME && !OPENTK && !SHARPDX && !XNA && !UNITY3D
 
 using System;
 using System.Runtime.InteropServices;
@@ -351,11 +351,6 @@ namespace SharpNav
 		/// Defines an instance with all components set to 1.
 		/// </summary>
 		public static readonly Vector3 One = new Vector3(1, 1, 1);
-
-		/// <summary>
-		/// Defines the size of the Vector3 struct in bytes.
-		/// </summary>
-		public static readonly int SizeInBytes = Marshal.SizeOf(new Vector3());
 
 		#endregion
 

@@ -16,6 +16,8 @@ using Microsoft.Xna.Framework;
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
+#elif UNITY3D
+using UnityEngine;
 #endif
 
 namespace SharpNav.Geometry
