@@ -62,10 +62,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
     <OutputPath>bin\Unity3D\</OutputPath>
-	<Optimize>true</Optimize>
-	<DefineConstants>UNITY3D</DefineConstants>
-	<WarningLevel>4</WarningLevel>
-	<ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
+    <Optimize>true</Optimize>
+    <DefineConstants>UNITY3D</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SharpNavTests.snk</AssemblyOriginatorKeyFile>
@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\Generic\BufferedStackTests.cs" />
+    <Compile Include="CompactSpanTests.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
