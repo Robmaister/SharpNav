@@ -119,6 +119,7 @@ namespace SharpNav
 								CompactSpan.OverlapMin(ref s, ref ds, out overlapBottom);
 								CompactSpan.OverlapMax(ref s, ref ds, out overlapTop);
 
+								//Make sure that the agent can walk to the next span and that the span isn't a huge drop or climb
 								if ((overlapTop - overlapBottom) >= walkableHeight && Math.Abs(ds.Minimum - s.Minimum) <= walkableClimb)
 								{
 									int con = j - dc.StartIndex;

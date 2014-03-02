@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Collections\Generic\BufferedStackTests.cs" />
+    <Compile Include="CompactHeightfieldTests.cs" />
     <Compile Include="CompactSpanTests.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
