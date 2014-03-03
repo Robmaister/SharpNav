@@ -400,7 +400,7 @@ namespace SharpNav
 
 			RegionId regionId = (RegionId)1;
 			int level = ((maxDistance + 1) / 2) * 2;
-
+			 
 			const int ExpandIters = 8;
 
 			if (borderSize > 0)
