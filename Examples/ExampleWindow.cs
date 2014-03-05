@@ -349,7 +349,7 @@ namespace Examples
 				Console.WriteLine("CompactHeightfield");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
-
+				 
 				compactHeightfield.Erode(voxErodeRadius);
 
 				Console.WriteLine(" + Erosion\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");

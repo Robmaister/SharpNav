@@ -148,5 +148,40 @@ namespace SharpNavTests
 			Assert.AreEqual(chf.Distances[13 * 2], 2); //near boundary
 			Assert.AreEqual(chf.Distances[14 * 2], 0); //boundary
 		}
+
+		[Test]
+		public void BuildRegions_Success()
+		{
+			//Build a 3x3 heightfield
+			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, (float)(1.0f / 3.0f), 0.02f);
+			for (int i = 0; i < 9; i++)
+			{
+				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
+				hf[i].AddSpan(new Span(25, 30, AreaId.Walkable));
+			}
+			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
+
+			chf.BuildDistanceField();
+			chf.BuildRegions(1, 2, 3);
+
+			//Most spans do not have a region id because those spans are part of the border
+			//Most region ids won't be assigned to any span
+
+			//Total number of regions right now
+			Assert.AreEqual(chf.MaxRegions, 7);						
+			
+			//Center spans should have region id
+			Assert.AreEqual((int)chf.Spans[4 * 2 + 0].Region, 5);
+			Assert.AreEqual((int)chf.Spans[4 * 2 + 1].Region, 6);
+
+			//Check that the rest of the region ids are not assigned to a span
+			for (int i = 0; i < chf.Spans.Length; i++)
+			{
+				for (int j = 0; j <= 4; j++)
+				{
+					Assert.AreNotEqual((int)chf.Spans[i].Region, j);
+				}
+			}
+		}
 	}
 }
