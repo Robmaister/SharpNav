@@ -98,6 +98,7 @@
     <Compile Include="Collections\Generic\BufferedStackTests.cs" />
     <Compile Include="CompactHeightfieldTests.cs" />
     <Compile Include="CompactSpanTests.cs" />
+    <Compile Include="ContourTests.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
