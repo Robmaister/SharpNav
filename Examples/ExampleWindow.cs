@@ -51,6 +51,7 @@ namespace Examples
 		}
 
 		private Camera cam;
+		private float zoom = MathHelper.PiOver4;
 
 		private Heightfield heightfield;
 		private CompactHeightfield compactHeightfield;
@@ -138,6 +139,7 @@ namespace Examples
 
 			//TODO make cam speed/shift speedup controllable from GUI
 			float camSpeed = 5f * (float)e.Time * (isShiftDown ? 3f : 1f);
+			float zoomSpeed = (float)Math.PI * (float)e.Time * (isShiftDown ? 0.2f : 0.1f);
 
 			if (k[Key.W])
 				cam.Move(-camSpeed);
@@ -151,6 +153,18 @@ namespace Examples
 				cam.Elevate(camSpeed);
 			if (k[Key.E])
 				cam.Elevate(-camSpeed);
+			if (k[Key.Z])
+			{
+				zoom += zoomSpeed;
+				if (zoom > MathHelper.PiOver2)
+					zoom = MathHelper.PiOver2;
+			}
+			if (k[Key.C])
+			{
+				zoom -= zoomSpeed;
+				if (zoom < 0.002f)
+					zoom = 0.002f;
+			}
 
 			if (m[MouseButton.Right])
 			{
@@ -158,6 +172,10 @@ namespace Examples
 				cam.RotateHeading((prevM.Y - m.Y) * (float)e.Time * 2f);
 			}
 
+			float aspect = Width / (float)Height;
+			Matrix4 persp = Matrix4.CreatePerspectiveFieldOfView(zoom, aspect, 0.1f, 1000f);
+			GL.MatrixMode(MatrixMode.Projection);
+			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
 			cam.LoadView();
 
@@ -286,7 +304,7 @@ namespace Examples
 			GL.Viewport(0, 0, Width, Height);
 			float aspect = Width / (float)Height;
 
-			Matrix4 persp = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
+			Matrix4 persp = Matrix4.CreatePerspectiveFieldOfView(zoom, aspect, 0.1f, 1000f);
 			GL.MatrixMode(MatrixMode.Projection);
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
