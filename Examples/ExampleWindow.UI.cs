@@ -94,6 +94,15 @@ namespace Examples
 			const int leftMax = 125;
 			const int rightMax = 20;
 
+			GroupBox rsSettings = new GroupBox(genBase);
+			rsSettings.Text = "Rasterization";
+			rsSettings.Dock = Pos.Top;
+			rsSettings.Height = 90;
+
+			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.99f, "N2", leftMax, rightMax, v => settings.MaxTriSlope = v);
+			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Min.Y, "N0", leftMax, rightMax, v => settings.MinLevelHeight = v);
+			Base maxLevelHeight = CreateSliderOption(rsSettings, "Max Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Max.Y, "N0", leftMax, rightMax, v => settings.MaxLevelHeight = v);
+
 			GroupBox hfSettings = new GroupBox(genBase);
 			hfSettings.Text = "Heightfield";
 			hfSettings.Dock = Pos.Top;
@@ -187,6 +196,9 @@ namespace Examples
 		//TODO move this to SharpNav with better names/restrictions and create alternate constructors.
 		private class GenSettings
 		{
+			public float MaxTriSlope { get; set; }
+			public float MinLevelHeight { get; set; }
+			public float MaxLevelHeight { get; set; }
 			public float CellSize { get; set; }
 			public float CellHeight { get; set; }
 			public float MaxClimb { get; set; }

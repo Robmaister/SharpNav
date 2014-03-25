@@ -346,12 +346,13 @@ namespace Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				/*AreaFlags[] areas = AreaFlagsGenerator.From(level.GetTriangles(), AreaFlags.Walkable)
-					.MarkAboveHeight(5f, AreaFlags.Null)
-					.MarkAboveSlope(0.95f, AreaFlags.Null)
+				AreaId[] areas = AreaIdGenerator.From(level.GetTriangles(), AreaId.Walkable)
+					.MarkAboveHeight(settings.MaxLevelHeight, AreaId.Null)
+					.MarkBelowHeight(settings.MinLevelHeight, AreaId.Null)
+					.MarkAboveSlope(settings.MaxTriSlope, AreaId.Null)
 					.ToArray();
-				heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);*/
-				heightfield.RasterizeTriangles(level.GetTriangles());
+				heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
+				//heightfield.RasterizeTriangles(level.GetTriangles());
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
