@@ -69,7 +69,7 @@ namespace SharpNavTests
 		public void SetConnection_TooHigh()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
-			Assert.Throws<ArgumentOutOfRangeException>(() => CompactSpan.SetConnection((Direction)2, 300, ref cs));	
+			Assert.Throws<ArgumentOutOfRangeException>(() => CompactSpan.SetConnection((Direction)2, 300, ref cs));
 		}
 
 		[Test]

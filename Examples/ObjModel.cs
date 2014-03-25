@@ -29,6 +29,8 @@ namespace Examples
 		private List<Triangle3> tris;
 		private List<Vector3> norms;
 
+		private Vector3 bboxOffset;
+
 		public ObjModel(string path)
 		{
 			tris = new List<Triangle3>();
@@ -141,6 +143,11 @@ namespace Examples
 			return norms.ToArray();
 		}
 
+		public void SetBoundingBoxOffset(Vector3 offset)
+		{
+			bboxOffset = offset;
+		}
+
 		public BBox3 GetBounds()
 		{
 			Vector3 min = Vector3.Zero, max = Vector3.Zero;
@@ -153,6 +160,9 @@ namespace Examples
 				VecMax(ref max, t.B);
 				VecMax(ref max, t.C);
 			}
+
+			min -= bboxOffset;
+			max += bboxOffset;
 
 			return new BBox3(min, max);
 		}

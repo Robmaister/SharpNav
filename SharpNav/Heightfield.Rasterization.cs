@@ -712,14 +712,8 @@ namespace SharpNav
 						polyMax = boundHeight;
 
 					//snap to grid
-					int spanMin = MathHelper.Clamp((int)(polyMin * invCellHeight), 0, height);
-					int spanMax = MathHelper.Clamp((int)Math.Ceiling(polyMax * invCellHeight), spanMin + 1, height);
-
-					if (spanMin == spanMax)
-					{
-						Console.WriteLine("No-thickness span, this should never happen.");
-						continue;
-					}
+					int spanMin = (int)(polyMin * invCellHeight);
+					int spanMax = (int)Math.Ceiling(polyMax * invCellHeight);
 
 					//add the span
 					cells[z * width + x].AddSpan(new Span(spanMin, spanMax, area));

@@ -69,12 +69,10 @@ namespace SharpNav
 			//find max size for polygon area
 			for (int i = 0; i < mesh.PolyCount; i++)
 			{
-				float xmin, xmax, zmin, zmax;
-
-				xmin = bounds[i].Min.X = openField.Width; 
-				xmax = bounds[i].Max.X = 0;
-				zmin = bounds[i].Min.Z = openField.Length;
-				zmax = bounds[i].Max.Z = 0;
+				float xmin = bounds[i].Min.X = openField.Width;
+				float xmax = bounds[i].Max.X = 0;
+				float zmin = bounds[i].Min.Z = openField.Length;
+				float zmax = bounds[i].Max.Z = 0;
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{

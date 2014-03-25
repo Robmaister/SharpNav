@@ -12,7 +12,7 @@ using System.Collections.ObjectModel;
 namespace SharpNav
 {
 	/// <summary>
-	/// A cell is a column of voxels represented in <see cref="SharpNav.Heightfield+Span"/>s.
+	/// A cell is a column of voxels represented in <see cref="Span"/>s.
 	/// </summary>
 	public class Cell
 	{
@@ -52,18 +52,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
-		/// </summary>
-		/// <value>A readonly list of spans.</value>
-		public ReadOnlyCollection<Span> Spans
-		{
-			get
-			{
-				return spans.AsReadOnly();
-			}
-		}
-
-		/// <summary>
 		/// Gets the number of spans that don't have their area flags set to <see cref="AreaId.Null"/>.
 		/// </summary>
 		public int WalkableSpanCount
@@ -76,6 +64,18 @@ namespace SharpNav
 						count++;
 
 				return count;
+			}
+		}
+
+		/// <summary>
+		/// Gets a readonly list of all the <see cref="Span"/>s contained in the cell.
+		/// </summary>
+		/// <value>A readonly list of spans.</value>
+		public ReadOnlyCollection<Span> Spans
+		{
+			get
+			{
+				return spans.AsReadOnly();
 			}
 		}
 
@@ -121,16 +121,15 @@ namespace SharpNav
 		/// Adds a <see cref="Span"/> to the cell.
 		/// </summary>
 		/// <param name="span">A span.</param>
+		/// <exception cref="ArgumentException">Thrown if an invalid span is provided.</exception>
 		public void AddSpan(Span span)
 		{
 			//clamp the span to the cell's range of [0, maxHeight]
 			MathHelper.Clamp(ref span.Minimum, 0, height);
-			MathHelper.Clamp(ref span.Maximum, 0, height);
+			MathHelper.Clamp(ref span.Maximum, span.Minimum, height);
 
 			if (span.Minimum == span.Maximum)
-				throw new ArgumentException("Span has no thickness.");
-			else if (span.Maximum < span.Minimum)
-				throw new ArgumentException("Span is inverted. Maximum is less than minimum.");
+				throw new ArgumentException("Span has invalid bounds.");
 
 			for (int i = 0; i < spans.Count; i++)
 			{

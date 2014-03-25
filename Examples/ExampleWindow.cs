@@ -337,6 +337,7 @@ namespace Examples
 				int voxMaxClimb = (int)(settings.MaxClimb / settings.CellHeight);
 				int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
 
+				level.SetBoundingBoxOffset(new SVector3(settings.CellSize * 0.5f, settings.CellHeight * 0.5f, settings.CellSize * 0.5f));
 				BBox3 bounds = level.GetBounds();
 
 				heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
