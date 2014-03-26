@@ -18,7 +18,7 @@ namespace SharpNavTests
 	public class CompactSpanTests
 	{
 		[Test]
-		public void AddCompactSpan_NoUpperLimit()
+		public void AddCompactSpan_NoUpperLimit_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 
@@ -27,7 +27,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void AddCompactSpan_SetConnection()
+		public void AddCompactSpan_SetConnection_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			CompactSpan.SetConnection((Direction)1, 1, ref cs);
@@ -36,7 +36,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void AddCompactSpan_GetConnection()
+		public void AddCompactSpan_GetConnection_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			CompactSpan.SetConnection((Direction)1, 50, ref cs);
@@ -46,7 +46,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void AddCompactSpan_UnsetConnection()
+		public void AddCompactSpan_UnsetConnection_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			CompactSpan.SetConnection((Direction)1, 1, ref cs);
@@ -56,7 +56,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void AddCompactSpan_IsConnected()
+		public void AddCompactSpan_IsConnected_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			CompactSpan.SetConnection(Direction.East, 1, ref cs);
@@ -66,14 +66,14 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void SetConnection_TooHigh()
+		public void SetConnection_TooHigh_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			Assert.Throws<ArgumentOutOfRangeException>(() => CompactSpan.SetConnection((Direction)2, 300, ref cs));
 		}
 
 		[Test]
-		public void SetConnection_InvalidDirection()
+		public void SetConnection_InvalidDirection_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
 			Assert.Throws<ArgumentException>(() => CompactSpan.SetConnection((Direction)(-1), 1, ref cs));	

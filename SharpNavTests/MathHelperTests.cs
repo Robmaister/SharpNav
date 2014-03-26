@@ -17,21 +17,21 @@ namespace SharpNavTests
 	public class MathHelperTests
 	{
 		[Test]
-		public void Clamp_Test_val_out_range()
+		public void ClampTest_ValOutOfRange_Success()
 		{
 			int num = MathHelper.Clamp (3, 6, 10);
 			Assert.AreEqual (num, 6);
 		}
 
 		[Test]
-		public void Clamp_Test_val_in_range()
+		public void ClampTest_ValInRange_Success()
 		{
 			int num = MathHelper.Clamp (7, 4, 10);
 			Assert.AreEqual (num, 7);
 		}
 
 		[Test]
-		public void Clamp_Test_val_out_range_ref()
+		public void ClampTest_ValOutOfRangeRef_Success()
 		{
 			int num_r = 3;
 			MathHelper.Clamp (ref num_r, 6, 10);
@@ -39,7 +39,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Clamp_Test_val_in_range_ref()
+		public void ClampTest_ValInRangeRef_Success()
 		{
 			int num_r = 7;
 			MathHelper.Clamp (ref num_r, 6, 10);
@@ -47,20 +47,20 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Clamp_Test_val_in_range_float()
+		public void ClampTest_ValInRangeFloat_Success()
 		{
 			float num = MathHelper.Clamp (7.56f, 6.75f, 10.89f);
 			Assert.AreEqual (num, 7.56f);
 		}
 
 		[Test]
-		public void Clamp_Test_val_out_range_float()
+		public void ClampTest_ValOutOfRangeFloat_Success()
 		{
 			float num = MathHelper.Clamp (3.89f, 6.75f, 10.89f);
 			Assert.AreEqual (num, 6.75f);
 		}
 
-		public void Clamp_Test_val_in_range_float_ref()
+		public void ClampTest_ValInRangeFloatRef_Success()
 		{
 			float num_r = 7.56f;
 			MathHelper.Clamp (ref num_r, 6.75f, 10.89f);
@@ -68,7 +68,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Clamp_Test_val_out_range_float_ref()
+		public void ClampTest_ValOutOfRangeFloatRef_Success()
 		{
 			float num_r = 3.89f;
 			MathHelper.Clamp (ref num_r, 6.75f, 10.89f);
@@ -76,7 +76,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void NextPowerOfTwo_PositiveInteger_Int()
+		public void NextPowerOfTwo_PositiveIntegerInt_Sucess()
 		{
 			int num = MathHelper.NextPowerOfTwo(5);
 
@@ -84,7 +84,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void NextPowerOfTwo_PositiveInteger_Uint()
+		public void NextPowerOfTwo_PositiveIntegerUint_Sucess()
 		{
 			uint num = MathHelper.NextPowerOfTwo((uint)5);
 
@@ -92,7 +92,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void NextPowerOfTwo_Zero_Int()
+		public void NextPowerOfTwo_ZeroInt_Fail()
 		{
 			int num = MathHelper.NextPowerOfTwo(0);
 
@@ -102,7 +102,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void NextPowerOfTwo_Zero_Uint()
+		public void NextPowerOfTwo_ZeroUint_Fail()
 		{
 			uint num = MathHelper.NextPowerOfTwo((uint)0);
 
@@ -112,7 +112,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Log2_PositiveInteger_Int()
+		public void Log2_PositiveIntegerInt_Success()
 		{
 			int num = MathHelper.Log2(65);
 
@@ -120,7 +120,7 @@ namespace SharpNavTests
 		}
 		
 		[Test]
-		public void Log2_PositiveInteger_Uint()
+		public void Log2_PositiveIntegerUint_Success()
 		{
 			uint num = MathHelper.Log2((uint)65);
 
@@ -128,7 +128,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Log2_Zero_Int()
+		public void Log2_ZeroInt_Fail()
 		{
 			int num = MathHelper.Log2(0);
 
@@ -137,7 +137,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Log2_Zero_Uint()
+		public void Log2_ZeroUint_Fail()
 		{
 			uint num = MathHelper.Log2((uint)0);
 
@@ -146,7 +146,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void Log2_NegativeInteger_Int()
+		public void Log2_NegativeIntegerInt_Fail()
 		{
 			int num = MathHelper.Log2(-65);
 
@@ -155,7 +155,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void PointToSegment2DSquared_NoVectors()
+		public void PointToSegment2DSquared_NoVectors_Success()
 		{
 			//point is (0, 0), segment is (0, 1) to (1,0)
 			float dist = MathHelper.Distance.PointToSegment2DSquared(0, 0, 0, 1, 1, 0);
@@ -165,7 +165,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void PointToSegment2DSquared_Vectors()
+		public void PointToSegment2DSquared_Vectors_Success()
 		{
 			//the point
 			Vector3 pt = new Vector3(0, 0, 0);
@@ -181,7 +181,7 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void PointToSegment2DSquared_VectorsWithParameters()
+		public void PointToSegment2DSquared_VectorsWithParameters_Success()
 		{
 			//the point
 			Vector3 pt = new Vector3(0, 0, 0);
