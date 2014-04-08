@@ -12,11 +12,24 @@ using System.Linq;
 
 namespace SharpNav.Collections.Generic
 {
+    /// <summary>
+    /// Typical FIFO generic stack container that stores data inside of
+    /// a fixed-size internal buffer (array). 
+    /// </summary>
+    /// <typeparam name="T">
+    /// Type of element that given BufferedStack object stores. 
+    /// </typeparam>
+    
 	public class BufferedStack<T> : ICollection<T>
 	{
 		private T[] data;
 		private int last;
 
+
+        /// <summary>
+        /// Initializes BufferedStack with empty array of given size
+        /// </summary>
+        /// <param name="size">Size of the internal buffer</param>
 		public BufferedStack(int size)
 		{
 			data = new T[size];
@@ -38,6 +51,10 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+        /// <summary>
+        /// Returns number of elements in the stack.
+        /// </summary>
 		public int Count
 		{
 			get
@@ -46,6 +63,11 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+
+        /// <summary>
+        /// Returns whether the stack is read-only (False for now)
+        /// </summary>
 		bool ICollection<T>.IsReadOnly
 		{
 			get
@@ -54,6 +76,12 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+        /// <summary>
+        /// Returns value at specified index (valid ranges are from 0 to size-1)
+        /// </summary>
+        /// <param name="index">Index value</param>
+        /// <returns></returns>
 		public T this[int index]
 		{
 			get
@@ -79,15 +107,23 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+        /// <summary>
+        /// Removes most recent (top) element from stack and returns it.
+        /// </summary>
+        /// <returns>Top element</returns>
 		public T Pop()
 		{
 			if (last == -1)
 				throw new InvalidOperationException("The stack is empty.");
-
-			last--;
-			return data[last + 1];
+			return data[--last];
 		}
 
+
+        /// <summary>
+        /// Returns copy of the top element of the stack.
+        /// </summary>
+        /// <returns>Top element</returns>
 		public T Peek()
 		{
 			if (last == -1)
@@ -101,6 +137,12 @@ namespace SharpNav.Collections.Generic
 			last = -1;
 		}
 
+
+        /// <summary>
+        /// Returns whether the stack contains a given item.
+        /// </summary>
+        /// <param name="item">Item to search for</param>
+        /// <returns>True if item exists in stack, False if not</returns>
 		public bool Contains(T item)
 		{
 			for (int i = 0; i <= last; i++)
