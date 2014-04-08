@@ -16,9 +16,8 @@ namespace SharpNav.Collections.Generic
     /// Typical FIFO generic stack container that stores data inside of
     /// a fixed-size internal buffer (array). 
     /// </summary>
-    /// <typeparam name="T">
-    /// Type of element that given BufferedStack object stores. 
-    /// </typeparam>
+    /// <typeparam name="T">Type of element that given BufferedStack object stores. </typeparam>
+    /// 
     
 	public class BufferedStack<T> : ICollection<T>
 	{
@@ -33,21 +32,27 @@ namespace SharpNav.Collections.Generic
 		public BufferedStack(int size)
 		{
 			data = new T[size];
-			last = -1;
+			last = 0;
 		}
 
+
+        /// <summary>
+        /// Initializes BufferedStack as an exact copy of another Stack<T> container object. 
+        /// </summary>
+        /// <param name="size">Size of stack</param>
+        /// <param name="items">Stack container object that contains the values to be copied</param>
 		public BufferedStack(int size, Stack<T> items)
 		{
 			if (items.Count <= size)
 			{
 				data = new T[size];
 				items.CopyTo(data, 0);
-				last = items.Count - 1;
+                last = items.Count; 
 			}
 			else
 			{
 				data = items.Skip(items.Count - size).ToArray();
-				last = size - 1;
+                last = size; 
 			}
 		}
 
@@ -57,12 +62,11 @@ namespace SharpNav.Collections.Generic
         /// </summary>
 		public int Count
 		{
-			get
-			{
-				return last + 1;
-			}
+            get
+            {
+                return last;
+            }
 		}
-
 
 
         /// <summary>
@@ -90,21 +94,19 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
-		//HACK return bool when stack is filled and restarts is unclear and a hack
+		/// <summary>
+		/// Pushes a new element to the top of the stack.
+		/// </summary>
+		/// <param name="item">The element to be added to the stack</param>
+		/// <returns>True if element was added to stack, False otherwise</returns>
 		public bool Push(T item)
 		{
-			last++;
-			if (last == data.Length)
-			{
-				last = 0;
-				data[last] = item;
-				return true;
-			}
-			else
-			{
-				data[last] = item;
-				return false;
-			}
+            if (last < data.Length)
+            {
+                data[last++] = item;
+                return true;
+            }
+            return false; 
 		}
 
 
@@ -114,7 +116,7 @@ namespace SharpNav.Collections.Generic
         /// <returns>Top element</returns>
 		public T Pop()
 		{
-			if (last == -1)
+			if (last == 0)
 				throw new InvalidOperationException("The stack is empty.");
 			return data[--last];
 		}
@@ -126,15 +128,19 @@ namespace SharpNav.Collections.Generic
         /// <returns>Top element</returns>
 		public T Peek()
 		{
-			if (last == -1)
+			if (last == 0)
 				throw new InvalidOperationException("The stack is empty.");
 
-			return data[last];
+			return data[last-1];
 		}
 
+
+        /// <summary>
+        /// Resets stack pointer back to default, essentially clearing the stack. 
+        /// </summary>
 		public void Clear()
 		{
-			last = -1;
+			last = 0;
 		}
 
 
@@ -145,38 +151,67 @@ namespace SharpNav.Collections.Generic
         /// <returns>True if item exists in stack, False if not</returns>
 		public bool Contains(T item)
 		{
-			for (int i = 0; i <= last; i++)
+			for (int i = 0; i < last; i++)
 				if (item.Equals(data[i]))
 					return true;
 
 			return false;
 		}
 
+
+        /// <summary>
+        /// Still in development. 
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="arrayIndex"></param>
 		public void CopyTo(T[] array, int arrayIndex)
 		{
 			throw new NotImplementedException();
 		}
 
+
+        /// <summary>
+        /// Returns generator.
+        /// </summary>
+        /// <returns>IEnumerator generator object.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
-			if (last == -1)
+			if (last == 0)
 				yield break;
 
 			//TODO handle wrap-arounds.
-			for (int i = 0; i <= last; i++)
+			for (int i = 0; i < last; i++)
 				yield return data[i];
 		}
 
+
+
+        /// <summary>
+        /// ICollection.Add() implementation for BufferedStack
+        /// </summary>
+        /// <param name="item"></param>
 		void ICollection<T>.Add(T item)
 		{
 			Push(item);
 		}
 
+
+        /// <summary>
+        /// Still in development. 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("Cannot remove from an arbitrary index in a stack");
 		}
 
+
+
+        /// <summary>
+        /// Returns IEnumerable enumerator object. 
+        /// </summary>
+        /// <returns>IEnumerator object</returns>
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
