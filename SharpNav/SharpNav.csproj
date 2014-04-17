@@ -66,10 +66,10 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
     <OutputPath>bin\Unity3D\</OutputPath>
-	<DefineConstants>TRACE;UNITY3D</DefineConstants>
-	<Optimize>true</Optimize>
-	<WarningLevel>4</WarningLevel>
-	<ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
+    <DefineConstants>TRACE;UNITY3D</DefineConstants>
+    <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
+    <ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -96,6 +96,7 @@
     <Compile Include="AreaId.cs" />
     <Compile Include="AreaIdGenerator.cs" />
     <Compile Include="Cell.cs" />
+    <Compile Include="Collections\Generic\BufferedQueue.cs" />
     <Compile Include="Collections\Generic\BufferedStack.cs" />
     <Compile Include="Collections\Generic\IValueWithCost.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
