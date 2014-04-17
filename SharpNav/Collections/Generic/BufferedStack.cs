@@ -94,6 +94,7 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
 		/// <summary>
 		/// Pushes a new element to the top of the stack.
 		/// </summary>
@@ -202,7 +203,6 @@ namespace SharpNav.Collections.Generic
 			throw new InvalidOperationException("Cannot remove from an arbitrary index in a stack");
             return false; 
 		}
-
 
 
         /// <summary>
