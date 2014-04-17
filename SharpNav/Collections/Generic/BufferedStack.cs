@@ -21,8 +21,8 @@ namespace SharpNav.Collections.Generic
     
 	public class BufferedStack<T> : ICollection<T>
 	{
-		private T[] data;
-		private int last;
+		private T[] data;       // Internal data array
+		private int top;        // Index of the position "above" the top of the stack
 
 
         /// <summary>
@@ -32,22 +32,27 @@ namespace SharpNav.Collections.Generic
 		public BufferedStack(int size)
 		{
 			data = new T[size];
-			last = -1;
+            top = 0; 
 		}
 
 
+        /// <summary>
+        /// Initialize BufferedStack as a copy of a Stack container object with "size" number of elements
+        /// </summary>
+        /// <param name="size">Number of elements in container</param>
+        /// <param name="items">Stack container object containing elements to be copied</param>
 		public BufferedStack(int size, Stack<T> items)
 		{
 			if (items.Count <= size)
 			{
 				data = new T[size];
 				items.CopyTo(data, 0);
-				last = items.Count - 1;
+                top = items.Count;
 			}
 			else
 			{
 				data = items.Skip(items.Count - size).ToArray();
-				last = size - 1;
+                top = size; 
 			}
 		}
 
@@ -59,7 +64,7 @@ namespace SharpNav.Collections.Generic
 		{
 			get
 			{
-				return last + 1;
+                return top; 
 			}
 		}
 
@@ -96,12 +101,10 @@ namespace SharpNav.Collections.Generic
 		/// <returns>True if element was added to stack, False otherwise</returns>
 		public bool Push(T item)
 		{
-            if (last < data.Length)
-            {
-                data[last++] = item;
-                return true;
-            }
-            return false; 
+            if (top == data.Length)
+                return false;
+            data[top++] = item;
+            return true; 
 		}
 
 
@@ -111,9 +114,9 @@ namespace SharpNav.Collections.Generic
         /// <returns>Top element</returns>
 		public T Pop()
 		{
-			if (last == 0)
+			if (top == 0)
 				throw new InvalidOperationException("The stack is empty.");
-			return data[--last];
+            return data[--top]; 
 		}
 
 
@@ -123,10 +126,9 @@ namespace SharpNav.Collections.Generic
         /// <returns>Top element</returns>
 		public T Peek()
 		{
-			if (last == 0)
+			if (top == 0)
 				throw new InvalidOperationException("The stack is empty.");
-
-			return data[last-1];
+			return data[top-1];
 		}
 
 
@@ -135,7 +137,7 @@ namespace SharpNav.Collections.Generic
         /// </summary>
 		public void Clear()
 		{
-			last = 0;
+			top = 0;
 		}
 
 
@@ -146,7 +148,7 @@ namespace SharpNav.Collections.Generic
         /// <returns>True if item exists in stack, False if not</returns>
 		public bool Contains(T item)
 		{
-			for (int i = 0; i < last; i++)
+			for (int i = 0; i < top; i++)
 				if (item.Equals(data[i]))
 					return true;
 
@@ -171,14 +173,13 @@ namespace SharpNav.Collections.Generic
         /// <returns>IEnumerator generator object.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
-			if (last == 0)
+			if (top == 0)
 				yield break;
 
 			//TODO handle wrap-arounds.
-			for (int i = 0; i < last; i++)
+			for (int i = 0; i < top; i++)
 				yield return data[i];
 		}
-
 
 
         /// <summary>
@@ -192,13 +193,14 @@ namespace SharpNav.Collections.Generic
 
 
         /// <summary>
-        /// Still in development. 
+        /// ICollection.Remove() implementation, which is not supported for stack containers. 
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns></returns>
+        /// <param name="item">Item to be removed (irrelevant)</param>
+        /// <returns>False</returns>
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("Cannot remove from an arbitrary index in a stack");
+            return false; 
 		}
 
 
