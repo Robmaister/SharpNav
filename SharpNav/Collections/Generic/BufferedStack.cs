@@ -32,27 +32,22 @@ namespace SharpNav.Collections.Generic
 		public BufferedStack(int size)
 		{
 			data = new T[size];
-			last = 0;
+			last = -1;
 		}
 
 
-        /// <summary>
-        /// Initializes BufferedStack as an exact copy of another Stack<T> container object. 
-        /// </summary>
-        /// <param name="size">Size of stack</param>
-        /// <param name="items">Stack container object that contains the values to be copied</param>
 		public BufferedStack(int size, Stack<T> items)
 		{
 			if (items.Count <= size)
 			{
 				data = new T[size];
 				items.CopyTo(data, 0);
-                last = items.Count; 
+				last = items.Count - 1;
 			}
 			else
 			{
 				data = items.Skip(items.Count - size).ToArray();
-                last = size; 
+				last = size - 1;
 			}
 		}
 
@@ -62,10 +57,10 @@ namespace SharpNav.Collections.Generic
         /// </summary>
 		public int Count
 		{
-            get
-            {
-                return last;
-            }
+			get
+			{
+				return last + 1;
+			}
 		}
 
 
