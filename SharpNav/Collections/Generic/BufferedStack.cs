@@ -26,6 +26,16 @@ namespace SharpNav.Collections.Generic
 
 
         /// <summary>
+        /// Default constructor, sets size to 1000 by default
+        /// </summary>
+        public BufferedStack()
+        {
+            data = new T[1000];
+            top = 0; 
+        }
+
+
+        /// <summary>
         /// Initializes BufferedStack with empty array of given size
         /// </summary>
         /// <param name="size">Size of the internal buffer</param>

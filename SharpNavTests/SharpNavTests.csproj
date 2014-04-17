@@ -95,6 +95,7 @@
     <Reference Include="UnityEngine" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Collections\Generic\BuferedQueueTests.cs" />
     <Compile Include="Collections\Generic\BufferedStackTests.cs" />
     <Compile Include="CompactHeightfieldTests.cs" />
     <Compile Include="CompactSpanTests.cs" />

@@ -27,6 +27,16 @@ namespace SharpNav.Collections.Generic
 
 
         /// <summary>
+        /// Default constructor, default size of 1000 for internal array
+        /// </summary>
+        public BufferedQueue()
+        {
+            data = new T[1000];
+            size = first = 0;
+        }
+
+
+        /// <summary>
         /// Initializes BufferedQueue with empty array of given size
         /// </summary>
         /// <param name="size">Size of the internal buffer</param>
@@ -67,7 +77,7 @@ namespace SharpNav.Collections.Generic
         {
             get
             {
-                return size;
+                return size - first;
             }
         }
 
