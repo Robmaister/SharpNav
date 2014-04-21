@@ -499,6 +499,8 @@ namespace SharpNav
 					float dz = polyMeshVerts[vi].Z - polyMeshVerts[vj].Z;
 					float d = (float)Math.Sqrt(dx * dx + dz * dz);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
+					if (nn >= MAX_VERTS_PER_EDGE)
+						nn = MAX_VERTS_PER_EDGE - 1;
 					if (verts.Count + nn >= MAX_VERTS)
 						nn = MAX_VERTS - 1 - verts.Count;
 

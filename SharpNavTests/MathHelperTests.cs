@@ -201,6 +201,56 @@ namespace SharpNavTests
 		}
 
 		[Test]
+		public void PointToTriangle_CenterPointDist_Success()
+		{
+			//Point
+			Vector3 p = new Vector3(0.5f, 0.5f, 0.5f);
+
+			//Triangle
+			Vector3 a = new Vector3(0, 0, 1);
+			Vector3 b = new Vector3(-1, 0, 0);
+			Vector3 c = new Vector3(1, 0, 0);
+
+			float dist = MathHelper.Distance.PointToTriangle(p, a, b, c);
+
+			Assert.AreEqual(dist + float.Epsilon, 0.5f);
+		}
+
+		[Test]
+		public void PointToTriangle_EdgePointDist_Success()
+		{
+			//Point
+			Vector3 p = new Vector3(0.0f, 0.0f, 0.0f);
+
+			//Triangle
+			Vector3 a = new Vector3(0, 0, 1);
+			Vector3 b = new Vector3(-1, 0, 0);
+			Vector3 c = new Vector3(1, 0, 0);
+
+			float dist = MathHelper.Distance.PointToTriangle(p, a, b, c);
+
+			Assert.AreEqual(dist, 0.0f);
+		}
+
+		[Test]
+		public void PointToTriangle_CenterPointBool_Success()
+		{
+			//Point
+			Vector3 p = new Vector3(0.5f, 0.5f, 0.5f);
+
+			//Triangle
+			Vector3 a = new Vector3(0, 0, 1);
+			Vector3 b = new Vector3(-1, 0, 0);
+			Vector3 c = new Vector3(1, 0, 0);
+
+			float height;
+			bool isInTriangle = MathHelper.Distance.PointToTriangle(p, a, b, c, out height);
+
+			Assert.AreEqual(height, 0.0f);
+			Assert.IsTrue(isInTriangle);
+		}
+
+		[Test]
 		public void SegmentSegment2D_without_float_success()
 		{
 			//the Segment 1
@@ -229,7 +279,6 @@ namespace SharpNavTests
 			Assert.IsFalse (f);
 
 		}
-
 
 		[Test]
 		public void SegmentSegment2D_with_float_success()
@@ -261,8 +310,7 @@ namespace SharpNavTests
 			float m;
 			float n;
 			bool f = MathHelper.Intersection.SegmentSegment2D (ref a, ref b, ref p, ref q, out m, out n);
-			Assert.IsFalse (f);
-
+			Assert.IsFalse(f);
 		}
 
 
