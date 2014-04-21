@@ -155,6 +155,51 @@ namespace SharpNavTests
 		}
 
 		[Test]
+		public void IsPointInPoly_InternalPoint_Success()
+		{
+			Vector3 pt = new Vector3(0.0f, 0.0f, 0.5f);
+
+			Vector3[] poly = new Vector3[3];
+			poly[0] = new Vector3(0.0f, 0.0f, 1.0f);
+			poly[1] = new Vector3(-1.0f, 0.0f, 0.0f);
+			poly[2] = new Vector3(1.0f, 0.0f, 0.0f);
+
+			bool isInPoly = MathHelper.IsPointInPoly(pt, poly, poly.Length);
+
+			Assert.IsTrue(isInPoly);
+		}
+
+		[Test]
+		public void IsPointInPoly_BoundaryPoint_Success()
+		{
+			Vector3 pt = new Vector3(0.0f, 0.0f, 0.0f);
+
+			Vector3[] poly = new Vector3[3];
+			poly[0] = new Vector3(0.0f, 0.0f, 1.0f);
+			poly[1] = new Vector3(-1.0f, 0.0f, 0.0f);
+			poly[2] = new Vector3(1.0f, 0.0f, 0.0f);
+
+			bool isInPoly = MathHelper.IsPointInPoly(pt, poly, poly.Length);
+
+			Assert.IsTrue(isInPoly);
+		}
+
+		[Test]
+		public void IsPointInPoly_ExternalPoint_Success()
+		{
+			Vector3 pt = new Vector3(-1.0f, 0.0f, -1.0f);
+
+			Vector3[] poly = new Vector3[3];
+			poly[0] = new Vector3(0.0f, 0.0f, 1.0f);
+			poly[1] = new Vector3(-1.0f, 0.0f, 0.0f);
+			poly[2] = new Vector3(1.0f, 0.0f, 0.0f);
+
+			bool isInPoly = MathHelper.IsPointInPoly(pt, poly, poly.Length);
+
+			Assert.IsFalse(isInPoly);
+		}
+
+		[Test]
 		public void PointToSegment2DSquared_NoVectors_Success()
 		{
 			//point is (0, 0), segment is (0, 1) to (1,0)
