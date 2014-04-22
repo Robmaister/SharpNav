@@ -16,6 +16,7 @@ namespace SharpNav.Collections.Generic
 	/// <typeparam name="T">
 	/// A type that has a cost for each instance via the <see cref="IValueWithCost"/> interface.
 	/// </typeparam>
+    
 	public class PriorityQueue<T> : ICollection<T>
 		where T : class, IValueWithCost
 	{
@@ -34,6 +35,10 @@ namespace SharpNav.Collections.Generic
 			heap = new T[capacity + 1];
 		}
 
+
+        /// <summary>
+        /// Returns number of elements in the priority queue.
+        /// </summary>
 		public int Count
 		{
 			get
@@ -42,6 +47,10 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+        /// <summary>
+        /// Is not read only.
+        /// </summary>
 		bool ICollection<T>.IsReadOnly
 		{
 			get
@@ -49,6 +58,7 @@ namespace SharpNav.Collections.Generic
 				return false;
 			}
 		}
+
 
 		/// <summary>
 		/// Remove all the elements from the priorirty queue.
@@ -58,10 +68,11 @@ namespace SharpNav.Collections.Generic
 			size = 0;
 		}
 
+
 		/// <summary>
 		/// Return the node at the top of the heap.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>Top node in heap</returns>
 		public T Top()
 		{
 			return heap[0];
@@ -71,7 +82,7 @@ namespace SharpNav.Collections.Generic
 		/// Remove the node at the top of the heap. Then, move the bottommost node to the top and trickle down
 		/// until the nodes are in order.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>Node with lowest value in heap</returns>
 		public T Pop()
 		{
 			T result = heap[0];
@@ -79,6 +90,7 @@ namespace SharpNav.Collections.Generic
 			TrickleDown(0, heap[size]);
 			return result;
 		}
+
 
 		/// <summary>
 		/// Add the node at the bottom of the heap and move it up until the nodes ae in order.
@@ -90,10 +102,18 @@ namespace SharpNav.Collections.Generic
 			BubbleUp(size - 1, node);
 		}
 
+
+        /// <summary>
+        /// Not implemented yet. 
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>False</returns>
 		public bool Contains(T item)
 		{
 			throw new NotImplementedException();
+            return false; 
 		}
+
 
 		/// <summary>
 		/// Change the value of the node, which may involve some swapping of elements to maintain heap order.
@@ -111,21 +131,44 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
+
+        /// <summary>
+        /// Returns IEnumerable object
+        /// </summary>
+        /// <returns></returns>
 		public IEnumerator<T> GetEnumerator()
 		{
 			return ((IEnumerable<T>)heap).GetEnumerator();
 		}
 
+
+        /// <summary>
+        /// ICollection interface functions
+        /// </summary>
+        /// <param name="item"></param>
 		void ICollection<T>.Add(T item)
 		{
 			Push(item);
 		}
 
+
+        /// <summary>
+        /// ICollection interace functions (still in development)
+        /// </summary>
+        /// <param name="item">Item we are looking for</param>
+        /// <returns>False</returns>
 		bool ICollection<T>.Contains(T item)
 		{
 			throw new NotImplementedException();
+            return false; 
 		}
 
+
+        /// <summary>
+        /// Makes a copy of the T array
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="arrayIndex"></param>
 		void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 		{
 			if (arrayIndex + heap.Length > array.Length)
@@ -134,15 +177,28 @@ namespace SharpNav.Collections.Generic
 			Array.Copy(heap, 0, array, arrayIndex, heap.Length);
 		}
 
+
+        /// <summary>
+        /// ICollection interface function (however arbitrary Remove is not allowed in priority queues)
+        /// </summary>
+        /// <param name="item">Item to be removed (irrelevant)</param>
+        /// <returns>False</returns>
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("This priority queue implementation only allows elements to be popped off the top, not removed.");
-		}
+            return false; 
+        }
 
+
+        /// <summary>
+        /// ???
+        /// </summary>
+        /// <returns>IEnumerator object</returns>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
+
 
 		/// <summary>
 		/// While going up a priority queue, keep swapping elements until the element reaches the top.
