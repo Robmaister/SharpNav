@@ -75,8 +75,9 @@ namespace SharpNav.Collections.Generic
 		/// <returns>Top node in heap</returns>
 		public T Top()
 		{
-			return heap[0];
+            return (size > 0) ? heap[0] : null;
 		}
+
 
 		/// <summary>
 		/// Remove the node at the top of the heap. Then, move the bottommost node to the top and trickle down
@@ -85,6 +86,9 @@ namespace SharpNav.Collections.Generic
 		/// <returns>Node with lowest value in heap</returns>
 		public T Pop()
 		{
+            if (size > 0)
+                return null; 
+
 			T result = heap[0];
 			size--;
 			TrickleDown(0, heap[size]);
@@ -104,22 +108,26 @@ namespace SharpNav.Collections.Generic
 
 
         /// <summary>
-        /// Not implemented yet. 
+        /// Returns whether the given item exists in the heap. 
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns>False</returns>
+        /// <param name="item">Item to look for</param>
+        /// <returns>True or False</returns>
 		public bool Contains(T item)
 		{
-			throw new NotImplementedException();
+            for (int c = 0; c < size; c++)
+            {
+                if (heap[c] == item)
+                    return true;
+            }
             return false; 
 		}
 
 
-		/// <summary>
-		/// Change the value of the node, which may involve some swapping of elements to maintain heap order.
-		/// </summary>
-		/// <param name="node">The node to modify</param>
-		public void Modify(T node)
+        /// <summary>
+        /// Change the value of the node, which may involve some swapping of elements to maintain heap order.
+        /// </summary>
+        /// <param name="node">The node to modify</param>
+        public void Modify(T node)
 		{
 			for (int i = 0; i < size; i++)
 			{
@@ -215,7 +223,6 @@ namespace SharpNav.Collections.Generic
 				i = parent;
 				parent = (i - 1) / 2;
 			}
-
 			heap[i] = node;
 		}
 
