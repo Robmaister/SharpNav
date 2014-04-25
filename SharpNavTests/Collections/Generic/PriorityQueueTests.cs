@@ -19,44 +19,44 @@ namespace SharpNavTests.Collections.Generic
 	[TestFixture]
 	public class PriorityQueueTests
 	{
-        [Test]
-        public void TopTest()
-        {
-        }
+		[Test]
+		public void TopTest()
+		{
+		}
 
-        [Test]
-        public void PopTest()
-        {
-        }
+		[Test]
+		public void PopTest()
+		{
+		}
 
-        [Test]
-        public void PushTest()
-        {
-        }
+		[Test]
+		public void PushTest()
+		{
+		}
 
-        [Test]
-        public void ContainsTest()
-        {
-        }
+		[Test]
+		public void ContainsTest()
+		{
+		}
 
-        [Test]
-        public void ModifyTest()
-        {
-        }
+		[Test]
+		public void ModifyTest()
+		{
+		}
 
-        [Test]
-        public void ValidHeapTest()
-        {
-        }
+		[Test]
+		public void ValidHeapTest()
+		{
+		}
 
-        [Test]
-        public void MiscICollectionTests()
-        {
-        }
+		[Test]
+		public void MiscICollectionTests()
+		{
+		}
 
-        [Test]
-        public void StatusAccessorTests()
-        {
-        }
-    }
+		[Test]
+		public void StatusAccessorTests()
+		{
+		}
+	}
 }

@@ -17,8 +17,6 @@ namespace SharpNav.Collections.Generic
 	/// a fixed-size internal buffer (array). 
 	/// </summary>
 	/// <typeparam name="T">Type of element that given BufferedStack object stores. </typeparam>
-	/// 
-	
 	public class BufferedStack<T> : ICollection<T>
 	{
 		private T[] data;       // Internal data array
@@ -211,7 +209,6 @@ namespace SharpNav.Collections.Generic
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("Cannot remove from an arbitrary index in a stack");
-			return false; 
 		}
 
 
