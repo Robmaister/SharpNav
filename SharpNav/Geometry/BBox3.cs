@@ -49,6 +49,17 @@ namespace SharpNav.Geometry
 			Max = max;
 		}
 
+		public BBox3(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+		{
+			Min.X = minX;
+			Min.Y = minY;
+			Min.Z = minZ;
+
+			Max.X = maxX;
+			Max.Y = maxY;
+			Max.Z = maxZ;
+		}
+
 		/// <summary>
 		/// Gets the center of the box.
 		/// </summary>
