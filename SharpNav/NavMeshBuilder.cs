@@ -27,7 +27,7 @@ namespace SharpNav
 	{
 		//convert NavMesh and NavMeshDetail into a different data structure suited for pathfinding
 		//This class will create tiled data.
-		private PathfinderCommon.MeshHeader header;
+		private PathfinderCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
 		private PolyMeshDetail.MeshData[] navDMeshes;
@@ -78,7 +78,7 @@ namespace SharpNav
 				{
 					for (int i = 0; i < parameters.vertCount; i++)
 					{
-						Vector3 iv = parameters.verts[i];
+						Vector3 iv = parameters.Verts[i];
 						float h = parameters.bounds.Min.Y + iv.Y * parameters.cellHeight;
 						hmin = Math.Min(hmin, h);
 						hmax = Math.Max(hmax, h);
@@ -170,7 +170,7 @@ namespace SharpNav
 			}
 
 			//allocate data
-			header = new PathfinderCommon.MeshHeader();
+			header = new PathfinderCommon.NavMeshInfo();
 			navVerts = new Vector3[totVertCount];
 			navPolys = new Poly[totPolyCount];
 			navDMeshes = new PolyMeshDetail.MeshData[parameters.polyCount];
@@ -207,7 +207,7 @@ namespace SharpNav
 			//store vertices
 			for (int i = 0; i < parameters.vertCount; i++)
 			{
-				Vector3 iv = parameters.verts[i];
+				Vector3 iv = parameters.Verts[i];
 				navVerts[i].X = parameters.bounds.Min.X + iv.X * parameters.cellSize;
 				navVerts[i].Y = parameters.bounds.Min.Y + iv.Y * parameters.cellHeight;
 				navVerts[i].Z = parameters.bounds.Min.Z + iv.Z * parameters.cellSize;
@@ -229,40 +229,40 @@ namespace SharpNav
 			for (int i = 0; i < parameters.polyCount; i++)
 			{
 				navPolys[i] = new Poly();
-				navPolys[i].vertCount = 0;
-				navPolys[i].flags = parameters.polys[i].Flags;
+				navPolys[i].VertCount = 0;
+				navPolys[i].Flags = parameters.polys[i].Flags;
 				navPolys[i].Area = parameters.polys[i].Area;
 				navPolys[i].PolyType = PolygonType.Ground;
-				navPolys[i].verts = new int[nvp];
-				navPolys[i].neis = new int[nvp];
+				navPolys[i].Verts = new int[nvp];
+				navPolys[i].Neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
 				{
 					if (parameters.polys[i].Vertices[j] == PolyMesh.NullId)
 						break;
 
-					navPolys[i].verts[j] = parameters.polys[i].Vertices[j];
+					navPolys[i].Verts[j] = parameters.polys[i].Vertices[j];
 					if (PolyMesh.IsBoundaryEdge(parameters.polys[i].NeighborEdges[j]))
 					{
 						//border or portal edge
 						int dir = parameters.polys[i].NeighborEdges[j] % 16;
 						if (dir == 0xf) //border
-							navPolys[i].neis[j] = 0;
+							navPolys[i].Neis[j] = 0;
 						else if (dir == 0) //portal x-
-							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 4;
+							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 4;
 						else if (dir == 1) //portal z+
-							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 2;
+							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 2;
 						else if (dir == 2) //portal x+
-							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 0;
+							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 0;
 						else if (dir == 3) //portal z-
-							navPolys[i].neis[j] = PathfinderCommon.EXT_LINK | 6;
+							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 6;
 					}
 					else
 					{
 						//normal connection
-						navPolys[i].neis[j] = parameters.polys[i].NeighborEdges[j] + 1;
+						navPolys[i].Neis[j] = parameters.polys[i].NeighborEdges[j] + 1;
 					}
 
-					navPolys[i].vertCount++;
+					navPolys[i].VertCount++;
 				}
 			}
 			//off-mesh connection vertices
@@ -272,11 +272,11 @@ namespace SharpNav
 				//only store connections which start from this tile
 				if (offMeshConClass[i * 2 + 0] == 0xff)
 				{
-					navPolys[offMeshPolyBase + n].vertCount = 2;
-					navPolys[offMeshPolyBase + n].verts = new int[nvp];
-					navPolys[offMeshPolyBase + n].verts[0] = offMeshVertsBase + (n * 2 + 0);
-					navPolys[offMeshPolyBase + n].verts[1] = offMeshVertsBase + (n * 2 + 1);
-					navPolys[offMeshPolyBase + n].flags = parameters.offMeshConFlags[i];
+					navPolys[offMeshPolyBase + n].VertCount = 2;
+					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
+					navPolys[offMeshPolyBase + n].Verts[0] = offMeshVertsBase + (n * 2 + 0);
+					navPolys[offMeshPolyBase + n].Verts[1] = offMeshVertsBase + (n * 2 + 1);
+					navPolys[offMeshPolyBase + n].Flags = parameters.offMeshConFlags[i];
 					navPolys[offMeshPolyBase + n].Area = parameters.offMeshConAreas[i];
 					navPolys[offMeshPolyBase + n].PolyType = PolygonType.OffMeshConnection;
 					n++;
@@ -292,7 +292,7 @@ namespace SharpNav
 				{
 					int vb = parameters.detailMeshes[i].VertexIndex;
 					int numDetailVerts = parameters.detailMeshes[i].VertexCount;
-					int numPolyVerts = navPolys[i].vertCount;
+					int numPolyVerts = navPolys[i].VertCount;
 					navDMeshes[i].VertexIndex = vbase;
 					navDMeshes[i].VertexCount = numDetailVerts - numPolyVerts;
 					navDMeshes[i].TriangleIndex = parameters.detailMeshes[i].TriangleIndex;
@@ -320,7 +320,7 @@ namespace SharpNav
 				int tbase = 0;
 				for (int i = 0; i < parameters.polyCount; i++)
 				{
-					int numPolyVerts = navPolys[i].vertCount;
+					int numPolyVerts = navPolys[i].VertCount;
 					navDMeshes[i].VertexIndex = 0;
 					navDMeshes[i].VertexCount = 0;
 					navDMeshes[i].TriangleIndex = tbase;
@@ -349,7 +349,7 @@ namespace SharpNav
 			if (parameters.buildBvTree)
 			{
 				//build tree
-				CreateBVTree(parameters.verts, parameters.polys, nvp, parameters.cellSize, parameters.cellHeight, navBvTree);
+				CreateBVTree(parameters.Verts, parameters.polys, nvp, parameters.cellSize, parameters.cellHeight, navBvTree);
 			}
 
 			//store off-mesh connections
@@ -359,24 +359,24 @@ namespace SharpNav
 				//only store connections which start from this tile
 				if (offMeshConClass[i * 2 + 0] == 0xff)
 				{
-					offMeshCons[n].poly = offMeshPolyBase + n;
+					offMeshCons[n].Poly = offMeshPolyBase + n;
 
 					//copy connection end points
-					offMeshCons[n].pos0 = parameters.offMeshConVerts[i * 2 + 0];
-					offMeshCons[n].pos1 = parameters.offMeshConVerts[i * 2 + 1];
+					offMeshCons[n].Pos0 = parameters.offMeshConVerts[i * 2 + 0];
+					offMeshCons[n].Pos1 = parameters.offMeshConVerts[i * 2 + 1];
 
-					offMeshCons[n].radius = parameters.offMeshConRadii[i];
-					offMeshCons[n].flags = (parameters.offMeshConDir[i] != 0) ? PathfinderCommon.OFFMESH_CON_BIDIR : 0;
-					offMeshCons[n].side = offMeshConClass[i * 2 + 1];
+					offMeshCons[n].Radius = parameters.offMeshConRadii[i];
+					offMeshCons[n].Flags = (parameters.offMeshConDir[i] != 0) ? PathfinderCommon.OFFMESH_CON_BIDIR : 0;
+					offMeshCons[n].Side = offMeshConClass[i * 2 + 1];
 					if (parameters.offMeshConUserID.Length != 0)
-						offMeshCons[n].userId = parameters.offMeshConUserID[i];
+						offMeshCons[n].UserId = parameters.offMeshConUserID[i];
 
 					n++;
 				}
 			}
 		}
 
-		public PathfinderCommon.MeshHeader Header { get { return header; } }
+		public PathfinderCommon.NavMeshInfo Header { get { return header; } }
 		public Vector3[] NavVerts { get { return navVerts; } }
 		public Poly[] NavPolys { get { return navPolys; } }
 		public PolyMeshDetail.MeshData[] NavDMeshes { get { return navDMeshes; } }

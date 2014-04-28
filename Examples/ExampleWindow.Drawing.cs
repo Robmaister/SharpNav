@@ -666,19 +666,19 @@ namespace Examples
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
-				for (int j = 2; j < poly.vertCount; j++)
+				for (int j = 2; j < poly.VertCount; j++)
 				{
-					int vertIndex0 = poly.verts[0];
-					int vertIndex1 = poly.verts[j - 1];
-					int vertIndex2 = poly.verts[j];
+					int vertIndex0 = poly.Verts[0];
+					int vertIndex1 = poly.Verts[j - 1];
+					int vertIndex2 = poly.Verts[j];
 
-					var v = tile.verts[vertIndex0];
+					var v = tile.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex1];
+					v = tile.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex2];
+					v = tile.Verts[vertIndex2];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
@@ -704,15 +704,15 @@ namespace Examples
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
-				for (int j = 0; j < poly.vertCount; j++)
+				for (int j = 0; j < poly.VertCount; j++)
 				{
-					int vertIndex0 = poly.verts[j];
-					int vertIndex1 = poly.verts[(j + 1) % poly.vertCount];
+					int vertIndex0 = poly.Verts[j];
+					int vertIndex1 = poly.Verts[(j + 1) % poly.VertCount];
 
-					var v = tile.verts[vertIndex0];
+					var v = tile.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex1];
+					v = tile.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}

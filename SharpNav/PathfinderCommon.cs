@@ -56,9 +56,9 @@ namespace SharpNav
 		public static void ClosestPointOnPolyInTile(MeshTile tile, Poly poly, Vector3 pos, ref Vector3 closest)
 		{
 			int indexPoly = 0;
-			for (int i = 0; i < tile.polys.Length; i++)
+			for (int i = 0; i < tile.Polys.Length; i++)
 			{
-				if (tile.polys[i] == poly)
+				if (tile.Polys[i] == poly)
 				{
 					indexPoly = i;
 					break;
@@ -77,10 +77,10 @@ namespace SharpNav
 		/// <param name="closest">Reference to the closest point</param>
 		public static void ClosestPointOnPolyInTile(MeshTile tile, int indexPoly, Vector3 pos, ref Vector3 closest)
 		{
-			Poly poly = tile.polys[indexPoly];
+			Poly poly = tile.Polys[indexPoly];
 
 			//Off-mesh connections don't have detail polygons
-			if (tile.polys[indexPoly].PolyType == PolygonType.OffMeshConnection)
+			if (tile.Polys[indexPoly].PolyType == PolygonType.OffMeshConnection)
 			{
 				ClosestPointOnPolyOffMeshConnection(tile, poly, pos, out closest);
 				return;
@@ -106,9 +106,9 @@ namespace SharpNav
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int numPolyVerts = poly.vertCount;
+			int numPolyVerts = poly.VertCount;
 			for (int i = 0; i < numPolyVerts; i++)
-				verts[i] = tile.verts[poly.verts[i]];
+				verts[i] = tile.Verts[poly.Verts[i]];
 
 			bool inside = MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT);
 			if (inside)
@@ -146,21 +146,21 @@ namespace SharpNav
 		/// <returns>True, if a height is found. False, if otherwise.</returns>
 		public static bool ClosestHeight(MeshTile tile, int indexPoly, Vector3 pos, out float h)
 		{
-			Poly poly = tile.polys[indexPoly];
-			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
+			Poly poly = tile.Polys[indexPoly];
+			PolyMeshDetail.MeshData pd = tile.DetailMeshes[indexPoly];
 
 			//find height at the location
-			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
+			for (int j = 0; j < tile.DetailMeshes[indexPoly].TriangleCount; j++)
 			{
-				PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
+				PolyMeshDetail.TriangleData t = tile.DetailTris[pd.TriangleIndex + j];
 				Vector3[] v = new Vector3[3];
 
 				for (int k = 0; k < 3; k++)
 				{
-					if (t[k] < poly.vertCount)
-						v[k] = tile.verts[poly.verts[t[k]]];
+					if (t[k] < poly.VertCount)
+						v[k] = tile.Verts[poly.Verts[t[k]]];
 					else
-						v[k] = tile.detailVerts[pd.VertexIndex + (t[k] - poly.vertCount)];
+						v[k] = tile.DetailVerts[pd.VertexIndex + (t[k] - poly.VertCount)];
 				}
 
 				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
@@ -180,8 +180,8 @@ namespace SharpNav
 		/// <param name="closest">Resulting point that is closest.</param>
 		public static void ClosestPointOnPolyOffMeshConnection(MeshTile tile, Poly poly, Vector3 pos, out Vector3 closest)
 		{
-			Vector3 v0 = tile.verts[poly.verts[0]];
-			Vector3 v1 = tile.verts[poly.verts[1]];
+			Vector3 v0 = tile.Verts[poly.Verts[0]];
+			Vector3 v1 = tile.Verts[poly.Verts[1]];
 			float d0 = (pos - v0).Length();
 			float d1 = (pos - v1).Length();
 			float u = d0 / (d0 + d1);
@@ -239,10 +239,8 @@ namespace SharpNav
 			pt = a * pointA + b * pointB + c * pointC;
 		}
 
-		public class MeshHeader
+		public class NavMeshInfo
 		{
-			//public int magic; //tile magic number (used to identify data format)
-			//public int version;
 			public int x;
 			public int y;
 			public int layer;
@@ -250,14 +248,16 @@ namespace SharpNav
 			public int polyCount;
 			public int vertCount;
 			public int maxLinkCount;
+
 			public int detailMeshCount;
-
 			public int detailVertCount;
-
 			public int detailTriCount;
+
 			public int bvNodeCount;
+
 			public int offMeshConCount;
 			public int offMeshBase; //index of first polygon which is off-mesh connection
+
 			public float walkableHeight;
 			public float walkableRadius;
 			public float walkableClimb;

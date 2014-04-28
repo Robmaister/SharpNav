@@ -29,7 +29,7 @@ namespace SharpNav
 	{
 		//NavMesh Attributes
 		//Used to create base navigation graph
-		public Vector3[] verts;
+		public Vector3[] Verts;
 		public int vertCount;
 		public PolyMesh.Polygon[] polys;
 		public int polyCount;

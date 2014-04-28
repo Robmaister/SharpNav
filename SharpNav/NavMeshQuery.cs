@@ -87,13 +87,13 @@ namespace SharpNav
 		{
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			for (int j = 0; j < poly.vertCount; j++)
-				verts[j] = tile.verts[poly.verts[j]];
+			for (int j = 0; j < poly.VertCount; j++)
+				verts[j] = tile.Verts[poly.Verts[j]];
 
 			float s = (float)rand.NextDouble();
 			float t = (float)rand.NextDouble();
 
-			PathfinderCommon.RandomPointInConvexPoly(verts, poly.vertCount, areas, s, t, out randomPt);
+			PathfinderCommon.RandomPointInConvexPoly(verts, poly.VertCount, areas, s, t, out randomPt);
 
 			float h = 0.0f;
 			if (!GetPolyHeight(polyRef, randomPt, ref h))
@@ -137,7 +137,7 @@ namespace SharpNav
 			{
 				MeshTile t = nav[i];
 				
-				if (t == null || t.header == null)
+				if (t == null || t.Header == null)
 					continue;
 
 				//choose random tile using reservoir sampling
@@ -157,9 +157,9 @@ namespace SharpNav
 			int polyBase = nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
-			for (int i = 0; i < tile.header.polyCount; i++)
+			for (int i = 0; i < tile.Header.polyCount; i++)
 			{
-				Poly p = tile.polys[i];
+				Poly p = tile.Polys[i];
 
 				//don't return off-mesh connection polygons
 				if (p.PolyType != PolygonType.Ground)
@@ -170,9 +170,9 @@ namespace SharpNav
 				//calculate area of polygon
 				float polyArea = 0.0f;
 				float area;
-				for (int j = 2; j < p.vertCount; j++)
+				for (int j = 2; j < p.VertCount; j++)
 				{
-					Triangle3.Area2D(ref tile.verts[p.verts[0]], ref tile.verts[p.verts[j - 1]], ref tile.verts[p.verts[j]], out area);
+					Triangle3.Area2D(ref tile.Verts[p.Verts[0]], ref tile.Verts[p.Verts[j - 1]], ref tile.Verts[p.Verts[j]], out area);
 					polyArea += area;
 				}
 
@@ -274,9 +274,9 @@ namespace SharpNav
 					//calculate area of polygon
 					float polyArea = 0.0f;
 					float area;
-					for (int j = 2; j < bestPoly.vertCount; j++)
+					for (int j = 2; j < bestPoly.VertCount; j++)
 					{
-						Triangle3.Area2D(ref bestTile.verts[bestPoly.verts[0]], ref bestTile.verts[bestPoly.verts[j - 1]], ref bestTile.verts[bestPoly.verts[j]], out area);
+						Triangle3.Area2D(ref bestTile.Verts[bestPoly.Verts[0]], ref bestTile.Verts[bestPoly.Verts[j - 1]], ref bestTile.Verts[bestPoly.Verts[j]], out area);
 						polyArea += area;
 					}
 
@@ -300,10 +300,10 @@ namespace SharpNav
 				if (parentRef != 0)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
-				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
+				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
 				{
-					Link link = bestTile.links[i];
-					int neighbourRef = link.reference;
+					Link link = bestTile.Links[i];
+					int neighbourRef = link.Reference;
 					//skip invalid neighbours and do not follor back to parent
 					if (neighbourRef == 0 || neighbourRef == parentRef)
 						continue;
@@ -446,9 +446,9 @@ namespace SharpNav
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				//examine neighbors
-				for (int i = bestPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.links[i].next)
+				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
 				{
-					int neighbourRef = bestTile.links[i].reference;
+					int neighbourRef = bestTile.Links[i].Reference;
 
 					//skip invalid ids and do not expand back to where we came from
 					if (neighbourRef == 0 || neighbourRef == parentRef)
@@ -826,9 +826,9 @@ namespace SharpNav
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
 
 				//collect vertices
-				int nverts = curPoly.vertCount;
+				int nverts = curPoly.VertCount;
 				for (int i = 0; i < nverts; i++)
-					verts[i] = curTile.verts[curPoly.verts[i]];
+					verts[i] = curTile.Verts[curPoly.Verts[i]];
 
 				//if target is inside poly, stop search
 				if (MathHelper.IsPointInPoly(endPos, verts, nverts))
@@ -839,34 +839,34 @@ namespace SharpNav
 				}
 
 				//find wall edges and find nearest point inside walls
-				for (int i = 0, j = curPoly.vertCount - 1; i < curPoly.vertCount; j = i++)
+				for (int i = 0, j = curPoly.VertCount - 1; i < curPoly.VertCount; j = i++)
 				{
 					//find links to neighbors
 					List<int> neis = new List<int>(8);
 
-					if ((curPoly.neis[j] & PathfinderCommon.EXT_LINK) != 0)
+					if ((curPoly.Neis[j] & PathfinderCommon.EXT_LINK) != 0)
 					{
 						//tile border
-						for (int k = curPoly.firstLink; k != PathfinderCommon.NULL_LINK; k = curTile.links[k].next)
+						for (int k = curPoly.FirstLink; k != PathfinderCommon.NULL_LINK; k = curTile.Links[k].Next)
 						{
-							Link link = curTile.links[k];
-							if (link.edge == j)
+							Link link = curTile.Links[k];
+							if (link.Edge == j)
 							{
-								if (link.reference != 0)
+								if (link.Reference != 0)
 								{
 									MeshTile neiTile;
 									Poly neiPoly;
-									nav.TryGetTileAndPolyByRefUnsafe(link.reference, out neiTile, out neiPoly);
+									nav.TryGetTileAndPolyByRefUnsafe(link.Reference, out neiTile, out neiPoly);
 									
 									if (neis.Count < neis.Capacity)
-										neis.Add(link.reference);
+										neis.Add(link.Reference);
 								}
 							}
 						}
 					}
-					else if (curPoly.neis[j] != 0)
+					else if (curPoly.Neis[j] != 0)
 					{
-						int idx = curPoly.neis[j] - 1;
+						int idx = curPoly.Neis[j] - 1;
 						int reference = nav.GetPolyRefBase(curTile) | idx;
 						neis.Add(reference); //internal edge, encode id
 					}
@@ -1003,11 +1003,11 @@ namespace SharpNav
 		{
 			//find the link that points to the 'to' polygon
 			Link link = null;
-			for (int i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
+			for (int i = fromPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.Links[i].Next)
 			{
-				if (fromTile.links[i].reference == to)
+				if (fromTile.Links[i].Reference == to)
 				{
-					link = fromTile.links[i];
+					link = fromTile.Links[i];
 					break;
 				}
 			}
@@ -1019,13 +1019,13 @@ namespace SharpNav
 			if (fromPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = fromPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.links[i].next)
+				for (int i = fromPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.Links[i].Next)
 				{
-					if (fromTile.links[i].reference == to)
+					if (fromTile.Links[i].Reference == to)
 					{
-						int v = fromTile.links[i].edge;
-						left = fromTile.verts[fromPoly.verts[v]];
-						right = fromTile.verts[fromPoly.verts[v]];
+						int v = fromTile.Links[i].Edge;
+						left = fromTile.Verts[fromPoly.Verts[v]];
+						right = fromTile.Verts[fromPoly.Verts[v]];
 						return true;
 					}
 				}
@@ -1036,13 +1036,13 @@ namespace SharpNav
 			if (toPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = toPoly.firstLink; i != PathfinderCommon.NULL_LINK; i = toTile.links[i].next)
+				for (int i = toPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = toTile.Links[i].Next)
 				{
-					if (toTile.links[i].reference == from)
+					if (toTile.Links[i].Reference == from)
 					{
-						int v = toTile.links[i].edge;
-						left = toTile.verts[toPoly.verts[v]];
-						right = toTile.verts[toPoly.verts[v]];
+						int v = toTile.Links[i].Edge;
+						left = toTile.Verts[toPoly.Verts[v]];
+						right = toTile.Verts[toPoly.Verts[v]];
 						return true;
 					}
 				}
@@ -1051,22 +1051,22 @@ namespace SharpNav
 			}
 
 			//find portal vertices
-			int v0 = fromPoly.verts[link.edge];
-			int v1 = fromPoly.verts[(link.edge + 1) % fromPoly.vertCount];
-			left = fromTile.verts[v0];
-			right = fromTile.verts[v1];
+			int v0 = fromPoly.Verts[link.Edge];
+			int v1 = fromPoly.Verts[(link.Edge + 1) % fromPoly.VertCount];
+			left = fromTile.Verts[v0];
+			right = fromTile.Verts[v1];
 
 			//if the link is at the tile boundary, clamp the vertices to tile width
-			if (link.side != 0xff)
+			if (link.Side != 0xff)
 			{
 				//unpack portal limits
-				if (link.bmin != 0 || link.bmax != 255)
+				if (link.BMin != 0 || link.BMax != 255)
 				{
 					float s = 1.0f / 255.0f;
-					float tmin = link.bmin * s;
-					float tmax = link.bmax * s;
-					left = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmin);
-					right = Vector3.Lerp(fromTile.verts[v0], fromTile.verts[v1], tmax);
+					float tmin = link.BMin * s;
+					float tmax = link.BMax * s;
+					left = Vector3.Lerp(fromTile.Verts[v0], fromTile.Verts[v1], tmin);
+					right = Vector3.Lerp(fromTile.Verts[v0], fromTile.Verts[v1], tmax);
 				}
 			}
 
@@ -1120,8 +1120,8 @@ namespace SharpNav
 
 			if (poly.PolyType == PolygonType.OffMeshConnection)
 			{
-				Vector3 v0 = tile.verts[poly.verts[0]];
-				Vector3 v1 = tile.verts[poly.verts[1]];
+				Vector3 v0 = tile.Verts[poly.Verts[0]];
+				Vector3 v1 = tile.Verts[poly.Verts[1]];
 				float d0 = (pos - v0).Length();
 				float d1 = (pos - v1).Length();
 				float u = d0 / (d0 + d1);
@@ -1130,24 +1130,24 @@ namespace SharpNav
 			}
 
 			int indexPoly = 0;
-			for (int i = 0; i < tile.polys.Length; i++)
+			for (int i = 0; i < tile.Polys.Length; i++)
 			{
-				if (tile.polys[i] == poly)
+				if (tile.Polys[i] == poly)
 				{
 					indexPoly = i;
 					break;
 				}
 			}
 
-			PolyMeshDetail.MeshData pd = tile.detailMeshes[indexPoly];
+			PolyMeshDetail.MeshData pd = tile.DetailMeshes[indexPoly];
 
 			//Clamp point to be inside the polygon
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			int numPolyVerts = poly.vertCount;
+			int numPolyVerts = poly.VertCount;
 			for (int i = 0; i < numPolyVerts; i++)
-				verts[i] = tile.verts[poly.verts[i]];
+				verts[i] = tile.Verts[poly.Verts[i]];
 
 			closest = pos;
 			if (!MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT))
@@ -1174,25 +1174,25 @@ namespace SharpNav
 			}
 
 			//find height at the location
-			for (int j = 0; j < tile.detailMeshes[indexPoly].TriangleCount; j++)
+			for (int j = 0; j < tile.DetailMeshes[indexPoly].TriangleCount; j++)
 			{
-				PolyMeshDetail.TriangleData t = tile.detailTris[pd.TriangleIndex + j];
+				PolyMeshDetail.TriangleData t = tile.DetailTris[pd.TriangleIndex + j];
 				Vector3 va, vb, vc;
 
-				if (t.VertexHash0 < poly.vertCount)
-					va = tile.verts[poly.verts[t.VertexHash0]];
+				if (t.VertexHash0 < poly.VertCount)
+					va = tile.Verts[poly.Verts[t.VertexHash0]];
 				else
-					va = tile.detailVerts[pd.VertexIndex + (t.VertexHash0 - poly.vertCount)];
+					va = tile.DetailVerts[pd.VertexIndex + (t.VertexHash0 - poly.VertCount)];
 
-				if (t.VertexHash1 < poly.vertCount)
-					vb = tile.verts[poly.verts[t.VertexHash1]];
+				if (t.VertexHash1 < poly.VertCount)
+					vb = tile.Verts[poly.Verts[t.VertexHash1]];
 				else
-					vb = tile.detailVerts[pd.VertexIndex + (t.VertexHash1 - poly.vertCount)];
+					vb = tile.DetailVerts[pd.VertexIndex + (t.VertexHash1 - poly.VertCount)];
 
-				if (t.VertexHash2 < poly.vertCount)
-					vc = tile.verts[poly.verts[t.VertexHash2]];
+				if (t.VertexHash2 < poly.VertCount)
+					vc = tile.Verts[poly.Verts[t.VertexHash2]];
 				else
-					vc = tile.detailVerts[pd.VertexIndex + (t.VertexHash2 - poly.vertCount)];
+					vc = tile.DetailVerts[pd.VertexIndex + (t.VertexHash2 - poly.VertCount)];
 
 				float h;
 				if (MathHelper.Distance.PointToTriangle(pos, va, vb, vc, out h))
@@ -1362,9 +1362,9 @@ namespace SharpNav
 			else
 			{
 				int indexPoly = 0;
-				for (int i = 0; i < tile.polys.Length; i++)
+				for (int i = 0; i < tile.Polys.Length; i++)
 				{
-					if (tile.polys[i] == poly)
+					if (tile.Polys[i] == poly)
 					{
 						indexPoly = i;
 						break;
@@ -1417,7 +1417,7 @@ namespace SharpNav
 					MeshTile tile;
 					Poly poly;
 					nav.TryGetTileAndPolyByRefUnsafe(polys[i], out tile, out poly);
-					d = Math.Abs(diff.Y) - tile.header.walkableClimb;
+					d = Math.Abs(diff.Y) - tile.Header.walkableClimb;
 					d = d > 0 ? d * d : 0;
 				}
 				else
