@@ -871,7 +871,7 @@ namespace SharpNav
 			for (int i = 0, j = hull.Count - 1; i < hull.Count; j = i++)
 				AddEdge(edges, hull[j], hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
 
-			for (int i = 0; i < edges.Count; i++)
+			for (int i = edges.Count - 1; i >= 0; i--)
 			{
 				if (edges[i].LeftFace == (int)EdgeValues.Undefined)
 					CompleteFacet(pts, edges, ref nfaces, i);
