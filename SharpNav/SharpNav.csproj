@@ -108,8 +108,10 @@
     <Compile Include="ContourSet.cs" />
     <Compile Include="ContourVertex.cs" />
     <Compile Include="Direction.cs" />
+    <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
+    <Compile Include="NavMesh.cs" />
     <Compile Include="Pathfinding\BVNode.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />

@@ -23,7 +23,7 @@ using UnityEngine;
 namespace SharpNav
 {
 	/// <summary>
-	/// Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
+	/// Class variables will store PolyMesh and PolyMeshDetail data for pathfinding purposes
 	/// </summary>
 	public class NavMeshCreateParams
 	{

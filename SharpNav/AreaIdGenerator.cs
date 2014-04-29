@@ -24,6 +24,9 @@ using UnityEngine;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A class that filters geometry and applies an <see cref="AreaId"/> to it.
+	/// </summary>
 	public class AreaIdGenerator
 	{
 		private IEnumerable<Triangle3> tris;
@@ -37,6 +40,16 @@ namespace SharpNav
 			this.triCount = triCount;
 			this.defaultArea = defaultArea;
 			conditions = new List<Tuple<Func<Triangle3, bool>, AreaId>>();
+		}
+
+		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, AreaId area)
+		{
+			return new AreaIdGenerator(tris, tris.Count(), area);
+		}
+
+		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, int triCount, AreaId area)
+		{
+			return new AreaIdGenerator(tris, triCount, area);
 		}
 
 		public static AreaIdGenerator From(Triangle3[] tris, AreaId area)
@@ -89,6 +102,10 @@ namespace SharpNav
 			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
 		}
 
+		/// <summary>
+		/// Takes the mesh query, runs it, and outputs the result as an <see cref="AreaId[]"/>.
+		/// </summary>
+		/// <returns>The result of the query.</returns>
 		public AreaId[] ToArray()
 		{
 			AreaId[] areas = new AreaId[triCount];
@@ -108,6 +125,12 @@ namespace SharpNav
 			return areas;
 		}
 
+		/// <summary>
+		/// Marks all triangles above a specified angle with a sepcified area ID.
+		/// </summary>
+		/// <param name="angle">The minimum angle.</param>
+		/// <param name="area">The area ID to set for triangles above the slope.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAboveSlope(float angle, AreaId area)
 		{
 			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
@@ -119,6 +142,12 @@ namespace SharpNav
 			return this;
 		}
 
+		/// <summary>
+		/// Marks all triangles below a specified angle with a sepcified area ID.
+		/// </summary>
+		/// <param name="angle">The maximum angle.</param>
+		/// <param name="area">The area ID to set for triangles below the slope.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkBelowSlope(float angle, AreaId area)
 		{
 			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
@@ -130,6 +159,13 @@ namespace SharpNav
 			return this;
 		}
 
+		/// <summary>
+		/// Marks all triangles around a specified angle with a sepcified area ID.
+		/// </summary>
+		/// <param name="angle">The angle.</param>
+		/// <param name="range">The maximum allowed difference between the angle and a triangle's angle.</param>
+		/// <param name="area">The area ID to set for triangles around the slope.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAtSlope(float angle, float range, AreaId area)
 		{
 			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
@@ -142,6 +178,12 @@ namespace SharpNav
 			return this;
 		}
 
+		/// <summary>
+		/// Marks all triangles below a specified height with a sepcified area ID.
+		/// </summary>
+		/// <param name="y">The height threshold of a triangle.</param>
+		/// <param name="area">The area ID to set for triangles below the threshold.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkBelowHeight(float y, AreaId area)
 		{
 			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
@@ -155,11 +197,24 @@ namespace SharpNav
 			return this;
 		}
 
+		/// <summary>
+		/// Marks all triangles around a specified height with a sepcified area ID.
+		/// </summary>
+		/// <param name="y">The height value.</param>
+		/// <param name="radius">The maximum allowed difference between the height and a triangle's height.</param>
+		/// <param name="area">The area ID to set for triangles around the height.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAtHeight(float y, float radius, AreaId area)
 		{
 			throw new NotImplementedException();
 		}
 
+		/// <summary>
+		/// Marks all triangles above a specified height with a sepcified area ID.
+		/// </summary>
+		/// <param name="y">The height threshold of a triangle.</param>
+		/// <param name="area">The area ID to set for triangles above the threshold.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAboveHeight(float y, AreaId area)
 		{
 			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
@@ -173,104 +228,17 @@ namespace SharpNav
 			return this;
 		}
 
+		/// <summary>
+		/// Marks all triangles that meet a specified condition with a specified area ID.
+		/// </summary>
+		/// <param name="func">The condition to be tested on each triangle.</param>
+		/// <param name="area">The area ID to set for triangles that match the condition.</param>
+		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkCustomFilter(Func<Triangle3, bool> func, AreaId area)
 		{
 			conditions.Add(Tuple.Create(func, area));
 
 			return this;
-		}
-
-		private static class TriangleEnumerable
-		{
-			public static IEnumerable<Triangle3> FromTriangle(Triangle3[] tris, int triOffset, int triCount)
-			{
-				for (int i = 0; i < triCount; i++)
-					yield return tris[triOffset + i];
-			}
-
-			public static IEnumerable<Triangle3> FromVector3(Vector3[] verts, int vertOffset, int vertStride, int triCount)
-			{
-				Triangle3 tri;
-
-				for (int i = 0; i < triCount; i++)
-				{
-					tri.A = verts[vertOffset + i * vertStride * 3];
-					tri.B = verts[vertOffset + i * vertStride * 6];
-					tri.C = verts[vertOffset + i * vertStride * 9];
-
-					yield return tri;
-				}
-			}
-
-			public static IEnumerable<Triangle3> FromFloat(float[] verts, int floatOffset, int floatStride, int triCount)
-			{
-				Triangle3 tri;
-
-				for (int i = 0; i < triCount; i++)
-				{
-					int indA = floatOffset + i * floatStride * 3;
-					int indB = indA + floatStride;
-					int indC = indB + floatStride;
-
-					tri.A.X = verts[indA];
-					tri.A.Y = verts[indA + 1];
-					tri.A.Z = verts[indA + 2];
-
-					tri.B.X = verts[indB];
-					tri.B.Y = verts[indB + 1];
-					tri.B.Z = verts[indB + 2];
-
-					tri.C.X = verts[indC];
-					tri.C.Y = verts[indC + 1];
-					tri.C.Z = verts[indC + 2];
-
-					yield return tri;
-				}
-			}
-
-			public static IEnumerable<Triangle3> FromIndexedVector3(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount)
-			{
-				Triangle3 tri;
-
-				for (int i = 0; i < triCount; i++)
-				{
-					int indA = vertOffset + inds[indexOffset + i * 3] * vertStride;
-					int indB = vertOffset + inds[indexOffset + i * 3 + 1] * vertStride;
-					int indC = vertOffset + inds[indexOffset + i * 3 + 2] * vertStride;
-
-					tri.A = verts[indA];
-					tri.B = verts[indB];
-					tri.C = verts[indC];
-
-					yield return tri;
-				}
-			}
-
-			public static IEnumerable<Triangle3> FromIndexedFloat(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount)
-			{
-				Triangle3 tri;
-
-				for (int i = 0; i < triCount; i++)
-				{
-					int indA = floatOffset + inds[indexOffset + i * 3] * floatStride;
-					int indB = floatOffset + inds[indexOffset + i * 3 + 1] * floatStride;
-					int indC = floatOffset + inds[indexOffset + i * 3 + 2] * floatStride;
-
-					tri.A.X = verts[indA];
-					tri.A.Y = verts[indA + 1];
-					tri.A.Z = verts[indA + 2];
-
-					tri.B.X = verts[indB];
-					tri.B.Y = verts[indB + 1];
-					tri.B.Z = verts[indB + 2];
-
-					tri.C.X = verts[indC];
-					tri.C.Y = verts[indC + 1];
-					tri.C.Z = verts[indC + 2];
-
-					yield return tri;
-				}
-			}
 		}
 	}
 }
