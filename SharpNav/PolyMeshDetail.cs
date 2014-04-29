@@ -125,15 +125,16 @@ namespace SharpNav
 						break;
 
 					Vector3 v = mesh.Verts[pv];
-					poly[j].X = v.X * mesh.CellSize;
-					poly[j].Y = v.Y * mesh.CellHeight;
-					poly[j].Z = v.Z * mesh.CellSize;
+					v.X *= mesh.CellSize;
+					v.Y *= mesh.CellHeight;
+					v.Z *= mesh.CellSize;
+					poly[j] = v;
 					npoly++;
 				}
 
 				//get height data from area of polygon
 				hp.Resize((int)bounds[i].Min.X, (int)bounds[i].Min.Z, (int)(bounds[i].Max.X - bounds[i].Min.X), (int)(bounds[i].Max.Z - bounds[i].Min.Z));
-				GetHeightData(compactField, mesh.Polys[i], npoly, mesh.Verts, mesh.BorderSize, hp, mesh.Polys[i].RegionId);
+				GetHeightData(compactField, p, npoly, mesh.Verts, mesh.BorderSize, hp);
 
 				List<Vector3> tempVerts = new List<Vector3>();
 				List<TriangleData> tempTris = new List<TriangleData>(128);
@@ -270,7 +271,7 @@ namespace SharpNav
 			return 0;
 		}
 
-		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp, RegionId region)
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp)
 		{
 			var stack = new List<CompactSpanReference>();
 			bool empty = true;
@@ -287,7 +288,7 @@ namespace SharpNav
 					{
 						var span = compactField.Spans[i];
 
-						if (span.Region == region)
+						if (span.Region == poly.RegionId)
 						{
 							hp[hx, hy] = span.Minimum;
 							empty = false;
@@ -301,7 +302,7 @@ namespace SharpNav
 									int ay = y + dir.GetVerticalOffset();
 									int ai = compactField.Cells[ay * compactField.Width + ax].StartIndex + CompactSpan.GetConnection(ref span, dir);
 
-									if (compactField.Spans[ai].Region != region)
+									if (compactField.Spans[ai].Region != poly.RegionId)
 									{
 										border = true;
 										break;
@@ -320,45 +321,6 @@ namespace SharpNav
 
 			if (empty)
 				GetHeightDataSeedsFromVertices(compactField, poly, polyCount, verts, borderSize, hp, stack);
-
-			/*BufferedStack<CompactSpanReference> bufferedStack = new BufferedStack<CompactSpanReference>(256, stack);
-			int head = 0;
-
-			while (head < bufferedStack.Count)
-			{
-				var cell = bufferedStack[head++];
-				CompactSpan cs = compactField.Spans[cell.Index];
-
-				//loop in all four directions
-				for (var dir = Direction.West; dir <= Direction.South; dir++)
-				{
-					//skip
-					if (!cs.IsConnected(dir))
-						continue;
-
-					int ax = cell.X + dir.GetHorizontalOffset();
-					int ay = cell.Y + dir.GetVerticalOffset();
-					int hx = ax - hp.X - borderSize;
-					int hy = ay - hp.Y - borderSize;
-
-					if (hx < 0 || hx >= hp.Width || hy < 0 || hy >= hp.Height)
-						continue;
-
-					//only continue if height is unset
-					if (hp.IsSet(hy * hp.Width + hx))
-						continue;
-
-					//get new span
-					int ai = compactField.Cells[ay * compactField.Width + ax].StartIndex + CompactSpan.GetConnection(ref cs, dir);
-					CompactSpan ds = compactField.Spans[ai];
-
-					hp[hy * hp.Width + hx] = ds.Minimum;
-
-					//add grouping to stack, adjust head if buffer resets
-					if (bufferedStack.Push(new CompactSpanReference(ax, ay, ai)))
-						head = 0;
-				}
-			}*/
 
 			const int RetractSize = 256;
 			int head = 0;
@@ -567,13 +529,13 @@ namespace SharpNav
 		/// <param name="numMeshVerts">Number of PolyMesh vertices</param>
 		/// <param name="sampleDist">Sampling distance</param>
 		/// <param name="sampleMaxError">Maximum sampling error</param>
-		/// <param name="openField">CompactHeightfield</param>
+		/// <param name="compactField">CompactHeightfield</param>
 		/// <param name="hp">HeightPatch</param>
 		/// <param name="verts">Detail verts</param>
 		/// <param name="tris">Detail triangles</param>
 		/// <param name="edges">Edges</param>
 		/// <param name="samples">Samples</param>
-		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield openField, HeightPatch hp, List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
+		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield compactField, HeightPatch hp, List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
 		{
 			const int MAX_VERTS = 127;
 			const int MAX_TRIS = 255;
@@ -585,7 +547,7 @@ namespace SharpNav
 			for (int i = 0; i < numMeshVerts; ++i)
 				verts.Add(polyMeshVerts[i]);
 
-			float cs = openField.CellSize;
+			float cs = compactField.CellSize;
 			float ics = 1.0f / cs;
 
 			//tessellate outlines
@@ -618,7 +580,10 @@ namespace SharpNav
 
 					//create samples along the edge
 					Vector3 dv;
-					Vector3.Subtract(ref vi, ref vj, out dv);
+					//Vector3.Subtract(ref vi, ref vj, out dv);
+					dv.X = vi.X - vj.X;
+					dv.Y = vi.Y - vj.Y;
+					dv.Z = vi.Z - vj.Z;
 					float d = (float)Math.Sqrt(dv.X * dv.X + dv.Z * dv.Z);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
 
@@ -631,13 +596,17 @@ namespace SharpNav
 					for (int k = 0; k <= nn; k++)
 					{
 						float u = (float)k / (float)nn;
-						Vector3 pos = edge[k];
+						Vector3 pos;// = edge[k];
 
-						Vector3 tmp;
+						/*Vector3 tmp;
 						Vector3.Multiply(ref dv, u, out tmp);
-						Vector3.Add(ref vj, ref tmp, out pos);
+						Vector3.Add(ref vj, ref tmp, out pos);*/
 
-						pos.Y = GetHeight(pos, ics, openField.CellHeight, hp) * openField.CellHeight;
+						pos.X = vj.X + dv.X * u;
+						pos.Y = vj.Y + dv.Y * u;
+						pos.Z = vj.Z + dv.Z * u;
+
+						pos.Y = GetHeight(pos, ics, compactField.CellHeight, hp) * compactField.CellHeight;
 
 						edge[k] = pos;
 					}
@@ -753,7 +722,7 @@ namespace SharpNav
 						if (MathHelper.Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist * 0.5f)
 							continue;
 
-						SamplingData sd = new SamplingData(x, GetHeight(pt, ics, openField.CellHeight, hp), z, false);
+						SamplingData sd = new SamplingData(x, GetHeight(pt, ics, compactField.CellHeight, hp), z, false);
 						samples.Add(sd);
 					}
 				}
@@ -777,9 +746,9 @@ namespace SharpNav
 						Vector3 pt = new Vector3();
 
 						//jitter sample location to remove effects of bad triangulation
-						pt.X = samples[i].X * sampleDist + GetJitterX(i) * openField.CellSize * 0.1f;
-						pt.Y = samples[i].Y * openField.CellHeight;
-						pt.Z = samples[i].Z * sampleDist + GetJitterY(i) * openField.CellSize * 0.1f;
+						pt.X = samples[i].X * sampleDist + GetJitterX(i) * compactField.CellSize * 0.1f;
+						pt.Y = samples[i].Y * compactField.CellHeight;
+						pt.Z = samples[i].Z * sampleDist + GetJitterY(i) * compactField.CellSize * 0.1f;
 						float d = DistanceToTriMesh(pt, verts, tris);
 
 						if (d < 0)
@@ -1186,9 +1155,10 @@ namespace SharpNav
 				c.X = (p1Sq * (p2.Z - p3.Z) + p2Sq * (p3.Z - p1.Z) + p3Sq * (p1.Z - p2.Z)) / (2 * cp);
 				c.Z = (p1Sq * (p3.X - p2.X) + p2Sq * (p1.X - p3.X) + p3Sq * (p2.X - p1.X)) / (2 * cp);
 
-				float dx = c.X - p1.X;
-				float dy = c.Z - p1.Z;
+				float dx = p1.X - c.X;
+				float dy = p1.Z - c.Z;
 				r = (float)Math.Sqrt(dx * dx + dy * dy);
+				//Console.WriteLine("TRUE: " + cp + ", " + r);
 				return true;
 			}
 
