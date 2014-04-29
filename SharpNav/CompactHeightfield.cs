@@ -279,11 +279,11 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets an <see cref="IEnumerable<CompactSpan>"/> of the spans at a specified coordiante.
+		/// Gets an <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/> of the spans at a specified coordiante.
 		/// </summary>
 		/// <param name="x">The X coordinate.</param>
 		/// <param name="y">The Y coordinate.</param>
-		/// <returns>An <see cref="IEnumerable<CompactSpan>"/>.</returns>
+		/// <returns>An <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>.</returns>
 		public IEnumerable<CompactSpan> this[int x, int y]
 		{
 			get
@@ -300,7 +300,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets an <see cref="IEnumerable<CompactSpan>"/> of the spans at a specified index.
+		/// Gets an <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>s at a specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
 		/// <returns>An <see cref="IEnumerable<CompactSpan"/>.</returns>
