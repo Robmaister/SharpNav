@@ -641,6 +641,81 @@ namespace Examples
 
 			GL.End();
 
+			GL.Color4(Color4.Purple);
+			GL.LineWidth(1.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) == 0)
+						{
+							if (t[kp] < t[k])
+							{
+								var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+
+								v = polyMeshDetail.Verts[vertIndex + t[k]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+							}
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.LineWidth(3.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) != 0)
+						{
+							var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+
+							v = polyMeshDetail.Verts[vertIndex + t[k]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.PointSize(4.8f);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				for (int j = 0; j < m.VertexCount; j++)
+				{
+					var v = polyMeshDetail.Verts[m.VertexIndex + j];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
 			GL.PopMatrix();
 		}
 

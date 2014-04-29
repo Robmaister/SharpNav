@@ -86,7 +86,7 @@ namespace Examples
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 
-			displayModes.SelectByUserData(DisplayMode.PolyMesh);
+			displayModes.SelectByUserData(DisplayMode.PolyMeshDetail);
 
 			displayModeBase.SizeToChildren();
 			displayModeBase.Height += 4; //accounts for the padding, GWEN.NET should do this
@@ -99,7 +99,7 @@ namespace Examples
 			rsSettings.Dock = Pos.Top;
 			rsSettings.Height = 90;
 
-			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.99f, "N2", leftMax, rightMax, v => settings.MaxTriSlope = v);
+			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.001f, "N2", leftMax, rightMax, v => settings.MaxTriSlope = v);
 			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Min.Y, "N0", leftMax, rightMax, v => settings.MinLevelHeight = v);
 			Base maxLevelHeight = CreateSliderOption(rsSettings, "Max Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Max.Y, "N0", leftMax, rightMax, v => settings.MaxLevelHeight = v);
 
