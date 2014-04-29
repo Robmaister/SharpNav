@@ -8,6 +8,16 @@
 using System;
 using System.Collections.Generic;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#elif UNITY3D
+using UnityEngine;
+#endif
+
 namespace SharpNav.Geometry
 {
 	//TODO array bounds checking to catch out of bounds exceptions early.

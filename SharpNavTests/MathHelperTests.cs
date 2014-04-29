@@ -11,6 +11,18 @@ using NUnit.Framework;
 
 using SharpNav;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#elif UNITY3D
+using UnityEngine;
+#endif
+
+using MathHelper = SharpNav.MathHelper;
+
 namespace SharpNavTests
 {
 	[TestFixture]
@@ -19,59 +31,59 @@ namespace SharpNavTests
 		[Test]
 		public void ClampTest_ValOutOfRange_Success()
 		{
-			int num = MathHelper.Clamp (3, 6, 10);
+			int num = MathHelper.Clamp(3, 6, 10);
 			Assert.AreEqual (num, 6);
 		}
 
 		[Test]
 		public void ClampTest_ValInRange_Success()
 		{
-			int num = MathHelper.Clamp (7, 4, 10);
-			Assert.AreEqual (num, 7);
+			int num = MathHelper.Clamp(7, 4, 10);
+			Assert.AreEqual(num, 7);
 		}
 
 		[Test]
 		public void ClampTest_ValOutOfRangeRef_Success()
 		{
 			int num_r = 3;
-			MathHelper.Clamp (ref num_r, 6, 10);
-			Assert.AreEqual (num_r, 6);
+			MathHelper.Clamp(ref num_r, 6, 10);
+			Assert.AreEqual(num_r, 6);
 		}
 
 		[Test]
 		public void ClampTest_ValInRangeRef_Success()
 		{
 			int num_r = 7;
-			MathHelper.Clamp (ref num_r, 6, 10);
-			Assert.AreEqual (num_r, 7);
+			MathHelper.Clamp(ref num_r, 6, 10);
+			Assert.AreEqual(num_r, 7);
 		}
 
 		[Test]
 		public void ClampTest_ValInRangeFloat_Success()
 		{
-			float num = MathHelper.Clamp (7.56f, 6.75f, 10.89f);
-			Assert.AreEqual (num, 7.56f);
+			float num = MathHelper.Clamp(7.56f, 6.75f, 10.89f);
+			Assert.AreEqual(num, 7.56f);
 		}
 
 		[Test]
 		public void ClampTest_ValOutOfRangeFloat_Success()
 		{
-			float num = MathHelper.Clamp (3.89f, 6.75f, 10.89f);
-			Assert.AreEqual (num, 6.75f);
+			float num = MathHelper.Clamp(3.89f, 6.75f, 10.89f);
+			Assert.AreEqual(num, 6.75f);
 		}
 
 		public void ClampTest_ValInRangeFloatRef_Success()
 		{
 			float num_r = 7.56f;
-			MathHelper.Clamp (ref num_r, 6.75f, 10.89f);
-			Assert.AreEqual (num_r, 7.56f);
+			MathHelper.Clamp(ref num_r, 6.75f, 10.89f);
+			Assert.AreEqual(num_r, 7.56f);
 		}
 
 		[Test]
 		public void ClampTest_ValOutOfRangeFloatRef_Success()
 		{
 			float num_r = 3.89f;
-			MathHelper.Clamp (ref num_r, 6.75f, 10.89f);
+			MathHelper.Clamp(ref num_r, 6.75f, 10.89f);
 			Assert.AreEqual (num_r, 6.75f);
 		}
 

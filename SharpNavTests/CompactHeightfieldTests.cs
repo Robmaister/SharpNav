@@ -14,6 +14,16 @@ using NUnit.Framework;
 
 using SharpNav;
 
+#if MONOGAME || XNA
+using Microsoft.Xna.Framework;
+#elif OPENTK
+using OpenTK;
+#elif SHARPDX
+using SharpDX;
+#elif UNITY3D
+using UnityEngine;
+#endif
+
 namespace SharpNavTests
 {
 	[TestFixture]
