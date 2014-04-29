@@ -7,7 +7,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
@@ -41,17 +41,11 @@ namespace SharpNav
 		private int polyBits; //number of poly bits in ID
 
 		/// <summary>
-		/// Link all the polygons in the mesh together for pathfinding purposes.
+		/// Initializes a new instance of the <see cref="TiledNavMesh"/> class.
 		/// </summary>
 		/// <param name="data">The Navigation Mesh data</param>
 		public TiledNavMesh(NavMeshBuilder data)
 		{
-			//if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
-			//	return;
-
-			//if (data.Header.version != PathfinderCommon.NAVMESH_VERSION) //TODO: output error message?
-			//	return;
-
 			TiledNavMeshParams parameters;
 			parameters.origin = data.Header.bounds.Min;
 			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
@@ -66,6 +60,14 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
+		public int TileCount
+		{
+			get
+			{
+				return maxTiles;
+			}
+		}
+
 		public MeshTile this[int index]
 		{
 			get
@@ -73,8 +75,6 @@ namespace SharpNav
 				return tiles[index];
 			}
 		}
-
-		public int TileCount { get { return maxTiles; } }
 
 		/// <summary>
 		/// Initialize the Tiled Navigation Mesh variables and arrays.
@@ -772,7 +772,7 @@ namespace SharpNav
 		/// <returns>Number of polygons found</returns>
 		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, List<int> polys)
 		{
-			if (tile.BVTree.Length != 0)
+			if (tile.BVTree.Count != 0)
 			{
 				int node = 0;
 				int end = tile.Header.bvNodeCount;
@@ -802,14 +802,14 @@ namespace SharpNav
 				
 				while (node < end)
 				{
-					BVNode bvNode = tile.BVTree[node];
-					bool overlap = BBox3.Overlapping(ref b, ref bvNode.bounds);
-					bool isLeafNode = bvNode.index >= 0;
+					BVTree.Node bvNode = tile.BVTree[node];
+					bool overlap = BBox3.Overlapping(ref b, ref bvNode.Bounds);
+					bool isLeafNode = bvNode.Index >= 0;
 
 					if (isLeafNode && overlap)
 					{
 						if (polys.Count < polys.Capacity)
-							polys.Add(GetReference(polyBase, bvNode.index));
+							polys.Add(GetReference(polyBase, bvNode.Index));
 					}
 
 					if (overlap || isLeafNode)
@@ -818,7 +818,7 @@ namespace SharpNav
 					}
 					else
 					{
-						int escapeIndex = -bvNode.index;
+						int escapeIndex = -bvNode.Index;
 						node += escapeIndex;
 					}
 				}
@@ -1190,14 +1190,6 @@ namespace SharpNav
 			return (salt << (int)(polyBits + tileBits)) | (indexTile << (int)polyBits) | indexPoly;
 		}
 
-		public struct TiledNavMeshParams
-		{
-			public Vector3 origin;
-			public float tileWidth;
-			public float tileHeight;
-			public int maxTiles;
-			public int maxPolys;
-		}
 		/// <summary>
 		/// Calculates the tile location.
 		/// </summary>
@@ -1206,8 +1198,17 @@ namespace SharpNav
 		/// <param name="ty">Ty.</param>
 		public void CalcTileLoc(ref Vector3 pos, out int tx, out int ty)
 		{
-			tx = (int)Math.Floor ((pos.X - origin.X) / tileWidth);
-			ty = (int)Math.Floor ((pos.Z - origin.Z) / tileHeight);
+			tx = (int)Math.Floor((pos.X - origin.X) / tileWidth);
+			ty = (int)Math.Floor((pos.Z - origin.Z) / tileHeight);
+		}
+
+		public struct TiledNavMeshParams
+		{
+			public Vector3 origin;
+			public float tileWidth;
+			public float tileHeight;
+			public int maxTiles;
+			public int maxPolys;
 		}
 	}
 }

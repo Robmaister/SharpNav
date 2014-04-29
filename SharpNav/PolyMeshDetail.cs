@@ -44,14 +44,18 @@ namespace SharpNav
 		private TriangleData[] tris;
 
 		/// <summary>
-		/// Use the CompactHeightfield data to add the height detail to the mesh. 
-		/// Triangulate the added detail to form a complete navigation mesh.
+		/// Initializes a new instance of the <see cref="PolyMeshDetail"/> class.
 		/// </summary>
-		/// <param name="mesh">Basic mesh</param>
-		/// <param name="openField">Compact heightfield data</param>
-		/// <param name="sampleDist">Sampling distance</param>
-		/// <param name="sampleMaxError">Maximum sampling error allowed</param>
-		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield openField, float sampleDist, float sampleMaxError)
+		/// <remarks>
+		/// <see cref="PolyMeshDetail"/> uses a <see cref="CompactHeightfield"/> to add in details to a
+		/// <see cref="PolyMesh"/>. This detail is triangulated into a new mesh and can be used to approximate height in the walkable
+		/// areas of a scene.
+		/// </remarks>
+		/// <param name="mesh">The <see cref="PolyMesh"/>.</param>
+		/// <param name="compactField">The <see cref="CompactHeightfield"/> used to add height detail.</param>
+		/// <param name="sampleDist">The sampling distance.</param>
+		/// <param name="sampleMaxError">The maximum sampling error allowed.</param>
+		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield compactField, float sampleDist, float sampleMaxError)
 		{
 			if (mesh.VertCount == 0 || mesh.PolyCount == 0)
 				return;
@@ -71,9 +75,9 @@ namespace SharpNav
 			{
 				var p = mesh.Polys[i];
 
-				float xmin = openField.Width;
+				float xmin = compactField.Width;
 				float xmax = 0;
-				float zmin = openField.Length;
+				float zmin = compactField.Length;
 				float zmax = 0;
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
@@ -91,9 +95,9 @@ namespace SharpNav
 				}
 
 				xmin = Math.Max(0, xmin - 1);
-				xmax = Math.Min(openField.Width, xmax + 1);
+				xmax = Math.Min(compactField.Width, xmax + 1);
 				zmin = Math.Max(0, zmin - 1);
-				zmax = Math.Min(openField.Length, zmax + 1);
+				zmax = Math.Min(compactField.Length, zmax + 1);
 
 				if (xmin >= xmax || zmin >= zmax)
 					continue;
@@ -129,13 +133,13 @@ namespace SharpNav
 
 				//get height data from area of polygon
 				hp.Resize((int)bounds[i].Min.X, (int)bounds[i].Min.Z, (int)(bounds[i].Max.X - bounds[i].Min.X), (int)(bounds[i].Max.Z - bounds[i].Min.Z));
-				GetHeightData(openField, mesh.Polys[i], npoly, mesh.Verts, mesh.BorderSize, hp, mesh.Polys[i].RegionId);
+				GetHeightData(compactField, mesh.Polys[i], npoly, mesh.Verts, mesh.BorderSize, hp, mesh.Polys[i].RegionId);
 
 				List<Vector3> tempVerts = new List<Vector3>();
 				List<TriangleData> tempTris = new List<TriangleData>(128);
 				List<EdgeInfo> edges = new List<EdgeInfo>(16);
 				List<SamplingData> samples = new List<SamplingData>(128);
-				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, openField, hp, tempVerts, tempTris, edges, samples);
+				BuildPolyDetail(poly, npoly, sampleDist, sampleMaxError, compactField, hp, tempVerts, tempTris, edges, samples);
 
 				//more detail verts
 				for (int j = 0; j < tempVerts.Count; j++)
@@ -144,7 +148,7 @@ namespace SharpNav
 
 					Vector3 v;
 					v.X = tv.X + origin.X;
-					v.Y = tv.Y + origin.Y + openField.CellHeight;
+					v.Y = tv.Y + origin.Y + compactField.CellHeight;
 					v.Z = tv.Z + origin.Z;
 
 					tempVerts[j] = v;
@@ -179,6 +183,15 @@ namespace SharpNav
 
 			this.verts = storedVertices.ToArray();
 			this.tris = storedTriangles.ToArray();
+		}
+
+		/// <summary>
+		/// Determines whether an edge has been created or not
+		/// </summary>
+		private enum EdgeValues
+		{
+			Undefined = -1,
+			Hull = -2
 		}
 
 		public int MeshCount
@@ -293,7 +306,6 @@ namespace SharpNav
 										border = true;
 										break;
 									}
-
 								}
 							}
 
@@ -703,6 +715,7 @@ namespace SharpNav
 			if (tris.Count == 0)
 			{
 				Console.WriteLine("Can't triangulate polygon, adding default data.");
+
 				//add default data
 				for (int i = 2; i < verts.Count; i++)
 					tris.Add(new TriangleData(0, i - 1, i, 0));
@@ -875,11 +888,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh. 
-		/// 
-		/// The definition of Delaunay traingulation:
-		/// "For a set S of points in the Euclidean plane, the unique triangulation DT(S) of S such that no point in S 
-		/// is inside the circumcircle of any triangle in DT(S)." (Dictionary.com)
+		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh.
 		/// </summary>
 		/// <param name="pts">Vertex data (each vertex has 3 elements x,y,z)</param>
 		/// <param name="hull">?</param>
@@ -1161,7 +1170,7 @@ namespace SharpNav
 		/// <returns>True, if a circumcirle can be found. False, if otherwise.</returns>
 		private bool CircumCircle(Vector3 p1, Vector3 p2, Vector3 p3, ref Vector3 c, out float r)
 		{
-			float EPS = 1e-6f;
+			const float EPS = 1e-6f;
 			float cp;
 			Vector3Extensions.Cross2D(ref p1, ref p2, ref p3, out cp);
 
@@ -1334,15 +1343,6 @@ namespace SharpNav
 				this.Z = z;
 				this.IsSampled = isSampled;
 			}
-		}
-
-		/// <summary>
-		/// Determines whether an edge has been created or not
-		/// </summary>
-		private enum EdgeValues
-		{
-			Undefined = -1,
-			Hull = -2
 		}
 	}
 }

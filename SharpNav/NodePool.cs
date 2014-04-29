@@ -21,7 +21,7 @@ namespace SharpNav
 		private int maxNodes;
 
 		/// <summary>
-		/// 
+		/// Initializes a new instance of the <see cref="NodePool"/> class.
 		/// </summary>
 		/// <param name="maxNodes"></param>
 		/// <param name="hashSize"></param>

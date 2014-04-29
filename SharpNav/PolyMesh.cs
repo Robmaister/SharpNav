@@ -41,10 +41,10 @@ namespace SharpNav
 		private int borderSize;
 
 		/// <summary>
-		/// Create polygons out of a set of contours
+		/// Initializes a new instance of the <see cref="PolyMesh"/> class by creating polygons from contours.
 		/// </summary>
-		/// <param name="contSet">The ContourSet to use</param>
-		/// <param name="numVertsPerPoly">Number vertices per polygon</param>
+		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
+		/// <param name="numVertsPerPoly">The maximum number of vertices per polygon.</param>
 		public PolyMesh(ContourSet contSet, int numVertsPerPoly)
 		{
 			//copy contour data
@@ -326,6 +326,128 @@ namespace SharpNav
 			}
 		}
 
+		public static bool IsBoundaryEdge(int flag)
+		{
+			return (flag & NeighborEdgeFlag) != 0;
+		}
+
+		public static bool IsInteriorEdge(int flag)
+		{
+			return (flag & NeighborEdgeFlag) == 0;
+		}
+
+		public static bool IsDiagonalFlagOn(int index)
+		{
+			return (index & DiagonalFlag) == DiagonalFlag;
+		}
+
+		/// <summary>
+		/// True if and only if (v[i], v[j]) is a proper internal diagonal of polygon.
+		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal diagonal. False, if otherwise.</returns>
+		public static bool Diagonal(int i, int j, ContourVertex[] verts, int[] indices)
+		{
+			return InCone(i, j, verts, indices) && Diagonalie(i, j, verts, indices);
+		}
+
+		/// <summary>
+		/// True if and only if diagonal (i, j) is strictly internal to polygon 
+		/// in neighborhood of i endpoint.
+		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal. False, if otherwise.</returns>
+		public static bool InCone(int i, int j, ContourVertex[] verts, int[] indices)
+		{
+			int pi = RemoveDiagonalFlag(indices[i]);
+			int pj = RemoveDiagonalFlag(indices[j]);
+			int pi1 = RemoveDiagonalFlag(indices[Next(i, verts.Length)]);
+			int pin1 = RemoveDiagonalFlag(indices[Prev(i, verts.Length)]);
+
+			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
+			if (ContourVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
+				return ContourVertex.IsLeft(ref verts[pi], ref verts[pj], ref verts[pin1]) && ContourVertex.IsLeft(ref verts[pj], ref verts[pi], ref verts[pi1]);
+
+			//assume (i - 1, i, i + 1) not collinear
+			return !(ContourVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && ContourVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
+		}
+
+		/// <summary>
+		/// True if and only if (v[i], v[j]) is internal or external diagonal
+		/// ignoring edges incident to v[i] or v[j].
+		/// </summary>
+		/// <param name="i">Vertex index i</param>
+		/// <param name="j">Vertex index j</param>
+		/// <param name="verts">Contour vertices</param>
+		/// <param name="indices">PolyMesh indices</param>
+		/// <returns>True, if internal or external diagonal. False, if otherwise.</returns>
+		public static bool Diagonalie(int i, int j, ContourVertex[] verts, int[] indices)
+		{
+			int d0 = RemoveDiagonalFlag(indices[i]);
+			int d1 = RemoveDiagonalFlag(indices[j]);
+
+			//for each edge (k, k + 1)
+			for (int k = 0; k < verts.Length; k++)
+			{
+				int k1 = Next(k, verts.Length);
+
+				//skip edges incident to i or j
+				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
+				{
+					int p0 = RemoveDiagonalFlag(indices[k]);
+					int p1 = RemoveDiagonalFlag(indices[k1]);
+
+					if (ContourVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
+						ContourVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
+						ContourVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
+						ContourVertex.Equal2D(ref verts[d1], ref verts[p1]))
+						continue;
+
+					if (ContourVertex.Intersect(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
+						return false;
+				}
+			}
+
+			return true;
+		}
+
+		private static int Prev(int i, int n)
+		{
+			return i - 1 >= 0 ? i - 1 : n - 1;
+		}
+
+		private static int Next(int i, int n)
+		{
+			return i + 1 < n ? i + 1 : 0;
+		}
+
+		private static bool ULeft(Vector3 a, Vector3 b, Vector3 c)
+		{
+			return (b.X - a.X) * (c.Z - a.Z) -
+				(c.X - a.X) * (b.Z - a.Z) < 0;
+		}
+
+		private static void SetDiagonalFlag(ref int index)
+		{
+			index |= DiagonalFlag;
+		}
+
+		private static int RemoveDiagonalFlag(int index)
+		{
+			return index & ~DiagonalFlag;
+		}
+
+		private static void RemoveDiagonalFlag(ref int index)
+		{
+			index &= ~DiagonalFlag;
+		}
+
 		/// <summary>
 		/// Walk the edges of a contour to determine whether a triangle can be formed.
 		/// Form as many triangles as possible.
@@ -545,39 +667,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The two polygon arrrays are merged into a single array
-		/// </summary>
-		/// <param name="polys">The polygon list</param>
-		/// <param name="polyA">Polygon A</param>
-		/// <param name="polyB">Polygon B</param>
-		/// <param name="edgeA">Starting edge for polygon A</param>
-		/// <param name="edgeB">Starting edge for polygon B</param>
-		private void MergePolys(List<Polygon> polys, int polyA, int polyB, int edgeA, int edgeB)
-		{
-			int numA = polys[polyA].VertexCount;
-			int numB = polys[polyB].VertexCount;
-			int[] temp = new int[numA + numB];
-
-			//merge
-			for (int i = 0; i < numVertsPerPoly; i++)
-				temp[i] = NullId;
-
-			int n = 0;
-
-			//add polygon A
-			for (int i = 0; i < numA - 1; i++)
-				temp[n++] = polys[polyA].Vertices[(edgeA + 1 + i) % numA];
-
-			//add polygon B
-			for (int i = 0; i < numB - 1; i++)
-				temp[n++] = polys[polyB].Vertices[(edgeB + 1 + i) % numB];
-
-			//save merged data to new polygon
-			for (int i = 0; i < numVertsPerPoly; i++)
-				polys[polyA].Vertices[i] = temp[i];
-		}
-
-		/// <summary>
 		/// If vertex can't be removed, there is no need to spend time deleting it.
 		/// </summary>
 		/// <param name="polys">The polygon list</param>
@@ -685,6 +774,141 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Connect two adjacent vertices with edges.
+		/// </summary>
+		/// <param name="vertices">The vertex list</param>
+		/// <param name="polys">The polygon list</param>
+		/// <param name="numVertsPerPoly">Number of vertices per polygon</param>
+		private static void BuildMeshAdjacency(List<Vector3> vertices, List<Polygon> polys, int numVertsPerPoly)
+		{
+			int maxEdgeCount = polys.Count * numVertsPerPoly;
+			int[] firstEdge = new int[vertices.Count + maxEdgeCount];
+			int nextEdge = vertices.Count;
+			List<AdjacencyEdge> edges = new List<AdjacencyEdge>(maxEdgeCount);
+
+			for (int i = 0; i < vertices.Count; i++)
+				firstEdge[i] = NullId;
+
+			//Iterate through all the polygons
+			for (int i = 0; i < polys.Count; i++)
+			{
+				Polygon p = polys[i];
+
+				//Iterate through all the vertices
+				for (int j = 0; j < numVertsPerPoly; j++)
+				{
+					if (p.Vertices[j] == NullId)
+						break;
+
+					//get closest two verts
+					int v0 = p.Vertices[j];
+					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
+
+					if (v0 < v1)
+					{
+						AdjacencyEdge edge;
+
+						//store vertices
+						edge.Vert0 = v0;
+						edge.Vert1 = v1;
+
+						//poly array stores index of polygon
+						//polyEdge stores the vertex
+						edge.Poly0 = i;
+						edge.PolyEdge0 = j;
+						edge.Poly1 = i;
+						edge.PolyEdge1 = 0;
+
+						//insert edge
+						firstEdge[nextEdge + edges.Count] = firstEdge[v0];
+						firstEdge[v0] = edges.Count;
+
+						edges.Add(edge);
+					}
+				}
+			}
+
+			//Iterate through all the polygons again
+			for (int i = 0; i < polys.Count; i++)
+			{
+				Polygon p = polys[i];
+				for (int j = 0; j < numVertsPerPoly; j++)
+				{
+					if (p.Vertices[j] == NullId)
+						break;
+
+					//get adjacent vertices
+					int v0 = p.Vertices[j];
+					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
+
+					if (v0 > v1)
+					{
+						//Iterate through all the edges
+						for (int e = firstEdge[v1]; e != NullId; e = firstEdge[nextEdge + e])
+						{
+							AdjacencyEdge edge = edges[e];
+							if (edge.Vert1 == v0 && edge.Poly0 == edge.Poly1)
+							{
+								edge.Poly1 = i;
+								edge.PolyEdge1 = j;
+								edges[e] = edge;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			//store adjacency
+			for (int i = 0; i < edges.Count; i++)
+			{
+				AdjacencyEdge e = edges[i];
+
+				//the endpoints belong to different polygons
+				if (e.Poly0 != e.Poly1)
+				{
+					//store other polygon number as part of extra info
+					polys[e.Poly0].NeighborEdges[e.PolyEdge0] = e.Poly1;
+					polys[e.Poly1].NeighborEdges[e.PolyEdge1] = e.Poly0;
+				}
+			}
+		}
+
+		/// <summary>
+		/// The two polygon arrrays are merged into a single array
+		/// </summary>
+		/// <param name="polys">The polygon list</param>
+		/// <param name="polyA">Polygon A</param>
+		/// <param name="polyB">Polygon B</param>
+		/// <param name="edgeA">Starting edge for polygon A</param>
+		/// <param name="edgeB">Starting edge for polygon B</param>
+		private void MergePolys(List<Polygon> polys, int polyA, int polyB, int edgeA, int edgeB)
+		{
+			//TODO replace with Polygon.Merge()
+			int numA = polys[polyA].VertexCount;
+			int numB = polys[polyB].VertexCount;
+			int[] temp = new int[numA + numB];
+
+			//merge
+			for (int i = 0; i < numVertsPerPoly; i++)
+				temp[i] = NullId;
+
+			int n = 0;
+
+			//add polygon A
+			for (int i = 0; i < numA - 1; i++)
+				temp[n++] = polys[polyA].Vertices[(edgeA + 1 + i) % numA];
+
+			//add polygon B
+			for (int i = 0; i < numB - 1; i++)
+				temp[n++] = polys[polyB].Vertices[(edgeB + 1 + i) % numB];
+
+			//save merged data to new polygon
+			for (int i = 0; i < numVertsPerPoly; i++)
+				polys[polyA].Vertices[i] = temp[i];
+		}
+
+		/// <summary>
 		/// Removing vertices will leave holes that have to be triangulated again.
 		/// </summary>
 		/// <param name="verts">A list of vertices</param>
@@ -716,7 +940,7 @@ namespace SharpNav
 			for (int i = 0; i < polys.Count; i++)
 			{
 				Polygon p = polys[i];
-				
+
 				if (p.ContainsVertex(vertex))
 				{
 					int nv = p.VertexCount;
@@ -891,212 +1115,40 @@ namespace SharpNav
 			polys.AddRange(mergePolys);
 		}
 
-		/// <summary>
-		/// Connect two adjacent vertices with edges.
-		/// </summary>
-		/// <param name="vertices">The vertex list</param>
-		/// <param name="polys">The polygon list</param>
-		/// <param name="numVertsPerPoly">Number of vertices per polygon</param>
-		private static void BuildMeshAdjacency(List<Vector3> vertices, List<Polygon> polys, int numVertsPerPoly)
+		private struct Triangle
 		{
-			int maxEdgeCount = polys.Count * numVertsPerPoly;
-			int[] firstEdge = new int[vertices.Count + maxEdgeCount];
-			int nextEdge = vertices.Count;
-			List<AdjacencyEdge> edges = new List<AdjacencyEdge>(maxEdgeCount);
+			public int Index0;
+			public int Index1;
+			public int Index2;
+		}
 
-			for (int i = 0; i < vertices.Count; i++)
-				firstEdge[i] = NullId;
+		private struct AdjacencyEdge
+		{
+			public int Vert0;
+			public int Vert1;
 
-			//Iterate through all the polygons
-			for (int i = 0; i < polys.Count; i++)
+			public int PolyEdge0;
+			public int PolyEdge1;
+
+			public int Poly0;
+			public int Poly1;
+		}
+
+		private struct Edge
+		{
+			public int Vert0;
+			public int Vert1;
+			public RegionId Region;
+			public AreaId Area;
+
+			public Edge(int vert0, int vert1, RegionId region, AreaId area)
 			{
-				Polygon p = polys[i];
-				//Iterate through all the vertices
-				for (int j = 0; j < numVertsPerPoly; j++)
-				{
-					if (p.Vertices[j] == NullId)
-						break;
-
-					//get closest two verts
-					int v0 = p.Vertices[j];
-					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
-
-					if (v0 < v1)
-					{
-						AdjacencyEdge edge;
-
-						//store vertices
-						edge.Vert0 = v0;
-						edge.Vert1 = v1;
-
-						//poly array stores index of polygon
-						//polyEdge stores the vertex
-						edge.Poly0 = i;
-						edge.PolyEdge0 = j;
-						edge.Poly1 = i;
-						edge.PolyEdge1 = 0;
-
-						//insert edge
-						firstEdge[nextEdge + edges.Count] = firstEdge[v0];
-						firstEdge[v0] = edges.Count;
-
-						edges.Add(edge);
-					}
-				}
-			}
-
-			//Iterate through all the polygons again
-			for (int i = 0; i < polys.Count; i++)
-			{
-				Polygon p = polys[i];
-				for (int j = 0; j < numVertsPerPoly; j++)
-				{
-					if (p.Vertices[j] == NullId)
-						break;
-
-					//get adjacent vertices
-					int v0 = p.Vertices[j];
-					int v1 = (j + 1 >= numVertsPerPoly || p.Vertices[j + 1] == NullId) ? p.Vertices[0] : p.Vertices[j + 1];
-
-					if (v0 > v1)
-					{
-						//Iterate through all the edges
-						for (int e = firstEdge[v1]; e != NullId; e = firstEdge[nextEdge + e])
-						{
-							AdjacencyEdge edge = edges[e];
-							if (edge.Vert1 == v0 && edge.Poly0 == edge.Poly1)
-							{
-								edge.Poly1 = i;
-								edge.PolyEdge1 = j;
-								edges[e] = edge;
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			//store adjacency
-			for (int i = 0; i < edges.Count; i++)
-			{
-				AdjacencyEdge e = edges[i];
-
-				//the endpoints belong to different polygons
-				if (e.Poly0 != e.Poly1)
-				{
-					//store other polygon number as part of extra info
-					polys[e.Poly0].NeighborEdges[e.PolyEdge0] = e.Poly1;
-					polys[e.Poly1].NeighborEdges[e.PolyEdge1] = e.Poly0;
-				}
+				Vert0 = vert0;
+				Vert1 = vert1;
+				Region = region;
+				Area = area;
 			}
 		}
-
-		private static bool ULeft(Vector3 a, Vector3 b, Vector3 c)
-		{
-			return (b.X - a.X) * (c.Z - a.Z) -
-				(c.X - a.X) * (b.Z - a.Z) < 0;
-		}
-		
-		private static void SetDiagonalFlag(ref int index)
-		{
-			index |= DiagonalFlag;
-		}
-
-		private static int RemoveDiagonalFlag(int index)
-		{
-			return index & ~DiagonalFlag;
-		}
-
-		private static void RemoveDiagonalFlag(ref int index)
-		{
-			index &= ~DiagonalFlag;
-		}
-
-		public static bool IsDiagonalFlagOn(int index)
-		{
-			return (index & DiagonalFlag) == DiagonalFlag;
-		}
-
-		/// <summary>
-		/// True if and only if (v[i], v[j]) is a proper internal diagonal of polygon.
-		/// </summary>
-		/// <param name="i">Vertex index i</param>
-		/// <param name="j">Vertex index j</param>
-		/// <param name="verts">Contour vertices</param>
-		/// <param name="indices">PolyMesh indices</param>
-		/// <returns>True, if internal diagonal. False, if otherwise.</returns>
-		public static bool Diagonal(int i, int j, ContourVertex[] verts, int[] indices)
-		{
-			return InCone(i, j, verts, indices) && Diagonalie(i, j, verts, indices);
-		}
-
-		/// <summary>
-		/// True if and only if diagonal (i, j) is strictly internal to polygon 
-		/// in neighborhood of i endpoint.
-		/// </summary>
-		/// <param name="i">Vertex index i</param>
-		/// <param name="j">Vertex index j</param>
-		/// <param name="verts">Contour vertices</param>
-		/// <param name="indices">PolyMesh indices</param>
-		/// <returns>True, if internal. False, if otherwise.</returns>
-		public static bool InCone(int i, int j, ContourVertex[] verts, int[] indices)
-		{
-			int pi = RemoveDiagonalFlag(indices[i]);
-			int pj = RemoveDiagonalFlag(indices[j]);
-			int pi1 = RemoveDiagonalFlag(indices[Next(i, verts.Length)]);
-			int pin1 = RemoveDiagonalFlag(indices[Prev(i, verts.Length)]);
-
-			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
-			if (ContourVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
-				return ContourVertex.IsLeft(ref verts[pi], ref verts[pj], ref verts[pin1]) && ContourVertex.IsLeft(ref verts[pj], ref verts[pi], ref verts[pi1]);
-
-			//assume (i - 1, i, i + 1) not collinear
-			return !(ContourVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && ContourVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
-		}
-
-		/// <summary>
-		/// True if and only if (v[i], v[j]) is internal or external diagonal
-		/// ignoring edges incident to v[i] or v[j].
-		/// </summary>
-		/// <param name="i">Vertex index i</param>
-		/// <param name="j">Vertex index j</param>
-		/// <param name="verts">Contour vertices</param>
-		/// <param name="indices">PolyMesh indices</param>
-		/// <returns>True, if internal or external diagonal. False, if otherwise.</returns>
-		public static bool Diagonalie(int i, int j, ContourVertex[] verts, int[] indices)
-		{
-			int d0 = RemoveDiagonalFlag(indices[i]);
-			int d1 = RemoveDiagonalFlag(indices[j]);
-
-			//for each edge (k, k + 1)
-			for (int k = 0; k < verts.Length; k++)
-			{
-				int k1 = Next(k, verts.Length);
-
-				//skip edges incident to i or j
-				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
-				{
-					int p0 = RemoveDiagonalFlag(indices[k]);
-					int p1 = RemoveDiagonalFlag(indices[k1]);
-
-					if (ContourVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
-						ContourVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
-						ContourVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
-						ContourVertex.Equal2D(ref verts[d1], ref verts[p1]))
-						continue;
-
-					if (ContourVertex.Intersect(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
-						return false;
-				}
-			}
-
-			return true;
-		}
-
-		private static int Prev(int i, int n) { return i - 1 >= 0 ? i - 1 : n - 1; }
-		private static int Next(int i, int n) { return i + 1 < n ? i + 1 : 0; }
-		public static bool IsBoundaryEdge(int flag) { return (flag & NeighborEdgeFlag) != 0; }
-		public static bool IsInteriorEdge(int flag) { return (flag & NeighborEdgeFlag) == 0; }
 
 		public class Polygon
 		{
@@ -1153,41 +1205,6 @@ namespace SharpNav
 				}
 
 				return false;
-			}
-		}
-
-		private struct Triangle
-		{
-			public int Index0;
-			public int Index1;
-			public int Index2;
-		}
-
-		private struct AdjacencyEdge
-		{
-			public int Vert0;
-			public int Vert1;
-
-			public int PolyEdge0;
-			public int PolyEdge1;
-
-			public int Poly0;
-			public int Poly1;
-		}
-
-		private struct Edge
-		{
-			public int Vert0;
-			public int Vert1;
-			public RegionId Region;
-			public AreaId Area;
-
-			public Edge(int vert0, int vert1, RegionId region, AreaId area)
-			{
-				Vert0 = vert0;
-				Vert1 = vert1;
-				Region = region;
-				Area = area;
 			}
 		}
 	}

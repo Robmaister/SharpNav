@@ -22,14 +22,14 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Empty_Queue_Count()
 		{
-			var empty = new BufferedQueue<int>();
+			var empty = new BufferedQueue<int>(1000);
 			Assert.AreEqual(empty.Count, 0);
 		}
 
 		[Test]
 		public void Enqueue_Test()
 		{
-			var queue = new BufferedQueue<int>();
+			var queue = new BufferedQueue<int>(1000);
 			for (int c = 0; c < 100; c++)
 			{
 				queue.Enqueue(c);
@@ -40,7 +40,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Dequeue_Test()
 		{
-			var queue = new BufferedQueue<int>();
+			var queue = new BufferedQueue<int>(1000);
 			for (int c = 0; c < 100; c++)
 				queue.Enqueue(c);
 
@@ -55,7 +55,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Empty_Test()
 		{
-			var queue = new BufferedQueue<int>();
+			var queue = new BufferedQueue<int>(1000);
 			for (int c = 0; c < 100; c++)
 				queue.Enqueue(1);
 			Assert.AreEqual(queue.Count, 100);
@@ -66,7 +66,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void ReadOnly_Test()
 		{
-			var queue = new BufferedQueue<char>();
+			var queue = new BufferedQueue<char>(1000);
 			ICollection<char> collection = queue;
 			Assert.AreEqual(collection.IsReadOnly, false);
 		}
@@ -74,7 +74,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Peek_Test()
 		{
-			var queue = new BufferedQueue<int>();
+			var queue = new BufferedQueue<int>(1000);
 			for (int c = 0; c < 100; c++)
 			{
 				queue.Enqueue(c);

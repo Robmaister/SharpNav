@@ -30,10 +30,6 @@ namespace SharpNav
 	{
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
 
-		//tile serialization constants used to detect compatibility of navigation tile data
-		//public const int NAVMESH_MAGIC = 'D' << 24 | 'N' << 16 | 'A' << 8 | 'V'; //magic number 
-		//public const int NAVMESH_VERSION = 7; //version number
-
 		public const int EXT_LINK = 0x8000; //entity links to external entity
 		public const int NULL_LINK = unchecked((int)0xffffffff); //doesn't link to anything
 
@@ -130,6 +126,7 @@ namespace SharpNav
 						minIndex = i;
 					}
 				}
+
 				Vector3 va = verts[minIndex];
 				Vector3 vb = verts[(minIndex + 1) % numPolyVerts];
 				closest = Vector3.Lerp(va, vb, edgeT[minIndex]);

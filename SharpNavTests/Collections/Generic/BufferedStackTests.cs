@@ -22,14 +22,14 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Empty_Stack_Count()
 		{
-			var empty = new BufferedStack<int>();
+			var empty = new BufferedStack<int>(1000);
 			Assert.AreEqual(empty.Count, 0);
 		}
 
 		[Test]
 		public void Push_Test()
 		{
-			var stack = new BufferedStack<int>();
+			var stack = new BufferedStack<int>(1000);
 			for (int c = 0; c < 100; c++)
 			{
 				stack.Push(c);
@@ -40,7 +40,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Pop_Test()
 		{
-			var stack = new BufferedStack<int>();
+			var stack = new BufferedStack<int>(1000);
 			for (int c = 0; c < 100; c++)
 				stack.Push(c);
 
@@ -55,7 +55,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Empty_Test()
 		{
-			var stack = new BufferedStack<int>();
+			var stack = new BufferedStack<int>(1000);
 			for (int c = 0; c < 100; c++)
 				stack.Push(1);
 			Assert.AreEqual(stack.Count, 100);
@@ -66,7 +66,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void ReadOnly_Test()
 		{
-			var stack = new BufferedStack<char>();
+			var stack = new BufferedStack<char>(1000);
 			ICollection<char> collection = stack;
 			Assert.AreEqual(collection.IsReadOnly, false);
 		}
@@ -74,7 +74,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Index_Operator_Test()
 		{
-			var stack = new BufferedStack<int>();
+			var stack = new BufferedStack<int>(1000);
 			for (int c = 0; c < 100; c++)
 			{
 				stack.Push(c);
@@ -85,7 +85,7 @@ namespace SharpNavTests.Collections.Generic
 		[Test]
 		public void Peek_Test()
 		{
-			var stack = new BufferedStack<int>();
+			var stack = new BufferedStack<int>(1000);
 			for (int c = 0; c < 100; c++)
 			{
 				stack.Push(c);

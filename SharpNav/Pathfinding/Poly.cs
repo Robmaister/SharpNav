@@ -39,6 +39,17 @@ namespace SharpNav.Pathfinding
 
 		public AreaId Area { get; set; }
 
-		public PolygonType PolyType { get { return polyType; } set { polyType = value; } }
+		public PolygonType PolyType
+		{
+			get
+			{
+				return polyType;
+			}
+
+			set
+			{
+				polyType = value;
+			}
+		}
 	}
 }

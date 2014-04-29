@@ -14,7 +14,7 @@ namespace SharpNav.Collections.Generic
 	public interface IValueWithCost
 	{
 		/// <summary>
-		/// The cost of this instance.
+		/// Gets the cost of this instance.
 		/// </summary>
 		float Cost { get; }
 	}

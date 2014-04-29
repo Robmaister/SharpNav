@@ -25,8 +25,11 @@ namespace SharpNav.Pathfinding
 		/// Index of polygon edge
 		/// </summary>
 		public int Edge { get; set; }
+
 		public int Side { get; set; }
+
 		public int BMin { get; set; }
+
 		public int BMax { get; set; }
 	}
 }

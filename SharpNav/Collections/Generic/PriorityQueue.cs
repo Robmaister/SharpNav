@@ -24,9 +24,9 @@ namespace SharpNav.Collections.Generic
 		private int size;
 
 		/// <summary>
-		/// Initialize a new priority queue with a given capacity of size n.
+		/// Initializes a new instance of the <see cref="PriorityQueue{T}"/> class with a given capacity of size n.
 		/// </summary>
-		/// <param name="n">Maximum number of nodes that can be stored</param>
+		/// <param name="n">The maximum number of nodes that can be stored.</param>
 		public PriorityQueue(int n)
 		{
 			capacity = n;
@@ -35,7 +35,7 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Returns number of elements in the priority queue.
+		/// Gets the number of elements in the priority queue.
 		/// </summary>
 		public int Count
 		{
@@ -46,7 +46,8 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Is not read only.
+		/// Gets a value indicating whether the collection is read-only. For <see cref="PriorityQueue{T}"/>, this is
+		/// always <c>true</c>.
 		/// </summary>
 		bool ICollection<T>.IsReadOnly
 		{
@@ -107,11 +108,10 @@ namespace SharpNav.Collections.Generic
 		public bool Contains(T item)
 		{
 			for (int c = 0; c < size; c++)
-			{
 				if (heap[c] == item)
 					return true;
-			}
-			return false; 
+
+			return false;
 		}
 
 		/// <summary>
@@ -131,10 +131,10 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Makes a copy of the T array
+		/// Copies the contents of the <see cref="PriorityQueue{T}"/> to an array.
 		/// </summary>
-		/// <param name="array"></param>
-		/// <param name="arrayIndex"></param>
+		/// <param name="array">The array to copy to.</param>
+		/// <param name="arrayIndex">The index within the array to start copying to.</param>
 		public void CopyTo(T[] array, int arrayIndex)
 		{
 			if (arrayIndex + heap.Length > array.Length)
@@ -144,43 +144,42 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Returns IEnumerable object
+		/// Gets the <see cref="PriorityQueue"/>'s enumerator.
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>The enumerator.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
 			return ((IEnumerable<T>)heap).GetEnumerator();
 		}
 
 		/// <summary>
-		/// ICollection interface functions
+		/// Calls <see cref="Push"/>.
 		/// </summary>
-		/// <param name="item"></param>
+		/// <param name="item">The item to add.</param>
 		void ICollection<T>.Add(T item)
 		{
 			Push(item);
 		}
 
 		/// <summary>
-		/// ICollection interface function (however arbitrary Remove is not allowed in priority queues)
+		/// Unsupported, but necessary to implement <see cref="ICollection{T}"/>.
 		/// </summary>
-		/// <param name="item">Item to be removed (irrelevant)</param>
-		/// <returns>False</returns>
+		/// <param name="item">An item.</param>
+		/// <returns>Nothing. This method will always throw <see cref="InvalidOperationException"/>.</returns>
+		/// <exception cref="InvalidOperationException">Will always be thrown. This is not a valid operation.</exception>
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("This priority queue implementation only allows elements to be popped off the top, not removed.");
 		}
 
-
 		/// <summary>
-		/// ???
+		/// The non-generic version of <see cref="GetEnumerator"/>.
 		/// </summary>
-		/// <returns>IEnumerator object</returns>
+		/// <returns>A non-generic enumerator.</returns>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
-
 
 		/// <summary>
 		/// While going up a priority queue, keep swapping elements until the element reaches the top.
@@ -197,10 +196,10 @@ namespace SharpNav.Collections.Generic
 				i = parent;
 				parent = (i - 1) / 2;
 			}
+
 			heap[i] = node;
 		}
 
-	
 		/// <summary>
 		/// While moving down the priority queue, keep swapping elements.
 		/// </summary>
@@ -214,9 +213,7 @@ namespace SharpNav.Collections.Generic
 			{
 				//determine which child element has a smaller cost 
 				if (((child + 1) < size) && (heap[child].Cost > heap[child + 1].Cost))
-				{
 					child++;
-				}
 
 				heap[i] = heap[child];
 				i = child;

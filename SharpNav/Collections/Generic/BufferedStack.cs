@@ -22,34 +22,23 @@ namespace SharpNav.Collections.Generic
 		private T[] data;       // Internal data array
 		private int top;        // Index of the position "above" the top of the stack
 
-
 		/// <summary>
-		/// Default constructor, sets size to 1000 by default
+		/// Initializes a new instance of the <see cref="BufferedStack{T}"/> class.
 		/// </summary>
-		public BufferedStack()
-		{
-			data = new T[1000];
-			top = 0; 
-		}
-
-
-		/// <summary>
-		/// Initializes BufferedStack with empty array of given size
-		/// </summary>
-		/// <param name="size">Size of the internal buffer</param>
+		/// <param name="size">The maximum number of items that will be stored.</param>
 		public BufferedStack(int size)
 		{
 			data = new T[size];
 			top = 0; 
 		}
 
-
 		/// <summary>
-		/// Initialize BufferedStack as a copy of a Stack container object with "size" number of elements
+		/// Initializes a new instance of the <see cref="BufferedStack{T}"/> class as a copy of an
+		/// <see cref="ICollection{T}"/> of the same type.
 		/// </summary>
-		/// <param name="size">Number of elements in container</param>
-		/// <param name="items">Stack container object containing elements to be copied</param>
-		public BufferedStack(int size, Stack<T> items)
+		/// <param name="size">The number of elements to copy from the collection.</param>
+		/// <param name="items">The collection to copy from.</param>
+		public BufferedStack(int size, ICollection<T> items)
 		{
 			if (items.Count <= size)
 			{
@@ -64,9 +53,8 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
-
 		/// <summary>
-		/// Returns number of elements in the stack.
+		/// Gets the number of elements in the stack.
 		/// </summary>
 		public int Count
 		{
@@ -76,9 +64,8 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
-
 		/// <summary>
-		/// Returns whether the stack is read-only (False for now)
+		/// Gets a value indicating whether the stack is read-only (False for now)
 		/// </summary>
 		bool ICollection<T>.IsReadOnly
 		{
@@ -88,12 +75,11 @@ namespace SharpNav.Collections.Generic
 			}
 		}
 
-
 		/// <summary>
-		/// Returns value at specified index (valid ranges are from 0 to size-1)
+		/// Gets the value at specified index (valid ranges are from 0 to size-1)
 		/// </summary>
 		/// <param name="index">Index value</param>
-		/// <returns></returns>
+		/// <returns>The value at the index</returns>
 		public T this[int index]
 		{
 			get
@@ -101,7 +87,6 @@ namespace SharpNav.Collections.Generic
 				return data[index];
 			}
 		}
-
 
 		/// <summary>
 		/// Pushes a new element to the top of the stack.
@@ -116,7 +101,6 @@ namespace SharpNav.Collections.Generic
 			return true; 
 		}
 
-
 		/// <summary>
 		/// Removes most recent (top) element from stack and returns it.
 		/// </summary>
@@ -125,9 +109,9 @@ namespace SharpNav.Collections.Generic
 		{
 			if (top == 0)
 				throw new InvalidOperationException("The stack is empty.");
+
 			return data[--top]; 
 		}
-
 
 		/// <summary>
 		/// Returns copy of the top element of the stack.
@@ -137,9 +121,9 @@ namespace SharpNav.Collections.Generic
 		{
 			if (top == 0)
 				throw new InvalidOperationException("The stack is empty.");
-			return data[top-1];
-		}
 
+			return data[top - 1];
+		}
 
 		/// <summary>
 		/// Resets stack pointer back to default, essentially clearing the stack. 
@@ -148,7 +132,6 @@ namespace SharpNav.Collections.Generic
 		{
 			top = 0;
 		}
-
 
 		/// <summary>
 		/// Returns whether the stack contains a given item.
@@ -164,22 +147,20 @@ namespace SharpNav.Collections.Generic
 			return false;
 		}
 
-
 		/// <summary>
-		/// Still in development. 
+		/// Copies the contents of the <see cref="BufferedStack{T}"/> to an array.
 		/// </summary>
-		/// <param name="array"></param>
-		/// <param name="arrayIndex"></param>
+		/// <param name="array">The array to copy to.</param>
+		/// <param name="arrayIndex">The index within the array to start copying to.</param>
 		public void CopyTo(T[] array, int arrayIndex)
 		{
 			throw new NotImplementedException();
 		}
 
-
 		/// <summary>
-		/// Returns generator.
+		/// Gets the <see cref="BufferedStack"/>'s enumerator.
 		/// </summary>
-		/// <returns>IEnumerator generator object.</returns>
+		/// <returns>The enumerator.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
 			if (top == 0)
@@ -190,32 +171,30 @@ namespace SharpNav.Collections.Generic
 				yield return data[i];
 		}
 
-
 		/// <summary>
-		/// ICollection.Add() implementation for BufferedStack
+		/// Calls <see cref="Push"/>.
 		/// </summary>
-		/// <param name="item"></param>
+		/// <param name="item">The item to add.</param>
 		void ICollection<T>.Add(T item)
 		{
 			Push(item);
 		}
 
-
 		/// <summary>
-		/// ICollection.Remove() implementation, which is not supported for stack containers. 
+		/// Unsupported, but necessary to implement <see cref="ICollection{T}"/>.
 		/// </summary>
-		/// <param name="item">Item to be removed (irrelevant)</param>
-		/// <returns>False</returns>
+		/// <param name="item">An item.</param>
+		/// <returns>Nothing. This method will always throw <see cref="InvalidOperationException"/>.</returns>
+		/// <exception cref="InvalidOperationException">Will always be thrown. This is not a valid operation.</exception>
 		bool ICollection<T>.Remove(T item)
 		{
 			throw new InvalidOperationException("Cannot remove from an arbitrary index in a stack");
 		}
 
-
 		/// <summary>
-		/// Returns IEnumerable enumerator object. 
+		/// The non-generic version of <see cref="GetEnumerator"/>.
 		/// </summary>
-		/// <returns>IEnumerator object</returns>
+		/// <returns>A non-generic enumerator.</returns>
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();

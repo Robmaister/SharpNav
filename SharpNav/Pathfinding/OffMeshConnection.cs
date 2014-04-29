@@ -21,12 +21,18 @@ namespace SharpNav.Pathfinding
 {
 	public class OffMeshConnection
 	{
-		public Vector3 Pos0; //the endpoints of the connection
-		public Vector3 Pos1;
-		public float Radius;
-		public int Poly;
-		public int Flags; //assigned flag from Poly
-		public int Side; //endpoint side
-		public uint UserId; //id of offmesh connection
+		public Vector3 Pos0 { get; set; } //the endpoints of the connection
+
+		public Vector3 Pos1 { get; set; }
+
+		public float Radius { get; set; }
+
+		public int Poly { get; set; }
+
+		public int Flags { get; set; } //assigned flag from Poly
+
+		public int Side { get; set; } //endpoint side
+
+		public uint UserId { get; set; } //id of offmesh connection
 	}
 }

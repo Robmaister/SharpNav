@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using SharpNav.Collections.Generic;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -30,19 +31,27 @@ namespace SharpNav.Pathfinding
 		/// Index to the next free link
 		/// </summary>
 		public int LinksFreeList { get; set; }
+
 		public PathfinderCommon.NavMeshInfo Header { get; set; }
+
 		public Poly[] Polys { get; set; }
+
 		public Vector3[] Verts { get; set; }
+
 		public Link[] Links { get; set; }
 
 		public PolyMeshDetail.MeshData[] DetailMeshes { get; set; }
+
 		public Vector3[] DetailVerts { get; set; }
+
 		public PolyMeshDetail.TriangleData[] DetailTris { get; set; }
 
 		public OffMeshConnection[] OffMeshConnections { get; set; }
-		public BVNode[] BVTree { get; set; }
+
+		public BVTree BVTree { get; set; }
 
 		public NavMeshBuilder Data { get; set; }
+
 		public MeshTile Next { get; set; }
 	}
 }

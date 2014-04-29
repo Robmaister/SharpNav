@@ -98,6 +98,7 @@
     <Compile Include="Cell.cs" />
     <Compile Include="Collections\Generic\BufferedQueue.cs" />
     <Compile Include="Collections\Generic\BufferedStack.cs" />
+    <Compile Include="Collections\Generic\BVTree.cs" />
     <Compile Include="Collections\Generic\IValueWithCost.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CompactCell.cs" />
@@ -112,7 +113,6 @@
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="NavMesh.cs" />
-    <Compile Include="Pathfinding\BVNode.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />

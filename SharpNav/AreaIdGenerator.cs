@@ -133,11 +133,13 @@ namespace SharpNav
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAboveSlope(float angle, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
-			{
-				Vector3 n = tri.Normal;
-				return Vector3.Dot(n, Vector3.UnitY) <= angle;
-			}, area));
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+				tri =>
+				{
+					Vector3 n = tri.Normal;
+					return Vector3.Dot(n, Vector3.UnitY) <= angle;
+				},
+				area));
 
 			return this;
 		}
@@ -150,11 +152,13 @@ namespace SharpNav
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkBelowSlope(float angle, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
-			{
-				Vector3 n = tri.Normal;
-				return Vector3.Dot(n, Vector3.UnitY) >= angle;
-			}, area));
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+				tri =>
+				{
+					Vector3 n = tri.Normal;
+					return Vector3.Dot(n, Vector3.UnitY) >= angle;
+				},
+				area));
 
 			return this;
 		}
@@ -168,12 +172,14 @@ namespace SharpNav
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAtSlope(float angle, float range, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
-			{
-				Vector3 n = tri.Normal;
-				float ang = Vector3.Dot(n, Vector3.UnitY);
-				return ang >= angle - range && ang <= angle + range;
-			}, area));
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+				tri =>
+				{
+					Vector3 n = tri.Normal;
+					float ang = Vector3.Dot(n, Vector3.UnitY);
+					return ang >= angle - range && ang <= angle + range;
+				},
+				area));
 
 			return this;
 		}
@@ -186,13 +192,15 @@ namespace SharpNav
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkBelowHeight(float y, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
-			{
-				if (tri.A.Y <= y || tri.B.Y <= y || tri.C.Y <= y)
-					return true;
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+				tri =>
+				{
+					if (tri.A.Y <= y || tri.B.Y <= y || tri.C.Y <= y)
+						return true;
 
-				return false;
-			}, area));
+					return false;
+				},
+				area));
 
 			return this;
 		}
@@ -217,13 +225,15 @@ namespace SharpNav
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAboveHeight(float y, AreaId area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(tri =>
-			{
-				if (tri.A.Y >= y || tri.B.Y >= y || tri.C.Y >= y)
-					return true;
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+				tri =>
+				{
+					if (tri.A.Y >= y || tri.B.Y >= y || tri.C.Y >= y)
+						return true;
 
-				return false;
-			}, area));
+					return false;
+				},
+				area));
 
 			return this;
 		}
