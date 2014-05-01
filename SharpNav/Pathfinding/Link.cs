@@ -11,11 +11,25 @@ namespace SharpNav.Pathfinding
 {
 	public class Link
 	{
-		public int reference; //neighbor reference (the one it's linked to)
-		public int next; //index of next link
-		public int edge; //index of polygon edge
-		public int side;
-		public int bmin;
-		public int bmax;
+		/// <summary>
+		/// Neighbor reference (the one it's linked to)
+		/// </summary>
+		public int Reference { get; set; }
+
+		/// <summary>
+		/// Index of next link
+		/// </summary>
+		public int Next { get; set; }
+
+		/// <summary>
+		/// Index of polygon edge
+		/// </summary>
+		public int Edge { get; set; }
+
+		public int Side { get; set; }
+
+		public int BMin { get; set; }
+
+		public int BMax { get; set; }
 	}
 }

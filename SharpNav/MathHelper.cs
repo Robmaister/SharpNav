@@ -454,7 +454,7 @@ namespace SharpNav
 				float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 				float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-				float EPS = 1E-4f;
+				const float EPS = 1E-4f;
 
 				//if point lies inside triangle, return interpolated y-coordinate
 				if (u >= -EPS && v >= -EPS && (u + v) <= 1 + EPS)
@@ -507,7 +507,7 @@ namespace SharpNav
 			/// <param name="bq">Segment AB endpoint B</param>
 			/// <param name="bp">Segment CD endpoint C</param>
 			/// <param name="d">Segment CD endpoint D</param>
-			/// <param name="s">?</param>
+			/// <param name="s"></param>
 			/// <param name="t">?</param>
 			/// <returns></returns>
 			internal static bool SegmentSegment2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d, out float s, out float t)

@@ -269,6 +269,13 @@ namespace SharpNav.Geometry
 			bbox.Max = max;
 		}
 
+		/// <summary>
+		/// Gets the area of the triangle projected onto the XZ-plane.
+		/// </summary>
+		/// <param name="a">The first point.</param>
+		/// <param name="b">The second point.</param>
+		/// <param name="c">The third point.</param>
+		/// <param name="area">The calculated area.</param>
 		public static void Area2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, out float area)
 		{
 			float abx = b.X - a.X;
@@ -278,6 +285,13 @@ namespace SharpNav.Geometry
 			area = acx * abz - abx * acz;
 		}
 
+		/// <summary>
+		/// Gets the area of the triangle projected onto the XZ-plane.
+		/// </summary>
+		/// <param name="a">The first point.</param>
+		/// <param name="b">The second point.</param>
+		/// <param name="c">The third point.</param>
+		/// <returns>The calculated area.</returns>
 		public static float Area2D(Vector3 a, Vector3 b, Vector3 c)
 		{
 			float result;

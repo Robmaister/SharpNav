@@ -23,13 +23,13 @@ using UnityEngine;
 namespace SharpNav
 {
 	/// <summary>
-	/// Class variables will store NavMesh and NavMeshDetail data for pathfinding purposes
+	/// Class variables will store PolyMesh and PolyMeshDetail data for pathfinding purposes
 	/// </summary>
 	public class NavMeshCreateParams
 	{
 		//NavMesh Attributes
 		//Used to create base navigation graph
-		public Vector3[] verts;
+		public Vector3[] Verts;
 		public int vertCount;
 		public PolyMesh.Polygon[] polys;
 		public int polyCount;

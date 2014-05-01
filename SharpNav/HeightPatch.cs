@@ -30,8 +30,7 @@ namespace SharpNav
 			this.height = height;
 
 			this.data = new int[width * height];
-			for (int i = 0; i < data.Length; i++)
-				data[i] = UnsetHeight;
+			Clear();
 		}
 
 		public int X
@@ -79,16 +78,16 @@ namespace SharpNav
 			}
 		}
 
-		public int this[int x, int z]
+		public int this[int x, int y]
 		{
 			get
 			{
-				return data[z * width + x];
+				return data[y * width + x];
 			}
 
 			set
 			{
-				data[z * width + x] = value;
+				data[y * width + x] = value;
 			}
 		}
 
@@ -112,6 +111,12 @@ namespace SharpNav
 		{
 			for (int i = 0; i < data.Length; i++)
 				data[i] = UnsetHeight;
+		}
+
+		public void SetAll(int h)
+		{
+			for (int i = 0; i < data.Length; i++)
+				data[i] = h;
 		}
 	}
 }

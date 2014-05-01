@@ -7,7 +7,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
@@ -41,17 +41,11 @@ namespace SharpNav
 		private int polyBits; //number of poly bits in ID
 
 		/// <summary>
-		/// Link all the polygons in the mesh together for pathfinding purposes.
+		/// Initializes a new instance of the <see cref="TiledNavMesh"/> class.
 		/// </summary>
 		/// <param name="data">The Navigation Mesh data</param>
 		public TiledNavMesh(NavMeshBuilder data)
 		{
-			//if (data.Header.magic != PathfinderCommon.NAVMESH_MAGIC) //TODO: output error message?
-			//	return;
-
-			//if (data.Header.version != PathfinderCommon.NAVMESH_VERSION) //TODO: output error message?
-			//	return;
-
 			TiledNavMeshParams parameters;
 			parameters.origin = data.Header.bounds.Min;
 			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
@@ -66,6 +60,14 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
+		public int TileCount
+		{
+			get
+			{
+				return maxTiles;
+			}
+		}
+
 		public MeshTile this[int index]
 		{
 			get
@@ -73,8 +75,6 @@ namespace SharpNav
 				return tiles[index];
 			}
 		}
-
-		public int TileCount { get { return maxTiles; } }
 
 		/// <summary>
 		/// Initialize the Tiled Navigation Mesh variables and arrays.
@@ -106,8 +106,8 @@ namespace SharpNav
 			nextFree = null;
 			for (int i = maxTiles - 1; i >= 0; i--)
 			{
-				tiles[i].salt = 1;
-				tiles[i].next = nextFree;
+				tiles[i].Salt = 1;
+				tiles[i].Next = nextFree;
 				nextFree = tiles[i];
 			}
 			
@@ -133,7 +133,7 @@ namespace SharpNav
 		public void AddTile(NavMeshBuilder data, int lastRef, ref int result)
 		{
 			//make sure data is in right format
-			PathfinderCommon.MeshHeader header = data.Header;
+			PathfinderCommon.NavMeshInfo header = data.Header;
 
 			//if (header.magic != PathfinderCommon.NAVMESH_MAGIC)
 			//	return;
@@ -151,8 +151,8 @@ namespace SharpNav
 				if (nextFree != null)
 				{
 					tile = nextFree;
-					nextFree = tile.next;
-					tile.next = null;
+					nextFree = tile.Next;
+					tile.Next = null;
 				}
 			}
 			else
@@ -169,7 +169,7 @@ namespace SharpNav
 				while (tile != null && tile != target)
 				{
 					prev = tile;
-					tile = tile.next;
+					tile = tile.Next;
 				}
 
 				//couldn't find correct location
@@ -178,12 +178,12 @@ namespace SharpNav
 
 				//remove from freelist
 				if (prev == null)
-					nextFree = tile.next;
+					nextFree = tile.Next;
 				else
-					prev.next = tile.next;
+					prev.Next = tile.Next;
 
 				//restore salt
-				tile.salt = DecodePolyIdSalt(lastRef);
+				tile.Salt = DecodePolyIdSalt(lastRef);
 			}
 
 			//make sure we could allocate a tile
@@ -192,34 +192,34 @@ namespace SharpNav
 
 			//insert tile into position LookUp Table (lut)
 			int h = ComputeTileHash(header.x, header.y, tileLookupTableMask);
-			tile.next = posLookup[h];
+			tile.Next = posLookup[h];
 			posLookup[h] = tile;
 
 			if (header.bvNodeCount == 0)
-				tile.bvTree = null;
+				tile.BVTree = null;
 
 			//patch header
-			tile.verts = data.NavVerts;
-			tile.polys = data.NavPolys;
-			tile.detailMeshes = data.NavDMeshes;
-			tile.detailVerts = data.NavDVerts;
-			tile.detailTris = data.NavDTris;
-			tile.bvTree = data.NavBvTree;
-			tile.offMeshCons = data.OffMeshCons;
+			tile.Verts = data.NavVerts;
+			tile.Polys = data.NavPolys;
+			tile.DetailMeshes = data.NavDMeshes;
+			tile.DetailVerts = data.NavDVerts;
+			tile.DetailTris = data.NavDTris;
+			tile.BVTree = data.NavBvTree;
+			tile.OffMeshConnections = data.OffMeshCons;
 
 			//build links freelist
-			tile.linksFreeList = 0;
-			tile.links = new Link[header.maxLinkCount];
+			tile.LinksFreeList = 0;
+			tile.Links = new Link[header.maxLinkCount];
 			for (int i = 0; i < header.maxLinkCount; i++)
-				tile.links[i] = new Link();
+				tile.Links[i] = new Link();
 
-			SetNullLink(ref tile.links[header.maxLinkCount - 1].next);
+			tile.Links[header.maxLinkCount - 1].Next = PathfinderCommon.NULL_LINK;
 			for (int i = 0; i < header.maxLinkCount - 1; i++)
-				tile.links[i].next = i + 1;
+				tile.Links[i].Next = i + 1;
 
 			//init tile
-			tile.header = header;
-			tile.data = data;
+			tile.Header = header;
+			tile.Data = data;
 
 			ConnectIntLinks(ref tile);
 			BaseOffMeshLinks(ref tile);
@@ -270,20 +270,20 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Iterate through all the polygons
-			for (int i = 0; i < tile.header.polyCount; i++)
+			for (int i = 0; i < tile.Header.polyCount; i++)
 			{
 				//The polygon links will end in a null link
-				SetNullLink(ref tile.polys[i].firstLink);
+				tile.Polys[i].FirstLink = PathfinderCommon.NULL_LINK;
 
 				//Avoid Off-Mesh Connection polygons
-				if (tile.polys[i].PolyType == PolygonType.OffMeshConnection)
+				if (tile.Polys[i].PolyType == PolygonType.OffMeshConnection)
 					continue;
 
 				//Build edge links
-				for (int j = tile.polys[i].vertCount - 1; j >= 0; j--)
+				for (int j = tile.Polys[i].VertCount - 1; j >= 0; j--)
 				{
 					//Skip hard and non-internal edges
-					if (tile.polys[i].neis[j] == 0 || IsExternalLink(tile.polys[i].neis[j]))
+					if (tile.Polys[i].Neis[j] == 0 || IsExternalLink(tile.Polys[i].Neis[j]))
 						continue;
 
 					//Allocate a new link if possible
@@ -293,14 +293,14 @@ namespace SharpNav
 					if (IsLinkAllocated(idx))
 					{
 						//Initialize a new link
-						tile.links[idx].reference = GetReference(polyBase, tile.polys[i].neis[j] - 1);
-						tile.links[idx].edge = j;
-						tile.links[idx].side = 0xff;
-						tile.links[idx].bmin = tile.links[idx].bmax = 0;
+						tile.Links[idx].Reference = GetReference(polyBase, tile.Polys[i].Neis[j] - 1);
+						tile.Links[idx].Edge = j;
+						tile.Links[idx].Side = 0xff;
+						tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 						//Add to polygon's links list
-						tile.links[idx].next = tile.polys[i].firstLink;
-						tile.polys[i].firstLink = idx;
+						tile.Links[idx].Next = tile.Polys[i].FirstLink;
+						tile.Polys[i].FirstLink = idx;
 					}
 				}
 			}
@@ -318,15 +318,15 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Base off-mesh connection start points
-			for (int i = 0; i < tile.header.offMeshConCount; i++)
+			for (int i = 0; i < tile.Header.offMeshConCount; i++)
 			{
 				int con = i;
-				int poly = tile.offMeshCons[con].poly;
+				int poly = tile.OffMeshConnections[con].Poly;
 
-				Vector3 extents = new Vector3(tile.offMeshCons[con].radius, tile.header.walkableClimb, tile.offMeshCons[con].radius);
+				Vector3 extents = new Vector3(tile.OffMeshConnections[con].Radius, tile.Header.walkableClimb, tile.OffMeshConnections[con].Radius);
 				
 				//Find polygon to connect to
-				Vector3 p = tile.offMeshCons[con].pos0;
+				Vector3 p = tile.OffMeshConnections[con].Pos0;
 				Vector3 nearestPt = new Vector3();
 				int reference = FindNearestPolyInTile(tile, p, extents, ref nearestPt);
 				if (reference == 0)
@@ -334,25 +334,25 @@ namespace SharpNav
 
 				//Do extra checks
 				if ((nearestPt.X - p.X) * (nearestPt.X - p.X) + (nearestPt.Z - p.Z) * (nearestPt.Z - p.Z) >
-					tile.offMeshCons[con].radius * tile.offMeshCons[con].radius)
+					tile.OffMeshConnections[con].Radius * tile.OffMeshConnections[con].Radius)
 					continue;
 
 				//Make sure location is on current mesh
-				tile.verts[tile.polys[poly].verts[0]] = nearestPt;
+				tile.Verts[tile.Polys[poly].Verts[0]] = nearestPt;
 
 				//Link off-mesh connection to target poly
 				int idx = AllocLink(tile);
 				if (IsLinkAllocated(idx))
 				{
 					//Initialize a new link
-					tile.links[idx].reference = reference;
-					tile.links[idx].edge = 0;
-					tile.links[idx].side = 0xff;
-					tile.links[idx].bmin = tile.links[idx].bmax = 0;
+					tile.Links[idx].Reference = reference;
+					tile.Links[idx].Edge = 0;
+					tile.Links[idx].Side = 0xff;
+					tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 					//Add to polygon's links list
-					tile.links[idx].next = tile.polys[poly].firstLink;
-					tile.polys[poly].firstLink = idx;
+					tile.Links[idx].Next = tile.Polys[poly].FirstLink;
+					tile.Polys[poly].FirstLink = idx;
 				}
 
 				//Start end-point always conects back to off-mesh connection
@@ -361,14 +361,14 @@ namespace SharpNav
 				{
 					//Initialize a new link
 					int landPolyIdx = DecodePolyIdPoly(reference);
-					tile.links[idx].reference = GetReference(polyBase, tile.offMeshCons[con].poly);
-					tile.links[idx].edge = 0xff;
-					tile.links[idx].side = 0xff;
-					tile.links[idx].bmin = tile.links[idx].bmax = 0;
+					tile.Links[idx].Reference = GetReference(polyBase, tile.OffMeshConnections[con].Poly);
+					tile.Links[idx].Edge = 0xff;
+					tile.Links[idx].Side = 0xff;
+					tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 					//Add to polygon's links list
-					tile.links[idx].next = tile.polys[landPolyIdx].firstLink;
-					tile.polys[landPolyIdx].firstLink = tidx;
+					tile.Links[idx].Next = tile.Polys[landPolyIdx].FirstLink;
+					tile.Polys[landPolyIdx].FirstLink = tidx;
 				}
 			}
 		}
@@ -385,23 +385,23 @@ namespace SharpNav
 				return;
 
 			//Connect border links
-			for (int i = 0; i < tile.header.polyCount; i++)
+			for (int i = 0; i < tile.Header.polyCount; i++)
 			{
-				int numPolyVerts = tile.polys[i].vertCount;
+				int numPolyVerts = tile.Polys[i].VertCount;
 
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip non-portal edges
-					if ((tile.polys[i].neis[j] & PathfinderCommon.EXT_LINK) == 0)
+					if ((tile.Polys[i].Neis[j] & PathfinderCommon.EXT_LINK) == 0)
 						continue;
 
-					int dir = tile.polys[i].neis[j] & 0xff;
+					int dir = tile.Polys[i].Neis[j] & 0xff;
 					if (side != -1 && dir != side)
 						continue;
 
 					//Create new links
-					Vector3 va = tile.verts[tile.polys[i].verts[j]];
-					Vector3 vb = tile.verts[tile.polys[i].verts[(j + 1) % numPolyVerts]];
+					Vector3 va = tile.Verts[tile.Polys[i].Verts[j]];
+					Vector3 vb = tile.Verts[tile.Polys[i].Verts[(j + 1) % numPolyVerts]];
 					List<int> nei = new List<int>(4);
 					List<float> neia = new List<float>(4 * 2);
 					FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia);
@@ -414,12 +414,12 @@ namespace SharpNav
 
 						if (IsLinkAllocated(idx))
 						{
-							tile.links[idx].reference = nei[k];
-							tile.links[idx].edge = j;
-							tile.links[idx].side = dir;
+							tile.Links[idx].Reference = nei[k];
+							tile.Links[idx].Edge = j;
+							tile.Links[idx].Side = dir;
 
-							tile.links[idx].next = tile.polys[i].firstLink;
-							tile.polys[i].firstLink = idx;
+							tile.Links[idx].Next = tile.Polys[i].FirstLink;
+							tile.Polys[i].FirstLink = idx;
 
 							//Compress portal limits to a value
 							if (dir == 0 || dir == 4)
@@ -434,8 +434,8 @@ namespace SharpNav
 									tmax = temp;
 								}
 
-								tile.links[idx].bmin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
-								tile.links[idx].bmax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+								tile.Links[idx].BMin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+								tile.Links[idx].BMax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
 							}
 							else if (dir == 2 || dir == 6)
 							{
@@ -449,8 +449,8 @@ namespace SharpNav
 									tmax = temp;
 								}
 
-								tile.links[idx].bmin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
-								tile.links[idx].bmax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+								tile.Links[idx].BMin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+								tile.Links[idx].BMax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
 							}
 						}
 					}
@@ -483,22 +483,22 @@ namespace SharpNav
 			int oppositeSide = (side == -1) ? 0xff : OppositeTile(side);
 
 			//Iterate through all the off-mesh connections of target tile
-			for (int i = 0; i < target.header.offMeshConCount; i++)
+			for (int i = 0; i < target.Header.offMeshConCount; i++)
 			{
-				OffMeshConnection targetCon = target.offMeshCons[i];
-				if (targetCon.side != oppositeSide)
+				OffMeshConnection targetCon = target.OffMeshConnections[i];
+				if (targetCon.Side != oppositeSide)
 					continue;
 
-				Poly targetPoly = target.polys[targetCon.poly];
+				Poly targetPoly = target.Polys[targetCon.Poly];
 
 				//Skip off-mesh connections which start location could not be connected at all
-				if (!IsLinkAllocated(targetPoly.firstLink))
+				if (!IsLinkAllocated(targetPoly.FirstLink))
 					continue;
 
-				Vector3 extents = new Vector3(targetCon.radius, target.header.walkableClimb, targetCon.radius);
+				Vector3 extents = new Vector3(targetCon.Radius, target.Header.walkableClimb, targetCon.Radius);
 
 				//Find polygon to connect to
-				Vector3 p = targetCon.pos1;
+				Vector3 p = targetCon.Pos1;
 				Vector3 nearestPt = new Vector3();
 				int reference = FindNearestPolyInTile(tile, p, extents, ref nearestPt);
 				if (reference == 0)
@@ -506,41 +506,41 @@ namespace SharpNav
 
 				//Further checks
 				if ((nearestPt.X - p.X) * (nearestPt.X - p.X) + (nearestPt.Z - p.Z) * (nearestPt.Z - p.Z) >
-					(targetCon.radius * targetCon.radius))
+					(targetCon.Radius * targetCon.Radius))
 					continue;
 
 				//Make sure the location is on the current mesh
-				target.verts[targetPoly.verts[1]] = nearestPt;
+				target.Verts[targetPoly.Verts[1]] = nearestPt;
 
 				//Link off-mesh connection to target poly
 				int idx = AllocLink(target);
 				if (IsLinkAllocated(idx))
 				{
-					target.links[idx].reference = reference;
-					target.links[idx].edge = i;
-					target.links[idx].side = oppositeSide;
-					target.links[idx].bmin = target.links[idx].bmax = 0;
+					target.Links[idx].Reference = reference;
+					target.Links[idx].Edge = i;
+					target.Links[idx].Side = oppositeSide;
+					target.Links[idx].BMin = target.Links[idx].BMax = 0;
 
 					//add to linked list
-					target.links[idx].next = target.polys[i].firstLink;
-					target.polys[i].firstLink = idx;
+					target.Links[idx].Next = target.Polys[i].FirstLink;
+					target.Polys[i].FirstLink = idx;
 				}
 
 				//link target poly to off-mesh connection
-				if ((targetCon.flags & PathfinderCommon.OFFMESH_CON_BIDIR) != 0)
+				if ((targetCon.Flags & PathfinderCommon.OFFMESH_CON_BIDIR) != 0)
 				{
 					int tidx = AllocLink(tile);
 					if (IsLinkAllocated(tidx))
 					{
 						int landPolyIdx = DecodePolyIdPoly(reference);
-						tile.links[tidx].reference = GetReference(GetPolyRefBase(target), targetCon.poly);
-						tile.links[tidx].edge = 0xff;
-						tile.links[tidx].side = (side == -1) ? 0xff : side;
-						tile.links[tidx].bmin = tile.links[tidx].bmax = 0;
+						tile.Links[tidx].Reference = GetReference(GetPolyRefBase(target), targetCon.Poly);
+						tile.Links[tidx].Edge = 0xff;
+						tile.Links[tidx].Side = (side == -1) ? 0xff : side;
+						tile.Links[tidx].BMin = tile.Links[tidx].BMax = 0;
 
 						//add to linked list
-						tile.links[tidx].next = tile.polys[landPolyIdx].firstLink;
-						tile.polys[landPolyIdx].firstLink = tidx;
+						tile.Links[tidx].Next = tile.Polys[landPolyIdx].FirstLink;
+						tile.Polys[landPolyIdx].FirstLink = tidx;
 					}
 				}
 			}
@@ -574,20 +574,20 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Iterate through all the tile's polygons
-			for (int i = 0; i < tile.header.polyCount; i++)
+			for (int i = 0; i < tile.Header.polyCount; i++)
 			{
-				int numPolyVerts = tile.polys[i].vertCount;
+				int numPolyVerts = tile.Polys[i].VertCount;
 
 				//Iterate through all the vertices
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip edges which do not point to the right side
-					if (tile.polys[i].neis[j] != (PathfinderCommon.EXT_LINK | side))
+					if (tile.Polys[i].Neis[j] != (PathfinderCommon.EXT_LINK | side))
 						continue;
 
 					//Grab two adjacent vertices
-					Vector3 vc = tile.verts[tile.polys[i].verts[j]];
-					Vector3 vd = tile.verts[tile.polys[i].verts[(j + 1) % numPolyVerts]];
+					Vector3 vc = tile.Verts[tile.Polys[i].Verts[j]];
+					Vector3 vd = tile.Verts[tile.Polys[i].Verts[(j + 1) % numPolyVerts]];
 					float bpos = GetSlabCoord(vc, side);
 
 					//Segments are not close enough
@@ -598,7 +598,7 @@ namespace SharpNav
 					CalcSlabEndPoints(vc, vd, bmin, bmax, side);
 
 					//Skip if slabs don't overlap
-					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.header.walkableClimb))
+					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.Header.walkableClimb))
 						continue;
 
 					//Add return value
@@ -772,12 +772,12 @@ namespace SharpNav
 		/// <returns>Number of polygons found</returns>
 		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, List<int> polys)
 		{
-			if (tile.bvTree.Length != 0)
+			if (tile.BVTree.Count != 0)
 			{
 				int node = 0;
-				int end = tile.header.bvNodeCount;
-				Vector3 tbmin = tile.header.bounds.Min;
-				Vector3 tbmax = tile.header.bounds.Max;
+				int end = tile.Header.bvNodeCount;
+				Vector3 tbmin = tile.Header.bounds.Min;
+				Vector3 tbmax = tile.Header.bounds.Max;
 				
 				//Clamp query box to world box
 				Vector3 qbmin = qbounds.Min;
@@ -790,26 +790,26 @@ namespace SharpNav
 				b.Max.Y = MathHelper.Clamp(qbmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
 				b.Max.Z = MathHelper.Clamp(qbmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
 
-				b.Min.X = b.Min.X * tile.header.bvQuantFactor;
-				b.Min.Y = b.Min.Y * tile.header.bvQuantFactor;
-				b.Min.Z = b.Min.Z * tile.header.bvQuantFactor;
-				b.Max.X = b.Max.X * tile.header.bvQuantFactor;
-				b.Max.Y = b.Max.Y * tile.header.bvQuantFactor;
-				b.Max.Z = b.Max.Z * tile.header.bvQuantFactor;
+				b.Min.X = b.Min.X * tile.Header.bvQuantFactor;
+				b.Min.Y = b.Min.Y * tile.Header.bvQuantFactor;
+				b.Min.Z = b.Min.Z * tile.Header.bvQuantFactor;
+				b.Max.X = b.Max.X * tile.Header.bvQuantFactor;
+				b.Max.Y = b.Max.Y * tile.Header.bvQuantFactor;
+				b.Max.Z = b.Max.Z * tile.Header.bvQuantFactor;
 
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
 				
 				while (node < end)
 				{
-					BVNode bvNode = tile.bvTree[node];
-					bool overlap = BBox3.Overlapping(ref b, ref bvNode.bounds);
-					bool isLeafNode = bvNode.index >= 0;
+					BVTree.Node bvNode = tile.BVTree[node];
+					bool overlap = BBox3.Overlapping(ref b, ref bvNode.Bounds);
+					bool isLeafNode = bvNode.Index >= 0;
 
 					if (isLeafNode && overlap)
 					{
 						if (polys.Count < polys.Capacity)
-							polys.Add(GetReference(polyBase, bvNode.index));
+							polys.Add(GetReference(polyBase, bvNode.Index));
 					}
 
 					if (overlap || isLeafNode)
@@ -818,7 +818,7 @@ namespace SharpNav
 					}
 					else
 					{
-						int escapeIndex = -bvNode.index;
+						int escapeIndex = -bvNode.Index;
 						node += escapeIndex;
 					}
 				}
@@ -830,19 +830,19 @@ namespace SharpNav
 				BBox3 b;
 				int polyBase = GetPolyRefBase(tile);
 
-				for (int i = 0; i < tile.header.polyCount; i++)
+				for (int i = 0; i < tile.Header.polyCount; i++)
 				{
-					var poly = tile.polys[i];
+					var poly = tile.Polys[i];
 
 					//don't return off-mesh connection polygons
 					if (poly.PolyType == PolygonType.OffMeshConnection)
 						continue;
 
 					//calculate polygon bounds
-					b.Max = b.Min = tile.verts[poly.verts[0]];
-					for (int j = 1; j < poly.vertCount; j++)
+					b.Max = b.Min = tile.Verts[poly.Verts[0]];
+					for (int j = 1; j < poly.VertCount; j++)
 					{
-						Vector3 v = tile.verts[poly.verts[j]];
+						Vector3 v = tile.Verts[poly.Verts[j]];
 						Vector3Extensions.ComponentMin(ref b.Min, ref v, out b.Min);
 						Vector3Extensions.ComponentMax(ref b.Max, ref v, out b.Max);
 					}
@@ -865,11 +865,11 @@ namespace SharpNav
 		/// <returns>New link number</returns>
 		public int AllocLink(MeshTile tile)
 		{
-			if (!IsLinkAllocated(tile.linksFreeList))
+			if (!IsLinkAllocated(tile.LinksFreeList))
 				return PathfinderCommon.NULL_LINK;
 
-			int link = tile.linksFreeList;
-			tile.linksFreeList = tile.links[link].next;
+			int link = tile.LinksFreeList;
+			tile.LinksFreeList = tile.Links[link].Next;
 			return link;
 		}
 
@@ -893,7 +893,7 @@ namespace SharpNav
 				}
 			}
 
-			return EncodePolyId(tile.salt, it, 0);
+			return EncodePolyId(tile.Salt, it, 0);
 		}
 
 		/// <summary>
@@ -912,11 +912,11 @@ namespace SharpNav
 			while (tile != null)
 			{
 				//Found
-				if (tile.header != null && tile.header.x == x && tile.header.y == y && tile.header.layer == layer)
+				if (tile.Header != null && tile.Header.x == x && tile.Header.y == y && tile.Header.layer == layer)
 					return tile;
 
 				//Keep searching
-				tile = tile.next;
+				tile = tile.Next;
 			}
 			
 			return null;
@@ -942,14 +942,14 @@ namespace SharpNav
 			{
 				//Tile found. 
 				//Add to tile array
-				if (tile.header != null && tile.header.x == x && tile.header.y == y)
+				if (tile.Header != null && tile.Header.x == x && tile.Header.y == y)
 				{
 					if (n < tiles.Length)
 						tiles[n++] = tile;
 				}
 
 				//Keep searching
-				tile = tile.next;
+				tile = tile.Next;
 			}
 
 			return n;
@@ -1021,11 +1021,6 @@ namespace SharpNav
 			return polyBase | poly;
 		}
 
-		public void SetNullLink(ref int index)
-		{
-			index = PathfinderCommon.NULL_LINK;
-		}
-
 		public bool IsLinkAllocated(int index)
 		{
 			return index != PathfinderCommon.NULL_LINK;
@@ -1056,7 +1051,7 @@ namespace SharpNav
 				}
 			}
 
-			return EncodePolyId(tile.salt, it, 0);
+			return EncodePolyId(tile.Salt, it, 0);
 		}
 
 		/// <summary>
@@ -1082,15 +1077,15 @@ namespace SharpNav
 			if (indexTile >= maxTiles)
 				return false;
 
-			if (tiles[indexTile].salt != salt || tiles[indexTile].header == null)
+			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
 				return false;
 
-			if (indexPoly >= tiles[indexTile].header.polyCount)
+			if (indexPoly >= tiles[indexTile].Header.polyCount)
 				return false;
 
 			//Retrieve tile and poly
 			tile = tiles[indexTile];
-			poly = tiles[indexTile].polys[indexPoly];
+			poly = tiles[indexTile].Polys[indexPoly];
 			return true;
 		}
 
@@ -1105,7 +1100,7 @@ namespace SharpNav
 			int salt = 0, indexTile = 0, indexPoly = 0;
 			DecodePolyId(reference, ref salt, ref indexTile, ref indexPoly);
 			tile = tiles[indexTile];
-			poly = tiles[indexTile].polys[indexPoly];
+			poly = tiles[indexTile].Polys[indexPoly];
 		}
 
 		/// <summary>
@@ -1124,10 +1119,10 @@ namespace SharpNav
 			if (indexTile >= maxTiles)
 				return false;
 
-			if (tiles[indexTile].salt != salt || tiles[indexTile].header == null)
+			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
 				return false;
 
-			if (indexPoly >= tiles[indexTile].header.polyCount)
+			if (indexPoly >= tiles[indexTile].Header.polyCount)
 				return false;
 
 			return true;
@@ -1195,14 +1190,6 @@ namespace SharpNav
 			return (salt << (int)(polyBits + tileBits)) | (indexTile << (int)polyBits) | indexPoly;
 		}
 
-		public struct TiledNavMeshParams
-		{
-			public Vector3 origin;
-			public float tileWidth;
-			public float tileHeight;
-			public int maxTiles;
-			public int maxPolys;
-		}
 		/// <summary>
 		/// Calculates the tile location.
 		/// </summary>
@@ -1211,8 +1198,17 @@ namespace SharpNav
 		/// <param name="ty">Ty.</param>
 		public void CalcTileLoc(ref Vector3 pos, out int tx, out int ty)
 		{
-			tx = (int)Math.Floor ((pos.X - origin.X) / tileWidth);
-			ty = (int)Math.Floor ((pos.Z - origin.Z) / tileHeight);
+			tx = (int)Math.Floor((pos.X - origin.X) / tileWidth);
+			ty = (int)Math.Floor((pos.Z - origin.Z) / tileHeight);
+		}
+
+		public struct TiledNavMeshParams
+		{
+			public Vector3 origin;
+			public float tileWidth;
+			public float tileHeight;
+			public int maxTiles;
+			public int maxPolys;
 		}
 	}
 }

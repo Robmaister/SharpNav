@@ -95,6 +95,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of connections the current CompactSpan has with its neighbors.
+		/// </summary>
 		public int ConnectionCount
 		{
 			get
@@ -113,11 +116,23 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// If two CompactSpans overlap, find the minimum of the new overlapping CompactSpans.
+		/// </summary>
+		/// <param name="left">The first CompactSpan</param>
+		/// <param name="right">The second CompactSpan</param>
+		/// <param name="min">The minimum of the overlapping ComapctSpans</param>
 		public static void OverlapMin(ref CompactSpan left, ref CompactSpan right, out int min)
 		{
 			min = Math.Max(left.Minimum, right.Minimum);
 		}
 
+		/// <summary>
+		/// If two CompactSpans overlap, find the maximum of the new overlapping CompactSpans.
+		/// </summary>
+		/// <param name="left">The first CompactSpan</param>
+		/// <param name="right">The second CompactSpan</param>
+		/// <param name="max">The maximum of the overlapping CompactSpans</param>
 		public static void OverlapMax(ref CompactSpan left, ref CompactSpan right, out int max)
 		{
 			if (left.Height == int.MaxValue)

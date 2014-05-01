@@ -6,6 +6,7 @@
 #endregion
 
 using System;
+using SharpNav.Collections.Generic;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -21,23 +22,36 @@ namespace SharpNav.Pathfinding
 {
 	public class MeshTile
 	{
-		public int salt; //counter describing modifications to the tile
+		/// <summary>
+		/// Counter describing modifications to the tile
+		/// </summary>
+		public int Salt { get; set; }
 
-		public int linksFreeList; //index to the next free link
-		public PathfinderCommon.MeshHeader header;
-		public Poly[] polys;
-		public Vector3[] verts;
-		public Link[] links;
+		/// <summary>
+		/// Index to the next free link
+		/// </summary>
+		public int LinksFreeList { get; set; }
 
-		public PolyMeshDetail.MeshData[] detailMeshes;
-		public Vector3[] detailVerts;
-		public PolyMeshDetail.TriangleData[] detailTris;
+		public PathfinderCommon.NavMeshInfo Header { get; set; }
 
-		public BVNode[] bvTree; //bounding volume nodes
+		public Poly[] Polys { get; set; }
 
-		public OffMeshConnection[] offMeshCons;
+		public Vector3[] Verts { get; set; }
 
-		public NavMeshBuilder data;
-		public MeshTile next;
+		public Link[] Links { get; set; }
+
+		public PolyMeshDetail.MeshData[] DetailMeshes { get; set; }
+
+		public Vector3[] DetailVerts { get; set; }
+
+		public PolyMeshDetail.TriangleData[] DetailTris { get; set; }
+
+		public OffMeshConnection[] OffMeshConnections { get; set; }
+
+		public BVTree BVTree { get; set; }
+
+		public NavMeshBuilder Data { get; set; }
+
+		public MeshTile Next { get; set; }
 	}
 }

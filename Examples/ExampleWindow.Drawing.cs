@@ -641,6 +641,81 @@ namespace Examples
 
 			GL.End();
 
+			GL.Color4(Color4.Purple);
+			GL.LineWidth(1.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) == 0)
+						{
+							if (t[kp] < t[k])
+							{
+								var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+
+								v = polyMeshDetail.Verts[vertIndex + t[k]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+							}
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.LineWidth(3.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) != 0)
+						{
+							var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+
+							v = polyMeshDetail.Verts[vertIndex + t[k]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.PointSize(4.8f);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				for (int j = 0; j < m.VertexCount; j++)
+				{
+					var v = polyMeshDetail.Verts[m.VertexIndex + j];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
 			GL.PopMatrix();
 		}
 
@@ -666,19 +741,19 @@ namespace Examples
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
-				for (int j = 2; j < poly.vertCount; j++)
+				for (int j = 2; j < poly.VertCount; j++)
 				{
-					int vertIndex0 = poly.verts[0];
-					int vertIndex1 = poly.verts[j - 1];
-					int vertIndex2 = poly.verts[j];
+					int vertIndex0 = poly.Verts[0];
+					int vertIndex1 = poly.Verts[j - 1];
+					int vertIndex2 = poly.Verts[j];
 
-					var v = tile.verts[vertIndex0];
+					var v = tile.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex1];
+					v = tile.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex2];
+					v = tile.Verts[vertIndex2];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
@@ -704,15 +779,15 @@ namespace Examples
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
-				for (int j = 0; j < poly.vertCount; j++)
+				for (int j = 0; j < poly.VertCount; j++)
 				{
-					int vertIndex0 = poly.verts[j];
-					int vertIndex1 = poly.verts[(j + 1) % poly.vertCount];
+					int vertIndex0 = poly.Verts[j];
+					int vertIndex1 = poly.Verts[(j + 1) % poly.VertCount];
 
-					var v = tile.verts[vertIndex0];
+					var v = tile.Verts[vertIndex0];
 					GL.Vertex3(v.X, v.Y, v.Z);
 
-					v = tile.verts[vertIndex1];
+					v = tile.Verts[vertIndex1];
 					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}

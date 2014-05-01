@@ -443,7 +443,7 @@ namespace Examples
 		private void GeneratePathfinding()
 		{
 			parameters = new NavMeshCreateParams();
-			parameters.verts = polyMesh.Verts;
+			parameters.Verts = polyMesh.Verts;
 			parameters.vertCount = polyMesh.VertCount;
 			parameters.polys = polyMesh.Polys;
 			parameters.polyCount = polyMesh.PolyCount;

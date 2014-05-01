@@ -50,6 +50,26 @@ namespace SharpNav.Geometry
 		}
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="BBox3"/> struct.
+		/// </summary>
+		/// <param name="minX">The minimum on the X axis.</param>
+		/// <param name="minY">The minimum on the Y axis.</param>
+		/// <param name="minZ">The minimum on the Z axis.</param>
+		/// <param name="maxX">The maximum on the X axis.</param>
+		/// <param name="maxY">The maximum on the Y axis.</param>
+		/// <param name="maxZ">The maximum on the Z axis.</param>
+		public BBox3(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+		{
+			Min.X = minX;
+			Min.Y = minY;
+			Min.Z = minZ;
+
+			Max.X = maxX;
+			Max.Y = maxY;
+			Max.Z = maxZ;
+		}
+
+		/// <summary>
 		/// Gets the center of the box.
 		/// </summary>
 		public Vector3 Center
@@ -139,6 +159,10 @@ namespace SharpNav.Geometry
 			return Min.GetHashCode() ^ Max.GetHashCode();
 		}
 
+		/// <summary>
+		/// Returns a string containing the important information for this instance of <see cref="BBox3"/>.
+		/// </summary>
+		/// <returns>A human-readable string representation of this instance.</returns>
 		public override string ToString()
 		{
 			return "{ Min : " + Min.ToString() + ", Max : " + Max.ToString() + " }";
