@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<Project ToolsVersion="4.0" DefaultTargets="CI" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	
+	<ItemGroup>
+		<Projects Include="SharpNav/SharpNav.csproj" />
+		<Projects Include="SharpNavTests/SharpNavTests.csproj" />
+	</ItemGroup>
+	
+	<Target Name="CI">
+		<CallTarget Target="Standalone" />
+		<CallTarget Target="OpenTK" />
+		<CallTarget Target="MonoGame" />
+		<CallTarget Target="SharpDX" />
+		<CallTarget Target="XNA" />
+		<!-- <CallTarget Target="Unity3D" /> -->
+	</Target>
+	
+	<Target Name="Standalone" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=Standalone;Platform=AnyCPU" />
+	</Target>
+	
+	<Target Name="OpenTK" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=OpenTK;Platform=AnyCPU" />
+	</Target>
+	
+	<Target Name="MonoGame" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=MonoGame;Platform=AnyCPU" />
+	</Target>
+	
+	<Target Name="SharpDX" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=SharpDX;Platform=AnyCPU" />
+	</Target>
+	
+	<Target Name="XNA" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=XNA;Platform=AnyCPU" />
+	</Target>
+	
+	<Target Name="Unity3D" />
+		<MSBuild Projects="@(Projects)" Properties="Configuration=Unity3D;Platform=AnyCPU" />
+	</Target>
+	
+</Project>
