@@ -51,8 +51,9 @@ namespace SharpNav
 		/// <summary>
 		/// Create instance from the specified triangles with specified area.
 		/// </summary>
-		/// <param name="tris">collection of Triangles.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="tris">Collection of Triangles.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, AreaId area)
 		{
 			return new AreaIdGenerator(tris, tris.Count(), area);
@@ -62,8 +63,9 @@ namespace SharpNav
 		/// Create instance from triCount(a integer) specified triangles with specified area
 		/// </summary>
 		/// <param name="tris">Collection of Triangles.</param>
-		/// <param name="triCount">The number of triangles to enumerate..</param>
-		/// <param name="area">Area.</param>
+		/// <param name="triCount">The number of triangles to enumerate.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(tris, triCount, area);
@@ -73,7 +75,8 @@ namespace SharpNav
 		/// Create instance from every specified triangles in array of tris with specified area.
 		/// </summary>
 		/// <param name="tris">An array of triangles.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Triangle3[] tris, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
@@ -85,7 +88,8 @@ namespace SharpNav
 		/// <param name="tris">An array of triangles.</param>
 		/// <param name="triOffset">Tri offset.</param>
 		/// <param name="triCount">Tri count.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Triangle3[] tris, int triOffset, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
@@ -95,7 +99,8 @@ namespace SharpNav
 		/// Create instance from the triangles created from points in verts with specified area 
 		/// </summary>
 		/// <param name="verts">An array of Vectors3.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Vector3[] verts, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
@@ -108,7 +113,8 @@ namespace SharpNav
 		/// <param name="vertOffset">The index of the first Vectex to be enumerated.</param>
 		/// <param name="vertStride">The distance between the start of two triangles. A value of 0 means the data is tightly packed.</param>
 		/// <param name="triCount">The number of triangles to enumerate..</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
@@ -118,7 +124,8 @@ namespace SharpNav
 		/// Create instance from the triangles created from points in verts with specified area
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(float[] verts, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
@@ -131,7 +138,8 @@ namespace SharpNav
 		/// <param name="floatOffset">The index of the first float to be enumerated.</param>
 		/// <param name="floatStride">The distance between the start of two vertices. A value of 0 means the data is tightly packed.</param>
 		/// <param name="triCount">The number of triangles to enumerate.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
@@ -142,7 +150,8 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Vector3[] verts, int[] inds, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
@@ -157,7 +166,8 @@ namespace SharpNav
 		/// <param name="vertStride">The distance between the start of two triangles. A value of 0 means the data is tightly packed.</param>
 		/// <param name="indexOffset">The index of the first index to be enumerated.</param>
 		/// <param name="triCount">The number of triangles to enumerate.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
@@ -168,7 +178,8 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="inds">An array of indices.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(float[] verts, int[] inds, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
@@ -183,7 +194,8 @@ namespace SharpNav
 		/// <param name="floatStride">The distance between the start of two vertices. A value of 0 means the data is tightly packed.</param>
 		/// <param name="indexOffset">The index of the first index to be enumerated.</param>
 		/// <param name="triCount">The number of triangles to enumerate.</param>
-		/// <param name="area">Area.</param>
+		/// <param name="area">Area of Triangle.</param>
+		/// <returns>A new AreaIdGenerator.</returns>
 		public static AreaIdGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaId area)
 		{
 			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);

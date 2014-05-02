@@ -14,10 +14,10 @@ using SharpNav;
 
 namespace SharpNavTests
 {
-	[TestFixture]
-	public class CompactSpanTests
-	{
-		[Test]
+    [TestFixture]
+    public class CompactSpanTests
+    {
+	    [Test]
 		public void AddCompactSpan_NoUpperLimit_Success()
 		{
 			CompactSpan cs = new CompactSpan(10, int.MaxValue);
