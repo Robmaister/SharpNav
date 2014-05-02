@@ -8,11 +8,13 @@
 	
 	<Target Name="CI">
 		<CallTarget Targets="Standalone" />
-		<CallTarget Targets="OpenTK" />
+		<!-- <CallTarget Targets="OpenTK" />
 		<CallTarget Targets="MonoGame" />
 		<CallTarget Targets="SharpDX" />
-		<CallTarget Targets="XNA" />
+		<CallTarget Targets="XNA" /> -->
 		<!-- <CallTarget Targets="Unity3D" /> -->
+		
+		
 	</Target>
 	
 	<Target Name="Standalone">
