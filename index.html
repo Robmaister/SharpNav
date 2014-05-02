@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="SharpNav : Advanced Pathfinding for C#" />
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>SharpNav by Robmaister</title>
+    <title>SharpNav</title>
   </head>
 
   <body>
-    <header>
-      <div class="inner">
-        <h1>SharpNav</h1>
-        <h2>Advanced Pathfinding for C#</h2>
-        <a href="https://github.com/Robmaister/SharpNav" class="button"><small>View project on</small>GitHub</a>
-      </div>
-    </header>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h3>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Robmaister/SharpNav">View on GitHub</a>
+
+          <h1 id="project_title">SharpNav</h1>
+          <h2 id="project_tagline">Advanced Pathfinding for C#</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Robmaister/SharpNav/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Robmaister/SharpNav/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h3>
 <a name="what-is-it" class="anchor" href="#what-is-it"><span class="octicon octicon-link"></span></a>What is it?</h3>
 
 <p>SharpNav is a library that generates and finds paths through navigation meshes. It is functionally equivalent to Mikko Monomen's wonderful <a href="https://github.com/memononen/recastnavigation">Recast Navigation</a>.</p>
@@ -39,16 +42,35 @@
 <p>There are several:</p>
 
 <ul>
-<li>It's portable! SharpNav is written entirely in C#, so  that the same <code>SharpNav.dll</code> will run on all .NET or Mono supported platforms, <em>no recompilation necessary.</em>
+<li>
+<strong>It's portable!</strong> SharpNav is written entirely in C#, so  that the same <code>SharpNav.dll</code> will run on all .NET or Mono supported platforms, <strong>no recompilation necessary.</strong>
 </li>
-<li>It's fast! SharpNav was written with performance in mind and <em>performs competitively</em> with Recast.</li>
-<li>It's free! SharpNav is licensed under the <a href="https://github.com/Robmaister/SharpNav/blob/master/LICENSE">MIT License</a>.</li>
-<li>It's clean! SharpNav aims to maintain a <em>clean and concise public API</em> that matches that of the Base Class Library. It also strives to maintain clean source code by following style and structure rules enforced by both StyleCop and FxCop.</li>
-<li>It's integrated! SharpNav has compile configurations to integrate with various graphics toolkits and game engines. In the near future, there will be integration with game engine content pipelines as well.</li>
+<li>
+<strong>It's fast!</strong> SharpNav was written with performance in mind and <strong>performs competitively</strong> with Recast.</li>
+<li>
+<strong>It's free!</strong> SharpNav is licensed under the <a href="https://github.com/Robmaister/SharpNav/blob/master/LICENSE">MIT License</a>.</li>
+<li>
+<strong>It's clean!</strong> SharpNav aims to maintain a <strong>clean and concise public API</strong> that matches that of the Base Class Library. It also strives to maintain clean source code by following style and structure rules enforced by both StyleCop and FxCop.</li>
+<li>
+<strong>It's integrated!</strong> SharpNav has compile configurations to integrate with various graphics toolkits and game engines. In the near future, there will be integration with game engine content pipelines as well.</li>
 </ul><h3>
-<a name="downloads" class="anchor" href="#downloads"><span class="octicon octicon-link"></span></a>Downloads</h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<p></p>
+<p>SharpNav is both highly configurable and simple to use. If you want to generate a <code>NavMesh</code> from a single mesh, it is as simple as the following block of code:</p>
+
+<div class="highlight highlight-CSharp"><pre><span class="c1">//prepare the geometry from your mesh data</span>
+<span class="kt">var</span> <span class="n">tris</span> <span class="p">=</span> <span class="n">TriangleEnumerable</span><span class="p">.</span><span class="n">FromIndexedVertices</span><span class="p">(</span> <span class="p">...</span> <span class="p">);</span>
+
+<span class="c1">//use the default generation settings</span>
+<span class="kt">var</span> <span class="n">settings</span> <span class="p">=</span> <span class="n">NavMeshGenerationSettings</span><span class="p">.</span><span class="n">Default</span><span class="p">;</span>
+<span class="n">settings</span><span class="p">.</span><span class="n">AgentHeight</span> <span class="p">=</span> <span class="m">1.7f</span><span class="p">;</span>
+<span class="n">settings</span><span class="p">.</span><span class="n">AgentWidth</span> <span class="p">=</span> <span class="m">0.6f</span><span class="p">;</span>
+
+<span class="c1">//generate the mesh</span>
+<span class="kt">var</span> <span class="n">navMesh</span> <span class="p">=</span> <span class="n">NavMesh</span><span class="p">.</span><span class="n">Generate</span><span class="p">(</span><span class="n">tris</span><span class="p">,</span> <span class="n">settings</span><span class="p">);</span>
+</pre></div>
+
+<p>For finer control over the generation process, you can refer to the <a href="https://github.com/Robmaister/SharpNav/tree/master/Examples">Examples</a> project.</p>
 
 <h3>
 <a name="compiling" class="anchor" href="#compiling"><span class="octicon octicon-link"></span></a>Compiling</h3>
@@ -56,25 +78,18 @@
 <p>SharpNav follows the standard C# project structure. It is actively developed on Windows with Visual Studio 2012 and on Linux and OS X with MonoDevelop, so it should compile just fine in those cases.</p>
 
 <p>SharpNav can be configured to depend on other libraries. Each one has it's own compile configuration that requires the library to be installed on the machine (in the GAC or the assembly search path), with the exception being OpenTK. OpenTK is used for the Examples project, and is therefore included in the repository. If you want to compile against a different version of OpenTK, drop in your replacement in the <a href="https://github.com/Robmaister/SharpNav/tree/master/Binaries"><code>Binaries</code></a> folder.</p>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/Robmaister/SharpNav/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/Robmaister/SharpNav/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/Robmaister/SharpNav"></a> is maintained by <a href="https://github.com/Robmaister">Robmaister</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
     </div>
 
-  
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">SharpNav maintained by <a href="https://github.com/Robmaister">Robmaister</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
   </body>
 </html>
