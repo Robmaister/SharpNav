@@ -7,12 +7,12 @@
 	</ItemGroup>
 	
 	<Target Name="CI">
-		<CallTarget Target="Standalone" />
-		<CallTarget Target="OpenTK" />
-		<CallTarget Target="MonoGame" />
-		<CallTarget Target="SharpDX" />
-		<CallTarget Target="XNA" />
-		<!-- <CallTarget Target="Unity3D" /> -->
+		<CallTarget Targets="Standalone" />
+		<CallTarget Targets="OpenTK" />
+		<CallTarget Targets="MonoGame" />
+		<CallTarget Targets="SharpDX" />
+		<CallTarget Targets="XNA" />
+		<!-- <CallTarget Targets="Unity3D" /> -->
 	</Target>
 	
 	<Target Name="Standalone">
