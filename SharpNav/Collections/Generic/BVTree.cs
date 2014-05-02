@@ -148,7 +148,7 @@ namespace SharpNav.Collections.Generic
 		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
 		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
 		/// <param name="bounds">The extends of all the bounding boxes.</param>
-		private void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
+		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
 		{
 			bounds = items[minIndex].Bounds;
 
@@ -167,7 +167,7 @@ namespace SharpNav.Collections.Generic
 		/// <param name="y">Length of bounding y-axis</param>
 		/// <param name="z">Length of bounding z-axis</param>
 		/// <returns>Returns the a specific axis (x, y, or z)</returns>
-		private int LongestAxis(int x, int y, int z)
+		private static int LongestAxis(int x, int y, int z)
 		{
 			int axis = 0;
 			int max = x;
@@ -201,15 +201,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the X axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.X < b.Bounds.Min.X)
+				if (x.Bounds.Min.X < y.Bounds.Min.X)
 					return -1;
 
-				if (a.Bounds.Min.X > b.Bounds.Min.X)
+				if (x.Bounds.Min.X > y.Bounds.Min.X)
 					return 1;
 
 				return 0;
@@ -224,15 +224,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the Y axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.Y < b.Bounds.Min.Y)
+				if (x.Bounds.Min.Y < y.Bounds.Min.Y)
 					return -1;
 
-				if (a.Bounds.Min.Y > b.Bounds.Min.Y)
+				if (x.Bounds.Min.Y > y.Bounds.Min.Y)
 					return 1;
 
 				return 0;
@@ -247,15 +247,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the Z axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.Z < b.Bounds.Min.Z)
+				if (x.Bounds.Min.Z < y.Bounds.Min.Z)
 					return -1;
 
-				if (a.Bounds.Min.Z > b.Bounds.Min.Z)
+				if (x.Bounds.Min.Z > y.Bounds.Min.Z)
 					return 1;
 
 				return 0;

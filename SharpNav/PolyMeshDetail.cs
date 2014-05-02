@@ -243,6 +243,20 @@ namespace SharpNav
 			}
 		}
 
+		#region Black Magic
+
+		private static float GetJitterX(int i)
+		{
+			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
+		}
+
+		private static float GetJitterY(int i)
+		{
+			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
+		}
+
+		#endregion
+
 		/// <summary>
 		/// Determine whether an edge of the triangle is part of the polygon (1 if true, 0 if false)
 		/// </summary>
@@ -785,20 +799,6 @@ namespace SharpNav
 				Console.WriteLine("WARNING: shrinking number of triangles.");
 			}
 		}
-
-		#region Black Magic
-
-		private float GetJitterX(int i)
-		{
-			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
-		}
-
-		private float GetJitterY(int i)
-		{
-			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
-		}
-
-		#endregion
 
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
