@@ -1,5 +1,6 @@
 SharpNav
 ========
+[![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav)
 
 **NOTE:** SharpNav is still in its development phase. Use it if you want, but
 there are still a decent number of bugs and the public API is still subject to
