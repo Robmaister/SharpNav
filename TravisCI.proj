@@ -15,27 +15,27 @@
 		<!-- <CallTarget Target="Unity3D" /> -->
 	</Target>
 	
-	<Target Name="Standalone" />
+	<Target Name="Standalone">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=Standalone;Platform=AnyCPU" />
 	</Target>
 	
-	<Target Name="OpenTK" />
+	<Target Name="OpenTK">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=OpenTK;Platform=AnyCPU" />
 	</Target>
 	
-	<Target Name="MonoGame" />
+	<Target Name="MonoGame">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=MonoGame;Platform=AnyCPU" />
 	</Target>
 	
-	<Target Name="SharpDX" />
+	<Target Name="SharpDX">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=SharpDX;Platform=AnyCPU" />
 	</Target>
 	
-	<Target Name="XNA" />
+	<Target Name="XNA">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=XNA;Platform=AnyCPU" />
 	</Target>
 	
-	<Target Name="Unity3D" />
+	<Target Name="Unity3D">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=Unity3D;Platform=AnyCPU" />
 	</Target>
 	
