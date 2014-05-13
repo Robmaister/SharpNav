@@ -59,7 +59,7 @@ namespace Examples
 		private ContourSet contourSet;
 		private PolyMesh polyMesh;
 		private PolyMeshDetail polyMeshDetail;
-		private NavMeshCreateParams parameters;
+		//private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
 		private TiledNavMesh tiledNavMesh;
 		private NavMeshQuery navMeshQuery;
@@ -333,44 +333,41 @@ namespace Examples
 			long prevMs = 0;
 			try
 			{
-				int voxMaxHeight = (int)(settings.MaxHeight / settings.CellHeight);
-				int voxMaxClimb = (int)(settings.MaxClimb / settings.CellHeight);
-				int voxErodeRadius = (int)(settings.ErodeRadius / settings.CellSize);
+				//level.SetBoundingBoxOffset(new SVector3(settings.CellSize * 0.5f, settings.CellHeight * 0.5f, settings.CellSize * 0.5f));
+				Triangle3[] tris = level.GetTriangles();
+				BBox3 bounds = tris.GetBoundingBox();
 
-				level.SetBoundingBoxOffset(new SVector3(settings.CellSize * 0.5f, settings.CellHeight * 0.5f, settings.CellSize * 0.5f));
-				BBox3 bounds = level.GetBounds();
-
-				heightfield = new Heightfield(bounds.Min, bounds.Max, settings.CellSize, settings.CellHeight);
+				heightfield = new Heightfield(bounds, settings);
 
 				Console.WriteLine("Heightfield");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				AreaId[] areas = AreaIdGenerator.From(level.GetTriangles(), AreaId.Walkable)
-					.MarkAboveHeight(settings.MaxLevelHeight, AreaId.Null)
-					.MarkBelowHeight(settings.MinLevelHeight, AreaId.Null)
-					.MarkAboveSlope(settings.MaxTriSlope, AreaId.Null)
+				AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
+					.MarkAboveHeight(areaSettings.MaxLevelHeight, AreaId.Null)
+					.MarkBelowHeight(areaSettings.MinLevelHeight, AreaId.Null)
+					.MarkAboveSlope(areaSettings.MaxTriSlope, AreaId.Null)
 					.ToArray();
 				heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
-				//heightfield.RasterizeTriangles(level.GetTriangles());
+				//heightfield.RasterizeTriangles(tris);
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				heightfield.FilterLedgeSpans(voxMaxHeight, voxMaxClimb);
-				heightfield.FilterLowHangingWalkableObstacles(voxMaxClimb);
-				heightfield.FilterWalkableLowHeightSpans(voxMaxHeight);
+				heightfield.FilterLedgeSpans(settings.VoxelAgentHeight, settings.VoxelMaxClimb);
+				heightfield.FilterLowHangingWalkableObstacles(settings.VoxelMaxClimb);
+				heightfield.FilterWalkableLowHeightSpans(settings.VoxelAgentHeight);
 
 				Console.WriteLine(" + Filtering\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				compactHeightfield = new CompactHeightfield(heightfield, voxMaxHeight, voxMaxClimb);
+				compactHeightfield = new CompactHeightfield(heightfield, settings);
 
 				Console.WriteLine("CompactHeightfield");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 				 
-				compactHeightfield.Erode(voxErodeRadius);
+				compactHeightfield.Erode(settings.VoxelAgentWidth);
 
 				Console.WriteLine(" + Erosion\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
@@ -394,19 +391,19 @@ namespace Examples
 				Console.WriteLine(" + Colors\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				contourSet = new ContourSet(compactHeightfield, settings.MaxEdgeError, settings.MaxEdgeLength, 0);
+				contourSet = new ContourSet(compactHeightfield, settings);
 
 				Console.WriteLine("ContourSet");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				polyMesh = new PolyMesh(contourSet, settings.VertsPerPoly);
+				polyMesh = new PolyMesh(contourSet, settings);
 
 				Console.WriteLine("PolyMesh");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				polyMeshDetail = new PolyMeshDetail(polyMesh, compactHeightfield, settings.SampleDistance, settings.MaxSmapleError);
+				polyMeshDetail = new PolyMeshDetail(polyMesh, compactHeightfield, settings);
 
 				Console.WriteLine("PolyMeshDetail");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
@@ -442,7 +439,7 @@ namespace Examples
 
 		private void GeneratePathfinding()
 		{
-			parameters = new NavMeshCreateParams();
+			/*parameters = new NavMeshCreateParams();
 			parameters.Verts = polyMesh.Verts;
 			parameters.vertCount = polyMesh.VertCount;
 			parameters.polys = polyMesh.Polys;
@@ -461,15 +458,15 @@ namespace Examples
 			parameters.offMeshConFlags = null;
 			parameters.offMeshConUserID = null;
 			parameters.offMeshConCount = 0;
-			parameters.walkableHeight = settings.MaxHeight;
-			parameters.walkableRadius = settings.ErodeRadius;
+			parameters.walkableHeight = settings.AgentHeight;
+			parameters.walkableRadius = settings.AgentWidth;
 			parameters.walkableClimb = settings.MaxClimb;
 			parameters.bounds = polyMesh.Bounds;
 			parameters.cellSize = polyMesh.CellSize;
 			parameters.cellHeight = polyMesh.CellHeight;
-			parameters.buildBvTree = true;
+			parameters.buildBvTree = true;*/
 
-			buildData = new NavMeshBuilder(parameters);
+			buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
 
 			tiledNavMesh = new TiledNavMesh(buildData);
 			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);

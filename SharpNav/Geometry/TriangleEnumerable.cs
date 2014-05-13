@@ -166,5 +166,86 @@ namespace SharpNav.Geometry
 				yield return tri;
 			}
 		}
+
+		/// <summary>
+		/// Generates a bounding box for a collection of triangles.
+		/// </summary>
+		/// <param name="tris">The triangles to create a bounding box from.</param>
+		/// <returns>A bounding box containing every triangle.</returns>
+		public static BBox3 GetBoundingBox(this IEnumerable<Triangle3> tris)
+		{
+			BBox3 bounds = new BBox3();
+			Vector3 va, vb, vc;
+			foreach (Triangle3 tri in tris)
+			{
+				va = tri.A;
+				vb = tri.B;
+				vc = tri.C;
+				ApplyVertexToBounds(ref va, ref bounds);
+				ApplyVertexToBounds(ref vb, ref bounds);
+				ApplyVertexToBounds(ref vc, ref bounds);
+			}
+
+			//pad the bounding box a bit to make sure outer triangles are fully contained.
+			ApplyPaddingToBounds(float.Epsilon, ref bounds);
+
+			return bounds;
+		}
+
+		/// <summary>
+		/// Generates a bounding box for a collection of vectors.
+		/// </summary>
+		/// <param name="vecs">The vectors to create a bounding box from.</param>
+		/// <returns>A bounding box containing every vector.</returns>
+		public static BBox3 GetBoundingBox(this IEnumerable<Vector3> vecs)
+		{
+			BBox3 bounds = new BBox3();
+			Vector3 v;
+			foreach (Vector3 vec in vecs)
+			{
+				v = vec;
+				ApplyVertexToBounds(ref v, ref bounds);
+			}
+
+			ApplyPaddingToBounds(float.Epsilon, ref bounds);
+
+			return bounds;
+		}
+
+		/// <summary>
+		/// Adjusts a bounding box to include a vertex.
+		/// </summary>
+		/// <param name="v">The vertex to include.</param>
+		/// <param name="b">The bounding box to adjust.</param>
+		private static void ApplyVertexToBounds(ref Vector3 v, ref BBox3 b)
+		{
+			if (v.X < b.Min.X)
+				b.Min.X = v.X;
+			if (v.Y < b.Min.Y)
+				b.Min.Y = v.Y;
+			if (v.Z < b.Min.Z)
+				b.Min.Z = v.Z;
+			if (v.X > b.Max.X)
+				b.Max.X = v.X;
+			if (v.Y > b.Max.Y)
+				b.Max.Y = v.Y;
+			if (v.Z > b.Max.Z)
+				b.Max.Z = v.Z;
+		}
+
+		/// <summary>
+		/// Applies a padding to the bounding box.
+		/// </summary>
+		/// <param name="pad">The amount to pad the bounding box on all sides.</param>
+		/// <param name="b">The bounding box to pad.</param>
+		private static void ApplyPaddingToBounds(float pad, ref BBox3 b)
+		{
+			b.Min.X -= pad;
+			b.Min.Y -= pad;
+			b.Min.Z -= pad;
+			b.Max.X += pad;
+			b.Max.Y += pad;
+			b.Max.Z += pad;
+		}
 	}
 }

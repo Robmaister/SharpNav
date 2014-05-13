@@ -21,7 +21,7 @@ namespace SharpNav
 		private int index;
 
 		/// <summary>
-		/// Initializes a new intance of the <see cref="SpanReference"/> struct.
+		/// Initializes a new instance of the <see cref="SpanReference"/> struct.
 		/// </summary>
 		/// <param name="x">The X coordinate of the <see cref="Cell"/> the <see cref="Span"/> is contained in.</param>
 		/// <param name="y">The X coordinate of the <see cref="Cell"/> the <see cref="Span"/> is contained in.</param>

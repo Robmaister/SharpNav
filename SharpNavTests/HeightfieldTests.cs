@@ -10,6 +10,7 @@ using System;
 using NUnit.Framework;
 
 using SharpNav;
+using SharpNav.Geometry;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -29,7 +30,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_Valid_ReturnsCell()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.IsNotNull(hf[0, 1]);
 		}
@@ -37,7 +38,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_NegativeX_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[-1, 1]; });
 		}
@@ -45,7 +46,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_NegativeY_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[1, -1]; });
 		}
@@ -53,7 +54,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_NegativeBoth_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[-1, -1]; });
 		}
@@ -61,7 +62,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_TooLargeX_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[2, 0]; });
 		}
@@ -69,7 +70,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_TooLargeY_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[0, 2]; });
 		}
@@ -77,7 +78,7 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_TooLargeBoth_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[3, 3]; });
 		}
@@ -85,14 +86,14 @@ namespace SharpNavTests
 		[Test]
 		public void Indexer_CellOutOfRange_Throws()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.5f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.5f);
 			Assert.Throws<ArgumentOutOfRangeException>(() => { var c = hf[5]; });
 		}
 
 		[Test]
 		public void Filter_LowHangingWalkable_Success()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			var span = new Span(10, 15, AreaId.Walkable);
 			var span2 = new Span(16, 20, AreaId.Null);
 
@@ -107,7 +108,7 @@ namespace SharpNavTests
 		[Test]
 		public void Filter_LowHangingWalkable_Fail()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			var span = new Span(1, 2, AreaId.Walkable);
 			var span2 = new Span(10, 20, AreaId.Null);
 
@@ -122,7 +123,7 @@ namespace SharpNavTests
 		[Test]
 		public void Filter_WalkableLowHeight_Success()
 		{
-			var hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			var span = new Span(10, 20, AreaId.Walkable);
 			var span2 = new Span(25, 30, AreaId.Walkable);
 

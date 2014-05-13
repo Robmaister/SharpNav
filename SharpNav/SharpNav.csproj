@@ -100,7 +100,6 @@
     <Compile Include="Collections\Generic\BufferedStack.cs" />
     <Compile Include="Collections\Generic\BVTree.cs" />
     <Compile Include="Collections\Generic\IValueWithCost.cs" />
-    <Compile Include="Collections\Generic\LinkedList.cs" />
     <Compile Include="Collections\Generic\PriorityQueue.cs" />
     <Compile Include="CompactCell.cs" />
     <Compile Include="CompactSpan.cs" />
@@ -114,13 +113,13 @@
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="NavMesh.cs" />
+    <Compile Include="NavMeshGenerationSettings.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
-    <Compile Include="NavMeshCreateParams.cs" />
     <Compile Include="PolyMeshDetail.cs" />
     <Compile Include="NavMeshQuery.cs" />
     <Compile Include="Node.cs" />

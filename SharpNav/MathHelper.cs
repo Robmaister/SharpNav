@@ -96,6 +96,10 @@ namespace SharpNav
 		/// <summary>
 		/// Calculates the next highest power of two.
 		/// </summary>
+		/// <remarks>
+		/// This is a minimal method meant to be fast. There is a known edge case where an input of 0 will output 0
+		/// instead of the mathematically correct value of 1. It will not be fixed.
+		/// </remarks>
 		/// <param name="v">A value.</param>
 		/// <returns>The next power of two after the value.</returns>
 		internal static int NextPowerOfTwo(int v)
@@ -114,6 +118,10 @@ namespace SharpNav
 		/// <summary>
 		/// Calculates the next highest power of two.
 		/// </summary>
+		/// <remarks>
+		/// This is a minimal method meant to be fast. There is a known edge case where an input of 0 will output 0
+		/// instead of the mathematically correct value of 1. It will not be fixed.
+		/// </remarks>
 		/// <param name="v">A value.</param>
 		/// <returns>The next power of two after the value.</returns>
 		internal static uint NextPowerOfTwo(uint v)
@@ -129,6 +137,14 @@ namespace SharpNav
 			return v;
 		}
 
+		/// <summary>
+		/// Calculates the binary logarithm of the input.
+		/// </summary>
+		/// <remarks>
+		/// Inputs 0 and below have undefined output.
+		/// </remarks>
+		/// <param name="v">A value.</param>
+		/// <returns>The binary logarithm of v.</returns>
 		internal static int Log2(int v)
 		{
 			int r;
@@ -154,6 +170,14 @@ namespace SharpNav
 			return r;
 		}
 
+		/// <summary>
+		/// Calculates the binary logarithm of the input.
+		/// </summary>
+		/// <remarks>
+		/// An input of 0 has an undefined output.
+		/// </remarks>
+		/// <param name="v">A value.</param>
+		/// <returns>The binary logarithm of v.</returns>
 		internal static uint Log2(uint v)
 		{
 			uint r;

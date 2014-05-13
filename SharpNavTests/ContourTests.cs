@@ -33,7 +33,7 @@ namespace SharpNavTests
 		public void ContourConstructor()
 		{
 			//Build a 5x5 heightfield
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, (float)(1.0f / 5.0f), 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f / 5.0f), 0.02f);
 			for (int i = 0; i < 5 * 5; i++)
 			{
 				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));

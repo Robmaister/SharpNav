@@ -46,6 +46,17 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMeshDetail"/> class.
 		/// </summary>
+		/// <param name="mesh">The <see cref="PolyMesh"/>.</param>
+		/// <param name="compactField">The <see cref="CompactHeightfield"/> used to add height detail.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield compactField, NavMeshGenerationSettings settings)
+			: this(mesh, compactField, settings.SampleDistance, settings.MaxSampleError)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PolyMeshDetail"/> class.
+		/// </summary>
 		/// <remarks>
 		/// <see cref="PolyMeshDetail"/> uses a <see cref="CompactHeightfield"/> to add in details to a
 		/// <see cref="PolyMesh"/>. This detail is triangulated into a new mesh and can be used to approximate height in the walkable
@@ -594,10 +605,7 @@ namespace SharpNav
 
 					//create samples along the edge
 					Vector3 dv;
-					//Vector3.Subtract(ref vi, ref vj, out dv);
-					dv.X = vi.X - vj.X;
-					dv.Y = vi.Y - vj.Y;
-					dv.Z = vi.Z - vj.Z;
+					Vector3.Subtract(ref vi, ref vj, out dv);
 					float d = (float)Math.Sqrt(dv.X * dv.X + dv.Z * dv.Z);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
 
@@ -610,15 +618,11 @@ namespace SharpNav
 					for (int k = 0; k <= nn; k++)
 					{
 						float u = (float)k / (float)nn;
-						Vector3 pos;// = edge[k];
+						Vector3 pos;
 
-						/*Vector3 tmp;
+						Vector3 tmp;
 						Vector3.Multiply(ref dv, u, out tmp);
-						Vector3.Add(ref vj, ref tmp, out pos);*/
-
-						pos.X = vj.X + dv.X * u;
-						pos.Y = vj.Y + dv.Y * u;
-						pos.Z = vj.Z + dv.Z * u;
+						Vector3.Add(ref vj, ref tmp, out pos);
 
 						pos.Y = GetHeight(pos, ics, compactField.CellHeight, hp) * compactField.CellHeight;
 
@@ -1158,7 +1162,6 @@ namespace SharpNav
 				float dx = p1.X - c.X;
 				float dy = p1.Z - c.Z;
 				r = (float)Math.Sqrt(dx * dx + dy * dy);
-				//Console.WriteLine("TRUE: " + cp + ", " + r);
 				return true;
 			}
 
@@ -1232,7 +1235,7 @@ namespace SharpNav
 				VertexHash0 = data.VertexHash0;
 				VertexHash1 = data.VertexHash1;
 				VertexHash2 = data.VertexHash2;
-				GetTriFlags(ref data, verts, vpoly, out Flags);
+				Flags = GetTriFlags(ref data, verts, vpoly);
 			}
 
 			public int this[int index]
@@ -1256,15 +1259,12 @@ namespace SharpNav
 			/// Determine which edges of the triangle are part of the polygon
 			/// </summary>
 			/// <param name="verts">Vertices containing triangles</param>
-			/// <param name="va">Triangle vertex A</param>
-			/// <param name="vb">Triangle vertex B</param>
-			/// <param name="vc">Triangle vertex C</param>
 			/// <param name="vpoly">Polygon vertex data</param>
-			/// <param name="npoly">Number of polygons</param>
+			/// <param name="flags"></param>
 			/// <returns></returns>
-			public static void GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly, out int flags)
+			public static int GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly)
 			{
-				flags = 0;
+				int flags = 0;
 
 				//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
 				//each bit stores whether two vertices are close enough to a polygon edge 
@@ -1272,6 +1272,8 @@ namespace SharpNav
 				flags |= GetEdgeFlags(verts[t.VertexHash0], verts[t.VertexHash1], vpoly) << 0;
 				flags |= GetEdgeFlags(verts[t.VertexHash1], verts[t.VertexHash2], vpoly) << 2;
 				flags |= GetEdgeFlags(verts[t.VertexHash2], verts[t.VertexHash0], vpoly) << 4;
+
+				return flags;
 			}
 		}
 

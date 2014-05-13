@@ -5,8 +5,8 @@ using System.Text;
 
 namespace SharpNav
 {
-	//TODO right now this is basically an alias for TiledNavMesh. Fix this in the future.
 
+	//TODO right now this is basically an alias for TiledNavMesh. Fix this in the future.
 	public class NavMesh : TiledNavMesh
 	{
 		public NavMesh(NavMeshBuilder builder)

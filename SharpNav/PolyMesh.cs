@@ -41,6 +41,16 @@ namespace SharpNav
 		private int borderSize;
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="PolyMesh"/> class.
+		/// </summary>
+		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public PolyMesh(ContourSet contSet, NavMeshGenerationSettings settings)
+			: this(contSet, settings.VertsPerPoly)
+		{
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMesh"/> class by creating polygons from contours.
 		/// </summary>
 		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>

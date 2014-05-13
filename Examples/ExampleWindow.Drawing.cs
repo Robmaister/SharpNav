@@ -114,7 +114,7 @@ namespace Examples
 		{
 			level = new ObjModel("nav_test.obj");
 
-			var bounds = level.GetBounds().Center;
+			var bounds = level.GetTriangles().GetBoundingBox().Center;
 			cam.Position = new Vector3(bounds.X, bounds.Y, bounds.Z);
 
 			levelVbo = GL.GenBuffer();

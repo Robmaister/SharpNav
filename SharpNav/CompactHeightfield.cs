@@ -33,7 +33,17 @@ namespace SharpNav
 		//region
 		private int maxRegions;
 		private int borderSize;
-		
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
+		/// </summary>
+		/// <param name="field">A <see cref="HeightField"/> to build from.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public CompactHeightfield(Heightfield field, NavMeshGenerationSettings settings)
+			: this(field, settings.VoxelAgentHeight, settings.VoxelMaxClimb)
+		{
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
 		/// </summary>

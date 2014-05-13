@@ -88,6 +88,49 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
+		/// Calculates the bounding box for a set of bounding boxes.
+		/// </summary>
+		/// <param name="items">The list of all the bounding boxes.</param>
+		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
+		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
+		/// <param name="bounds">The extends of all the bounding boxes.</param>
+		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
+		{
+			bounds = items[minIndex].Bounds;
+
+			for (int i = minIndex + 1; i < maxIndex; i++)
+			{
+				Node it = items[i];
+				Vector3Extensions.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
+				Vector3Extensions.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
+			}
+		}
+
+		/// <summary>
+		/// Determine whether the bounding x, y, or z axis contains the longest distance 
+		/// </summary>
+		/// <param name="x">Length of bounding x-axis</param>
+		/// <param name="y">Length of bounding y-axis</param>
+		/// <param name="z">Length of bounding z-axis</param>
+		/// <returns>Returns the a specific axis (x, y, or z)</returns>
+		private static int LongestAxis(int x, int y, int z)
+		{
+			int axis = 0;
+			int max = x;
+
+			if (y > max)
+			{
+				axis = 1;
+				max = y;
+			}
+
+			if (z > max)
+				axis = 2;
+
+			return axis;
+		}
+
+		/// <summary>
 		/// Subdivides a list of bounding boxes until it is a tree.
 		/// </summary>
 		/// <param name="items">A list of bounding boxes.</param>
@@ -139,49 +182,6 @@ namespace SharpNav.Collections.Generic
 			}
 
 			return curNode;
-		}
-
-		/// <summary>
-		/// Calculates the bounding box for a set of bounding boxes.
-		/// </summary>
-		/// <param name="items">The list of all the bounding boxes.</param>
-		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
-		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
-		/// <param name="bounds">The extends of all the bounding boxes.</param>
-		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
-		{
-			bounds = items[minIndex].Bounds;
-
-			for (int i = minIndex + 1; i < maxIndex; i++)
-			{
-				Node it = items[i];
-				Vector3Extensions.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
-				Vector3Extensions.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
-			}
-		}
-
-		/// <summary>
-		/// Determine whether the bounding x, y, or z axis contains the longest distance 
-		/// </summary>
-		/// <param name="x">Length of bounding x-axis</param>
-		/// <param name="y">Length of bounding y-axis</param>
-		/// <param name="z">Length of bounding z-axis</param>
-		/// <returns>Returns the a specific axis (x, y, or z)</returns>
-		private static int LongestAxis(int x, int y, int z)
-		{
-			int axis = 0;
-			int max = x;
-
-			if (y > max)
-			{
-				axis = 1;
-				max = y;
-			}
-
-			if (z > max)
-				axis = 2;
-
-			return axis;
 		}
 
 		/// <summary>

@@ -135,11 +135,6 @@ namespace SharpNav
 			//make sure data is in right format
 			PathfinderCommon.NavMeshInfo header = data.Header;
 
-			//if (header.magic != PathfinderCommon.NAVMESH_MAGIC)
-			//	return;
-			//if (header.version != PathfinderCommon.NAVMESH_VERSION)
-			//	return;
-
 			//make sure location is free
 			if (GetTileAt(header.x, header.y, header.layer) != null)
 				return;
