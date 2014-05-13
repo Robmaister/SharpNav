@@ -761,9 +761,9 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Clean up the simplified segments
+		/// Removes degenerate segments from a simplified contour.
 		/// </summary>
-		/// <param name="simplified"></param>
+		/// <param name="simplified">The simplified contour.</param>
 		private void RemoveDegenerateSegments(List<ContourVertex> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
@@ -778,6 +778,7 @@ namespace SharpNav
 				{
 					//remove degenerate segment
 					simplified.RemoveAt(i);
+					i--;
 				}
 			}
 		}

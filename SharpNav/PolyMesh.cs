@@ -1183,11 +1183,59 @@ namespace SharpNav
 				}
 			}
 
-			public int[] Vertices { get { return vertices; } }
-			public int[] NeighborEdges { get { return neighborEdges; } }
-			public AreaId Area { get { return area; } set { area = value; } }
-			public RegionId RegionId { get { return regionId; } set { regionId = value; } }
-			public int Flags { get { return flags; } set { flags = value; } }
+			public int[] Vertices
+			{
+				get
+				{
+					return vertices;
+				}
+			}
+
+			public int[] NeighborEdges
+			{
+				get
+				{
+					return neighborEdges;
+				}
+			}
+
+			public AreaId Area
+			{
+				get
+				{
+					return area;
+				}
+
+				set
+				{
+					area = value;
+				}
+			}
+
+			public RegionId RegionId
+			{
+				get
+				{
+					return regionId;
+				}
+
+				set
+				{
+					regionId = value;
+				}
+			}
+			public int Flags
+			{
+				get
+				{
+					return flags;
+				}
+
+				set
+				{
+					flags = value;
+				}
+			}
 
 			public int VertexCount
 			{

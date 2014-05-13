@@ -23,12 +23,12 @@ namespace SharpNav.Pathfinding
 	public class MeshTile
 	{
 		/// <summary>
-		/// Counter describing modifications to the tile
+		/// Gets or sets the counter describing modifications to the tile
 		/// </summary>
 		public int Salt { get; set; }
 
 		/// <summary>
-		/// Index to the next free link
+		/// Gets or sets the index to the next free link
 		/// </summary>
 		public int LinksFreeList { get; set; }
 

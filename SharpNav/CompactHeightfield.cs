@@ -313,7 +313,7 @@ namespace SharpNav
 		/// Gets an <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>s at a specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
-		/// <returns>An <see cref="IEnumerable<CompactSpan"/>.</returns>
+		/// <returns>An <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>.</returns>
 		public IEnumerable<CompactSpan> this[int i]
 		{
 			get

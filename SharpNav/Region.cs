@@ -13,9 +13,13 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// Flags that can be applied to a region.
+	/// </summary>
 	[Flags]
 	public enum RegionId : int
 	{
+		/// <summary>The null region.</summary>
 		Null = 0,
 		VertexBorder = 0x20000000,
 		AreaBorder = 0x40000000,

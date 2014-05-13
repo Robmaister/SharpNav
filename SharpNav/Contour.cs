@@ -26,6 +26,14 @@ namespace SharpNav
 		private RegionId regionId;
 		private AreaId area;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Contour"/> class.
+		/// </summary>
+		/// <param name="simplified">The simplified vertices of the contour.</param>
+		/// <param name="verts">The raw vertices of the contour.</param>
+		/// <param name="reg">The region ID of the contour.</param>
+		/// <param name="area">The area ID of the contour.</param>
+		/// <param name="borderSize">The size of the border.</param>
 		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, RegionId reg, AreaId area, int borderSize)
 		{
 			vertices = simplified.ToArray();
@@ -50,6 +58,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the simplified vertices of the contour.
+		/// </summary>
 		public ContourVertex[] Vertices
 		{
 			get
@@ -58,6 +69,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the raw vertices of the contour.
+		/// </summary>
 		public ContourVertex[] RawVertices
 		{
 			get
@@ -66,11 +80,14 @@ namespace SharpNav
 			}
 		}
 
-		//TODO operator overload == and != with null?
+		/// <summary>
+		/// Gets a value indicating whether the contour is "null" (has less than 3 vertices).
+		/// </summary>
 		public bool IsNull
 		{
 			get
 			{
+				//TODO operator overload == and != with null?
 				if (vertices.Length < 3)
 					return true;
 
@@ -78,6 +95,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the area ID of the contour.
+		/// </summary>
 		public AreaId Area
 		{
 			get
@@ -86,6 +106,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the region ID of the contour.
+		/// </summary>
 		public RegionId RegionId
 		{
 			get
@@ -113,6 +136,10 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Merges another contour into this instance.
+		/// </summary>
+		/// <param name="contour">The contour to merge.</param>
 		public void MergeWith(Contour contour)
 		{
 			int lengthA = vertices.Length;
@@ -136,12 +163,12 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Required to find closest indices for merging.
+		/// Finds the closest indices between two contours. Useful for merging contours.
 		/// </summary>
-		/// <param name="a">First set of vertices</param>
-		/// <param name="b">Second set of vertices</param>
-		/// <param name="indexA">First index</param>
-		/// <param name="indexB">Second index</param>
+		/// <param name="a">A contour.</param>
+		/// <param name="b">Another contour.</param>
+		/// <param name="indexA">The nearest index on contour A.</param>
+		/// <param name="indexB">The nearest index on contour B.</param>
 		private static void GetClosestIndices(Contour a, Contour b, out int indexA, out int indexB)
 		{
 			int closestDistance = int.MaxValue;
@@ -162,7 +189,8 @@ namespace SharpNav
 					int vertB = j;
 
 					//vertB must be infront of vertA
-					if (ContourVertex.IsLeft(ref a.vertices[vertAPrev], ref a.vertices[vertA], ref b.vertices[vertB]) && ContourVertex.IsLeft(ref a.vertices[vertA], ref a.vertices[vertANext], ref b.vertices[vertB]))
+					if (ContourVertex.IsLeft(ref a.vertices[vertAPrev], ref a.vertices[vertA], ref b.vertices[vertB]) &&
+						ContourVertex.IsLeft(ref a.vertices[vertA], ref a.vertices[vertANext], ref b.vertices[vertB]))
 					{
 						int dx = b.vertices[vertB].X - a.vertices[vertA].X;
 						int dz = b.vertices[vertB].Z - a.vertices[vertA].Z;

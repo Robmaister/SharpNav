@@ -12,17 +12,17 @@ namespace SharpNav.Pathfinding
 	public class Link
 	{
 		/// <summary>
-		/// Neighbor reference (the one it's linked to)
+		/// Gets or sets the neighbor reference (the one it's linked to)
 		/// </summary>
 		public int Reference { get; set; }
 
 		/// <summary>
-		/// Index of next link
+		/// Gets or sets the index of next link
 		/// </summary>
 		public int Next { get; set; }
 
 		/// <summary>
-		/// Index of polygon edge
+		/// Gets or sets the index of polygon edge
 		/// </summary>
 		public int Edge { get; set; }
 

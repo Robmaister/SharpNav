@@ -25,6 +25,12 @@ namespace SharpNav
 	internal static class MathHelper
 	{
 		/// <summary>
+		/// A static buffer of floats used in <see cref="ClipPolygonToPlane"/>. Created here to prevent extra heap
+		/// allocation every time the method is called.
+		/// </summary>
+		private static float[] distances = new float[12];
+
+		/// <summary>
 		/// Clamps an integer value to be within a specified range.
 		/// </summary>
 		/// <param name="val">The value to clamp.</param>
@@ -203,8 +209,6 @@ namespace SharpNav
 			return r;
 		}
 
-		private static float[] distances = new float[12];
-
 		/// <summary>
 		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
 		/// </summary>
@@ -248,12 +252,12 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determine whether the point is inside the polygon
+		/// Determines whether a point is inside a polygon.
 		/// </summary>
-		/// <param name="pt">Point</param>
-		/// <param name="verts">Vertices</param>
-		/// <param name="nverts">Number of vertices</param>
-		/// <returns></returns>
+		/// <param name="pt">A point.</param>
+		/// <param name="verts">A set of vertices that define a polygon.</param>
+		/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+		/// <returns>A value indicating whether the point is contained within the polygon.</returns>
 		internal static bool IsPointInPoly(Vector3 pt, Vector3[] verts, int nverts)
 		{
 			bool c = false;
@@ -398,12 +402,12 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Find the distance between a point and the edge of a polygon.
+			/// Finds the squared distance between a point and the nearest edge of a polygon.
 			/// </summary>
-			/// <param name="pt">Point</param>
-			/// <param name="verts">Vertex data</param>
-			/// <param name="nverts">Number of vertices</param>
-			/// <returns></returns>
+			/// <param name="pt">A point.</param>
+			/// <param name="verts">A set of vertices that define a polygon.</param>
+			/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+			/// <returns>The squared distance between a point and the nearest edge of a polygon.</returns>
 			internal static float PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts)
 			{
 				float dmin = float.MaxValue;
@@ -414,14 +418,14 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Find the distance between a point and the edge of a polygon.
+			/// Finds the distance between a point and the nearest edge of a polygon.
 			/// </summary>
-			/// <param name="pt">Point</param>
-			/// <param name="verts">Vertex data</param>
-			/// <param name="nverts">Number of vertices</param>
-			/// <param name="edgeDist">Edge Distances</param>
-			/// <param name="edgeT">Parametrization Ratio 't'</param>
-			/// <returns></returns>
+			/// <param name="pt">A point.</param>
+			/// <param name="verts">A set of vertices that define a polygon.</param>
+			/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+			/// <param name="edgeDist">A buffer for edge distances to be stored in.</param>
+			/// <param name="edgeT">A buffer for parametrization ratios to be stored in.</param>
+			/// <returns>A value indicating whether the point is contained in the polygon.</returns>
 			internal static bool PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts, float[] edgeDist, float[] edgeT)
 			{
 				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
@@ -431,13 +435,13 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Find the distance between a point P and triangle ABC.
+			/// Finds the distance between a point and triangle ABC.
 			/// </summary>
-			/// <param name="p">The point</param>
-			/// <param name="a">Triangle Vertex A</param>
-			/// <param name="b">Triangle Vertex B</param>
-			/// <param name="c">Triangle Vertex C</param>
-			/// <returns></returns>
+			/// <param name="p">A point.</param>
+			/// <param name="a">The first vertex of the triangle.</param>
+			/// <param name="b">The second vertex of the triangle.</param>
+			/// <param name="c">The third vertex of the triangle.</param>
+			/// <returns>The distnace between the point and the triangle.</returns>
 			internal static float PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
 			{
 				//If the point lies inside the triangle, return the interpolated y-coordinate
@@ -451,14 +455,14 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Find the distance between a point P and triangle ABC.
+			/// Finds the distance between a point and triangle ABC.
 			/// </summary>
-			/// <param name="p">The point</param>
-			/// <param name="a">Triangle Vertex A</param>
-			/// <param name="b">Triangle Vertex B</param>
-			/// <param name="c">Triangle Vertex C</param>
-			/// <param name="h">Height</param>
-			/// <returns></returns>
+			/// <param name="p">A point.</param>
+			/// <param name="a">The first vertex of the triangle.</param>
+			/// <param name="b">The second vertex of the triangle.</param>
+			/// <param name="c">The third vertex of the triangle.</param>
+			/// <param name="height">The height between the point and the triangle.</param>
+			/// <returns>A value indicating whether the point is contained within the triangle.</returns>
 			internal static bool PointToTriangle(Vector3 p, Vector3 a, Vector3 b, Vector3 c, out float height)
 			{
 				Vector3 v0 = c - a;
@@ -498,13 +502,13 @@ namespace SharpNav
 		internal static class Intersection
 		{
 			/// <summary>
-			/// Determine whether two 2D segments AB and CD intersect
+			/// Determines whether two 2D segments AB and CD are intersecting.
 			/// </summary>
-			/// <param name="a">Segment AB endpoint A</param>
-			/// <param name="b">Segment AB endpoint B</param>
-			/// <param name="c">Segment CD endpoint C</param>
-			/// <param name="d">Segment CD endpoint D</param>
-			/// <returns></returns>
+			/// <param name="a">The endpoint A of segment AB.</param>
+			/// <param name="b">The endpoint B of segment AB.</param>
+			/// <param name="c">The endpoint C of segment CD.</param>
+			/// <param name="d">The endpoint D of segment CD.</param>
+			/// <returns>A value indicating whether the two segments are intersecting.</returns>
 			internal static bool SegmentSegment2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
 			{
 				float a1, a2, a3;
@@ -525,15 +529,15 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Determine whether two 2D segments AB and CD intersect
+			/// Determines whether two 2D segments AB and CD are intersecting.
 			/// </summary>
-			/// <param name="ap">Segment AB endpoint A</param>
-			/// <param name="bq">Segment AB endpoint B</param>
-			/// <param name="bp">Segment CD endpoint C</param>
-			/// <param name="d">Segment CD endpoint D</param>
-			/// <param name="s"></param>
-			/// <param name="t">?</param>
-			/// <returns></returns>
+			/// <param name="a">The endpoint A of segment AB.</param>
+			/// <param name="b">The endpoint B of segment AB.</param>
+			/// <param name="c">The endpoint C of segment CD.</param>
+			/// <param name="d">The endpoint D of segment CD.</param>
+			/// <param name="s">The normalized dot product between CD and AC on the XZ plane.</param>
+			/// <param name="t">The normalized dot product between AB and AC on the XZ plane.</param>
+			/// <returns>A value indicating whether the two segments are intersecting.</returns>
 			internal static bool SegmentSegment2D(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d, out float s, out float t)
 			{
 				Vector3 u = b - a;

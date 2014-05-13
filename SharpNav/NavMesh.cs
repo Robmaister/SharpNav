@@ -5,7 +5,6 @@ using SharpNav.Geometry;
 
 namespace SharpNav
 {
-
 	//TODO right now this is basically an alias for TiledNavMesh. Fix this in the future.
 	public class NavMesh : TiledNavMesh
 	{

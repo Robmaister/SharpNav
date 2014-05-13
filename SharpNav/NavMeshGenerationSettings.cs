@@ -11,7 +11,8 @@ namespace SharpNav
 	public class NavMeshGenerationSettings
 	{
 		/// <summary>
-		/// This constructor is private temporarily, easier to make sure parameters are valid if static properties are used.
+		/// Prevents a default instance of the <see cref="NavMeshGenerationSettings"/> class from being created.
+		/// Use <see cref="Default"/> instead.
 		/// </summary>
 		private NavMeshGenerationSettings()
 		{
@@ -46,17 +47,29 @@ namespace SharpNav
 		}
 
 		public float CellSize { get; set; }
+
 		public float CellHeight { get; set; }
+
 		public float MaxClimb { get; set; }
+
 		public float AgentHeight { get; set; }
+
 		public float AgentWidth { get; set; }
+
 		public int MinRegionSize { get; set; }
+
 		public int MergedRegionSize { get; set; }
+
 		public int MaxEdgeLength { get; set; }
+
 		public float MaxEdgeError { get; set; }
+
 		public ContourBuildFlags ContourFlags { get; set; }
+
 		public int VertsPerPoly { get; set; }
+
 		public int SampleDistance { get; set; }
+
 		public int MaxSampleError { get; set; }
 
 		public bool BuildBoundingVolumeTree { get; set; }

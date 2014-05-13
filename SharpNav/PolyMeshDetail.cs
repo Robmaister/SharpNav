@@ -198,7 +198,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determines whether an edge has been created or not
+		/// Determines whether an edge has been created or not.
 		/// </summary>
 		private enum EdgeValues
 		{
@@ -302,7 +302,7 @@ namespace SharpNav
 			bool empty = true;
 			hp.Clear();
 
-			for (int y = 0; y < hp.Height; y++)
+			for (int y = 0; y < hp.Length; y++)
 			{
 				int hy = hp.Y + y + borderSize;
 				for (int x = 0; x < hp.Width; x++)
@@ -381,7 +381,7 @@ namespace SharpNav
 					int hx = ax - hp.X - borderSize;
 					int hy = ay - hp.Y - borderSize;
 
-					if (hx < 0 || hx >= hp.Width || hy < 0 || hy >= hp.Height)
+					if (hx < 0 || hx >= hp.Width || hy < 0 || hy >= hp.Length)
 						continue;
 
 					//only continue if height is unset
@@ -427,7 +427,7 @@ namespace SharpNav
 					int az = (int)v.Z + VertexOffset[k * 2 + 1];
 
 					//skip if out of bounds
-					if (ax < hp.X || ax >= hp.X + hp.Width || az < hp.Y || az >= hp.Y + hp.Height)
+					if (ax < hp.X || ax >= hp.X + hp.Width || az < hp.Y || az >= hp.Y + hp.Length)
 						continue;
 
 					//get new cell
@@ -512,7 +512,7 @@ namespace SharpNav
 					int ay = cy + dir.GetVerticalOffset();
 
 					//skip if out of bounds
-					if (ax < hp.X || ax >= (hp.X + hp.Width) || ay < hp.Y || ay >= (hp.Y + hp.Height))
+					if (ax < hp.X || ax >= (hp.X + hp.Width) || ay < hp.Y || ay >= (hp.Y + hp.Length))
 						continue;
 
 					if (hp[ax - hp.X + (ay - hp.Y) * hp.Width] != 0)
@@ -816,10 +816,10 @@ namespace SharpNav
 			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
 			int iz = (int)Math.Floor(loc.Z * invCellSize + 0.01f);
 			ix = MathHelper.Clamp(ix - hp.X, 0, hp.Width - 1);
-			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Height - 1);
-			int h = hp[ix, iz];
+			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Length - 1);
+			int h;
 
-			if (h == HeightPatch.UnsetHeight)
+			if (!hp.TryGetHeight(ix, iz, out h))
 			{
 				//go in counterclockwise direction starting from west, ending in northwest
 				int[] off =
@@ -841,11 +841,11 @@ namespace SharpNav
 					int nx = ix + off[i * 2 + 0];
 					int nz = iz + off[i * 2 + 1];
 
-					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Height)
+					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Length)
 						continue;
 
-					int nh = hp[nx, nz];
-					if (nh == HeightPatch.UnsetHeight)
+					int nh;
+					if (!hp.TryGetHeight(nx, nz, out nh))
 						continue;
 
 					float d = Math.Abs(nh * cellHeight - loc.Y);
@@ -1150,14 +1150,14 @@ namespace SharpNav
 			if (Math.Abs(cp) > EPS)
 			{
 				//find magnitude of each point
-				float p1Sq, p2Sq, p3Sq;
+				float p1sq, p2sq, p3sq;
 
-				Vector3Extensions.Dot2D(ref p1, ref p1, out p1Sq);
-				Vector3Extensions.Dot2D(ref p2, ref p2, out p2Sq);
-				Vector3Extensions.Dot2D(ref p3, ref p3, out p3Sq);
+				Vector3Extensions.Dot2D(ref p1, ref p1, out p1sq);
+				Vector3Extensions.Dot2D(ref p2, ref p2, out p2sq);
+				Vector3Extensions.Dot2D(ref p3, ref p3, out p3sq);
 
-				c.X = (p1Sq * (p2.Z - p3.Z) + p2Sq * (p3.Z - p1.Z) + p3Sq * (p1.Z - p2.Z)) / (2 * cp);
-				c.Z = (p1Sq * (p3.X - p2.X) + p2Sq * (p1.X - p3.X) + p3Sq * (p2.X - p1.X)) / (2 * cp);
+				c.X = (p1sq * (p2.Z - p3.Z) + p2sq * (p3.Z - p1.Z) + p3sq * (p1.Z - p2.Z)) / (2 * cp);
+				c.Z = (p1sq * (p3.X - p2.X) + p2sq * (p1.X - p3.X) + p3sq * (p2.X - p1.X)) / (2 * cp);
 
 				float dx = p1.X - c.X;
 				float dy = p1.Z - c.Z;

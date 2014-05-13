@@ -14,24 +14,24 @@ namespace SharpNav.Pathfinding
 		private PolygonType polyType;
 
 		/// <summary>
-		/// Index to first link in linked list
+		/// Gets or sets the index to first link in linked list
 		/// </summary>
 		public int FirstLink { get; set; }
 
 		/// <summary>
-		/// Indices of polygon's vertices
+		/// Gets or sets the indices of polygon's vertices
 		/// </summary>
 		public int[] Verts { get; set; }
 
 		/// <summary>
-		/// Packed data representing neighbor polygons references and flags for each edge
+		/// Gets or sets packed data representing neighbor polygons references and flags for each edge
 		/// </summary>
 		public int[] Neis { get; set; }
 
 		//TODO turn flags into a Tag object, which is more standard for C#
 
 		/// <summary>
-		/// User defined polygon flags
+		/// Gets or sets a user defined polygon flags
 		/// </summary>
 		public int Flags { get; set; }
 

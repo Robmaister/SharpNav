@@ -62,6 +62,12 @@ namespace SharpNav
 		}
 #endif
 
+		/// <summary>
+		/// Calculates the component-wise minimum of two vectors.
+		/// </summary>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector.</param>
+		/// <param name="result">The component-wise minimum of the two vectors.</param>
 		internal static void ComponentMin(ref Vector3 left, ref Vector3 right, out Vector3 result)
 		{
 #if OPENTK || STANDALONE
@@ -73,6 +79,12 @@ namespace SharpNav
 #endif
 		}
 
+		/// <summary>
+		/// Calculates the component-wise maximum of two vectors.
+		/// </summary>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector.</param>
+		/// <param name="result">The component-wise maximum of the two vectors.</param>
 		internal static void ComponentMax(ref Vector3 left, ref Vector3 right, out Vector3 result)
 		{
 #if OPENTK || STANDALONE
@@ -84,6 +96,12 @@ namespace SharpNav
 #endif
 		}
 
+		/// <summary>
+		/// Calculates the distance between two points on the XZ plane.
+		/// </summary>
+		/// <param name="a">A point.</param>
+		/// <param name="b">Another point.</param>
+		/// <returns>The distance between the two points.</returns>
 		internal static float Distance2D(Vector3 a, Vector3 b)
 		{
 			float result;
@@ -91,6 +109,12 @@ namespace SharpNav
 			return result;
 		}
 
+		/// <summary>
+		/// Calculates the distance between two points on the XZ plane.
+		/// </summary>
+		/// <param name="a">A point.</param>
+		/// <param name="b">Another point.</param>
+		/// <param name="dist">The distance between the two points.</param>
 		internal static void Distance2D(ref Vector3 a, ref Vector3 b, out float dist)
 		{
 			float dx = b.X - a.X;
@@ -99,7 +123,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Calculate the dot product of two vectors projected onto the XZ plane.
+		/// Calculates the dot product of two vectors projected onto the XZ plane.
 		/// </summary>
 		/// <param name="left">A vector.</param>
 		/// <param name="right">Another vector</param>

@@ -424,6 +424,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="tris">A collection of triangles.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
 		public void RasterizeTriangles(IEnumerable<Triangle3> tris, AreaId area = AreaId.Walkable)
 		{
 			Triangle3 t = new Triangle3();

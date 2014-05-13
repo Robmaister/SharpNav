@@ -35,10 +35,9 @@ namespace SharpNav
 		private Cell[] cells;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="HeightField"/> class.
+		/// Initializes a new instance of the <see cref="Heightfield"/> class.
 		/// </summary>
-		/// <param name="min">The world-space minimum.</param>
-		/// <param name="max">The world-space maximum.</param>
+		/// <param name="b">The world-space bounds.</param>
 		/// <param name="settings">The settings to build with.</param>
 		public Heightfield(BBox3 b, NavMeshGenerationSettings settings)
 			: this(b, settings.CellSize, settings.CellHeight)
@@ -48,8 +47,7 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Heightfield"/> class.
 		/// </summary>
-		/// <param name="min">The world-space minimum.</param>
-		/// <param name="max">The world-space maximum.</param>
+		/// <param name="b">The world-space bounds.</param>
 		/// <param name="cellSize">The world-space size of each cell in the XZ plane.</param>
 		/// <param name="cellHeight">The world-space height of each cell.</param>
 		public Heightfield(BBox3 b, float cellSize, float cellHeight)
