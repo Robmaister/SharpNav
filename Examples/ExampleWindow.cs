@@ -439,33 +439,6 @@ namespace Examples
 
 		private void GeneratePathfinding()
 		{
-			/*parameters = new NavMeshCreateParams();
-			parameters.Verts = polyMesh.Verts;
-			parameters.vertCount = polyMesh.VertCount;
-			parameters.polys = polyMesh.Polys;
-			parameters.polyCount = polyMesh.PolyCount;
-			parameters.numVertsPerPoly = polyMesh.NumVertsPerPoly;
-			parameters.detailMeshes = polyMeshDetail.Meshes;
-			parameters.detailVerts = polyMeshDetail.Verts;
-			parameters.detailVertsCount = polyMeshDetail.VertCount;
-			parameters.detailTris = polyMeshDetail.Tris;
-			parameters.detailTriCount = polyMeshDetail.TrisCount;
-			//no support for offmesh connections
-			parameters.offMeshConVerts = null;
-			parameters.offMeshConRadii = null;
-			parameters.offMeshConDir = null;
-			parameters.offMeshConAreas = null;
-			parameters.offMeshConFlags = null;
-			parameters.offMeshConUserID = null;
-			parameters.offMeshConCount = 0;
-			parameters.walkableHeight = settings.AgentHeight;
-			parameters.walkableRadius = settings.AgentWidth;
-			parameters.walkableClimb = settings.MaxClimb;
-			parameters.bounds = polyMesh.Bounds;
-			parameters.cellSize = polyMesh.CellSize;
-			parameters.cellHeight = polyMesh.CellHeight;
-			parameters.buildBvTree = true;*/
-
 			buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
 
 			tiledNavMesh = new TiledNavMesh(buildData);
