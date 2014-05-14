@@ -78,8 +78,8 @@ namespace SharpNav
 			BBox3[] bounds = new BBox3[mesh.PolyCount];
 			Vector3[] poly = new Vector3[mesh.NumVertsPerPoly];
 
-			List<Vector3> storedVertices = new List<Vector3>();
-			List<TriangleData> storedTriangles = new List<TriangleData>();
+			var storedVertices = new List<Vector3>();
+			var storedTriangles = new List<TriangleData>();
 
 			//find max size for polygon area
 			for (int i = 0; i < mesh.PolyCount; i++)
@@ -97,7 +97,7 @@ namespace SharpNav
 					if (pj == PolyMesh.NullId)
 						break;
 
-					Vector3 v = mesh.Verts[pj];
+					var v = mesh.Verts[pj];
 
 					xmin = Math.Min(xmin, v.X);
 					xmax = Math.Max(xmax, v.X);
@@ -131,11 +131,12 @@ namespace SharpNav
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					int pv = p.Vertices[j];
-					if (pv == PolyMesh.NullId)
+					int pvi = p.Vertices[j];
+					if (pvi == PolyMesh.NullId)
 						break;
 
-					Vector3 v = mesh.Verts[pv];
+					PolyVertex pv = mesh.Verts[pvi];
+					Vector3 v = new Vector3(pv.X, pv.Y, pv.Z);
 					v.X *= mesh.CellSize;
 					v.Y *= mesh.CellHeight;
 					v.Z *= mesh.CellSize;
@@ -296,7 +297,7 @@ namespace SharpNav
 			return 0;
 		}
 
-		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp)
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, PolyVertex[] verts, int borderSize, HeightPatch hp)
 		{
 			var stack = new List<CompactSpanReference>();
 			bool empty = true;
@@ -408,7 +409,7 @@ namespace SharpNav
 		/// <param name="verts">PolyMesh Vertices</param>
 		/// <param name="borderSize">Heightfield border size</param>
 		/// <param name="hp">HeightPatch which extracts heightfield data</param>
-		private void GetHeightDataSeedsFromVertices(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp, List<CompactSpanReference> stack)
+		private void GetHeightDataSeedsFromVertices(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, PolyVertex[] verts, int borderSize, HeightPatch hp, List<CompactSpanReference> stack)
 		{
 			hp.SetAll(0);
 
@@ -421,7 +422,7 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					Vector3 v = verts[poly.Vertices[j]];
+					var v = verts[poly.Vertices[j]];
 					int ax = (int)v.X + VertexOffset[k * 2 + 0];
 					int ay = (int)v.Y;
 					int az = (int)v.Z + VertexOffset[k * 2 + 1];
@@ -462,7 +463,7 @@ namespace SharpNav
 			int pcx = 0, pcz = 0;
 			for (int j = 0; j < polyCount; j++)
 			{
-				Vector3 v = verts[poly.Vertices[j]];
+				var v = verts[poly.Vertices[j]];
 				pcx += (int)v.X;
 				pcz += (int)v.Z;
 			}

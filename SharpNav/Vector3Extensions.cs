@@ -154,28 +154,5 @@ namespace SharpNav
 		{
 			result = a.X * b.Z - a.Z * b.X;
 		}
-
-		internal class RoughYEqualityComparer : IEqualityComparer<Vector3>
-		{
-			private const int HashConstX = unchecked((int)0x8da6b343);
-			private const int HashConstZ = unchecked((int)0xcb1ab31f);
-
-			private float epsilonY;
-
-			public RoughYEqualityComparer(float epsilonY)
-			{
-				this.epsilonY = epsilonY;
-			}
-
-			public bool Equals(Vector3 left, Vector3 right)
-			{
-				return left.X == right.X && (Math.Abs(left.Y - right.Y) <= epsilonY) && left.Z == right.Z;
-			}
-
-			public int GetHashCode(Vector3 obj)
-			{
-				return HashConstX * (int)obj.X + HashConstZ * (int)obj.Z;
-			}
-		}
 	}
 }

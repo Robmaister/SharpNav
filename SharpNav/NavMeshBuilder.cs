@@ -76,7 +76,7 @@ namespace SharpNav
 				{
 					for (int i = 0; i < polyMesh.VertCount; i++)
 					{
-						Vector3 iv = polyMesh.Verts[i];
+						PolyVertex iv = polyMesh.Verts[i];
 						float h = polyMesh.Bounds.Min.Y + iv.Y * settings.CellHeight;
 						hmin = Math.Min(hmin, h);
 						hmax = Math.Max(hmax, h);
@@ -203,7 +203,7 @@ namespace SharpNav
 			//store vertices
 			for (int i = 0; i < polyMesh.VertCount; i++)
 			{
-				Vector3 iv = polyMesh.Verts[i];
+				PolyVertex iv = polyMesh.Verts[i];
 				navVerts[i].X = polyMesh.Bounds.Min.X + iv.X * settings.CellSize;
 				navVerts[i].Y = polyMesh.Bounds.Min.Y + iv.Y * settings.CellHeight;
 				navVerts[i].Z = polyMesh.Bounds.Min.Z + iv.Z * settings.CellSize;

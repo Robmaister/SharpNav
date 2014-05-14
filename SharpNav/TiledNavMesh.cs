@@ -777,20 +777,22 @@ namespace SharpNav
 				//Clamp query box to world box
 				Vector3 qbmin = qbounds.Min;
 				Vector3 qbmax = qbounds.Max;
-				BBox3 b;
-				b.Min.X = MathHelper.Clamp(qbmin.X, tbmin.X, tbmax.X) - tbmin.X;
-				b.Min.Y = MathHelper.Clamp(qbmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				b.Min.Z = MathHelper.Clamp(qbmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-				b.Max.X = MathHelper.Clamp(qbmax.X, tbmin.X, tbmax.X) - tbmin.X;
-				b.Max.Y = MathHelper.Clamp(qbmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-				b.Max.Z = MathHelper.Clamp(qbmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+				PolyBounds b;
+				float bminx = MathHelper.Clamp(qbmin.X, tbmin.X, tbmax.X) - tbmin.X;
+				float bminy = MathHelper.Clamp(qbmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				float bminz = MathHelper.Clamp(qbmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+				float bmaxx = MathHelper.Clamp(qbmax.X, tbmin.X, tbmax.X) - tbmin.X;
+				float bmaxy = MathHelper.Clamp(qbmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+				float bmaxz = MathHelper.Clamp(qbmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
 
-				b.Min.X = b.Min.X * tile.Header.bvQuantFactor;
-				b.Min.Y = b.Min.Y * tile.Header.bvQuantFactor;
-				b.Min.Z = b.Min.Z * tile.Header.bvQuantFactor;
-				b.Max.X = b.Max.X * tile.Header.bvQuantFactor;
-				b.Max.Y = b.Max.Y * tile.Header.bvQuantFactor;
-				b.Max.Z = b.Max.Z * tile.Header.bvQuantFactor;
+				const int MinMask = unchecked((int)0xfffffffe);
+
+				b.Min.X = (int)(bminx * tile.Header.bvQuantFactor) & MinMask;
+				b.Min.Y = (int)(bminy * tile.Header.bvQuantFactor) & MinMask;
+				b.Min.Z = (int)(bminz * tile.Header.bvQuantFactor) & MinMask;
+				b.Max.X = (int)(bmaxx * tile.Header.bvQuantFactor + 1) | 1;
+				b.Max.Y = (int)(bmaxy * tile.Header.bvQuantFactor + 1) | 1;
+				b.Max.Z = (int)(bmaxz * tile.Header.bvQuantFactor + 1) | 1;
 
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
@@ -798,7 +800,7 @@ namespace SharpNav
 				while (node < end)
 				{
 					BVTree.Node bvNode = tile.BVTree[node];
-					bool overlap = BBox3.Overlapping(ref b, ref bvNode.Bounds);
+					bool overlap = PolyBounds.Overlapping(ref b, ref bvNode.Bounds);
 					bool isLeafNode = bvNode.Index >= 0;
 
 					if (isLeafNode && overlap)

@@ -118,6 +118,7 @@
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
+    <Compile Include="PolyBounds.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
     <Compile Include="PolyMeshDetail.cs" />
@@ -127,6 +128,7 @@
     <Compile Include="NodeFlags.cs" />
     <Compile Include="PathfinderCommon.cs" />
     <Compile Include="Pathfinding\PolygonType.cs" />
+    <Compile Include="PolyVertex.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />

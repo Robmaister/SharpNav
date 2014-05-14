@@ -30,7 +30,7 @@ namespace SharpNav.Collections.Generic
 		/// <param name="nvp">The maximum number of vertices per polygon.</param>
 		/// <param name="cellSize">The size of a cell.</param>
 		/// <param name="cellHeight">The height of a cell.</param>
-		public BVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int nvp, float cellSize, float cellHeight)
+		public BVTree(PolyVertex[] verts, PolyMesh.Polygon[] polys, int nvp, float cellSize, float cellHeight)
 		{
 			nodes = new Node[polys.Length * 2];
 			var items = new List<Node>();
@@ -49,9 +49,9 @@ namespace SharpNav.Collections.Generic
 					if (vi == PolyMesh.NullId)
 						break;
 
-					Vector3 v = verts[vi];
-					Vector3Extensions.ComponentMin(ref temp.Bounds.Min, ref v, out temp.Bounds.Min);
-					Vector3Extensions.ComponentMax(ref temp.Bounds.Max, ref v, out temp.Bounds.Max);
+					var v = verts[vi];
+					PolyVertex.ComponentMin(ref temp.Bounds.Min, ref v, out temp.Bounds.Min);
+					PolyVertex.ComponentMax(ref temp.Bounds.Max, ref v, out temp.Bounds.Max);
 				}
 
 				temp.Bounds.Min.Y = (int)Math.Floor((float)temp.Bounds.Min.Y * cellHeight / cellSize);
@@ -94,15 +94,15 @@ namespace SharpNav.Collections.Generic
 		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
 		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
 		/// <param name="bounds">The extends of all the bounding boxes.</param>
-		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
+		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out PolyBounds bounds)
 		{
 			bounds = items[minIndex].Bounds;
 
 			for (int i = minIndex + 1; i < maxIndex; i++)
 			{
 				Node it = items[i];
-				Vector3Extensions.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
-				Vector3Extensions.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
+				PolyVertex.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
+				PolyVertex.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace SharpNav.Collections.Generic
 				nodes[oldNode] = items[minIndex];
 			else
 			{
-				BBox3 bounds;
+				PolyBounds bounds;
 				CalcExtends(items, minIndex, maxIndex, out bounds);
 				nodes[oldNode].Bounds = bounds;
 
@@ -189,7 +189,7 @@ namespace SharpNav.Collections.Generic
 		/// </summary>
 		public struct Node
 		{
-			public BBox3 Bounds;
+			public PolyBounds Bounds;
 			public int Index;
 		}
 
