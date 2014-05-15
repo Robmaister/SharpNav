@@ -68,6 +68,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the mesh tile at a specified index.
+		/// </summary>
+		/// <param name="index">The index referencing a tile.</param>
+		/// <returns>The tile at the index.</returns>
 		public MeshTile this[int index]
 		{
 			get

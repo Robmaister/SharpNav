@@ -150,6 +150,12 @@ namespace SharpNav
 			result = u1 * v2 - v1 * u2;
 		}
 
+		/// <summary>
+		/// Calculates the perpendicular dot product of two vectors projected onto the XZ plane.
+		/// </summary>
+		/// <param name="a">A vector.</param>
+		/// <param name="b">Another vector.</param>
+		/// <param name="result">The perpendicular dot product on the XZ plane.</param>
 		internal static void PerpDotXZ(ref Vector3 a, ref Vector3 b, out float result)
 		{
 			result = a.X * b.Z - a.Z * b.X;

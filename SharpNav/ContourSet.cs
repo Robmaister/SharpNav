@@ -134,7 +134,8 @@ namespace SharpNav
 							continue;
 						}
 
-						RegionId reg = compactField.Spans[i].Region;
+						var spanRef = new CompactSpanReference(x, y, i);
+						RegionId reg = compactField[spanRef].Region;
 						if (Region.IsBorderOrNull(reg))
 							continue;
 						
@@ -145,7 +146,7 @@ namespace SharpNav
 						//Mark points, which are basis of contous, intially with "verts"
 						//Then, simplify "verts" to get "simplified"
 						//Finally, clean up the "simplified" data
-						WalkContour(x, y, i, compactField, flags, verts);
+						WalkContour(compactField, spanRef, flags, verts);
 						SimplifyContour(verts, simplified, maxError, maxEdgeLen, buildFlags);
 						RemoveDegenerateSegments(simplified);
 
@@ -318,38 +319,36 @@ namespace SharpNav
 		/// <summary>
 		/// Initial generation of the contours
 		/// </summary>
-		/// <param name="x">Cell x</param>
-		/// <param name="y">Cell y</param>
-		/// <param name="i">Span index</param>
-		/// <param name="compactField">CompactHeightfield</param>
-		/// <param name="flags">?</param>
+		/// <param name="compactField">The compact heightfield to reference.</param>
+		/// <param name="sr">A referecne to the span to start walking from.</param>
+		/// <param name="flags">An array of flags determinining </param>
 		/// <param name="points">The vertices of a contour.</param>
-		private void WalkContour(int x, int y, int i, CompactHeightfield compactField, int[] flags, List<ContourVertex> points)
+		private void WalkContour(CompactHeightfield compactField, CompactSpanReference sr, int[] flags, List<ContourVertex> points)
 		{
 			Direction dir = 0;
 
 			//find the first direction that has a connection 
-			while (!IsConnected(flags[i], dir))
+			while (!IsConnected(flags[sr.Index], dir))
 				dir++;
 
 			Direction startDir = dir;
-			int starti = i;
+			int starti = sr.Index;
 
-			AreaId area = compactField.Areas[i];
+			AreaId area = compactField.Areas[sr.Index];
 
 			int iter = 0;
 			while (++iter < 40000)
 			{
 				// this direction is connected
-				if (IsConnected(flags[i], dir))
+				if (IsConnected(flags[sr.Index], dir))
 				{
 					// choose the edge corner
 					bool isBorderVertex;
 					bool isAreaBorder = false;
 
-					int px = x;
-					int py = GetCornerHeight(x, y, i, dir, compactField, out isBorderVertex);
-					int pz = y;
+					int px = sr.X;
+					int py = GetCornerHeight(compactField, sr, dir, out isBorderVertex);
+					int pz = sr.Y;
 
 					switch (dir)
 					{
@@ -366,11 +365,11 @@ namespace SharpNav
 					}
 
 					RegionId r = 0;
-					CompactSpan s = compactField.Spans[i];
+					CompactSpan s = compactField[sr];
 					if (s.IsConnected(dir))
 					{
-						int dx = x + dir.GetHorizontalOffset();
-						int dy = y + dir.GetVerticalOffset();
+						int dx = sr.X + dir.GetHorizontalOffset();
+						int dy = sr.Y + dir.GetVerticalOffset();
 						int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 						r = compactField.Spans[di].Region;
 						if (area != compactField.Areas[di])
@@ -387,17 +386,17 @@ namespace SharpNav
 					//save the point
 					points.Add(new ContourVertex(px, py, pz, r));
 
-					RemoveVisited(ref flags[i], dir);	// remove visited edges
+					RemoveVisited(ref flags[sr.Index], dir);	// remove visited edges
 					dir = dir.NextClockwise();			// rotate clockwise
 				}
 				else
 				{
 					//get a new cell(x, y) and span index(i)
 					int di = -1;
-					int dx = x + dir.GetHorizontalOffset();
-					int dy = y + dir.GetVerticalOffset();
+					int dx = sr.X + dir.GetHorizontalOffset();
+					int dy = sr.Y + dir.GetVerticalOffset();
 					
-					CompactSpan s = compactField.Spans[i];
+					CompactSpan s = compactField[sr];
 					if (s.IsConnected(dir))
 					{
 						CompactCell dc = compactField.Cells[dx + dy * compactField.Width];
@@ -410,88 +409,82 @@ namespace SharpNav
 						// TODO if this shouldn't happen, this check shouldn't be necessary.
 						throw new InvalidOperationException("Something went wrong");
 					}
-					
-					x = dx;
-					y = dy;
-					i = di;
+
+					sr = new CompactSpanReference(dx, dy, di);
 					dir = dir.NextCounterClockwise(); // rotate counterclockwise
 				}
 
-				if (starti == i && startDir == dir)
-				{
+				if (starti == sr.Index && startDir == dir)
 					break;
-				}
 			}
 		}
 
 		/// <summary>
 		/// Helper method for WalkContour function
 		/// </summary>
-		/// <param name="x">Cell x</param>
-		/// <param name="y">Cell y</param>
-		/// <param name="i">Span index i</param>
-		/// <param name="dir">Direction (west, north, east, south)</param>
-		/// <param name="openField">OpenHeightfield</param>
-		/// <param name="isBorderVertex">Determine whether the vertex is a border or not</param>
-		/// <returns></returns>
-		private int GetCornerHeight(int x, int y, int i, Direction dir, CompactHeightfield openField, out bool isBorderVertex)
+		/// <param name="compactField">The compact heightfield to reference.</param>
+		/// <param name="sr">The span to get the corner height for.</param>
+		/// <param name="dir">The direction to get the corner height from.</param>
+		/// <param name="isBorderVertex">Determine whether the vertex is a border or not.</param>
+		/// <returns>The corner height.</returns>
+		private int GetCornerHeight(CompactHeightfield compactField, CompactSpanReference sr, Direction dir, out bool isBorderVertex)
 		{
 			isBorderVertex = false;
 
-			CompactSpan s = openField.Spans[i];
+			CompactSpan s = compactField[sr];
 			int cornerHeight = s.Minimum;
 			Direction dirp = dir.NextClockwise(); //new clockwise direction
 
 			uint[] regs = { 0, 0, 0, 0 };
 
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
-			regs[0] = (uint)((int)openField.Spans[i].Region | ((byte)openField.Areas[i] << 16));
+			regs[0] = (uint)((int)s.Region | ((byte)compactField.Areas[sr.Index] << 16));
 
 			if (s.IsConnected(dir))
 			{
 				//get neighbor span
-				int dx = x + dir.GetHorizontalOffset();
-				int dy = y + dir.GetVerticalOffset();
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
-				CompactSpan ds = openField.Spans[di];
+				int dx = sr.X + dir.GetHorizontalOffset();
+				int dy = sr.Y + dir.GetVerticalOffset();
+				int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+				CompactSpan ds = compactField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[1] = (uint)((int)openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
+				regs[1] = (uint)((int)compactField.Spans[di].Region | ((byte)compactField.Areas[di] << 16));
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dirp))
 				{
 					int dx2 = dx + dirp.GetHorizontalOffset();
 					int dy2 = dy + dirp.GetVerticalOffset();
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
-					CompactSpan ds2 = openField.Spans[di2];
+					int di2 = compactField.Cells[dx2 + dy2 * compactField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
+					CompactSpan ds2 = compactField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)((int)openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
+					regs[2] = (uint)((int)compactField.Spans[di2].Region | ((byte)compactField.Areas[di2] << 16));
 				}
 			}
 
 			//get neighbor span
 			if (s.IsConnected(dirp))
 			{
-				int dx = x + dirp.GetHorizontalOffset();
-				int dy = y + dirp.GetVerticalOffset();
-				int di = openField.Cells[dx + dy * openField.Width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
-				CompactSpan ds = openField.Spans[di];
+				int dx = sr.X + dirp.GetHorizontalOffset();
+				int dy = sr.Y + dirp.GetVerticalOffset();
+				int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
+				CompactSpan ds = compactField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[3] = (uint)((int)openField.Spans[di].Region | ((byte)openField.Areas[di] << 16));
+				regs[3] = (uint)((int)compactField.Spans[di].Region | ((byte)compactField.Areas[di] << 16));
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dir))
 				{
 					int dx2 = dx + dir.GetHorizontalOffset();
 					int dy2 = dy + dir.GetVerticalOffset();
-					int di2 = openField.Cells[dx2 + dy2 * openField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
-					CompactSpan ds2 = openField.Spans[di2];
+					int di2 = compactField.Cells[dx2 + dy2 * compactField.Width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
+					CompactSpan ds2 = compactField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)((int)openField.Spans[di2].Region | ((byte)openField.Areas[di2] << 16));
+					regs[2] = (uint)((int)compactField.Spans[di2].Region | ((byte)compactField.Areas[di2] << 16));
 				}
 			}
 

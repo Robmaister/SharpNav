@@ -1259,10 +1259,10 @@ namespace SharpNav
 			/// <summary>
 			/// Determine which edges of the triangle are part of the polygon
 			/// </summary>
-			/// <param name="verts">Vertices containing triangles</param>
-			/// <param name="vpoly">Polygon vertex data</param>
-			/// <param name="flags"></param>
-			/// <returns></returns>
+			/// <param name="t">A triangle.</param>
+			/// <param name="verts">The vertex buffer that the triangle is referencing.</param>
+			/// <param name="vpoly">Polygon vertex data.</param>
+			/// <returns>The triangle's flags.</returns>
 			public static int GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly)
 			{
 				int flags = 0;

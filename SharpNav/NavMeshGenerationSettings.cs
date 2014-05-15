@@ -46,16 +46,32 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the size of a cell in the X and Z axes in world units.
+		/// </summary>
 		public float CellSize { get; set; }
 
+		/// <summary>
+		/// Gets or sets the height of a cell in world units.
+		/// </summary>
 		public float CellHeight { get; set; }
 
 		public float MaxClimb { get; set; }
 
+		/// <summary>
+		/// Gets or sets the height of the agents traversing the <see cref="NavMesh"/>.
+		/// </summary>
 		public float AgentHeight { get; set; }
 
+		/// <summary>
+		/// Gets or sets the width (radius) of the agents traversing the <see cref="NavMesh"/>.
+		/// </summary>
 		public float AgentWidth { get; set; }
 
+		/// <summary>
+		/// Gets or sets the minimum number of spans that can form a region. Any less than this, and they will be
+		/// merged with another region.
+		/// </summary>
 		public int MinRegionSize { get; set; }
 
 		public int MergedRegionSize { get; set; }
@@ -64,6 +80,9 @@ namespace SharpNav
 
 		public float MaxEdgeError { get; set; }
 
+		/// <summary>
+		/// Gets or sets the flags that determine how the <see cref="ContourSet"/> is generated.
+		/// </summary>
 		public ContourBuildFlags ContourFlags { get; set; }
 
 		public int VertsPerPoly { get; set; }
@@ -72,8 +91,14 @@ namespace SharpNav
 
 		public int MaxSampleError { get; set; }
 
+		/// <summary>
+		/// Gets or sets a value indicating whether a bounding volume tree is generated for the mesh.
+		/// </summary>
 		public bool BuildBoundingVolumeTree { get; set; }
 
+		/// <summary>
+		/// Gets the height of the agents traversing the <see cref="NavMesh"/> in voxel (cell) units.
+		/// </summary>
 		public int VoxelAgentHeight
 		{
 			get
@@ -90,6 +115,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the width (radius) of the agents traversing the <see cref="NavMesh"/> in voxel (cell) units.
+		/// </summary>
 		public int VoxelAgentWidth
 		{
 			get

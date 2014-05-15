@@ -871,7 +871,9 @@ namespace SharpNav
 		/// <summary>
 		/// Part of building the distance field. It may or may not return an array equal to src.
 		/// </summary>
+		/// <param name="distances">The original distances.</param>
 		/// <param name="threshold">The distance threshold below which no blurring occurs.</param>
+		/// <param name="buffer">A buffer that is at least the same length as <see cref="distances"/> for working memory.</param>
 		private void BoxBlur(int[] distances, int threshold, int[] buffer = null)
 		{
 			threshold *= 2;
@@ -1218,11 +1220,9 @@ namespace SharpNav
 		/// Try to visit all the spans. May be needed in filtering small regions. 
 		/// </summary>
 		/// <param name="regions">an array of region values</param>
-		/// <param name="x">cell x-coordinate</param>
-		/// <param name="y">cell y-coordinate</param>
-		/// <param name="i">index of span</param>
-		/// <param name="dir">direction</param>
-		/// <param name="cont">list of ints</param>
+		/// <param name="spanRef">The span to start walking from.</param>
+		/// <param name="dir">The direction to start walking in.</param>
+		/// <param name="cont">A collection of regions to append to.</param>
 		private void WalkContour(RegionId[] regions, CompactSpanReference spanRef, Direction dir, List<RegionId> cont)
 		{
 			Direction startDir = dir;

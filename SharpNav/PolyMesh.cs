@@ -95,7 +95,6 @@ namespace SharpNav
 			Triangle[] tris = new Triangle[maxVertsPerCont];
 			List<Polygon> contPolys = new List<Polygon>(maxVertsPerCont + 1);
 
-
 			//extract contour data
 			foreach (Contour cont in contSet)
 			{
@@ -574,7 +573,7 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <param name="vertDict">Vertex dictionary that maps coordinates to index</param>
-		/// <param name="cv">Contour Vertex</param>
+		/// <param name="v">A vertex.</param>
 		/// <param name="verts">The list of vertices</param>
 		/// <returns>The vertex index</returns>
 		private static int AddVertex(Dictionary<PolyVertex, int> vertDict, PolyVertex v, List<PolyVertex> verts)
@@ -1229,6 +1228,7 @@ namespace SharpNav
 					regionId = value;
 				}
 			}
+
 			public int Flags
 			{
 				get
