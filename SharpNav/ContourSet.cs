@@ -13,6 +13,10 @@ using SharpNav.Geometry;
 namespace SharpNav
 {
 	//TODO should this be ISet<Contour>? Are the extra methods useful?
+	
+	/// <summary>
+	/// A collection of Countours 
+	/// </summary>
 	public class ContourSet : ICollection<Contour>
 	{
 		private List<Contour> contours;
@@ -187,6 +191,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of countours in this set
+		/// </summary>
 		public int Count
 		{
 			get
@@ -195,6 +202,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the bounding box of this set
+		/// </summary>
 		public BBox3 Bounds
 		{
 			get
@@ -203,6 +213,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the cell size of the cells in CompactHeightfield
+		/// </summary>
 		public float CellSize
 		{
 			get
@@ -211,6 +224,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the cell height of the cells in CompactHeightfield
+		/// </summary>
 		public float CellHeight
 		{
 			get
@@ -219,6 +235,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the width of the CompactHeightfield.
+		/// </summary>
 		public int Width
 		{
 			get
@@ -227,6 +246,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the height of the CompactHeightfield
+		/// </summary>
 		public int Height
 		{
 			get
@@ -235,6 +257,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the border size
+		/// </summary>
 		public int BorderSize
 		{
 			get
@@ -243,47 +268,86 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether the contour set is read only or not
+		/// </summary>
 		bool ICollection<Contour>.IsReadOnly
 		{
 			get { return true; }
 		}
 
+		/// <summary>
+		/// Determines whether the set contains this contour
+		/// </summary>
+		/// <param name="item">The contour to look for</param>
+		/// <returns>True if found, false if otherwise</returns>
 		public bool Contains(Contour item)
 		{
 			return contours.Contains(item);
 		}
 
+		/// <summary>
+		/// Copy an array of contours to the ContourSet
+		/// </summary>
+		/// <param name="array">The array of contours</param>
+		/// <param name="arrayIndex">Starting index</param>
 		public void CopyTo(Contour[] array, int arrayIndex)
 		{
 			contours.CopyTo(array, arrayIndex);
 		}
 
+		/// <summary>
+		/// Gets the enumerator that iterates through the set
+		/// </summary>
+		/// <returns>The enumerator</returns>
 		public IEnumerator<Contour> GetEnumerator()
 		{
 			return contours.GetEnumerator();
 		}
 
 		//TODO support the extra ICollection methods later?
+
+		/// <summary>
+		/// Add a new contour to the set
+		/// </summary>
+		/// <param name="item">The contour to add</param>
 		void ICollection<Contour>.Add(Contour item)
 		{
 			throw new InvalidOperationException();
 		}
-
+		
+		/// <summary>
+		/// (Not implemented) Clear the list
+		/// </summary>
 		void ICollection<Contour>.Clear()
 		{
 			throw new InvalidOperationException();
 		}
 
+		/// <summary>
+		/// (Not implemented) Remove a contour from the set
+		/// </summary>
+		/// <param name="item">The contour to remove</param>
+		/// <returns>throw InvalidOperatorException</returns>
 		bool ICollection<Contour>.Remove(Contour item)
 		{
 			throw new InvalidOperationException();
 		}
 
+		/// <summary>
+		/// Gets an enumerator that iterates through the set
+		/// </summary>
+		/// <returns>The enumerator</returns>
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
 
+		/// <summary>
+		/// When an edge in a specified direction is visited, mark the flag.
+		/// </summary>
+		/// <param name="flag">A 4-bit string</param>
+		/// <param name="dir">The direction visited</param>
 		private static void MarkInternalEdges(ref int flag, Direction dir)
 		{
 			//flag represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
@@ -292,6 +356,11 @@ namespace SharpNav
 			flag |= 1 << (int)dir;
 		}
 
+		/// <summary>
+		/// Change all the bits to their complement
+		/// </summary>
+		/// <param name="flag">A 4-bit string</param>
+		/// <returns>The new flag</returns>
 		private static int FlipAllBits(int flag)
 		{
 			//flips all the bits in res
@@ -300,12 +369,23 @@ namespace SharpNav
 			return flag ^ 0xf;
 		}
 
+		/// <summary>
+		/// Determines whether the edges are connected in that direction
+		/// </summary>
+		/// <param name="flag">A 4-bit string</param>
+		/// <param name="dir">The direction</param>
+		/// <returns>True if connected, false if otherwise</returns>
 		private static bool IsConnected(int flag, Direction dir)
 		{
 			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
 			return (flag & (1 << (int)dir)) != 0;
 		}
 
+		/// <summary>
+		/// Remove the flag for the visited direction
+		/// </summary>
+		/// <param name="flag">A 4-bit string</param>
+		/// <param name="dir">The direction</param>
 		private static void RemoveVisited(ref int flag, Direction dir)
 		{
 			//say flag = 0110
@@ -518,6 +598,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="points">Initial vertices</param>
 		/// <param name="simplified">New and simplified vertices</param>
+		/// <param name="maxError">Maximum error allowed</param>
+		/// <param name="maxEdgeLen">The maximum edge length allowed</param>
+		/// <param name="buildFlags">Flags determines how to split the long edges</param>
 		private void SimplifyContour(List<ContourVertex> points, List<ContourVertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
 		{
 			//add initial points
@@ -608,19 +691,19 @@ namespace SharpNav
 
 				float maxDeviation = 0;
 				int maxi = -1;
-				int ci, cIncrement, endi;
+				int ci, countIncrement, endi;
 
 				//traverse segment in lexilogical order (try to go from smallest to largest coordinates?)
 				if (bx > ax || (bx == ax && bz > az))
 				{
-					cIncrement = 1;
-					ci = (int)(ai + cIncrement) % numPoints;
+					countIncrement = 1;
+					ci = (int)(ai + countIncrement) % numPoints;
 					endi = (int)bi;
 				}
 				else
 				{
-					cIncrement = numPoints - 1;
-					ci = (int)(bi + cIncrement) % numPoints;
+					countIncrement = numPoints - 1;
+					ci = (int)(bi + countIncrement) % numPoints;
 					endi = (int)ai;
 				}
 
@@ -638,7 +721,7 @@ namespace SharpNav
 							maxi = ci;
 						}
 
-						ci = (ci + cIncrement) % numPoints;
+						ci = (ci + countIncrement) % numPoints;
 					}
 				}
 

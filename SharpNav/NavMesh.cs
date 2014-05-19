@@ -6,8 +6,16 @@ using SharpNav.Geometry;
 namespace SharpNav
 {
 	//TODO right now this is basically an alias for TiledNavMesh. Fix this in the future.
+
+	/// <summary>
+	/// A TiledNavMesh generated from a collection of triangles and some settings
+	/// </summary>
 	public class NavMesh : TiledNavMesh
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NavMesh" /> class.
+		/// </summary>
+		/// <param name="builder">The NavMeshBuilder data</param>
 		public NavMesh(NavMeshBuilder builder)
 			: base(builder)
 		{

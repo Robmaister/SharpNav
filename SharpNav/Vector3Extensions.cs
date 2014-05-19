@@ -133,6 +133,13 @@ namespace SharpNav
 			result = left.X * right.X + left.Z * right.Z;
 		}
 
+		/// <summary>
+		/// Calculates the cross product of two vectors (formed from three points)
+		/// </summary>
+		/// <param name="p1">The first point</param>
+		/// <param name="p2">The second point</param>
+		/// <param name="p3">The third point</param>
+		/// <returns>The 2d cross product</returns>
 		internal static float Cross2D(Vector3 p1, Vector3 p2, Vector3 p3)
 		{
 			float result;
@@ -140,6 +147,13 @@ namespace SharpNav
 			return result;
 		}
 
+		/// <summary>
+		/// Calculates the cross product of two vectors (formed from three points)
+		/// </summary>
+		/// <param name="p1">The first point</param>
+		/// <param name="p2">The second point</param>
+		/// <param name="p3">The third point</param>
+		/// <param name="result">The 2d cross product</param>
 		internal static void Cross2D(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, out float result)
 		{
 			float u1 = p2.X - p1.X;

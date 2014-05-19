@@ -23,8 +23,8 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="NodePool"/> class.
 		/// </summary>
-		/// <param name="maxNodes"></param>
-		/// <param name="hashSize"></param>
+		/// <param name="maxNodes">The maximum number of nodes that can be stored</param>
+		/// <param name="hashSize">The maximum number of elements in the hash table</param>
 		public NodePool(int maxNodes, int hashSize)
 		{
 			this.maxNodes = maxNodes;
@@ -88,6 +88,11 @@ namespace SharpNav
 			return newNode;
 		}
 
+		/// <summary>
+		/// Gets the id of the node.
+		/// </summary>
+		/// <param name="node">The node</param>
+		/// <returns>The id</returns>
 		public int GetNodeIdx(Node node)
 		{
 			if (node == null)
@@ -122,16 +127,31 @@ namespace SharpNav
 		{
 			private int hashSize;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="IntNodeIdComparer" /> class.
+			/// </summary>
+			/// <param name="hashSize">The maximum number of elements in the hash table</param>
 			public IntNodeIdComparer(int hashSize)
 			{
 				this.hashSize = hashSize;
 			}
 
+			/// <summary>
+			/// Determines whether two objects or equal or now
+			/// </summary>
+			/// <param name="left">The first object</param>
+			/// <param name="right">The second object</param>
+			/// <returns>True if equal, false if not equal</returns>
 			public bool Equals(int left, int right)
 			{
 				return left == right;
 			}
 
+			/// <summary>
+			/// Gets the hash code for this object
+			/// </summary>
+			/// <param name="obj">The object</param>
+			/// <returns>The hash code</returns>
 			public int GetHashCode(int obj)
 			{
 				obj += ~(obj << 15);

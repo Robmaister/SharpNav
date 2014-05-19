@@ -23,10 +23,12 @@ using UnityEngine;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// The NavMeshBuilder class converst PolyMesh and PolyMeshDetail into a different data structure suited for 
+	/// pathfinding. This class will create tiled data.
+	/// </summary>
 	public class NavMeshBuilder
 	{
-		//convert PolyMesh and PolyMeshDetail into a different data structure suited for pathfinding
-		//This class will create tiled data.
 		private PathfinderCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
@@ -37,10 +39,14 @@ namespace SharpNav
 		private OffMeshConnection[] offMeshConnections;
 
 		/// <summary>
+		/// Initializes a new instance of the <see cref="NavMeshBuilder" /> class.
 		/// Add all the PolyMesh and PolyMeshDetail attributes to the Navigation Mesh.
 		/// Then, add Off-Mesh connection support.
 		/// </summary>
-		/// <param name="parameters">The settings used to build.</param>
+		/// <param name="polyMesh">The PolyMesh</param>
+		/// <param name="polyMeshDetail">The PolyMeshDetail</param>
+		/// <param name="offMeshCons">Offmesh connection data</param>
+		/// <param name="settings">The settings used to build.</param>
 		public NavMeshBuilder(PolyMesh polyMesh, PolyMeshDetail polyMeshDetail, OffMeshConnection[] offMeshCons, NavMeshGenerationSettings settings)
 		{
 			if (settings.VertsPerPoly > PathfinderCommon.VERTS_PER_POLYGON)
@@ -374,21 +380,93 @@ namespace SharpNav
 			}
 		}
 
-		public PathfinderCommon.NavMeshInfo Header { get { return header; } }
+		/// <summary>
+		/// Gets the file header
+		/// </summary>
+		public PathfinderCommon.NavMeshInfo Header 
+		{ 
+			get 
+			{ 
+				return header; 
+			} 
+		}
 
-		public Vector3[] NavVerts { get { return navVerts; } }
+		/// <summary>
+		/// Gets the PolyMesh vertices
+		/// </summary>
+		public Vector3[] NavVerts 
+		{ 
+			get 
+			{ 
+				return navVerts; 
+			} 
+		}
 
-		public Poly[] NavPolys { get { return navPolys; } }
+		/// <summary>
+		/// Gets the PolyMesh polygons
+		/// </summary>
+		public Poly[] NavPolys 
+		{ 
+			get 
+			{
+				return navPolys; 
+			} 
+		}
 
-		public PolyMeshDetail.MeshData[] NavDMeshes { get { return navDMeshes; } }
+		/// <summary>
+		/// Gets the PolyMeshDetail mesh data (the indices of the vertices and triagles)
+		/// </summary>
+		public PolyMeshDetail.MeshData[] NavDMeshes 
+		{ 
+			get 
+			{ 
+				return navDMeshes; 
+			} 
+		}
 
-		public Vector3[] NavDVerts { get { return navDVerts; } }
+		/// <summary>
+		/// Gets the PolyMeshDetail vertices
+		/// </summary>
+		public Vector3[] NavDVerts 
+		{ 
+			get 
+			{ 
+				return navDVerts; 
+			} 
+		}
 
-		public PolyMeshDetail.TriangleData[] NavDTris { get { return navDTris; } }
+		/// <summary>
+		/// Gets the PolyMeshDetail triangles
+		/// </summary>
+		public PolyMeshDetail.TriangleData[] NavDTris 
+		{ 
+			get 
+			{ 
+				return navDTris; 
+			} 
+		}
 
-		public BVTree NavBvTree { get { return navBvTree; } }
+		/// <summary>
+		/// Gets the bounding volume tree
+		/// </summary>
+		public BVTree NavBvTree 
+		{ 
+			get 
+			{ 
+				return navBvTree; 
+			} 
+		}
 
-		public OffMeshConnection[] OffMeshCons { get { return offMeshConnections; } }
+		/// <summary>
+		/// Gets the offmesh connection data
+		/// </summary>
+		public OffMeshConnection[] OffMeshCons 
+		{ 
+			get
+			{ 
+				return offMeshConnections; 
+			} 
+		}
 
 		/// <summary>
 		/// Decide which sector the offmesh point is a part of.

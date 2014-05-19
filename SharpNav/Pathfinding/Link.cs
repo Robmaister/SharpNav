@@ -9,6 +9,9 @@ using System;
 
 namespace SharpNav.Pathfinding
 {
+	/// <summary>
+	/// A link is formed between two polygons in a TiledNavMesh
+	/// </summary>
 	public class Link
 	{
 		/// <summary>
@@ -26,10 +29,19 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		public int Edge { get; set; }
 
+		/// <summary>
+		/// Gets or sets the polygon side
+		/// </summary>
 		public int Side { get; set; }
 
+		/// <summary>
+		/// Gets or sets the minimum Vector3 of the bounding box
+		/// </summary>
 		public int BMin { get; set; }
 
+		/// <summary>
+		/// Gets or sets the maximum Vector3 of the bounding box
+		/// </summary>
 		public int BMax { get; set; }
 	}
 }

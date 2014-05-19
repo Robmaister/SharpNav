@@ -56,6 +56,9 @@ namespace SharpNav
 		/// </summary>
 		public float CellHeight { get; set; }
 
+		/// <summary>
+		/// Gets or sets the maximum climb height.
+		/// </summary>
 		public float MaxClimb { get; set; }
 
 		/// <summary>
@@ -74,10 +77,19 @@ namespace SharpNav
 		/// </summary>
 		public int MinRegionSize { get; set; }
 
+		/// <summary>
+		/// Gets or sets the size of the merged regions
+		/// </summary>
 		public int MergedRegionSize { get; set; }
 
+		/// <summary>
+		/// Gets or sets the maximum edge length allowed
+		/// </summary>
 		public int MaxEdgeLength { get; set; }
 
+		/// <summary>
+		/// Gets or sets the maximum error allowed
+		/// </summary>
 		public float MaxEdgeError { get; set; }
 
 		/// <summary>
@@ -85,10 +97,19 @@ namespace SharpNav
 		/// </summary>
 		public ContourBuildFlags ContourFlags { get; set; }
 
+		/// <summary>
+		/// Gets or sets the number of vertices a polygon can have.
+		/// </summary>
 		public int VertsPerPoly { get; set; }
 
+		/// <summary>
+		/// Gets or sets the sampling distance for the PolyMeshDetail
+		/// </summary>
 		public int SampleDistance { get; set; }
 
+		/// <summary>
+		/// Gets or sets the maximium error allowed in sampling for the PolyMeshDetail
+		/// </summary>
 		public int MaxSampleError { get; set; }
 
 		/// <summary>
@@ -107,6 +128,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the maximum clim height in voxel (cell) units.
+		/// </summary>
 		public int VoxelMaxClimb
 		{
 			get

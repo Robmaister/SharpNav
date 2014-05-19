@@ -9,6 +9,9 @@ using System;
 
 namespace SharpNav.Pathfinding
 {
+	/// <summary>
+	/// Uses the PolyMesh polygon data for pathfinding
+	/// </summary>
 	public class Poly
 	{
 		private PolygonType polyType;
@@ -35,10 +38,19 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		public int Flags { get; set; }
 
+		/// <summary>
+		/// Gets or sets the number of vertices
+		/// </summary>
 		public int VertCount { get; set; }
 
+		/// <summary>
+		/// Gets or sets the AreaId
+		/// </summary>
 		public AreaId Area { get; set; }
 
+		/// <summary>
+		/// Gets or sets the polygon type (ground or offmesh)
+		/// </summary>
 		public PolygonType PolyType
 		{
 			get
