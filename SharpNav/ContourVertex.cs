@@ -61,6 +61,11 @@ namespace SharpNav
 			this.RegionId = region;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SharpNav.ContourVertex"/> struct.
+		/// </summary>
+		/// <param name="vec">The array of X,Y,Z coordinates.</param>
+		/// <param name="region">The Region ID.</param>
 		public ContourVertex(Vector3 vec, RegionId region)
 		{
 			this.X = (int)vec.X;
