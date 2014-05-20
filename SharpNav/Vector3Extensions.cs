@@ -62,6 +62,12 @@ namespace SharpNav
 		}
 #endif
 
+		/// <summary>
+		/// Calculates the component-wise minimum of two vectors.
+		/// </summary>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector.</param>
+		/// <param name="result">The component-wise minimum of the two vectors.</param>
 		internal static void ComponentMin(ref Vector3 left, ref Vector3 right, out Vector3 result)
 		{
 #if OPENTK || STANDALONE
@@ -73,6 +79,12 @@ namespace SharpNav
 #endif
 		}
 
+		/// <summary>
+		/// Calculates the component-wise maximum of two vectors.
+		/// </summary>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector.</param>
+		/// <param name="result">The component-wise maximum of the two vectors.</param>
 		internal static void ComponentMax(ref Vector3 left, ref Vector3 right, out Vector3 result)
 		{
 #if OPENTK || STANDALONE
@@ -84,6 +96,12 @@ namespace SharpNav
 #endif
 		}
 
+		/// <summary>
+		/// Calculates the distance between two points on the XZ plane.
+		/// </summary>
+		/// <param name="a">A point.</param>
+		/// <param name="b">Another point.</param>
+		/// <returns>The distance between the two points.</returns>
 		internal static float Distance2D(Vector3 a, Vector3 b)
 		{
 			float result;
@@ -91,6 +109,12 @@ namespace SharpNav
 			return result;
 		}
 
+		/// <summary>
+		/// Calculates the distance between two points on the XZ plane.
+		/// </summary>
+		/// <param name="a">A point.</param>
+		/// <param name="b">Another point.</param>
+		/// <param name="dist">The distance between the two points.</param>
 		internal static void Distance2D(ref Vector3 a, ref Vector3 b, out float dist)
 		{
 			float dx = b.X - a.X;
@@ -99,7 +123,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Calculate the dot product of two vectors projected onto the XZ plane.
+		/// Calculates the dot product of two vectors projected onto the XZ plane.
 		/// </summary>
 		/// <param name="left">A vector.</param>
 		/// <param name="right">Another vector</param>
@@ -109,6 +133,13 @@ namespace SharpNav
 			result = left.X * right.X + left.Z * right.Z;
 		}
 
+		/// <summary>
+		/// Calculates the cross product of two vectors (formed from three points)
+		/// </summary>
+		/// <param name="p1">The first point</param>
+		/// <param name="p2">The second point</param>
+		/// <param name="p3">The third point</param>
+		/// <returns>The 2d cross product</returns>
 		internal static float Cross2D(Vector3 p1, Vector3 p2, Vector3 p3)
 		{
 			float result;
@@ -116,6 +147,13 @@ namespace SharpNav
 			return result;
 		}
 
+		/// <summary>
+		/// Calculates the cross product of two vectors (formed from three points)
+		/// </summary>
+		/// <param name="p1">The first point</param>
+		/// <param name="p2">The second point</param>
+		/// <param name="p3">The third point</param>
+		/// <param name="result">The 2d cross product</param>
 		internal static void Cross2D(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, out float result)
 		{
 			float u1 = p2.X - p1.X;
@@ -126,32 +164,15 @@ namespace SharpNav
 			result = u1 * v2 - v1 * u2;
 		}
 
+		/// <summary>
+		/// Calculates the perpendicular dot product of two vectors projected onto the XZ plane.
+		/// </summary>
+		/// <param name="a">A vector.</param>
+		/// <param name="b">Another vector.</param>
+		/// <param name="result">The perpendicular dot product on the XZ plane.</param>
 		internal static void PerpDotXZ(ref Vector3 a, ref Vector3 b, out float result)
 		{
 			result = a.X * b.Z - a.Z * b.X;
-		}
-
-		internal class RoughYEqualityComparer : IEqualityComparer<Vector3>
-		{
-			private const int HashConstX = unchecked((int)0x8da6b343);
-			private const int HashConstZ = unchecked((int)0xcb1ab31f);
-
-			private float epsilonY;
-
-			public RoughYEqualityComparer(float epsilonY)
-			{
-				this.epsilonY = epsilonY;
-			}
-
-			public bool Equals(Vector3 left, Vector3 right)
-			{
-				return left.X == right.X && (Math.Abs(left.Y - right.Y) <= epsilonY) && left.Z == right.Z;
-			}
-
-			public int GetHashCode(Vector3 obj)
-			{
-				return HashConstX * (int)obj.X + HashConstZ * (int)obj.Z;
-			}
 		}
 	}
 }

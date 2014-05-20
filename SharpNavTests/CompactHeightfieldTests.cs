@@ -32,7 +32,7 @@ namespace SharpNavTests
 		[Test]
 		public void ConvertSpans_OneCell()
 		{
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
 			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
 			
@@ -50,7 +50,7 @@ namespace SharpNavTests
 		[Test]
 		public void ConvertSpans_TwoCells()
 		{
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
 			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
 			hf[1].AddSpan(new Span(5, 15, AreaId.Walkable));
@@ -69,7 +69,7 @@ namespace SharpNavTests
 		[Test]
 		public void SetConnection_TwoCells()
 		{
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, 0.5f, 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
 			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
 			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
 			hf[1].AddSpan(new Span(10, 21, AreaId.Walkable));
@@ -91,7 +91,7 @@ namespace SharpNavTests
 		public void DistanceField_Simple_Success()
 		{
 			//Build a 3x3 heightfield
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, (float)(1.0f/3.0f), 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f/3.0f), 0.02f);
 			for (int i = 0; i < 9; i++)
 			{
 				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
@@ -126,7 +126,7 @@ namespace SharpNavTests
 		public void DistanceField_Medium_Success()
 		{
 			//Build a 5x5 heightfield
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, 0.2f, 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.2f, 0.02f);
 			for (int i = 0; i < 25; i++)
 			{
 				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
@@ -163,7 +163,7 @@ namespace SharpNavTests
 		public void BuildRegions_Success()
 		{
 			//Build a 3x3 heightfield
-			Heightfield hf = new Heightfield(Vector3.Zero, Vector3.One, (float)(1.0f / 3.0f), 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f / 3.0f), 0.02f);
 			for (int i = 0; i < 9; i++)
 			{
 				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
@@ -178,7 +178,7 @@ namespace SharpNavTests
 			//Most region ids won't be assigned to any span
 
 			//Total number of regions right now
-			Assert.AreEqual(chf.MaxRegions, 7);						
+			Assert.AreEqual(chf.MaxRegions, 7);
 			
 			//Center spans should have region id
 			Assert.AreEqual((int)chf.Spans[4 * 2 + 0].Region, 5);

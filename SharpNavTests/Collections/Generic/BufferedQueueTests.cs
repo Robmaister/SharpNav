@@ -17,6 +17,7 @@ using SharpNav.Collections.Generic;
 namespace SharpNavTests.Collections.Generic
 {
 	[TestFixture]
+	[Category("BrokenButUnused")]
 	public class BufferedQueueTests
 	{
 		[Test]

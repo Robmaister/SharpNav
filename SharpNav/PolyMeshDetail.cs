@@ -46,6 +46,17 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMeshDetail"/> class.
 		/// </summary>
+		/// <param name="mesh">The <see cref="PolyMesh"/>.</param>
+		/// <param name="compactField">The <see cref="CompactHeightfield"/> used to add height detail.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public PolyMeshDetail(PolyMesh mesh, CompactHeightfield compactField, NavMeshGenerationSettings settings)
+			: this(mesh, compactField, settings.SampleDistance, settings.MaxSampleError)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PolyMeshDetail"/> class.
+		/// </summary>
 		/// <remarks>
 		/// <see cref="PolyMeshDetail"/> uses a <see cref="CompactHeightfield"/> to add in details to a
 		/// <see cref="PolyMesh"/>. This detail is triangulated into a new mesh and can be used to approximate height in the walkable
@@ -67,8 +78,8 @@ namespace SharpNav
 			BBox3[] bounds = new BBox3[mesh.PolyCount];
 			Vector3[] poly = new Vector3[mesh.NumVertsPerPoly];
 
-			List<Vector3> storedVertices = new List<Vector3>();
-			List<TriangleData> storedTriangles = new List<TriangleData>();
+			var storedVertices = new List<Vector3>();
+			var storedTriangles = new List<TriangleData>();
 
 			//find max size for polygon area
 			for (int i = 0; i < mesh.PolyCount; i++)
@@ -86,7 +97,7 @@ namespace SharpNav
 					if (pj == PolyMesh.NullId)
 						break;
 
-					Vector3 v = mesh.Verts[pj];
+					var v = mesh.Verts[pj];
 
 					xmin = Math.Min(xmin, v.X);
 					xmax = Math.Max(xmax, v.X);
@@ -120,11 +131,12 @@ namespace SharpNav
 				int npoly = 0;
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
-					int pv = p.Vertices[j];
-					if (pv == PolyMesh.NullId)
+					int pvi = p.Vertices[j];
+					if (pvi == PolyMesh.NullId)
 						break;
 
-					Vector3 v = mesh.Verts[pv];
+					PolyVertex pv = mesh.Verts[pvi];
+					Vector3 v = new Vector3(pv.X, pv.Y, pv.Z);
 					v.X *= mesh.CellSize;
 					v.Y *= mesh.CellHeight;
 					v.Z *= mesh.CellSize;
@@ -187,7 +199,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determines whether an edge has been created or not
+		/// Determines whether an edge has been created or not.
 		/// </summary>
 		private enum EdgeValues
 		{
@@ -243,6 +255,20 @@ namespace SharpNav
 			}
 		}
 
+		#region Black Magic
+
+		private static float GetJitterX(int i)
+		{
+			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
+		}
+
+		private static float GetJitterY(int i)
+		{
+			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
+		}
+
+		#endregion
+
 		/// <summary>
 		/// Determine whether an edge of the triangle is part of the polygon (1 if true, 0 if false)
 		/// </summary>
@@ -271,13 +297,13 @@ namespace SharpNav
 			return 0;
 		}
 
-		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp)
+		private void GetHeightData(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, PolyVertex[] verts, int borderSize, HeightPatch hp)
 		{
 			var stack = new List<CompactSpanReference>();
 			bool empty = true;
 			hp.Clear();
 
-			for (int y = 0; y < hp.Height; y++)
+			for (int y = 0; y < hp.Length; y++)
 			{
 				int hy = hp.Y + y + borderSize;
 				for (int x = 0; x < hp.Width; x++)
@@ -356,7 +382,7 @@ namespace SharpNav
 					int hx = ax - hp.X - borderSize;
 					int hy = ay - hp.Y - borderSize;
 
-					if (hx < 0 || hx >= hp.Width || hy < 0 || hy >= hp.Height)
+					if (hx < 0 || hx >= hp.Width || hy < 0 || hy >= hp.Length)
 						continue;
 
 					//only continue if height is unset
@@ -383,7 +409,7 @@ namespace SharpNav
 		/// <param name="verts">PolyMesh Vertices</param>
 		/// <param name="borderSize">Heightfield border size</param>
 		/// <param name="hp">HeightPatch which extracts heightfield data</param>
-		private void GetHeightDataSeedsFromVertices(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, Vector3[] verts, int borderSize, HeightPatch hp, List<CompactSpanReference> stack)
+		private void GetHeightDataSeedsFromVertices(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, PolyVertex[] verts, int borderSize, HeightPatch hp, List<CompactSpanReference> stack)
 		{
 			hp.SetAll(0);
 
@@ -396,13 +422,13 @@ namespace SharpNav
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					Vector3 v = verts[poly.Vertices[j]];
+					var v = verts[poly.Vertices[j]];
 					int ax = (int)v.X + VertexOffset[k * 2 + 0];
 					int ay = (int)v.Y;
 					int az = (int)v.Z + VertexOffset[k * 2 + 1];
 
 					//skip if out of bounds
-					if (ax < hp.X || ax >= hp.X + hp.Width || az < hp.Y || az >= hp.Y + hp.Height)
+					if (ax < hp.X || ax >= hp.X + hp.Width || az < hp.Y || az >= hp.Y + hp.Length)
 						continue;
 
 					//get new cell
@@ -437,7 +463,7 @@ namespace SharpNav
 			int pcx = 0, pcz = 0;
 			for (int j = 0; j < polyCount; j++)
 			{
-				Vector3 v = verts[poly.Vertices[j]];
+				var v = verts[poly.Vertices[j]];
 				pcx += (int)v.X;
 				pcz += (int)v.Z;
 			}
@@ -487,7 +513,7 @@ namespace SharpNav
 					int ay = cy + dir.GetVerticalOffset();
 
 					//skip if out of bounds
-					if (ax < hp.X || ax >= (hp.X + hp.Width) || ay < hp.Y || ay >= (hp.Y + hp.Height))
+					if (ax < hp.X || ax >= (hp.X + hp.Width) || ay < hp.Y || ay >= (hp.Y + hp.Length))
 						continue;
 
 					if (hp[ax - hp.X + (ay - hp.Y) * hp.Width] != 0)
@@ -580,10 +606,7 @@ namespace SharpNav
 
 					//create samples along the edge
 					Vector3 dv;
-					//Vector3.Subtract(ref vi, ref vj, out dv);
-					dv.X = vi.X - vj.X;
-					dv.Y = vi.Y - vj.Y;
-					dv.Z = vi.Z - vj.Z;
+					Vector3.Subtract(ref vi, ref vj, out dv);
 					float d = (float)Math.Sqrt(dv.X * dv.X + dv.Z * dv.Z);
 					int nn = 1 + (int)Math.Floor(d / sampleDist);
 
@@ -596,15 +619,11 @@ namespace SharpNav
 					for (int k = 0; k <= nn; k++)
 					{
 						float u = (float)k / (float)nn;
-						Vector3 pos;// = edge[k];
+						Vector3 pos;
 
-						/*Vector3 tmp;
+						Vector3 tmp;
 						Vector3.Multiply(ref dv, u, out tmp);
-						Vector3.Add(ref vj, ref tmp, out pos);*/
-
-						pos.X = vj.X + dv.X * u;
-						pos.Y = vj.Y + dv.Y * u;
-						pos.Z = vj.Z + dv.Z * u;
+						Vector3.Add(ref vj, ref tmp, out pos);
 
 						pos.Y = GetHeight(pos, ics, compactField.CellHeight, hp) * compactField.CellHeight;
 
@@ -786,20 +805,6 @@ namespace SharpNav
 			}
 		}
 
-		#region Black Magic
-
-		private float GetJitterX(int i)
-		{
-			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
-		}
-
-		private float GetJitterY(int i)
-		{
-			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
-		}
-
-		#endregion
-
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
 		/// </summary>
@@ -812,10 +817,10 @@ namespace SharpNav
 			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
 			int iz = (int)Math.Floor(loc.Z * invCellSize + 0.01f);
 			ix = MathHelper.Clamp(ix - hp.X, 0, hp.Width - 1);
-			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Height - 1);
-			int h = hp[ix, iz];
+			iz = MathHelper.Clamp(iz - hp.Y, 0, hp.Length - 1);
+			int h;
 
-			if (h == HeightPatch.UnsetHeight)
+			if (!hp.TryGetHeight(ix, iz, out h))
 			{
 				//go in counterclockwise direction starting from west, ending in northwest
 				int[] off =
@@ -837,11 +842,11 @@ namespace SharpNav
 					int nx = ix + off[i * 2 + 0];
 					int nz = iz + off[i * 2 + 1];
 
-					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Height)
+					if (nx < 0 || nz < 0 || nx >= hp.Width || nz >= hp.Length)
 						continue;
 
-					int nh = hp[nx, nz];
-					if (nh == HeightPatch.UnsetHeight)
+					int nh;
+					if (!hp.TryGetHeight(nx, nz, out nh))
 						continue;
 
 					float d = Math.Abs(nh * cellHeight - loc.Y);
@@ -1146,19 +1151,18 @@ namespace SharpNav
 			if (Math.Abs(cp) > EPS)
 			{
 				//find magnitude of each point
-				float p1Sq, p2Sq, p3Sq;
+				float p1sq, p2sq, p3sq;
 
-				Vector3Extensions.Dot2D(ref p1, ref p1, out p1Sq);
-				Vector3Extensions.Dot2D(ref p2, ref p2, out p2Sq);
-				Vector3Extensions.Dot2D(ref p3, ref p3, out p3Sq);
+				Vector3Extensions.Dot2D(ref p1, ref p1, out p1sq);
+				Vector3Extensions.Dot2D(ref p2, ref p2, out p2sq);
+				Vector3Extensions.Dot2D(ref p3, ref p3, out p3sq);
 
-				c.X = (p1Sq * (p2.Z - p3.Z) + p2Sq * (p3.Z - p1.Z) + p3Sq * (p1.Z - p2.Z)) / (2 * cp);
-				c.Z = (p1Sq * (p3.X - p2.X) + p2Sq * (p1.X - p3.X) + p3Sq * (p2.X - p1.X)) / (2 * cp);
+				c.X = (p1sq * (p2.Z - p3.Z) + p2sq * (p3.Z - p1.Z) + p3sq * (p1.Z - p2.Z)) / (2 * cp);
+				c.Z = (p1sq * (p3.X - p2.X) + p2sq * (p1.X - p3.X) + p3sq * (p2.X - p1.X)) / (2 * cp);
 
 				float dx = p1.X - c.X;
 				float dy = p1.Z - c.Z;
 				r = (float)Math.Sqrt(dx * dx + dy * dy);
-				//Console.WriteLine("TRUE: " + cp + ", " + r);
 				return true;
 			}
 
@@ -1232,7 +1236,7 @@ namespace SharpNav
 				VertexHash0 = data.VertexHash0;
 				VertexHash1 = data.VertexHash1;
 				VertexHash2 = data.VertexHash2;
-				GetTriFlags(ref data, verts, vpoly, out Flags);
+				Flags = GetTriFlags(ref data, verts, vpoly);
 			}
 
 			public int this[int index]
@@ -1255,16 +1259,13 @@ namespace SharpNav
 			/// <summary>
 			/// Determine which edges of the triangle are part of the polygon
 			/// </summary>
-			/// <param name="verts">Vertices containing triangles</param>
-			/// <param name="va">Triangle vertex A</param>
-			/// <param name="vb">Triangle vertex B</param>
-			/// <param name="vc">Triangle vertex C</param>
-			/// <param name="vpoly">Polygon vertex data</param>
-			/// <param name="npoly">Number of polygons</param>
-			/// <returns></returns>
-			public static void GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly, out int flags)
+			/// <param name="t">A triangle.</param>
+			/// <param name="verts">The vertex buffer that the triangle is referencing.</param>
+			/// <param name="vpoly">Polygon vertex data.</param>
+			/// <returns>The triangle's flags.</returns>
+			public static int GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly)
 			{
-				flags = 0;
+				int flags = 0;
 
 				//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
 				//each bit stores whether two vertices are close enough to a polygon edge 
@@ -1272,6 +1273,8 @@ namespace SharpNav
 				flags |= GetEdgeFlags(verts[t.VertexHash0], verts[t.VertexHash1], vpoly) << 0;
 				flags |= GetEdgeFlags(verts[t.VertexHash1], verts[t.VertexHash2], vpoly) << 2;
 				flags |= GetEdgeFlags(verts[t.VertexHash2], verts[t.VertexHash0], vpoly) << 4;
+
+				return flags;
 			}
 		}
 

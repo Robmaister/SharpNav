@@ -10,16 +10,22 @@ using System;
 using Gwen;
 using Gwen.Control;
 
+using SharpNav;
+using SharpNav.Geometry;
+
 namespace Examples
 {
 	public partial class ExampleWindow
 	{
-		private GenSettings settings;
+		private NavMeshGenerationSettings settings;
+		private AreaIdGenerationSettings areaSettings;
+
 		private StatusBar statusBar;
 
 		private void InitializeUI()
 		{
-			settings = new GenSettings();
+			settings = NavMeshGenerationSettings.Default;
+			areaSettings = new AreaIdGenerationSettings();
 
 			DockBase dock = new DockBase(gwenCanvas);
 			dock.Dock = Pos.Fill;
@@ -99,9 +105,11 @@ namespace Examples
 			rsSettings.Dock = Pos.Top;
 			rsSettings.Height = 90;
 
-			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.001f, "N2", leftMax, rightMax, v => settings.MaxTriSlope = v);
-			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Min.Y, "N0", leftMax, rightMax, v => settings.MinLevelHeight = v);
-			Base maxLevelHeight = CreateSliderOption(rsSettings, "Max Height:", level.GetBounds().Min.Y, level.GetBounds().Max.Y, level.GetBounds().Max.Y, "N0", leftMax, rightMax, v => settings.MaxLevelHeight = v);
+			BBox3 bounds = level.GetTriangles().GetBoundingBox();
+
+			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.001f, "N2", leftMax, rightMax, v => areaSettings.MaxTriSlope = v);
+			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", bounds.Min.Y, bounds.Max.Y, bounds.Min.Y, "N0", leftMax, rightMax, v => areaSettings.MinLevelHeight = v);
+			Base maxLevelHeight = CreateSliderOption(rsSettings, "Max Height:", bounds.Min.Y, bounds.Max.Y, bounds.Max.Y, "N0", leftMax, rightMax, v => areaSettings.MaxLevelHeight = v);
 
 			GroupBox hfSettings = new GroupBox(genBase);
 			hfSettings.Text = "Heightfield";
@@ -111,14 +119,14 @@ namespace Examples
 			Base cellSizeSetting = CreateSliderOption(hfSettings, "Cell Size:", 0.1f, 2.0f, 0.3f, "N2", leftMax, rightMax, v => settings.CellSize = v);
 			Base cellHeightSetting = CreateSliderOption(hfSettings, "Cell Height:", 0.1f, 2f, 0.2f, "N2", leftMax, rightMax, v => settings.CellHeight = v);
 			Base maxSlopeSetting = CreateSliderOption(hfSettings, "Max Climb:", 0.1f, 5.0f, 0.9f, "N0", leftMax, rightMax, v => settings.MaxClimb = v);
-			Base maxHeightSetting = CreateSliderOption(hfSettings, "Max Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.MaxHeight = v);
+			Base maxHeightSetting = CreateSliderOption(hfSettings, "Max Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.AgentHeight = v);
 
 			GroupBox chfSettings = new GroupBox(genBase);
 			chfSettings.Text = "CompactHeightfield";
 			chfSettings.Dock = Pos.Top;
 			chfSettings.Height = 38;
 
-			Base erodeRadius = CreateSliderOption(chfSettings, "Erode Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => settings.ErodeRadius = v);
+			Base erodeRadius = CreateSliderOption(chfSettings, "Erode Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => settings.AgentWidth = v);
 
 			GroupBox regionSettings = new GroupBox(genBase);
 			regionSettings.Text = "Region";
@@ -143,7 +151,7 @@ namespace Examples
 			navMeshDetailSettings.Height = 65;
 
 			Base sampleDistance = CreateSliderOption(navMeshDetailSettings, "Sample Distance:", 0f, 16f, 6f, "N0", leftMax, rightMax, v => settings.SampleDistance = (int)Math.Round(v));
-			Base maxSampleError = CreateSliderOption(navMeshDetailSettings, "Max Sample Error:", 0f, 16f, 1f, "N0", leftMax, rightMax, v => settings.MaxSmapleError = (int)Math.Round(v));
+			Base maxSampleError = CreateSliderOption(navMeshDetailSettings, "Max Sample Error:", 0f, 16f, 1f, "N0", leftMax, rightMax, v => settings.MaxSampleError = (int)Math.Round(v));
 
 			Base logBase = new Base(dock);
 			dock.BottomDock.TabControl.AddPage("Log", logBase);
@@ -193,29 +201,11 @@ namespace Examples
 			return b;
 		}
 
-		//TODO move this to SharpNav with better names/restrictions and create alternate constructors.
-		private class GenSettings
+		private class AreaIdGenerationSettings
 		{
 			public float MaxTriSlope { get; set; }
 			public float MinLevelHeight { get; set; }
 			public float MaxLevelHeight { get; set; }
-			public float CellSize { get; set; }
-			public float CellHeight { get; set; }
-			public float MaxClimb { get; set; }
-			public float MaxHeight { get; set; }
-			public float ErodeRadius { get; set; }
-			public int MinRegionSize { get; set; }
-			public int MergedRegionSize { get; set; }
-			public int MaxEdgeLength { get; set; }
-			public float MaxEdgeError { get; set; }
-			public int VertsPerPoly { get; set; }
-			public int SampleDistance { get; set; }
-			public int MaxSmapleError { get; set; }
-
-			public override string ToString()
-			{
-				return "{" + CellSize + ", " + CellHeight + ", " + MaxClimb + ", " + MaxHeight + "}";
-			}
 		}
 	}
 }

@@ -33,7 +33,17 @@ namespace SharpNav
 		//region
 		private int maxRegions;
 		private int borderSize;
-		
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
+		/// </summary>
+		/// <param name="field">A <see cref="HeightField"/> to build from.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public CompactHeightfield(Heightfield field, NavMeshGenerationSettings settings)
+			: this(field, settings.VoxelAgentHeight, settings.VoxelMaxClimb)
+		{
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
 		/// </summary>
@@ -279,11 +289,11 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets an <see cref="IEnumerable<CompactSpan>"/> of the spans at a specified coordiante.
+		/// Gets an <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/> of the spans at a specified coordiante.
 		/// </summary>
 		/// <param name="x">The X coordinate.</param>
 		/// <param name="y">The Y coordinate.</param>
-		/// <returns>An <see cref="IEnumerable<CompactSpan>"/>.</returns>
+		/// <returns>An <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>.</returns>
 		public IEnumerable<CompactSpan> this[int x, int y]
 		{
 			get
@@ -300,10 +310,10 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets an <see cref="IEnumerable<CompactSpan>"/> of the spans at a specified index.
+		/// Gets an <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>s at a specified index.
 		/// </summary>
 		/// <param name="i">The index.</param>
-		/// <returns>An <see cref="IEnumerable<CompactSpan"/>.</returns>
+		/// <returns>An <see cref="IEnumerable{T}"/> of <see cref="CompactSpan"/>.</returns>
 		public IEnumerable<CompactSpan> this[int i]
 		{
 			get
@@ -378,7 +388,7 @@ namespace SharpNav
 		/// <summary>
 		/// The central method for building regions, which consists of connected, non-overlapping walkable spans.
 		/// </summary>
-		/// <param name="borderSize"></param>
+		/// <param name="borderSize">The border size</param>
 		/// <param name="minRegionArea">If smaller than this value, region will be null</param>
 		/// <param name="mergeRegionArea">Reduce unneccesarily small regions</param>
 		public void BuildRegions(int borderSize, int minRegionArea, int mergeRegionArea)
@@ -456,6 +466,12 @@ namespace SharpNav
 				spans[i].Region = regions[i];
 		}
 
+		/// <summary>
+		/// Merge two stacks to get a single stack.
+		/// </summary>
+		/// <param name="source">The original stack</param>
+		/// <param name="destination">The new stack</param>
+		/// <param name="regions">Region ids</param>
 		private static void AppendStacks(List<CompactSpanReference> source, List<CompactSpanReference> destination, RegionId[] regions)
 		{
 			for (int j = 0; j < source.Count; j++)
@@ -472,8 +488,8 @@ namespace SharpNav
 		/// Discards regions that are too small. 
 		/// </summary>
 		/// <param name="regionIds">region data</param>
-		/// <param name="minRegionArea"></param>
-		/// <param name="mergeRegionSize"></param>
+		/// <param name="minRegionArea">The minimum area a region can have</param>
+		/// <param name="mergeRegionSize">The size of the regions after merging</param>
 		/// <param name="maxRegionId">determines the number of regions available</param>
 		/// <returns>The reduced number of regions.</returns>
 		private int FilterSmallRegions(RegionId[] regionIds, int minRegionArea, int mergeRegionSize, RegionId maxRegionId)
@@ -857,11 +873,13 @@ namespace SharpNav
 				}
 			}
 		}
-
+		
 		/// <summary>
 		/// Part of building the distance field. It may or may not return an array equal to src.
 		/// </summary>
+		/// <param name="distances">The original distances.</param>
 		/// <param name="threshold">The distance threshold below which no blurring occurs.</param>
+		/// <param name="buffer">A buffer that is at least the same length as <see cref="distances"/> for working memory.</param>
 		private void BoxBlur(int[] distances, int threshold, int[] buffer = null)
 		{
 			threshold *= 2;
@@ -935,6 +953,7 @@ namespace SharpNav
 		/// <param name="floodDistances">The array of flooding distances.</param>
 		/// <param name="maxIterations">The maximum number of allowed iterations before breaking.</param>
 		/// <param name="level">The current water level.</param>
+		/// <param name="stack">A stack of CompactSpanReference values</param>
 		/// <param name="regionBuffer">A buffer to store region IDs. Must be at least the same size as <see cref="regions"/>.</param>
 		/// <param name="distanceBuffer">A buffer to store flood distances. Must be at least the same size as <see cref="floodDistances"/>.</param>
 		private void ExpandRegions(RegionId[] regions, int[] floodDistances, int maxIterations, int level, List<CompactSpanReference> stack = null, RegionId[] regionBuffer = null, int[] distanceBuffer = null)
@@ -1072,14 +1091,12 @@ namespace SharpNav
 		/// <summary>
 		/// Floods the regions at a certain level
 		/// </summary>
-		/// <param name="x">starting x</param>
-		/// <param name="y">starting y</param>
-		/// <param name="i">span index</param>
-		/// <param name="level">current level</param>
-		/// <param name="region">region id</param>
 		/// <param name="regions">source region</param>
 		/// <param name="floodDistances">source distances</param>
-		/// <returns></returns>
+		/// <param name="region">region id</param>
+		/// <param name="level">current level</param>
+		/// <param name="start">The starting location</param>
+		/// <returns>True if successful, false if otherwise</returns>
 		private bool FloodRegion(RegionId[] regions, int[] floodDistances, RegionId region, int level, ref CompactSpanReference start)
 		{
 			//flood fill mark region
@@ -1208,11 +1225,9 @@ namespace SharpNav
 		/// Try to visit all the spans. May be needed in filtering small regions. 
 		/// </summary>
 		/// <param name="regions">an array of region values</param>
-		/// <param name="x">cell x-coordinate</param>
-		/// <param name="y">cell y-coordinate</param>
-		/// <param name="i">index of span</param>
-		/// <param name="dir">direction</param>
-		/// <param name="cont">list of ints</param>
+		/// <param name="spanRef">The span to start walking from.</param>
+		/// <param name="dir">The direction to start walking in.</param>
+		/// <param name="cont">A collection of regions to append to.</param>
 		private void WalkContour(RegionId[] regions, CompactSpanReference spanRef, Direction dir, List<RegionId> cont)
 		{
 			Direction startDir = dir;
@@ -1324,10 +1339,18 @@ namespace SharpNav
 			}
 		}
 
-		private void SortCellsByLevel(RegionId[] regions, List<CompactSpanReference>[] stacks, int startlevel, int nbStacks, int logLevelsPerStack)
+		/// <summary>
+		/// Sort the compact spans
+		/// </summary>
+		/// <param name="regions">Region data</param>
+		/// <param name="stacks">Temporary stack of CompactSpanReference values</param>
+		/// <param name="startlevel">Starting level</param>
+		/// <param name="numStacks">The number of layers</param>
+		/// <param name="logLevelsPerStack">log base 2 of stack levels</param>
+		private void SortCellsByLevel(RegionId[] regions, List<CompactSpanReference>[] stacks, int startlevel, int numStacks, int logLevelsPerStack)
 		{
 			startlevel = startlevel >> logLevelsPerStack;
-			for (int j = 0; j < nbStacks; j++)
+			for (int j = 0; j < numStacks; j++)
 				stacks[j].Clear();
 
 			for (int y = 0; y < length; y++)
@@ -1342,7 +1365,7 @@ namespace SharpNav
 
 						int level = distances[i] >> logLevelsPerStack;
 						int sId = startlevel - level;
-						if (sId >= nbStacks)
+						if (sId >= numStacks)
 							continue;
 						if (sId < 0)
 							sId = 0;

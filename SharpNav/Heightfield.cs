@@ -37,14 +37,23 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Heightfield"/> class.
 		/// </summary>
-		/// <param name="min">The world-space minimum.</param>
-		/// <param name="max">The world-space maximum.</param>
+		/// <param name="b">The world-space bounds.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public Heightfield(BBox3 b, NavMeshGenerationSettings settings)
+			: this(b, settings.CellSize, settings.CellHeight)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Heightfield"/> class.
+		/// </summary>
+		/// <param name="b">The world-space bounds.</param>
 		/// <param name="cellSize">The world-space size of each cell in the XZ plane.</param>
 		/// <param name="cellHeight">The world-space height of each cell.</param>
-		public Heightfield(Vector3 min, Vector3 max, float cellSize, float cellHeight)
+		public Heightfield(BBox3 b, float cellSize, float cellHeight)
 		{
-			if (min.X > max.X || min.Y > max.Y || min.Z > max.Z)
-				throw new ArgumentException("The minimum bound of the heightfield must be less than the maximum bound of the heightfield on all axes.");
+			if (!BBox3.IsValid(ref bounds))
+				throw new ArgumentException("The bounds are considered invalid. See BBox3.IsValid for details.");
 
 			if (cellSize <= 0)
 				throw new ArgumentOutOfRangeException("cellSize", "Cell size must be greater than 0.");
@@ -54,17 +63,16 @@ namespace SharpNav
 
 			this.cellSize = cellSize;
 			this.cellHeight = cellHeight;
+			this.bounds = b;
 
-			width = (int)Math.Ceiling((max.X - min.X) / cellSize);
-			height = (int)Math.Ceiling((max.Y - min.Y) / cellHeight);
-			length = (int)Math.Ceiling((max.Z - min.Z) / cellSize);
+			//make sure the bbox contains all the possible voxels.
+			width = (int)Math.Ceiling((b.Max.X - b.Min.X) / cellSize);
+			height = (int)Math.Ceiling((b.Max.Y - b.Min.Y) / cellHeight);
+			length = (int)Math.Ceiling((b.Max.Z - b.Min.Z) / cellSize);
 
-			bounds.Min = min;
-
-			max.X = min.X + width * cellSize;
-			max.Y = min.Y + height * cellHeight;
-			max.Z = min.Z + length * cellSize;
-			bounds.Max = max;
+			bounds.Max.X = bounds.Min.X + width * cellSize;
+			bounds.Max.Y = bounds.Min.Y + height * cellHeight;
+			bounds.Max.Z = bounds.Min.Z + length * cellSize;
 
 			cells = new Cell[width * length];
 			for (int i = 0; i < cells.Length; i++)
@@ -224,6 +232,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the <see cref="Span"/> at the reference.
+		/// </summary>
+		/// <param name="spanRef">A reference to a span.</param>
+		/// <returns>The span at the reference.</returns>
 		public Span this[SpanReference spanRef]
 		{
 			get

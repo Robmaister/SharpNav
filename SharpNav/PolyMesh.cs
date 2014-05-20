@@ -29,7 +29,7 @@ namespace SharpNav
 		private const int DiagonalFlag = unchecked((int)0x80000000);
 		private const int NeighborEdgeFlag = unchecked((int)0x80000000);
 
-		private Vector3[] vertices; 
+		private PolyVertex[] vertices;
 		private Polygon[] polygons;
 
 		private int numVertsPerPoly;
@@ -39,6 +39,16 @@ namespace SharpNav
 		private float cellSize;
 		private float cellHeight;
 		private int borderSize;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PolyMesh"/> class.
+		/// </summary>
+		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
+		/// <param name="settings">The settings to build with.</param>
+		public PolyMesh(ContourSet contSet, NavMeshGenerationSettings settings)
+			: this(contSet, settings.VertsPerPoly)
+		{
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMesh"/> class by creating polygons from contours.
@@ -72,14 +82,14 @@ namespace SharpNav
 			}
 
 			//initialize the mesh members
-			List<Vector3> verts = new List<Vector3>(maxVertices);
-			List<Polygon> polys = new List<Polygon>(maxTris);
+			var verts = new List<PolyVertex>(maxVertices);
+			var polys = new List<Polygon>(maxTris);
 
 			Queue<int> vertRemoveQueue = new Queue<int>(maxVertices);
 
 			this.numVertsPerPoly = numVertsPerPoly;
 
-			Dictionary<Vector3, int> vertDict = new Dictionary<Vector3, int>(new Vector3Extensions.RoughYEqualityComparer(2));
+			var vertDict = new Dictionary<PolyVertex, int>(new PolyVertex.RoughYEqualityComparer(2));
 
 			int[] indices = new int[maxVertsPerCont]; //keep track of vertex hash codes
 			Triangle[] tris = new Triangle[maxVertsPerCont];
@@ -92,23 +102,29 @@ namespace SharpNav
 				if (cont.IsNull)
 					continue;
 
+				PolyVertex[] vertices = new PolyVertex[cont.Vertices.Length];
+
 				//triangulate contours
 				for (int i = 0; i < cont.Vertices.Length; i++)
+				{
+					var cv = cont.Vertices[i];
+					vertices[i] = new PolyVertex(cv.X, cv.Y, cv.Z);
 					indices[i] = i;
+				}
 
 				//Form triangles inside the area bounded by the contours
-				int ntris = Triangulate(cont.Vertices, indices, tris);
+				int ntris = Triangulate(vertices, indices, tris);
 				if (ntris <= 0) //TODO notify user when this happens. Logging?
 					ntris = -ntris;
 
 				//add and merge vertices
 				for (int i = 0; i < cont.Vertices.Length; i++)
 				{
-					int v = i;
-					ContourVertex cv = cont.Vertices[v];
+					var cv = cont.Vertices[i];
+					var pv = vertices[i];
 
 					//save the hash code for each vertex
-					indices[i] = AddVertex(vertDict, cv, verts);
+					indices[i] = AddVertex(vertDict, pv, verts);
 
 					if (Region.IsBorderVertex(cv.RegionId))
 					{
@@ -278,7 +294,7 @@ namespace SharpNav
 			}
 		}
 
-		public Vector3[] Verts
+		public PolyVertex[] Verts
 		{
 			get
 			{
@@ -349,7 +365,7 @@ namespace SharpNav
 		/// <param name="verts">Contour vertices</param>
 		/// <param name="indices">PolyMesh indices</param>
 		/// <returns>True, if internal diagonal. False, if otherwise.</returns>
-		public static bool Diagonal(int i, int j, ContourVertex[] verts, int[] indices)
+		public static bool Diagonal(int i, int j, PolyVertex[] verts, int[] indices)
 		{
 			return InCone(i, j, verts, indices) && Diagonalie(i, j, verts, indices);
 		}
@@ -363,7 +379,7 @@ namespace SharpNav
 		/// <param name="verts">Contour vertices</param>
 		/// <param name="indices">PolyMesh indices</param>
 		/// <returns>True, if internal. False, if otherwise.</returns>
-		public static bool InCone(int i, int j, ContourVertex[] verts, int[] indices)
+		public static bool InCone(int i, int j, PolyVertex[] verts, int[] indices)
 		{
 			int pi = RemoveDiagonalFlag(indices[i]);
 			int pj = RemoveDiagonalFlag(indices[j]);
@@ -371,11 +387,11 @@ namespace SharpNav
 			int pin1 = RemoveDiagonalFlag(indices[Prev(i, verts.Length)]);
 
 			//if P[i] is convex vertex (i + 1 left or on (i - 1, i))
-			if (ContourVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
-				return ContourVertex.IsLeft(ref verts[pi], ref verts[pj], ref verts[pin1]) && ContourVertex.IsLeft(ref verts[pj], ref verts[pi], ref verts[pi1]);
+			if (PolyVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
+				return PolyVertex.IsLeft(ref verts[pi], ref verts[pj], ref verts[pin1]) && PolyVertex.IsLeft(ref verts[pj], ref verts[pi], ref verts[pi1]);
 
 			//assume (i - 1, i, i + 1) not collinear
-			return !(ContourVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && ContourVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
+			return !(PolyVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1]) && PolyVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
 		}
 
 		/// <summary>
@@ -387,7 +403,7 @@ namespace SharpNav
 		/// <param name="verts">Contour vertices</param>
 		/// <param name="indices">PolyMesh indices</param>
 		/// <returns>True, if internal or external diagonal. False, if otherwise.</returns>
-		public static bool Diagonalie(int i, int j, ContourVertex[] verts, int[] indices)
+		public static bool Diagonalie(int i, int j, PolyVertex[] verts, int[] indices)
 		{
 			int d0 = RemoveDiagonalFlag(indices[i]);
 			int d1 = RemoveDiagonalFlag(indices[j]);
@@ -403,13 +419,13 @@ namespace SharpNav
 					int p0 = RemoveDiagonalFlag(indices[k]);
 					int p1 = RemoveDiagonalFlag(indices[k1]);
 
-					if (ContourVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
-						ContourVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
-						ContourVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
-						ContourVertex.Equal2D(ref verts[d1], ref verts[p1]))
+					if (PolyVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
+						PolyVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
+						PolyVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
+						PolyVertex.Equal2D(ref verts[d1], ref verts[p1]))
 						continue;
 
-					if (ContourVertex.Intersect(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
+					if (PolyVertex.Intersect(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
 						return false;
 				}
 			}
@@ -427,7 +443,7 @@ namespace SharpNav
 			return i + 1 < n ? i + 1 : 0;
 		}
 
-		private static bool ULeft(Vector3 a, Vector3 b, Vector3 c)
+		private static bool ULeft(PolyVertex a, PolyVertex b, PolyVertex c)
 		{
 			return (b.X - a.X) * (c.Z - a.Z) -
 				(c.X - a.X) * (b.Z - a.Z) < 0;
@@ -454,10 +470,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="verts">Vertices array</param>
 		/// <param name="indices">Indices array</param>
-		/// <param name="n">The number of vertices</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns>The number of triangles.</returns>
-		private static int Triangulate(ContourVertex[] verts, int[] indices, Triangle[] tris)
+		private static int Triangulate(PolyVertex[] verts, int[] indices, Triangle[] tris)
 		{
 			int ntris = 0;
 			int n = verts.Length;
@@ -558,12 +573,11 @@ namespace SharpNav
 		/// Generate a new vertices with (x, y, z) coordiates and return the hash code index 
 		/// </summary>
 		/// <param name="vertDict">Vertex dictionary that maps coordinates to index</param>
-		/// <param name="cv">Contour Vertex</param>
+		/// <param name="v">A vertex.</param>
 		/// <param name="verts">The list of vertices</param>
 		/// <returns>The vertex index</returns>
-		private static int AddVertex(Dictionary<Vector3, int> vertDict, ContourVertex cv, List<Vector3> verts)
+		private static int AddVertex(Dictionary<PolyVertex, int> vertDict, PolyVertex v, List<PolyVertex> verts)
 		{
-			Vector3 v = new Vector3(cv.X, cv.Y, cv.Z);
 			int index;
 			if (vertDict.TryGetValue(v, out index))
 			{
@@ -586,7 +600,7 @@ namespace SharpNav
 		/// <param name="edgeA">Shared edge's endpoint A</param>
 		/// <param name="edgeB">Shared edge's endpoint B</param>
 		/// <returns>The distance between two vertices</returns>
-		private static int GetPolyMergeValue(List<Polygon> polys, int polyA, int polyB, List<Vector3> verts, out int edgeA, out int edgeB)
+		private static int GetPolyMergeValue(List<Polygon> polys, int polyA, int polyB, List<PolyVertex> verts, out int edgeA, out int edgeB)
 		{
 			int numVertsA = polys[polyA].VertexCount;
 			int numVertsB = polys[polyB].VertexCount;
@@ -779,7 +793,7 @@ namespace SharpNav
 		/// <param name="vertices">The vertex list</param>
 		/// <param name="polys">The polygon list</param>
 		/// <param name="numVertsPerPoly">Number of vertices per polygon</param>
-		private static void BuildMeshAdjacency(List<Vector3> vertices, List<Polygon> polys, int numVertsPerPoly)
+		private static void BuildMeshAdjacency(List<PolyVertex> vertices, List<Polygon> polys, int numVertsPerPoly)
 		{
 			int maxEdgeCount = polys.Count * numVertsPerPoly;
 			int[] firstEdge = new int[vertices.Count + maxEdgeCount];
@@ -914,7 +928,7 @@ namespace SharpNav
 		/// <param name="verts">A list of vertices</param>
 		/// <param name="polys">A list of polygons</param>
 		/// <param name="vertex">The vertex to remove</param>
-		private void RemoveVertex(List<Vector3> verts, List<Polygon> polys, int vertex)
+		private void RemoveVertex(List<PolyVertex> verts, List<Polygon> polys, int vertex)
 		{
 			int numVertsPerPoly = this.numVertsPerPoly;
 
@@ -1031,15 +1045,15 @@ namespace SharpNav
 					break;
 			}
 
-			Triangle[] tris = new Triangle[hole.Count];
-			var tverts = new ContourVertex[hole.Count];
-			int[] thole = new int[hole.Count];
+			var tris = new Triangle[hole.Count];
+			var tverts = new PolyVertex[hole.Count];
+			var thole = new int[hole.Count];
 
 			//generate temp vertex array for triangulation
 			for (int i = 0; i < hole.Count; i++)
 			{
 				int polyIndex = hole[i];
-				tverts[i] = new ContourVertex(verts[polyIndex], 0);
+				tverts[i] = verts[polyIndex];
 				thole[i] = i;
 			}
 
@@ -1173,11 +1187,60 @@ namespace SharpNav
 				}
 			}
 
-			public int[] Vertices { get { return vertices; } }
-			public int[] NeighborEdges { get { return neighborEdges; } }
-			public AreaId Area { get { return area; } set { area = value; } }
-			public RegionId RegionId { get { return regionId; } set { regionId = value; } }
-			public int Flags { get { return flags; } set { flags = value; } }
+			public int[] Vertices
+			{
+				get
+				{
+					return vertices;
+				}
+			}
+
+			public int[] NeighborEdges
+			{
+				get
+				{
+					return neighborEdges;
+				}
+			}
+
+			public AreaId Area
+			{
+				get
+				{
+					return area;
+				}
+
+				set
+				{
+					area = value;
+				}
+			}
+
+			public RegionId RegionId
+			{
+				get
+				{
+					return regionId;
+				}
+
+				set
+				{
+					regionId = value;
+				}
+			}
+
+			public int Flags
+			{
+				get
+				{
+					return flags;
+				}
+
+				set
+				{
+					flags = value;
+				}
+			}
 
 			public int VertexCount
 			{

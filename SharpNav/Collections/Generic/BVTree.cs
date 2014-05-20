@@ -30,7 +30,7 @@ namespace SharpNav.Collections.Generic
 		/// <param name="nvp">The maximum number of vertices per polygon.</param>
 		/// <param name="cellSize">The size of a cell.</param>
 		/// <param name="cellHeight">The height of a cell.</param>
-		public BVTree(Vector3[] verts, PolyMesh.Polygon[] polys, int nvp, float cellSize, float cellHeight)
+		public BVTree(PolyVertex[] verts, PolyMesh.Polygon[] polys, int nvp, float cellSize, float cellHeight)
 		{
 			nodes = new Node[polys.Length * 2];
 			var items = new List<Node>();
@@ -49,9 +49,9 @@ namespace SharpNav.Collections.Generic
 					if (vi == PolyMesh.NullId)
 						break;
 
-					Vector3 v = verts[vi];
-					Vector3Extensions.ComponentMin(ref temp.Bounds.Min, ref v, out temp.Bounds.Min);
-					Vector3Extensions.ComponentMax(ref temp.Bounds.Max, ref v, out temp.Bounds.Max);
+					var v = verts[vi];
+					PolyVertex.ComponentMin(ref temp.Bounds.Min, ref v, out temp.Bounds.Min);
+					PolyVertex.ComponentMax(ref temp.Bounds.Max, ref v, out temp.Bounds.Max);
 				}
 
 				temp.Bounds.Min.Y = (int)Math.Floor((float)temp.Bounds.Min.Y * cellHeight / cellSize);
@@ -88,6 +88,49 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
+		/// Calculates the bounding box for a set of bounding boxes.
+		/// </summary>
+		/// <param name="items">The list of all the bounding boxes.</param>
+		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
+		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
+		/// <param name="bounds">The extends of all the bounding boxes.</param>
+		private static void CalcExtends(List<Node> items, int minIndex, int maxIndex, out PolyBounds bounds)
+		{
+			bounds = items[minIndex].Bounds;
+
+			for (int i = minIndex + 1; i < maxIndex; i++)
+			{
+				Node it = items[i];
+				PolyVertex.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
+				PolyVertex.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
+			}
+		}
+
+		/// <summary>
+		/// Determine whether the bounding x, y, or z axis contains the longest distance 
+		/// </summary>
+		/// <param name="x">Length of bounding x-axis</param>
+		/// <param name="y">Length of bounding y-axis</param>
+		/// <param name="z">Length of bounding z-axis</param>
+		/// <returns>Returns the a specific axis (x, y, or z)</returns>
+		private static int LongestAxis(int x, int y, int z)
+		{
+			int axis = 0;
+			int max = x;
+
+			if (y > max)
+			{
+				axis = 1;
+				max = y;
+			}
+
+			if (z > max)
+				axis = 2;
+
+			return axis;
+		}
+
+		/// <summary>
 		/// Subdivides a list of bounding boxes until it is a tree.
 		/// </summary>
 		/// <param name="items">A list of bounding boxes.</param>
@@ -108,7 +151,7 @@ namespace SharpNav.Collections.Generic
 				nodes[oldNode] = items[minIndex];
 			else
 			{
-				BBox3 bounds;
+				PolyBounds bounds;
 				CalcExtends(items, minIndex, maxIndex, out bounds);
 				nodes[oldNode].Bounds = bounds;
 
@@ -142,54 +185,11 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Calculates the bounding box for a set of bounding boxes.
-		/// </summary>
-		/// <param name="items">The list of all the bounding boxes.</param>
-		/// <param name="minIndex">The first bounding box in the list to get the extends of.</param>
-		/// <param name="maxIndex">The last bounding box in the list to get the extends of.</param>
-		/// <param name="bounds">The extends of all the bounding boxes.</param>
-		private void CalcExtends(List<Node> items, int minIndex, int maxIndex, out BBox3 bounds)
-		{
-			bounds = items[minIndex].Bounds;
-
-			for (int i = minIndex + 1; i < maxIndex; i++)
-			{
-				Node it = items[i];
-				Vector3Extensions.ComponentMin(ref it.Bounds.Min, ref bounds.Min, out bounds.Min);
-				Vector3Extensions.ComponentMax(ref it.Bounds.Max, ref bounds.Max, out bounds.Max);
-			}
-		}
-
-		/// <summary>
-		/// Determine whether the bounding x, y, or z axis contains the longest distance 
-		/// </summary>
-		/// <param name="x">Length of bounding x-axis</param>
-		/// <param name="y">Length of bounding y-axis</param>
-		/// <param name="z">Length of bounding z-axis</param>
-		/// <returns>Returns the a specific axis (x, y, or z)</returns>
-		private int LongestAxis(int x, int y, int z)
-		{
-			int axis = 0;
-			int max = x;
-
-			if (y > max)
-			{
-				axis = 1;
-				max = y;
-			}
-
-			if (z > max)
-				axis = 2;
-
-			return axis;
-		}
-
-		/// <summary>
 		/// The data stored in a bounding volume node.
 		/// </summary>
 		public struct Node
 		{
-			public BBox3 Bounds;
+			public PolyBounds Bounds;
 			public int Index;
 		}
 
@@ -201,15 +201,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the X axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.X < b.Bounds.Min.X)
+				if (x.Bounds.Min.X < y.Bounds.Min.X)
 					return -1;
 
-				if (a.Bounds.Min.X > b.Bounds.Min.X)
+				if (x.Bounds.Min.X > y.Bounds.Min.X)
 					return 1;
 
 				return 0;
@@ -224,15 +224,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the Y axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.Y < b.Bounds.Min.Y)
+				if (x.Bounds.Min.Y < y.Bounds.Min.Y)
 					return -1;
 
-				if (a.Bounds.Min.Y > b.Bounds.Min.Y)
+				if (x.Bounds.Min.Y > y.Bounds.Min.Y)
 					return 1;
 
 				return 0;
@@ -247,15 +247,15 @@ namespace SharpNav.Collections.Generic
 			/// <summary>
 			/// Compares two nodes's bounds on the Z axis.
 			/// </summary>
-			/// <param name="a">A node.</param>
-			/// <param name="b">Another node.</param>
+			/// <param name="x">A node.</param>
+			/// <param name="y">Another node.</param>
 			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node a, Node b)
+			public int Compare(Node x, Node y)
 			{
-				if (a.Bounds.Min.Z < b.Bounds.Min.Z)
+				if (x.Bounds.Min.Z < y.Bounds.Min.Z)
 					return -1;
 
-				if (a.Bounds.Min.Z > b.Bounds.Min.Z)
+				if (x.Bounds.Min.Z > y.Bounds.Min.Z)
 					return 1;
 
 				return 0;

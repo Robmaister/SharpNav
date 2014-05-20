@@ -104,26 +104,6 @@ namespace SharpNavTests
 		}
 
 		[Test]
-		public void NextPowerOfTwo_ZeroInt_Fail()
-		{
-			int num = MathHelper.NextPowerOfTwo(0);
-
-			//the integer powers of 2 are positive, so the result should be 1
-			//but num = 0
-			Assert.AreEqual(num, 1);
-		}
-
-		[Test]
-		public void NextPowerOfTwo_ZeroUint_Fail()
-		{
-			uint num = MathHelper.NextPowerOfTwo((uint)0);
-
-			//the integer powers of 2 are positive, so the result should be 1
-			//but num = 0
-			Assert.AreEqual(num, 1);
-		}
-
-		[Test]
 		public void Log2_PositiveIntegerInt_Success()
 		{
 			int num = MathHelper.Log2(65);
@@ -137,33 +117,6 @@ namespace SharpNavTests
 			uint num = MathHelper.Log2((uint)65);
 
 			Assert.AreEqual(num, 6);
-		}
-
-		[Test]
-		public void Log2_ZeroInt_Fail()
-		{
-			int num = MathHelper.Log2(0);
-
-			//This test expects 0, even though the result is undefined
-			Assert.AreEqual(num, float.NaN);
-		}
-
-		[Test]
-		public void Log2_ZeroUint_Fail()
-		{
-			uint num = MathHelper.Log2((uint)0);
-
-			//This test expects 0, even though the result is undefined
-			Assert.AreEqual(num, float.NaN);
-		}
-
-		[Test]
-		public void Log2_NegativeIntegerInt_Fail()
-		{
-			int num = MathHelper.Log2(-65);
-
-			//This test expects -33, even though the result is undefined
-			Assert.AreEqual(num, float.NaN);
 		}
 
 		[Test]

@@ -9,36 +9,48 @@ using System;
 
 namespace SharpNav.Pathfinding
 {
+	/// <summary>
+	/// Uses the PolyMesh polygon data for pathfinding
+	/// </summary>
 	public class Poly
 	{
 		private PolygonType polyType;
 
 		/// <summary>
-		/// Index to first link in linked list
+		/// Gets or sets the index to first link in linked list
 		/// </summary>
 		public int FirstLink { get; set; }
 
 		/// <summary>
-		/// Indices of polygon's vertices
+		/// Gets or sets the indices of polygon's vertices
 		/// </summary>
 		public int[] Verts { get; set; }
 
 		/// <summary>
-		/// Packed data representing neighbor polygons references and flags for each edge
+		/// Gets or sets packed data representing neighbor polygons references and flags for each edge
 		/// </summary>
 		public int[] Neis { get; set; }
 
 		//TODO turn flags into a Tag object, which is more standard for C#
 
 		/// <summary>
-		/// User defined polygon flags
+		/// Gets or sets a user defined polygon flags
 		/// </summary>
 		public int Flags { get; set; }
 
+		/// <summary>
+		/// Gets or sets the number of vertices
+		/// </summary>
 		public int VertCount { get; set; }
 
+		/// <summary>
+		/// Gets or sets the AreaId
+		/// </summary>
 		public AreaId Area { get; set; }
 
+		/// <summary>
+		/// Gets or sets the polygon type (ground or offmesh)
+		/// </summary>
 		public PolygonType PolyType
 		{
 			get

@@ -148,7 +148,7 @@ namespace Examples
 			bboxOffset = offset;
 		}
 
-		public BBox3 GetBounds()
+		/*public BBox3 GetBounds()
 		{
 			Vector3 min = Vector3.Zero, max = Vector3.Zero;
 			foreach (Triangle3 t in tris)
@@ -185,15 +185,18 @@ namespace Examples
 				max.Y = v.Y;
 			if (v.Z > max.Z)
 				max.Z = v.Z;
-		}
+		}*/
 
 		private bool TryParseVec(string[] values, int x, int y, int z, out Vector3 v)
 		{
 			v = Vector3.Zero;
 
-			if (!float.TryParse(values[x], NumberStyles.Any, CultureInfo.InvariantCulture, out v.X)) return false;
-			if (!float.TryParse(values[y], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Y)) return false;
-			if (!float.TryParse(values[z], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Z)) return false;
+			if (!float.TryParse(values[x], NumberStyles.Any, CultureInfo.InvariantCulture, out v.X))
+				return false;
+			if (!float.TryParse(values[y], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Y))
+				return false;
+			if (!float.TryParse(values[z], NumberStyles.Any, CultureInfo.InvariantCulture, out v.Z))
+				return false;
 
 			return true;
 		}

@@ -6,7 +6,7 @@
 #endregion
 
 using System;
-
+using System.Collections.Generic;
 using SharpNav.Geometry;
 
 #if MONOGAME || XNA
@@ -421,6 +421,21 @@ namespace SharpNav
 				c.Z = verts[indC + 2];
 
 				RasterizeTriangle(ref a, ref b, ref c, area);
+			}
+		}
+
+		/// <summary>
+		/// Rasterizes several triangles at once.
+		/// </summary>
+		/// <param name="tris">A collection of triangles.</param>
+		/// <param name="area">The area flags for all of the triangles.</param>
+		public void RasterizeTriangles(IEnumerable<Triangle3> tris, AreaId area = AreaId.Walkable)
+		{
+			Triangle3 t = new Triangle3();
+			foreach (Triangle3 tri in tris)
+			{
+				t = tri;
+				RasterizeTriangle(ref t, area);
 			}
 		}
 

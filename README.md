@@ -1,26 +1,42 @@
 SharpNav
 ========
+[![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav)
 
-**NOTE:** SharpNav is still in its development phase. Use it if you want, but
-there are still a decent number of bugs and the public API is still subject to
-significant changes.
+### What is it?
 
-SharpNav is a fully-managed no-dependency C# library that generates navigation
-meshes from level and model data and does pathfinding through navigation
-meshes. It is a functionally equivalent library to Mikko Monomen's
-[Recast Navigation](https://github.com/memononen/recastnavigation) for C# and
-other CLI-based languages.
+SharpNav is a library that generates and finds paths through navigation meshes. It is functionally equivalent to Mikko Monomen's wonderful [Recast Navigation](https://github.com/memononen/recastnavigation).
 
-In the future, SharpNav will have multiple released version that integrate
-with various game and graphics engines that use C# alongside the standalone
-release (mostly using each engine's math classes like `Vector3`). Some engines
-like MonoGame and Unity3D will likely also have a separate library/plugin to
-make loading navigation meshes from the content pipeline or perhaps even
-regenerating a navigation mesh when a model or scene file changes easy and
-automatic.
+### What are the benefits of SharpNav over alternatives?
 
-Once the library is mostly done I'll also start working on on a standalone
-editor to make adding off-mesh links and tweaking a navmesh a simple and
-visual process.
+There are several:
+ - **It's portable!** SharpNav is written entirely in C#, so  that the same `SharpNav.dll` will run on all .NET or Mono supported platforms, **no recompilation necessary.**
+ - **It's fast!** SharpNav was written with performance in mind and **performs competitively** with Recast.
+ - **It's free!** SharpNav is licensed under the [MIT License](https://github.com/Robmaister/SharpNav/blob/master/LICENSE).
+ - **It's clean!** SharpNav aims to maintain a **clean and concise public API** that matches that of the Base Class Library. It also strives to maintain clean source code by following style and structure rules enforced by both StyleCop and FxCop.
+ - **It's integrated!** SharpNav has compile configurations to integrate with various graphics toolkits and game engines. In the near future, there will be integration with game engine content pipelines as well.
+
+### Usage
+
+SharpNav is both highly configurable and simple to use. If you want to generate a `NavMesh` from a single mesh, it is as simple as the following block of code:
+
+``` CSharp
+//prepare the geometry from your mesh data
+var tris = TriangleEnumerable.FromIndexedVertices( ... );
+
+//use the default generation settings
+var settings = NavMeshGenerationSettings.Default;
+settings.AgentHeight = 1.7f;
+settings.AgentWidth = 0.6f;
+
+//generate the mesh
+var navMesh = NavMesh.Generate(tris, settings);
+```
+
+For finer control over the generation process, you can refer to the [Examples](https://github.com/Robmaister/SharpNav/tree/master/Examples) project.
+### Compiling
+
+SharpNav follows the standard C# project structure. It is actively developed on Windows with Visual Studio 2012 and on Linux and OS X with MonoDevelop, so it should compile just fine in those cases.
+
+SharpNav can be configured to depend on other libraries. Each one has it's own compile configuration that requires the library to be installed on the machine (in the GAC or the assembly search path), with the exception being OpenTK. OpenTK is used for the Examples project, and is therefore included in the repository. If you want to compile against a different version of OpenTK, drop in your replacement in the [`Binaries`](https://github.com/Robmaister/SharpNav/tree/master/Binaries) folder.
 
 SharpNav is proudly an [RCOS](http://rcos.rpi.edu/) project.

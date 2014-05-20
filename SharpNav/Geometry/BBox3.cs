@@ -105,6 +105,32 @@ namespace SharpNav.Geometry
 		}
 
 		/// <summary>
+		/// Determines whether a bounding box is valid. Validity consists of having no NaN values and the Min vector
+		/// to be less than the Max vector on all axes.
+		/// </summary>
+		/// <param name="b">The bounding box to validate.</param>
+		/// <returns>A value indicating whether the bounding box is valid.</returns>
+		public static bool IsValid(ref BBox3 b)
+		{
+			//None of the values can be NaN.
+			if (float.IsNaN(b.Min.X) ||
+				float.IsNaN(b.Min.Y) ||
+				float.IsNaN(b.Min.Z) ||
+				float.IsNaN(b.Max.X) ||
+				float.IsNaN(b.Max.Y) ||
+				float.IsNaN(b.Max.Z))
+				return false;
+
+			//The min must be less than the max on all axes.
+			if (b.Min.X > b.Max.X ||
+				b.Min.Y > b.Max.Y ||
+				b.Min.Z > b.Max.Z)
+				return false;
+
+			return true;
+		}
+
+		/// <summary>
 		/// Compares two bounding boxes for equality.
 		/// </summary>
 		/// <param name="left">The first bounding box.</param>
