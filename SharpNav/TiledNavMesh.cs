@@ -23,6 +23,9 @@ using UnityEngine;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// A TiledNavMesh is a continuous region, which is used for pathfinding. 
+	/// </summary>
 	public class TiledNavMesh
 	{
 		private TiledNavMeshParams parameters;
@@ -47,11 +50,11 @@ namespace SharpNav
 		public TiledNavMesh(NavMeshBuilder data)
 		{
 			TiledNavMeshParams parameters;
-			parameters.origin = data.Header.bounds.Min;
-			parameters.tileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
-			parameters.tileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
-			parameters.maxTiles = 1;
-			parameters.maxPolys = data.Header.polyCount;
+			parameters.Origin = data.Header.bounds.Min;
+			parameters.TileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
+			parameters.TileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
+			parameters.MaxTiles = 1;
+			parameters.MaxPolys = data.Header.polyCount;
 
 			if (!InitTileNavMesh(parameters))
 				return;
@@ -60,6 +63,9 @@ namespace SharpNav
 			AddTile(data, 0, ref tileRef);
 		}
 
+		/// <summary>
+		/// Gets the maximum number of tiles that can be stored
+		/// </summary>
 		public int TileCount
 		{
 			get
@@ -89,13 +95,13 @@ namespace SharpNav
 		public bool InitTileNavMesh(TiledNavMeshParams parameters)
 		{
 			this.parameters = parameters;
-			origin = parameters.origin;
-			tileWidth = parameters.tileWidth;
-			tileHeight = parameters.tileHeight;
+			origin = parameters.Origin;
+			tileWidth = parameters.TileWidth;
+			tileHeight = parameters.TileHeight;
 
 			//init tiles
-			maxTiles = parameters.maxTiles;
-			tileLookupTableSize = MathHelper.NextPowerOfTwo(parameters.maxTiles / 4);
+			maxTiles = parameters.MaxTiles;
+			tileLookupTableSize = MathHelper.NextPowerOfTwo(parameters.MaxTiles / 4);
 			if (tileLookupTableSize == 0)
 				tileLookupTableSize = 1;
 			tileLookupTableMask = tileLookupTableSize - 1;
@@ -117,8 +123,8 @@ namespace SharpNav
 			}
 			
 			//init ID generator values
-			tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxTiles));
-			polyBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.maxPolys));
+			tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.MaxTiles));
+			polyBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(parameters.MaxPolys));
 
 			//only allow 31 salt bits, since salt mask is calculated using 32-bit int and it will overflow
 			saltBits = Math.Min(31, 32 - tileBits - polyBits);
@@ -555,8 +561,6 @@ namespace SharpNav
 		/// <param name="side">Polygon edge</param>
 		/// <param name="con">Resulting Connection polygon</param>
 		/// <param name="conarea">Resulting Connection area</param>
-		/// <param name="maxcon">Maximum number of connections</param>
-		/// <returns>Number of neighboring polys</returns>
 		public void FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, List<int> con, List<float> conarea)
 		{
 			if (tile == null)
@@ -621,7 +625,7 @@ namespace SharpNav
 		/// <param name="vb">Vertex B</param>
 		/// <param name="bmin">Minimum bounds</param>
 		/// <param name="bmax">Maximum bounds</param>
-		/// <param name="side">Side</param>
+		/// <param name="side">The side</param>
 		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector3 bmin, Vector3 bmax, int side)
 		{
 			if (side == 0 || side == 4)
@@ -668,7 +672,7 @@ namespace SharpNav
 		/// Return the proper slab coordinate value depending on the 'side' value.
 		/// </summary>
 		/// <param name="va">Vertex A</param>
-		/// <param name="side">Side</param>
+		/// <param name="side">The side</param>
 		/// <returns>Slab coordinate value</returns>
 		public float GetSlabCoord(Vector3 va, int side)
 		{
@@ -700,16 +704,16 @@ namespace SharpNav
 				return false;
 
 			//Check vertical overlap
-			float aSlope = (amax[1] - amin[1]) / (amax[0] - amin[0]);
-			float aConstant = amin[1] - aSlope * amin[0];
-			float bSlope = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
-			float bConstant = bmin[1] - bSlope * bmin[0];
-			float aMinY = aSlope * minX + aConstant;
-			float aMaxY = aSlope * maxX + aConstant;
-			float bMinY = bSlope * minX + bConstant;
-			float bMaxY = bSlope * maxX + bConstant;
-			float dmin = bMinY - aMinY;
-			float dmax = bMaxY - aMaxY;
+			float leftSlope = (amax[1] - amin[1]) / (amax[0] - amin[0]);
+			float leftConstant = amin[1] - leftSlope * amin[0];
+			float rightSlope = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
+			float rightConstant = bmin[1] - rightSlope * bmin[0];
+			float leftMinY = leftSlope * minX + leftConstant;
+			float leftMaxY = leftSlope * maxX + leftConstant;
+			float rightMinY = rightSlope * minX + rightConstant;
+			float rightMaxY = rightSlope * maxX + rightConstant;
+			float dmin = rightMinY - leftMinY;
+			float dmax = rightMaxY - leftMaxY;
 
 			//Crossing segments always overlap
 			if (dmin * dmax < 0)
@@ -767,7 +771,7 @@ namespace SharpNav
 		/// Find all the polygons within a certain bounding box.
 		/// </summary>
 		/// <param name="tile">Current tile</param>
-		/// <param name="qbounds">Bounds</param>
+		/// <param name="qbounds">The bounds</param>
 		/// <param name="polys">List of polygons</param>
 		/// <returns>Number of polygons found</returns>
 		public int QueryPolygonsInTile(MeshTile tile, BBox3 qbounds, List<int> polys)
@@ -901,10 +905,10 @@ namespace SharpNav
 		/// <summary>
 		/// Find the tile at a specific location
 		/// </summary>
-		/// <param name="x">X-coordinate</param>
-		/// <param name="y">Y-coordinate</param>
-		/// <param name="layer">Layer number</param>
-		/// <returns></returns>
+		/// <param name="x">The x-coordinate</param>
+		/// <param name="y">The y-coordinate</param>
+		/// <param name="layer">The layer number</param>
+		/// <returns>The MeshTile at that location</returns>
 		public MeshTile GetTileAt(int x, int y, int layer)
 		{
 			//Find tile based off hash
@@ -927,10 +931,9 @@ namespace SharpNav
 		/// <summary>
 		/// Find and add a tile if it is found
 		/// </summary>
-		/// <param name="x">X-coordinate</param>
-		/// <param name="y">Y-coordinate</param>
+		/// <param name="x">The x-coordinate</param>
+		/// <param name="y">The y-coordinate</param>
 		/// <param name="tiles">Tile array</param>
-		/// <param name="maxTiles">Maximum number of tiles allowed</param>
 		/// <returns>Number of tiles satisfying condition</returns>
 		public int GetTilesAt(int x, int y, MeshTile[] tiles)
 		{
@@ -957,6 +960,14 @@ namespace SharpNav
 			return n;
 		}
 
+		/// <summary>
+		/// Gets the neighboring tile at that position
+		/// </summary>
+		/// <param name="x">The x-coordinate</param>
+		/// <param name="y">The y-coordinate</param>
+		/// <param name="side">The side value</param>
+		/// <param name="tiles">An array of MeshTiles</param>
+		/// <returns>The number of tiles satisfying the condition</returns>
 		public int GetNeighbourTilesAt(int x, int y, int side, MeshTile[] tiles)
 		{
 			int nx = x, ny = y;
@@ -1003,11 +1014,11 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Compute the tile hash code, which can be used in a hash table for quick lookup.
+		/// Computes the tile hash code, which can be used in a hash table for quick lookup.
 		/// </summary>
-		/// <param name="x">X-coordinate</param>
-		/// <param name="y">Y-coordinate</param>
-		/// <param name="mask">Mask</param>
+		/// <param name="x">The x-coordinate</param>
+		/// <param name="y">The y-coordinate</param>
+		/// <param name="mask">The mask</param>
 		/// <returns>Tile hash code</returns>
 		public int ComputeTileHash(int x, int y, int mask)
 		{
@@ -1018,16 +1029,32 @@ namespace SharpNav
 			return (int)(n & mask);
 		}
 
+		/// <summary>
+		/// Get the actual polygon reference
+		/// </summary>
+		/// <param name="polyBase">The base value</param>
+		/// <param name="poly">The offset</param>
+		/// <returns>The polygon reference</returns>
 		public int GetReference(int polyBase, int poly)
 		{
 			return polyBase | poly;
 		}
 
+		/// <summary>
+		/// Determines whether a link exists for that index
+		/// </summary>
+		/// <param name="index">The index</param>
+		/// <returns>True if allocated, false if not</returns>
 		public bool IsLinkAllocated(int index)
 		{
 			return index != PathfinderCommon.NULL_LINK;
 		}
 
+		/// <summary>
+		/// Determines whether the two polygons are externally linked or not
+		/// </summary>
+		/// <param name="neighbor">The neighboring polygon</param>
+		/// <returns>True if externally linked, false if not</returns>
 		public bool IsExternalLink(int neighbor)
 		{
 			return (neighbor & PathfinderCommon.EXT_LINK) != 0;
@@ -1195,22 +1222,25 @@ namespace SharpNav
 		/// <summary>
 		/// Calculates the tile location.
 		/// </summary>
-		/// <param name="pos">Position.</param>
-		/// <param name="tx">Tx.</param>
-		/// <param name="ty">Ty.</param>
+		/// <param name="pos">The position</param>
+		/// <param name="tx">The tile's x-coordinate</param>
+		/// <param name="ty">The tile's y-coordinate</param>
 		public void CalcTileLoc(ref Vector3 pos, out int tx, out int ty)
 		{
 			tx = (int)Math.Floor((pos.X - origin.X) / tileWidth);
 			ty = (int)Math.Floor((pos.Z - origin.Z) / tileHeight);
 		}
 
+		/// <summary>
+		/// The settings for the TiledNavMesh
+		/// </summary>
 		public struct TiledNavMeshParams
 		{
-			public Vector3 origin;
-			public float tileWidth;
-			public float tileHeight;
-			public int maxTiles;
-			public int maxPolys;
+			public Vector3 Origin;
+			public float TileWidth;
+			public float TileHeight;
+			public int MaxTiles;
+			public int MaxPolys;
 		}
 	}
 }

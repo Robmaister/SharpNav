@@ -21,8 +21,20 @@ namespace SharpNav
 	{
 		/// <summary>The null region.</summary>
 		Null = 0,
+
+		/// <summary>
+		/// The vertex border flag
+		/// </summary>
 		VertexBorder = 0x20000000,
+
+		/// <summary>
+		/// The area border flag
+		/// </summary>
 		AreaBorder = 0x40000000,
+
+		/// <summary>
+		/// The border flag
+		/// </summary>
 		Border = unchecked((int)0x80000000)
 	}
 
@@ -41,6 +53,10 @@ namespace SharpNav
 		private List<RegionId> connections;
 		private List<RegionId> floors;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Region" /> class.
+		/// </summary>
+		/// <param name="idNum">The id</param>
 		public Region(RegionId idNum)
 		{
 			spanCount = 0;
@@ -53,6 +69,9 @@ namespace SharpNav
 			floors = new List<RegionId>();
 		}
 
+		/// <summary>
+		/// Gets or sets the number of spans
+		/// </summary>
 		public int SpanCount
 		{
 			get
@@ -66,6 +85,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the region id 
+		/// </summary>
 		public RegionId Id 
 		{
 			get
@@ -79,6 +101,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the AreaType of this region
+		/// </summary>
 		public AreaId AreaType
 		{
 			get
@@ -92,6 +117,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets a value indicating whether this region has been remapped or not
+		/// </summary>
 		public bool Remap 
 		{
 			get
@@ -105,6 +133,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets a value indicating whether this region has been visited or not
+		/// </summary>
 		public bool Visited
 		{
 			get
@@ -118,6 +149,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the list of floor regions
+		/// </summary>
 		public List<RegionId> FloorRegions
 		{
 			get
@@ -126,6 +160,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the list of connected regions
+		/// </summary>
 		public List<RegionId> Connections
 		{
 			get
@@ -134,71 +171,138 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Add a border flag to the region 
+		/// </summary>
+		/// <param name="id">The region</param>
+		/// <returns>The region with a border flag</returns>
 		public static RegionId IdWithBorderFlag(RegionId id)
 		{
 			return id | RegionId.Border;
 		}
 
+		/// <summary>
+		/// Remove the flags from the region
+		/// </summary>
+		/// <param name="id">The region</param>
+		/// <returns>The new id without flags</returns>
 		public static RegionId RemoveFlags(RegionId id)
 		{
 			return id & (RegionId)IdMask;
 		}
 
+		/// <summary>
+		/// Determines whether the region is a border
+		/// </summary>
+		/// <param name="id">The region</param>
+		/// <returns>True if it is a border, false if not</returns>
 		public static bool IsBorder(RegionId id)
 		{
 			return (id & RegionId.Border) == RegionId.Border;
 		}
 
+		/// <summary>
+		/// Determines whether the region is null
+		/// </summary>
+		/// <param name="id">The region</param>
+		/// <returns>True if it is null, false if not</returns>
 		public static bool IsNull(RegionId id)
 		{
 			return id == RegionId.Null;
 		}
 
+		/// <summary>
+		/// Determines whether the region is a border or null
+		/// </summary>
+		/// <param name="id">The region</param>
+		/// <returns>True if border or null, false if otherwise</returns>
 		public static bool IsBorderOrNull(RegionId id)
 		{
 			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
 		}
 
+		/// <summary>
+		/// Set the region as a border vertex
+		/// </summary>
+		/// <param name="region">The region</param>
 		public static void SetBorderVertex(ref RegionId region)
 		{
 			region |= RegionId.VertexBorder;
 		}
 
+		/// <summary>
+		/// Set the region as an area border
+		/// </summary>
+		/// <param name="region">The region</param>
 		public static void SetAreaBorder(ref RegionId region)
 		{
 			region |= RegionId.AreaBorder;
 		}
 
+		/// <summary>
+		/// Determines whether the region is a border vertex
+		/// </summary>
+		/// <param name="r">The region</param>
+		/// <returns>True if it is a border vertex, false if not</returns>
 		public static bool IsBorderVertex(RegionId r)
 		{
 			return (r & RegionId.VertexBorder) != 0;
 		}
 
+		/// <summary>
+		/// Determines whether the region is an area border
+		/// </summary>
+		/// <param name="r">The region</param>
+		/// <returns>True if an area border, false if not</returns>
 		public static bool IsAreaBorder(RegionId r)
 		{
 			return (r & RegionId.AreaBorder) != 0;
 		}
 
+		/// <summary>
+		/// Determine whether two regions have the same area border
+		/// </summary>
+		/// <param name="region1">The first region</param>
+		/// <param name="region2">The second region</param>
+		/// <returns>True if equal, false if not</returns>
 		public static bool IsSameArea(RegionId region1, RegionId region2)
 		{
 			return (region1 & RegionId.AreaBorder) == (region2 & RegionId.AreaBorder);
 		}
 
+		/// <summary>
+		/// Determines whether two regions have the same id
+		/// </summary>
+		/// <param name="region1">The first region</param>
+		/// <param name="region2">The second region</param>
+		/// <returns>True if equal, false if not</returns>
 		public static bool IsSameRegion(RegionId region1, RegionId region2)
 		{
 			return ((int)region1 & IdMask) == ((int)region2 & IdMask);
 		}
 
+		/// <summary>
+		/// Determines whether the region is a border
+		/// </summary>
+		/// <returns>True if border, false if not</returns>
 		public bool IsBorder()
 		{
 			return (id & RegionId.Border) == RegionId.Border;
 		}
 
+		/// <summary>
+		/// Determines whether the region is null
+		/// </summary>
+		/// <returns>True if null, false if not</returns>
 		public bool IsNull()
 		{
 			return id == RegionId.Null;
 		}
 
+		/// <summary>
+		/// Determines whether the region is a border or null
+		/// </summary>
+		/// <returns>True if border or null, false if otherwise</returns>
 		public bool IsBorderOrNull()
 		{
 			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
@@ -261,7 +365,7 @@ namespace SharpNav
 		/// Determine whether this region can merge with another region.
 		/// </summary>
 		/// <param name="otherRegion">The other region to merge with</param>
-		/// <returns></returns>
+		/// <returns>True if the two regions can be merged, false if otherwise</returns>
 		public bool CanMergeWith(Region otherRegion)
 		{
 			//make sure areas are the same
@@ -301,7 +405,7 @@ namespace SharpNav
 		/// Merge two regions into one. Needs good testing
 		/// </summary>
 		/// <param name="otherRegion">The region to merge with</param>
-		/// <returns></returns>
+		/// <returns>True if merged successfully, false if otherwise</returns>
 		public bool MergeWithRegion(Region otherRegion)
 		{
 			RegionId thisId = id;
@@ -363,7 +467,7 @@ namespace SharpNav
 		/// <summary>
 		/// Test if region is connected to a border
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>True if connected, false if not</returns>
 		public bool IsConnectedToBorder()
 		{
 			// Region is connected to border if

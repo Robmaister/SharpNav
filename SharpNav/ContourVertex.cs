@@ -62,17 +62,10 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		//<<<<<<< HEAD
 		/// Initializes a new instance of the <see cref="SharpNav.ContourVertex"/> struct.
 		/// </summary>
 		/// <param name="vec">The array of X,Y,Z coordinates.</param>
 		/// <param name="region">The Region ID.</param>
-		//=======
-		/// Initializes a new instance of the <see cref="ContourVertex"/> struct.
-		/// </summary>
-		/// <param name="vec">The X, Y, and Z coordinates.</param>
-		/// <param name="region">The region ID.</param>
-		//>>>>>>> FETCH_HEAD
 		public ContourVertex(Vector3 vec, RegionId region)
 		{
 			this.X = (int)vec.X;

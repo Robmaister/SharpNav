@@ -270,6 +270,9 @@ namespace SharpNav
 			this.polygons = polys.ToArray();
 		}
 
+		/// <summary>
+		/// Gets the number of vertices
+		/// </summary>
 		public int VertCount
 		{
 			get
@@ -278,6 +281,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of polygons
+		/// </summary>
 		public int PolyCount
 		{
 			get
@@ -286,6 +292,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of vertices per polygon
+		/// </summary>
 		public int NumVertsPerPoly
 		{
 			get
@@ -294,6 +303,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the vertex data
+		/// </summary>
 		public PolyVertex[] Verts
 		{
 			get
@@ -302,6 +314,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the polygon data
+		/// </summary>
 		public Polygon[] Polys
 		{
 			get
@@ -318,6 +333,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the cell size
+		/// </summary>
 		public float CellSize
 		{
 			get
@@ -326,6 +344,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the cell height
+		/// </summary>
 		public float CellHeight
 		{
 			get
@@ -334,6 +355,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the border size
+		/// </summary>
 		public int BorderSize
 		{
 			get
@@ -433,32 +457,64 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Gets the previous vertex index
+		/// </summary>
+		/// <param name="i">The current index</param>
+		/// <param name="n">The max number of vertices</param>
+		/// <returns>The previous index</returns>
 		private static int Prev(int i, int n)
 		{
 			return i - 1 >= 0 ? i - 1 : n - 1;
 		}
 
+		/// <summary>
+		/// Gets the next vertex index
+		/// </summary>
+		/// <param name="i">The current index</param>
+		/// <param name="n">The max number of vertices</param>
+		/// <returns>The next index</returns>
 		private static int Next(int i, int n)
 		{
 			return i + 1 < n ? i + 1 : 0;
 		}
 
+		/// <summary>
+		/// Determines whether the vertices follow a certain order
+		/// </summary>
+		/// <param name="a">Vertex A</param>
+		/// <param name="b">Vertex B</param>
+		/// <param name="c">Vertex C</param>
+		/// <returns>True if conditions met, false if not</returns>
 		private static bool ULeft(PolyVertex a, PolyVertex b, PolyVertex c)
 		{
 			return (b.X - a.X) * (c.Z - a.Z) -
 				(c.X - a.X) * (b.Z - a.Z) < 0;
 		}
 
+		/// <summary>
+		/// Sets the diagonal flag for a vertex
+		/// </summary>
+		/// <param name="index">The vertex index</param>
 		private static void SetDiagonalFlag(ref int index)
 		{
 			index |= DiagonalFlag;
 		}
 
+		/// <summary>
+		/// Remove the diagonal flag for a vertex
+		/// </summary>
+		/// <param name="index">The vertex index</param>
+		/// <returns>The new index</returns>
 		private static int RemoveDiagonalFlag(int index)
 		{
 			return index & ~DiagonalFlag;
 		}
 
+		/// <summary>
+		/// Remove the diagonal flag for a vertex
+		/// </summary>
+		/// <param name="index">The vertex index</param>
 		private static void RemoveDiagonalFlag(ref int index)
 		{
 			index &= ~DiagonalFlag;
@@ -1187,6 +1243,9 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the indices for the vertices
+			/// </summary>
 			public int[] Vertices
 			{
 				get
@@ -1203,6 +1262,9 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the area id
+			/// </summary>
 			public AreaId Area
 			{
 				get

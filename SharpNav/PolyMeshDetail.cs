@@ -257,11 +257,21 @@ namespace SharpNav
 
 		#region Black Magic
 
+		/// <summary>
+		/// Offset for the x-coordinate
+		/// </summary>
+		/// <param name="i">Starting number</param>
+		/// <returns>A new offset</returns>
 		private static float GetJitterX(int i)
 		{
 			return (((i * 0x8da6b343) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
 		}
 
+		/// <summary>
+		/// Offset for the y-coordinate
+		/// </summary>
+		/// <param name="i">Starting number</param>
+		/// <returns>A new offset</returns>
 		private static float GetJitterY(int i)
 		{
 			return (((i * 0xd8163841) & 0xffff) / 65535.0f * 2.0f) - 1.0f;
@@ -559,8 +569,8 @@ namespace SharpNav
 		/// <param name="hp">HeightPatch</param>
 		/// <param name="verts">Detail verts</param>
 		/// <param name="tris">Detail triangles</param>
-		/// <param name="edges">Edges</param>
-		/// <param name="samples">Samples</param>
+		/// <param name="edges">The edge array</param>
+		/// <param name="samples">The samples array</param>
 		private void BuildPolyDetail(Vector3[] polyMeshVerts, int numMeshVerts, float sampleDist, float sampleMaxError, CompactHeightfield compactField, HeightPatch hp, List<Vector3> verts, List<TriangleData> tris, List<EdgeInfo> edges, List<SamplingData> samples)
 		{
 			const int MAX_VERTS = 127;
@@ -865,7 +875,7 @@ namespace SharpNav
 		/// Delaunay triangulation is used to triangulate the polygon after adding detail to the edges. The result is a mesh.
 		/// </summary>
 		/// <param name="pts">Vertex data (each vertex has 3 elements x,y,z)</param>
-		/// <param name="hull">?</param>
+		/// <param name="hull">The hull (purpose?)</param>
 		/// <param name="tris">The triangles formed.</param>
 		/// <param name="edges">The edge connections formed.</param>
 		private void DelaunayHull(List<Vector3> pts, List<int> hull, List<TriangleData> tris, List<EdgeInfo> edges)
@@ -1199,6 +1209,9 @@ namespace SharpNav
 			return dmin;
 		}
 
+		/// <summary>
+		/// The MeshData struct contains information about vertex and triangle base and offset values for array indices
+		/// </summary>
 		public struct MeshData
 		{
 			public int VertexIndex;
@@ -1302,6 +1315,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// The SamplingData struct contains information about sampled vertices from the PolyMesh
+		/// </summary>
 		private struct SamplingData
 		{
 			public int X;
