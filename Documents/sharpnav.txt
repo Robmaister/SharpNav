@@ -1,0 +1,74 @@
+SharpNav: JSON Serialization Plan
+========================================
+
+% Represents components of a vector or point in 3D space
+vector3: {
+	x: [float],
+	y: [float],
+	z: [float]
+}
+
+
+% Three points in 3D space
+triangle: {
+	a: [vector3],
+	b: [vector3],
+	c: [vector3]
+}
+
+
+% Link between two polygons
+link: {
+	reference: [int],
+	next: [int],
+	edge: [int],
+	side: [int],
+	bmin: [int],
+	bmax: [int]
+}
+
+
+% Bounded box with minimum and maximum limits
+bbox3: {
+	min_bounds: [vector3],
+	max_bounds: [vector3]
+}
+
+
+% Parameters for a navigation mesh
+tiled_nav_mesh_params {
+	origin: [vector3],
+	tile_width: [float],
+	tile_height: [float],
+	max_tiles: [int],
+	max_polys: [int]
+}
+
+
+% Tiled navigation mesh
+tiled_nav_mesh: {
+	origin: [vector3],
+	parameters: [tiled_nav_mesh_params]
+	max_files: [int],
+	
+	tile_width: [float],
+	tile_height: [float],
+	tile_lookup_table_size: [int],
+	tile_lookup_table_mask: [int],
+	
+	salt_bits: [int],
+	tile_bits: [int],
+	poly_bits: [int],
+
+	next_free: [mesh_tile],
+	
+	pos_lookup: [
+		[mesh_tile]
+		...
+	],
+	
+	tiles: [
+		[mesh_tile]
+		...
+	]
+}
