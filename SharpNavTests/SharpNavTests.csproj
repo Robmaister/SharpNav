@@ -72,6 +72,9 @@
     <AssemblyOriginatorKeyFile>SharpNavTests.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\Binaries\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="nunit.framework">
@@ -102,6 +105,7 @@
     <Compile Include="CompactHeightfieldTests.cs" />
     <Compile Include="CompactSpanTests.cs" />
     <Compile Include="ContourTests.cs" />
+    <Compile Include="Libraries\JsonTest.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
