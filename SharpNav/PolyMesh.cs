@@ -22,6 +22,9 @@ using UnityEngine;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// The class of Poly mesh.
+	/// </summary>
 	public class PolyMesh
 	{
 		public const int NullId = -1;
@@ -325,6 +328,10 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the bounds.
+		/// </summary>
+		/// <value>The bounds.</value>
 		public BBox3 Bounds
 		{
 			get
@@ -366,16 +373,31 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Determines if is boundary edge with the specified flag.
+		/// </summary>
+		/// <returns><c>true</c> if is boundary edge the specified flag; otherwise, <c>false</c>.</returns>
+		/// <param name="flag">Flag.</param>
 		public static bool IsBoundaryEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) != 0;
 		}
 
+		/// <summary>
+		/// Determines if is interior edge with the specified flag.
+		/// </summary>
+		/// <returns><c>true</c> if is interior edge the specified flag; otherwise, <c>false</c>.</returns>
+		/// <param name="flag">Flag.</param>
 		public static bool IsInteriorEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) == 0;
 		}
 
+		/// <summary>
+		/// Determines if is diagonal flag on the specified index.
+		/// </summary>
+		/// <returns><c>true</c> if is diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
+		/// <param name="index">Index.</param>
 		public static bool IsDiagonalFlagOn(int index)
 		{
 			return (index & DiagonalFlag) == DiagonalFlag;
@@ -1219,7 +1241,7 @@ namespace SharpNav
 				Area = area;
 			}
 		}
-
+			
 		public class Polygon
 		{
 			private int[] vertices; //"numVertsPerPoly" elements
@@ -1246,6 +1268,7 @@ namespace SharpNav
 			/// <summary>
 			/// Gets or sets the indices for the vertices
 			/// </summary>
+			/// <value>The vertices.</value>
 			public int[] Vertices
 			{
 				get
@@ -1254,6 +1277,10 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets the neighbor edges.
+			/// </summary>
+			/// <value>The neighbor edges.</value>
 			public int[] NeighborEdges
 			{
 				get
@@ -1278,6 +1305,10 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the region identifier.
+			/// </summary>
+			/// <value>The region identifier.</value>
 			public RegionId RegionId
 			{
 				get
@@ -1291,6 +1322,10 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the flags.
+			/// </summary>
+			/// <value>The flags.</value>
 			public int Flags
 			{
 				get
@@ -1304,6 +1339,10 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Gets the the number of vertex.
+			/// </summary>
+			/// <value>The vertex count.</value>
 			public int VertexCount
 			{
 				get
@@ -1316,6 +1355,11 @@ namespace SharpNav
 				}
 			}
 
+			/// <summary>
+			/// Determine if the vertex is in polygon.
+			/// </summary>
+			/// <returns><c>true</c>, if vertex was containsed, <c>false</c> otherwise.</returns>
+			/// <param name="vertex">The Vertex.</param>
 			public bool ContainsVertex(int vertex)
 			{
 				//iterate through all the vertices
