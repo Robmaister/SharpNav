@@ -23,6 +23,9 @@ using UnityEngine;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// The PolyMeshDetail class is a combination of a PolyMesh and a CompactHeightfield merged together
+	/// </summary>
 	public class PolyMeshDetail
 	{
 		//9 x 2
@@ -203,10 +206,20 @@ namespace SharpNav
 		/// </summary>
 		private enum EdgeValues
 		{
+			/// <summary>
+			/// Edge has not been initialized
+			/// </summary>
 			Undefined = -1,
+
+			/// <summary>
+			/// Edge is hull
+			/// </summary>
 			Hull = -2
 		}
-
+		
+		/// <summary>
+		/// Gets the number of meshes (MeshData)
+		/// </summary>
 		public int MeshCount
 		{
 			get
@@ -215,6 +228,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of vertices
+		/// </summary>
 		public int VertCount
 		{
 			get
@@ -223,6 +239,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of triangles
+		/// </summary>
 		public int TrisCount
 		{
 			get
@@ -231,6 +250,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the mesh data		
+		/// </summary>
 		public MeshData[] Meshes
 		{
 			get
@@ -239,6 +261,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the vertex data
+		/// </summary>
 		public Vector3[] Verts
 		{
 			get
@@ -247,6 +272,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the triangle data
+		/// </summary>
 		public TriangleData[] Tris
 		{
 			get
@@ -282,12 +310,10 @@ namespace SharpNav
 		/// <summary>
 		/// Determine whether an edge of the triangle is part of the polygon (1 if true, 0 if false)
 		/// </summary>
-		/// <param name="verts">Vertices containing triangles</param>
 		/// <param name="va">Triangle vertex A</param>
 		/// <param name="vb">Triangle vertex B</param>
 		/// <param name="vpoly">Polygon vertex data</param>
-		/// <param name="npoly">Number of polygons</param>
-		/// <returns></returns>
+		/// <returns>1 if the vertices are close, 0 if otherwise</returns>
 		private static int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly)
 		{
 			//true if edge is part of polygon
@@ -419,6 +445,7 @@ namespace SharpNav
 		/// <param name="verts">PolyMesh Vertices</param>
 		/// <param name="borderSize">Heightfield border size</param>
 		/// <param name="hp">HeightPatch which extracts heightfield data</param>
+		/// <param name="stack">Temporary stack of CompactSpanReferences</param>
 		private void GetHeightDataSeedsFromVertices(CompactHeightfield compactField, PolyMesh.Polygon poly, int polyCount, PolyVertex[] verts, int borderSize, HeightPatch hp, List<CompactSpanReference> stack)
 		{
 			hp.SetAll(0);
@@ -565,8 +592,8 @@ namespace SharpNav
 		/// <param name="numMeshVerts">Number of PolyMesh vertices</param>
 		/// <param name="sampleDist">Sampling distance</param>
 		/// <param name="sampleMaxError">Maximum sampling error</param>
-		/// <param name="compactField">CompactHeightfield</param>
-		/// <param name="hp">HeightPatch</param>
+		/// <param name="compactField">THe compactHeightfield</param>
+		/// <param name="hp">The heightPatch</param>
 		/// <param name="verts">Detail verts</param>
 		/// <param name="tris">Detail triangles</param>
 		/// <param name="edges">The edge array</param>
@@ -818,10 +845,11 @@ namespace SharpNav
 		/// <summary>
 		/// Use the HeightPatch data to obtain a height for a certain location.
 		/// </summary>
-		/// <param name="loc">Location</param>
+		/// <param name="loc">The location</param>
 		/// <param name="invCellSize">Reciprocal of cell size</param>
 		/// <param name="cellHeight">Cell height</param>
 		/// <param name="hp">Height patch</param>
+		/// <returns>The height</returns>
 		private int GetHeight(Vector3 loc, float invCellSize, float cellHeight, HeightPatch hp)
 		{
 			int ix = (int)Math.Floor(loc.X * invCellSize + 0.01f);
@@ -963,6 +991,13 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// If a face has missing edges, then fill in those edges
+		/// </summary>
+		/// <param name="pts">List of points</param>
+		/// <param name="edges">List of edges</param>
+		/// <param name="nfaces">The total number of faces</param>
+		/// <param name="curEdge">The current index in the edge list</param>
 		private void CompleteFacet(List<Vector3> pts, List<EdgeInfo> edges, ref int nfaces, int curEdge)
 		{
 			const float EPS = 1e-5f;
@@ -1120,7 +1155,7 @@ namespace SharpNav
 		/// <param name="edges">Edge list</param>
 		/// <param name="s1">An edge's endpt 0</param>
 		/// <param name="t1">An edge's endpt1</param>
-		/// <returns></returns>
+		/// <returns>True if there is overlap, false if not</returns>
 		private bool OverlapEdges(List<Vector3> pts, List<EdgeInfo> edges, int s1, int t1)
 		{
 			Vector3 ps1 = pts[s1], pt1 = pts[t1];
@@ -1220,7 +1255,9 @@ namespace SharpNav
 			public int TriangleCount;
 		}
 
-		//triangle info contains three vertex hashes and a flag
+		/// <summary>
+		/// The triangle info contains three vertex hashes and a flag
+		/// </summary>
 		public struct TriangleData
 		{
 			public int VertexHash0;
@@ -1228,6 +1265,12 @@ namespace SharpNav
 			public int VertexHash2;
 			public int Flags; //indicates which 3 vertices are part of the polygon
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="TriangleData" /> struct.
+			/// </summary>
+			/// <param name="hash0">Vertex A</param>
+			/// <param name="hash1">Vertex B</param>
+			/// <param name="hash2">Vertex C</param>
 			public TriangleData(int hash0, int hash1, int hash2)
 			{
 				VertexHash0 = hash0;
@@ -1236,6 +1279,13 @@ namespace SharpNav
 				Flags = 0;
 			}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="TriangleData" /> struct.
+			/// </summary>
+			/// <param name="hash0">Vertex A</param>
+			/// <param name="hash1">Vertex B</param>
+			/// <param name="hash2">Vertex C</param>
+			/// <param name="flags">The triangle flags</param>
 			public TriangleData(int hash0, int hash1, int hash2, int flags)
 			{
 				VertexHash0 = hash0;
@@ -1244,6 +1294,12 @@ namespace SharpNav
 				Flags = flags;
 			}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="TriangleData" /> struct.
+			/// </summary>
+			/// <param name="data">The triangle itself</param>
+			/// <param name="verts">The list of all the vertices</param>
+			/// <param name="vpoly">The list of the polygon's vertices</param>
 			public TriangleData(TriangleData data, List<Vector3> verts, Vector3[] vpoly)
 			{
 				VertexHash0 = data.VertexHash0;
@@ -1291,6 +1347,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// The EdgeInfo struct contains two enpoints and the faces/polygons to the left and right of that edge.
+		/// </summary>
 		private struct EdgeInfo
 		{
 			public int EndPt0;
@@ -1298,6 +1357,13 @@ namespace SharpNav
 			public int LeftFace;
 			public int RightFace;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="EdgeInfo"/> struct.
+			/// </summary>
+			/// <param name="endPt0">Point A</param>
+			/// <param name="endPt1">Point B</param>
+			/// <param name="leftFace">The face to the left of the edge</param>
+			/// <param name="rightFace">The face to the right of the edge</param>
 			public EdgeInfo(int endPt0, int endPt1, int leftFace, int rightFace)
 			{
 				this.EndPt0 = endPt0;
@@ -1306,6 +1372,13 @@ namespace SharpNav
 				this.RightFace = rightFace;
 			}
 
+			/// <summary>
+			/// If the left face is undefined, assign it a value
+			/// </summary>
+			/// <param name="e">The current edge</param>
+			/// <param name="s">Endpoint A</param>
+			/// <param name="t">Endpoint B</param>
+			/// <param name="f">The face value</param>
 			public static void UpdateLeftFace(ref EdgeInfo e, int s, int t, int f)
 			{
 				if (e.EndPt0 == s && e.EndPt1 == t && e.LeftFace == (int)EdgeValues.Undefined)
@@ -1325,6 +1398,13 @@ namespace SharpNav
 			public int Z;
 			public bool IsSampled;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="SamplingData"/> struct.
+			/// </summary>
+			/// <param name="x">The x-coordinate</param>
+			/// <param name="y">The y-coordinate</param>
+			/// <param name="z">The z-coordinate</param>
+			/// <param name="isSampled">Whether or not the vertex has been sampled</param>
 			public SamplingData(int x, int y, int z, bool isSampled)
 			{
 				this.X = x;

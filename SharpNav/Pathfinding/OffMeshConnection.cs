@@ -19,20 +19,45 @@ using UnityEngine;
 
 namespace SharpNav.Pathfinding
 {
+	/// <summary>
+	/// An offmesh connection links two polygons, which are not directly adjacent, but are accessibly through
+	/// other means (jumping, climbing, etc...).
+	/// </summary>
 	public class OffMeshConnection
 	{
-		public Vector3 Pos0 { get; set; } //the endpoints of the connection
+		/// <summary>
+		/// Gets or sets the first endpoint of the connection
+		/// </summary>
+		public Vector3 Pos0 { get; set; } 
 
+		/// <summary>
+		/// Gets or sets the second endpoint of the connection
+		/// </summary>
 		public Vector3 Pos1 { get; set; }
 
+		/// <summary>
+		/// Gets or sets the radius
+		/// </summary>
 		public float Radius { get; set; }
 
+		/// <summary>
+		/// Gets or sets the polygon's index
+		/// </summary>
 		public int Poly { get; set; }
 
-		public int Flags { get; set; } //assigned flag from Poly
+		/// <summary>
+		/// Gets or sets the polygon flag
+		/// </summary>
+		public int Flags { get; set; }
 
-		public int Side { get; set; } //endpoint side
+		/// <summary>
+		/// Gets or sets the endpoint's side
+		/// </summary>
+		public int Side { get; set; } 
 
-		public uint UserId { get; set; } //id of offmesh connection
+		/// <summary>
+		/// Gets or sets the id 
+		/// </summary>
+		public uint UserId { get; set; } 
 	}
 }

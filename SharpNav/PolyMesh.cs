@@ -374,30 +374,30 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determines if is boundary edge with the specified flag.
+		/// Determines if it is a boundary edge with the specified flag.
 		/// </summary>
-		/// <returns><c>true</c> if is boundary edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">Flag.</param>
+		/// <returns><c>true</c> if it is a boundary edge the specified flag; otherwise, <c>false</c>.</returns>
+		/// <param name="flag">The flag</param>
 		public static bool IsBoundaryEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) != 0;
 		}
 
 		/// <summary>
-		/// Determines if is interior edge with the specified flag.
+		/// Determines if it is an interior edge with the specified flag.
 		/// </summary>
-		/// <returns><c>true</c> if is interior edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">Flag.</param>
+		/// <returns><c>true</c> if it is an interior edge the specified flag; otherwise, <c>false</c>.</returns>
+		/// <param name="flag">The flag</param>
 		public static bool IsInteriorEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) == 0;
 		}
 
 		/// <summary>
-		/// Determines if is diagonal flag on the specified index.
+		/// Determines if it is a diagonal flag on the specified index.
 		/// </summary>
-		/// <returns><c>true</c> if is diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
-		/// <param name="index">Index.</param>
+		/// <returns><c>true</c> if it is a diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
+		/// <param name="index">The index</param>
 		public static bool IsDiagonalFlagOn(int index)
 		{
 			return (index & DiagonalFlag) == DiagonalFlag;
@@ -1207,6 +1207,9 @@ namespace SharpNav
 			polys.AddRange(mergePolys);
 		}
 
+		/// <summary>
+		/// A triangle contains three indices.
+		/// </summary>
 		private struct Triangle
 		{
 			public int Index0;
@@ -1214,6 +1217,9 @@ namespace SharpNav
 			public int Index2;
 		}
 
+		/// <summary>
+		/// Two adjacent vertices form an edge
+		/// </summary>
 		private struct AdjacencyEdge
 		{
 			public int Vert0;
@@ -1226,6 +1232,9 @@ namespace SharpNav
 			public int Poly1;
 		}
 
+		/// <summary>
+		/// Another edge structure, but this one contains the RegionId and AreaId 
+		/// </summary>
 		private struct Edge
 		{
 			public int Vert0;
@@ -1233,6 +1242,13 @@ namespace SharpNav
 			public RegionId Region;
 			public AreaId Area;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="Edge"/> struct.
+			/// </summary>
+			/// <param name="vert0">Vertex A</param>
+			/// <param name="vert1">Vertex B</param>
+			/// <param name="region">Region id</param>
+			/// <param name="area">Area id</param>
 			public Edge(int vert0, int vert1, RegionId region, AreaId area)
 			{
 				Vert0 = vert0;
@@ -1242,6 +1258,9 @@ namespace SharpNav
 			}
 		}
 			
+		/// <summary>
+		/// Each polygon is a collection of vertices. It is the basic unit of the PolyMesh
+		/// </summary>
 		public class Polygon
 		{
 			private int[] vertices; //"numVertsPerPoly" elements
@@ -1250,6 +1269,13 @@ namespace SharpNav
 			private RegionId regionId;
 			private int flags;
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="Polygon" /> class.
+			/// </summary>
+			/// <param name="numVertsPerPoly">The number of vertices per polygon</param>
+			/// <param name="area">The AreaId</param>
+			/// <param name="regionId">The RegionId</param>
+			/// <param name="flags">Polygon flags</param>
 			public Polygon(int numVertsPerPoly, AreaId area, RegionId regionId, int flags)
 			{
 				vertices = new int[numVertsPerPoly];
@@ -1266,7 +1292,7 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Gets or sets the indices for the vertices
+			/// Gets the indices for the vertices
 			/// </summary>
 			/// <value>The vertices.</value>
 			public int[] Vertices
