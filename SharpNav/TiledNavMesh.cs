@@ -1245,24 +1245,24 @@ namespace SharpNav
 			public int MaxPolys;
 		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        public bool SaveJson(string filename)
-        {
-            return true; 
-        }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="filename"></param>
+		/// <returns></returns>
+		public bool SaveJson(string filename)
+		{
+			return true; 
+		}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <returns></returns>
-        public bool LoadJson(string filename)
-        {
-            return true;
-        }
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="filename"></param>
+		/// <returns></returns>
+		public bool LoadJson(string filename)
+		{
+			return true;
+		}
 	}
 }

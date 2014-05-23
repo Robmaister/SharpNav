@@ -377,9 +377,7 @@ namespace SharpNav
 		/// Determines if it is a boundary edge with the specified flag.
 		/// </summary>
 		/// <returns><c>true</c> if is boundary edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">The Flag.</param>
-		/// <returns><c>true</c> if it is a boundary edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">The flag</param>
+		/// <param name="flag">The flag.</param>
 		public static bool IsBoundaryEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) != 0;
@@ -389,9 +387,7 @@ namespace SharpNav
 		/// Determines if it is an interior edge with the specified flag.
 		/// </summary>
 		/// <returns><c>true</c> if is interior edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">The Flag.</param>
-		/// <returns><c>true</c> if it is an interior edge the specified flag; otherwise, <c>false</c>.</returns>
-		/// <param name="flag">The flag</param>
+		/// <param name="flag">The flag.</param>
 		public static bool IsInteriorEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) == 0;
@@ -400,10 +396,8 @@ namespace SharpNav
 		/// <summary>
 		/// Determines if it is a diagonal flag on the specified index.
 		/// </summary>
-		/// <returns><c>true</c> if is diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
-		/// <param name="index">The Index.</param>
-		/// <returns><c>true</c> if it is a diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
 		/// <param name="index">The index</param>
+		/// <returns><c>true</c> if it is a diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
 		public static bool IsDiagonalFlagOn(int index)
 		{
 			return (index & DiagonalFlag) == DiagonalFlag;
@@ -1214,7 +1208,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The Triangle.
 		/// A triangle contains three indices.
 		/// </summary>
 		private struct Triangle
@@ -1225,8 +1218,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The adjacentEdge.
-		/// Two adjacent vertices form an edge
+		/// Two adjacent vertices form an edge.
 		/// </summary>
 		private struct AdjacencyEdge
 		{
@@ -1241,8 +1233,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The edge.
-		/// Another edge structure, but this one contains the RegionId and AreaId 
+		/// Another edge structure, but this one contains the RegionId and AreaId.
 		/// </summary>
 		private struct Edge
 		{
@@ -1252,12 +1243,6 @@ namespace SharpNav
 			public AreaId Area;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="SharpNav.PolyMesh+Edge"/> struct.
-			/// </summary>
-			/// <param name="vert0">The Vert0.</param>
-			/// <param name="vert1">The Vert1.</param>
-			/// <param name="region">The Region.</param>
-			/// <param name="area">The Area.</param>
 			/// Initializes a new instance of the <see cref="Edge"/> struct.
 			/// </summary>
 			/// <param name="vert0">Vertex A</param>
@@ -1274,7 +1259,6 @@ namespace SharpNav
 		}
 			
 		/// <summary>
-		/// The class of Polygon.
 		/// Each polygon is a collection of vertices. It is the basic unit of the PolyMesh
 		/// </summary>
 		public class Polygon
@@ -1286,15 +1270,9 @@ namespace SharpNav
 			private int flags;
 
 			/// <summary>
-			/// Initializes a new instance of the <see cref="SharpNav.PolyMesh+Polygon"/> class.
-			/// </summary>
-			/// <param name="numVertsPerPoly">Number verts per poly.</param>
-			/// <param name="area">The Area.</param>
-			/// <param name="regionId">Region identifier.</param>
-			/// <param name="flags">The Flags.</param>
 			/// Initializes a new instance of the <see cref="Polygon" /> class.
 			/// </summary>
-			/// <param name="numVertsPerPoly">The number of vertices per polygon</param>
+			/// <param name="numVertsPerPoly">The number of vertices per polygon.</param>
 			/// <param name="area">The AreaId</param>
 			/// <param name="regionId">The RegionId</param>
 			/// <param name="flags">Polygon flags</param>
@@ -1314,8 +1292,7 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Gets the vertices.
-			/// Gets the indices for the vertices
+			/// Gets the indices for the vertices.
 			/// </summary>
 			/// <value>The vertices.</value>
 			public int[] Vertices

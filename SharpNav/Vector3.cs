@@ -27,6 +27,8 @@ SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 
+using Newtonsoft.Json;
+
 namespace SharpNav
 {
 	/// <summary>
@@ -99,13 +101,9 @@ namespace SharpNav
 
 		#region Public Members
 
-		#region Indexer
-
 		/// <summary>
 		/// Gets or sets the value at the index of the Vector.
 		/// </summary>
-		/// <param name="index">The index.</param>
-		/// <returns>The component of the vector at index.</returns>
 		public float this[int index]
 		{
 			get
@@ -142,14 +140,13 @@ namespace SharpNav
 			}
 		}
 
-		#endregion
-
 		#region Instance
 
 		#region public void Add()
 
 		/// <summary>Add the Vector passed as parameter to this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
+		[CLSCompliant(false)]
 		[Obsolete("Use static Add() method instead.")]
 		public void Add(Vector3 right)
 		{
@@ -175,6 +172,7 @@ namespace SharpNav
 
 		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
+		[CLSCompliant(false)]
 		[Obsolete("Use static Subtract() method instead.")]
 		public void Sub(Vector3 right)
 		{
@@ -300,6 +298,7 @@ namespace SharpNav
 
 		/// <summary>Scales this instance by the given parameter.</summary>
 		/// <param name="scale">The scaling of the individual components.</param>
+		[CLSCompliant(false)]
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(Vector3 scale)
 		{
@@ -351,6 +350,11 @@ namespace SharpNav
 		/// Defines an instance with all components set to 1.
 		/// </summary>
 		public static readonly Vector3 One = new Vector3(1, 1, 1);
+
+		/// <summary>
+		/// Defines the size of the Vector3 struct in bytes.
+		/// </summary>
+		public static readonly int SizeInBytes = Marshal.SizeOf(new Vector3());
 
 		#endregion
 
@@ -837,11 +841,10 @@ namespace SharpNav
 		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
 		public static Vector3 Lerp(Vector3 a, Vector3 b, float blend)
 		{
-			Vector3 result = new Vector3();
-			result.X = blend * (b.X - a.X) + a.X;
-			result.Y = blend * (b.Y - a.Y) + a.Y;
-			result.Z = blend * (b.Z - a.Z) + a.Z;
-			return result;
+			a.X = blend * (b.X - a.X) + a.X;
+			a.Y = blend * (b.Y - a.Y) + a.Y;
+			a.Z = blend * (b.Z - a.Z) + a.Z;
+			return a;
 		}
 
 		/// <summary>
@@ -937,26 +940,31 @@ namespace SharpNav
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the X, Z, and Y components of this instance.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Xzy { get { return new Vector3(X, Z, Y); } set { X = value.X; Z = value.Y; Y = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Y, X, and Z components of this instance.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Yxz { get { return new Vector3(Y, X, Z); } set { Y = value.X; X = value.Y; Z = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Y, Z, and X components of this instance.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Yzx { get { return new Vector3(Y, Z, X); } set { Y = value.X; Z = value.Y; X = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Z, X, and Y components of this instance.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Zxy { get { return new Vector3(Z, X, Y); } set { Z = value.X; X = value.Y; Y = value.Z; } }
 
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector3 with the Z, Y, and X components of this instance.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Zyx { get { return new Vector3(Z, Y, X); } set { Z = value.X; Y = value.Y; X = value.Z; } }
 
 		#endregion
@@ -1031,6 +1039,20 @@ namespace SharpNav
 			vec.X *= scale;
 			vec.Y *= scale;
 			vec.Z *= scale;
+			return vec;
+		}
+
+		/// <summary>
+		/// Component-wise multiplication between the specified instance by a scale vector.
+		/// </summary>
+		/// <param name="scale">Left operand.</param>
+		/// <param name="vec">Right operand.</param>
+		/// <returns>Result of multiplication.</returns>
+		public static Vector3 operator *(Vector3 vec, Vector3 scale)
+		{
+			vec.X *= scale.X;
+			vec.Y *= scale.Y;
+			vec.Z *= scale.Z;
 			return vec;
 		}
 
