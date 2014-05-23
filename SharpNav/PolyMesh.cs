@@ -376,13 +376,10 @@ namespace SharpNav
 		/// <summary>
 		/// Determines if it is a boundary edge with the specified flag.
 		/// </summary>
-<<<<<<< HEAD
 		/// <returns><c>true</c> if is boundary edge the specified flag; otherwise, <c>false</c>.</returns>
 		/// <param name="flag">The Flag.</param>
-=======
 		/// <returns><c>true</c> if it is a boundary edge the specified flag; otherwise, <c>false</c>.</returns>
 		/// <param name="flag">The flag</param>
->>>>>>> FETCH_HEAD
 		public static bool IsBoundaryEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) != 0;
@@ -391,13 +388,10 @@ namespace SharpNav
 		/// <summary>
 		/// Determines if it is an interior edge with the specified flag.
 		/// </summary>
-<<<<<<< HEAD
 		/// <returns><c>true</c> if is interior edge the specified flag; otherwise, <c>false</c>.</returns>
 		/// <param name="flag">The Flag.</param>
-=======
 		/// <returns><c>true</c> if it is an interior edge the specified flag; otherwise, <c>false</c>.</returns>
 		/// <param name="flag">The flag</param>
->>>>>>> FETCH_HEAD
 		public static bool IsInteriorEdge(int flag)
 		{
 			return (flag & NeighborEdgeFlag) == 0;
@@ -406,13 +400,10 @@ namespace SharpNav
 		/// <summary>
 		/// Determines if it is a diagonal flag on the specified index.
 		/// </summary>
-<<<<<<< HEAD
 		/// <returns><c>true</c> if is diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
 		/// <param name="index">The Index.</param>
-=======
 		/// <returns><c>true</c> if it is a diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
 		/// <param name="index">The index</param>
->>>>>>> FETCH_HEAD
 		public static bool IsDiagonalFlagOn(int index)
 		{
 			return (index & DiagonalFlag) == DiagonalFlag;
@@ -1223,11 +1214,8 @@ namespace SharpNav
 		}
 
 		/// <summary>
-<<<<<<< HEAD
 		/// The Triangle.
-=======
 		/// A triangle contains three indices.
->>>>>>> FETCH_HEAD
 		/// </summary>
 		private struct Triangle
 		{
@@ -1237,11 +1225,8 @@ namespace SharpNav
 		}
 
 		/// <summary>
-<<<<<<< HEAD
 		/// The adjacentEdge.
-=======
 		/// Two adjacent vertices form an edge
->>>>>>> FETCH_HEAD
 		/// </summary>
 		private struct AdjacencyEdge
 		{
@@ -1256,11 +1241,8 @@ namespace SharpNav
 		}
 
 		/// <summary>
-<<<<<<< HEAD
 		/// The edge.
-=======
 		/// Another edge structure, but this one contains the RegionId and AreaId 
->>>>>>> FETCH_HEAD
 		/// </summary>
 		private struct Edge
 		{
@@ -1270,21 +1252,18 @@ namespace SharpNav
 			public AreaId Area;
 
 			/// <summary>
-<<<<<<< HEAD
 			/// Initializes a new instance of the <see cref="SharpNav.PolyMesh+Edge"/> struct.
 			/// </summary>
 			/// <param name="vert0">The Vert0.</param>
 			/// <param name="vert1">The Vert1.</param>
 			/// <param name="region">The Region.</param>
 			/// <param name="area">The Area.</param>
-=======
 			/// Initializes a new instance of the <see cref="Edge"/> struct.
 			/// </summary>
 			/// <param name="vert0">Vertex A</param>
 			/// <param name="vert1">Vertex B</param>
 			/// <param name="region">Region id</param>
 			/// <param name="area">Area id</param>
->>>>>>> FETCH_HEAD
 			public Edge(int vert0, int vert1, RegionId region, AreaId area)
 			{
 				Vert0 = vert0;
@@ -1295,11 +1274,8 @@ namespace SharpNav
 		}
 			
 		/// <summary>
-<<<<<<< HEAD
 		/// The class of Polygon.
-=======
 		/// Each polygon is a collection of vertices. It is the basic unit of the PolyMesh
->>>>>>> FETCH_HEAD
 		/// </summary>
 		public class Polygon
 		{
@@ -1310,21 +1286,18 @@ namespace SharpNav
 			private int flags;
 
 			/// <summary>
-<<<<<<< HEAD
 			/// Initializes a new instance of the <see cref="SharpNav.PolyMesh+Polygon"/> class.
 			/// </summary>
 			/// <param name="numVertsPerPoly">Number verts per poly.</param>
 			/// <param name="area">The Area.</param>
 			/// <param name="regionId">Region identifier.</param>
 			/// <param name="flags">The Flags.</param>
-=======
 			/// Initializes a new instance of the <see cref="Polygon" /> class.
 			/// </summary>
 			/// <param name="numVertsPerPoly">The number of vertices per polygon</param>
 			/// <param name="area">The AreaId</param>
 			/// <param name="regionId">The RegionId</param>
 			/// <param name="flags">Polygon flags</param>
->>>>>>> FETCH_HEAD
 			public Polygon(int numVertsPerPoly, AreaId area, RegionId regionId, int flags)
 			{
 				vertices = new int[numVertsPerPoly];
@@ -1341,11 +1314,8 @@ namespace SharpNav
 			}
 
 			/// <summary>
-<<<<<<< HEAD
 			/// Gets the vertices.
-=======
 			/// Gets the indices for the vertices
->>>>>>> FETCH_HEAD
 			/// </summary>
 			/// <value>The vertices.</value>
 			public int[] Vertices
