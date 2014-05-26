@@ -112,6 +112,7 @@
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="ContourVertex.cs" />
+    <Compile Include="Crowd.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
