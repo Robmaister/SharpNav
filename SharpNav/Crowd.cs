@@ -32,7 +32,7 @@ namespace SharpNav
 
 		//private PathQueue pathq;
 
-		//private ObstacleAvoidanceParams obstacleQueryParamrs[MAX_OBSTACLE_AVOIDANCE_PARAMS];
+		private ObstacleAvoidanceParams[] obstacleQueryParams;
 		//private ObstacleAvoidanceQuery[] obstacleQuery;
 
 		//private ProximityGrid[] grid;
@@ -48,11 +48,54 @@ namespace SharpNav
 
 		private int velocitySampleCount;
 
-		private NavMeshQuery[] navquery;
+		private NavMeshQuery navquery;
 
 		public Crowd(int maxAgents, float maxAgentRadius, ref NavMesh nav)
 		{
+			this.maxAgents = maxAgents;
+			this.maxAgentRadius = maxAgentRadius;
 
+			this.ext = new Vector3(maxAgentRadius * 2.0f, maxAgentRadius * 1.5f, maxAgentRadius * 2.0f);
+
+			//TODO: initialize proximity grid
+			
+			//TODO: allocate obstacle avoidance query
+
+			//initialize obstancle query params
+			this.obstacleQueryParams = new ObstacleAvoidanceParams[8];
+			for (int i = 0; i < this.obstacleQueryParams.Length; i++)
+			{
+				ObstacleAvoidanceParams parameters = this.obstacleQueryParams[i];
+				parameters.VelBias = 0.4f;
+				parameters.WeightDesVel = 2.0f;
+				parameters.WeightCurVel = 0.75f;
+				parameters.WeightSide = 0.75f;
+				parameters.WeightToi = 2.5f;
+				parameters.HorizTime = 2.5f;
+				parameters.GridSize = 33;
+				parameters.AdaptiveDivs = 7;
+				parameters.AdaptiveRings = 2;
+				parameters.AdaptiveDepth = 5;
+			}
+
+			//TODO: allocate temp buffer for merging paths
+
+			//allocate nav mesh query
+			this.navquery = new NavMeshQuery(nav, 512);
+		}
+
+		private struct ObstacleAvoidanceParams
+		{
+			public float VelBias;
+			public float WeightDesVel;
+			public float WeightCurVel;
+			public float WeightSide;
+			public float WeightToi;
+			public float HorizTime;
+			public byte GridSize;
+			public byte AdaptiveDivs;
+			public byte AdaptiveRings;
+			public byte AdaptiveDepth;
 		}
 	}
 }
