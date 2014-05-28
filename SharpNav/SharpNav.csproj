@@ -117,12 +117,16 @@
     <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
+    <Compile Include="LocalBoundary.cs" />
     <Compile Include="NavMesh.cs" />
     <Compile Include="NavMeshGenerationSettings.cs" />
+    <Compile Include="ObstacleAvoidanceQuery.cs" />
+    <Compile Include="PathCorridor.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
+    <Compile Include="PathQueue.cs" />
     <Compile Include="PolyBounds.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
