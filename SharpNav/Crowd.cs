@@ -319,7 +319,7 @@ namespace SharpNav
 			public byte AdaptiveDepth;
 		}
 
-		private struct CrowdAgent
+		public struct CrowdAgent
 		{
 			public bool Active;
 			public byte State;
@@ -353,13 +353,13 @@ namespace SharpNav
 			public float TargetReplanTime;
 		}
 
-		private struct CrowdNeighbor
+		public struct CrowdNeighbor
 		{
 			public int Idx;
 			public float Dist;
 		}
 
-		private struct CrowdAgentParams
+		public struct CrowdAgentParams
 		{
 			public float Radius;
 			public float Height;
