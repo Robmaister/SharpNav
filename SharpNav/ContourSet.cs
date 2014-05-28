@@ -15,7 +15,8 @@ namespace SharpNav
 	//TODO should this be ISet<Contour>? Are the extra methods useful?
 	
 	/// <summary>
-	/// A collection of Countours 
+	/// A set of contours around the regions of a <see cref="CompactHeightfield"/>, used as the edges of a
+	/// <see cref="PolyMesh"/>.
 	/// </summary>
 	public class ContourSet : ICollection<Contour>
 	{
@@ -69,7 +70,7 @@ namespace SharpNav
 			int maxContours = Math.Max((int)compactField.MaxRegions, 8);
 			contours = new List<Contour>(maxContours);
 
-			int[] flags = new int[compactField.Spans.Length];
+			byte[] flags = new byte[compactField.Spans.Length];
 
 			//Modify flags array by using the CompactHeightfield data
 			//mark boundaries
@@ -81,7 +82,6 @@ namespace SharpNav
 					CompactCell c = compactField.Cells[x + y * compactField.Width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
-						int res = 0;
 						CompactSpan s = compactField.Spans[i];
 
 						//set the flag to 0 if the region is a border region or null.
@@ -107,14 +107,14 @@ namespace SharpNav
 							//region ids are equal
 							if (r == compactField.Spans[i].Region)
 							{
-								//res marks all the INTERNAL edges
-								MarkInternalEdges(ref res, dir);
+								//res marks all the internal edges
+								AddEdgeFlag(ref flags[i], dir);
 							}
 						}
 
 						//flags represents all the nonconnected edges, edges that are only internal
 						//the edges need to be between different regions
-						flags[i] = FlipAllBits(res); 
+						FlipEdgeFlags(ref flags[i]); 
 					}
 				}
 			}
@@ -192,7 +192,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the number of countours in this set
+		/// Gets the number of <see cref="Contour"/>s in the set.
 		/// </summary>
 		public int Count
 		{
@@ -203,7 +203,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the bounding box of this set
+		/// Gets the world-space bounding box of the set.
 		/// </summary>
 		public BBox3 Bounds
 		{
@@ -214,7 +214,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the cell size of the cells in CompactHeightfield
+		/// Gets the size of a cell in the X and Z axes.
 		/// </summary>
 		public float CellSize
 		{
@@ -225,7 +225,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the cell height of the cells in CompactHeightfield
+		/// Gets the height of a cell in the Y axis.
 		/// </summary>
 		public float CellHeight
 		{
@@ -236,7 +236,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the width of the CompactHeightfield.
+		/// Gets the width of the set, not including the border size specified in <see cref="CompactHeightfield"/>.
 		/// </summary>
 		public int Width
 		{
@@ -247,7 +247,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the height of the CompactHeightfield
+		/// Gets the height of the set, not including the border size specified in <see cref="CompactHeightfield"/>.
 		/// </summary>
 		public int Height
 		{
@@ -258,7 +258,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the border size
+		/// Gets the size of the border.
 		/// </summary>
 		public int BorderSize
 		{
@@ -269,7 +269,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets a value indicating whether the contour set is read only or not
+		/// Gets a value indicating whether the <see cref="ContourSet"/> is read-only.
 		/// </summary>
 		bool ICollection<Contour>.IsReadOnly
 		{
@@ -277,29 +277,29 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Determines whether the set contains this contour
+		/// Checks if a specified <see cref="ContourSet"/> is contained in the <see cref="ContourSet"/>.
 		/// </summary>
-		/// <param name="item">The contour to look for</param>
-		/// <returns>True if found, false if otherwise</returns>
+		/// <param name="item">A contour.</param>
+		/// <returns>A value indicating whether the set contains the specified contour.</returns>
 		public bool Contains(Contour item)
 		{
 			return contours.Contains(item);
 		}
 
 		/// <summary>
-		/// Copy an array of contours to the ContourSet
+		/// Copies the <see cref="Contour"/>s in the set to an array.
 		/// </summary>
-		/// <param name="array">The array of contours</param>
-		/// <param name="arrayIndex">Starting index</param>
+		/// <param name="array">The array to copy to.</param>
+		/// <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
 		public void CopyTo(Contour[] array, int arrayIndex)
 		{
 			contours.CopyTo(array, arrayIndex);
 		}
 
 		/// <summary>
-		/// Gets the enumerator that iterates through the set
+		/// Returns an enumerator that iterates through the entire <see cref="ContourSet"/>.
 		/// </summary>
-		/// <returns>The enumerator</returns>
+		/// <returns>An enumerator.</returns>
 		public IEnumerator<Contour> GetEnumerator()
 		{
 			return contours.GetEnumerator();
@@ -344,56 +344,55 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// When an edge in a specified direction is visited, mark the flag.
+		/// Sets the bit for a direction to 1 in a specified byte.
 		/// </summary>
-		/// <param name="flag">A 4-bit string</param>
-		/// <param name="dir">The direction visited</param>
-		private static void MarkInternalEdges(ref int flag, Direction dir)
+		/// <param name="flag">The byte containing flags.</param>
+		/// <param name="dir">The direction to add.</param>
+		private static void AddEdgeFlag(ref byte flag, Direction dir)
 		{
 			//flag represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
 			//default is 0000
 			//the |= operation sets each direction bit to 1 (so if dir = 0, 0000 -> 0001)
-			flag |= 1 << (int)dir;
+			flag |= (byte)(1 << (int)dir);
 		}
 
 		/// <summary>
-		/// Change all the bits to their complement
+		/// Flips all the bits used for flags in a byte.
 		/// </summary>
-		/// <param name="flag">A 4-bit string</param>
-		/// <returns>The new flag</returns>
-		private static int FlipAllBits(int flag)
+		/// <param name="flag">The byte containing flags.</param>
+		private static void FlipEdgeFlags(ref byte flag)
 		{
 			//flips all the bits in res
 			//0000 (completely internal) -> 1111
 			//1111 (no internal edges) -> 0000
-			return flag ^ 0xf;
+			flag ^= 0xf;
 		}
 
 		/// <summary>
-		/// Determines whether the edges are connected in that direction
+		/// Determines whether the bit for a direction is set in a byte.
 		/// </summary>
-		/// <param name="flag">A 4-bit string</param>
-		/// <param name="dir">The direction</param>
-		/// <returns>True if connected, false if otherwise</returns>
-		private static bool IsConnected(int flag, Direction dir)
+		/// <param name="flag">The byte containing flags.</param>
+		/// <param name="dir">The direction to check for.</param>
+		/// <returns>A value indicating whether the flag for the specified direction is set.</returns>
+		private static bool IsConnected(ref byte flag, Direction dir)
 		{
 			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
 			return (flag & (1 << (int)dir)) != 0;
 		}
 
 		/// <summary>
-		/// Remove the flag for the visited direction
+		/// Sets the bit for a direction to 0 in a specified byte.
 		/// </summary>
-		/// <param name="flag">A 4-bit string</param>
-		/// <param name="dir">The direction</param>
-		private static void RemoveVisited(ref int flag, Direction dir)
+		/// <param name="flag">The byte containing flags.</param>
+		/// <param name="dir">The direction to remove.</param>
+		private static void RemoveEdgeFlag(ref byte flag, Direction dir)
 		{
 			//say flag = 0110
 			//dir = 2 (so 1 << dir = 0100)
 			//~dir = 1011
 			//flag &= ~dir
 			//flag = 0110 & 1011 = 0010
-			flag &= ~(1 << (int)dir); // remove visited edges
+			flag &= (byte)(~(1 << (int)dir)); // remove visited edges
 		}
 
 		/// <summary>
@@ -403,12 +402,12 @@ namespace SharpNav
 		/// <param name="sr">A referecne to the span to start walking from.</param>
 		/// <param name="flags">An array of flags determinining </param>
 		/// <param name="points">The vertices of a contour.</param>
-		private void WalkContour(CompactHeightfield compactField, CompactSpanReference sr, int[] flags, List<ContourVertex> points)
+		private void WalkContour(CompactHeightfield compactField, CompactSpanReference sr, byte[] flags, List<ContourVertex> points)
 		{
 			Direction dir = 0;
 
 			//find the first direction that has a connection 
-			while (!IsConnected(flags[sr.Index], dir))
+			while (!IsConnected(ref flags[sr.Index], dir))
 				dir++;
 
 			Direction startDir = dir;
@@ -420,7 +419,7 @@ namespace SharpNav
 			while (++iter < 40000)
 			{
 				// this direction is connected
-				if (IsConnected(flags[sr.Index], dir))
+				if (IsConnected(ref flags[sr.Index], dir))
 				{
 					// choose the edge corner
 					bool isBorderVertex;
@@ -466,7 +465,7 @@ namespace SharpNav
 					//save the point
 					points.Add(new ContourVertex(px, py, pz, r));
 
-					RemoveVisited(ref flags[sr.Index], dir);	// remove visited edges
+					RemoveEdgeFlag(ref flags[sr.Index], dir);	// remove visited edges
 					dir = dir.NextClockwise();			// rotate clockwise
 				}
 				else

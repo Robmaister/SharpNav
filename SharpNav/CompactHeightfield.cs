@@ -953,7 +953,7 @@ namespace SharpNav
 		/// <param name="floodDistances">The array of flooding distances.</param>
 		/// <param name="maxIterations">The maximum number of allowed iterations before breaking.</param>
 		/// <param name="level">The current water level.</param>
-		/// <param name="stack">A stack of CompactSpanReference values</param>
+		/// <param name="stack">A stack of span references that are being expanded.</param>
 		/// <param name="regionBuffer">A buffer to store region IDs. Must be at least the same size as <see cref="regions"/>.</param>
 		/// <param name="distanceBuffer">A buffer to store flood distances. Must be at least the same size as <see cref="floodDistances"/>.</param>
 		private void ExpandRegions(RegionId[] regions, int[] floodDistances, int maxIterations, int level, List<CompactSpanReference> stack = null, RegionId[] regionBuffer = null, int[] distanceBuffer = null)
@@ -1095,10 +1095,11 @@ namespace SharpNav
 		/// <param name="floodDistances">source distances</param>
 		/// <param name="region">region id</param>
 		/// <param name="level">current level</param>
-		/// <param name="start">The starting location</param>
-		/// <returns>True if successful, false if otherwise</returns>
+		/// <param name="start">A reference to the starting span.</param>
+		/// <returns>Always true.</returns>
 		private bool FloodRegion(RegionId[] regions, int[] floodDistances, RegionId region, int level, ref CompactSpanReference start)
 		{
+			//TODO this method should always return true, make it not return a bool?
 			//flood fill mark region
 			Stack<CompactSpanReference> stack = new Stack<CompactSpanReference>();
 			stack.Push(start);
