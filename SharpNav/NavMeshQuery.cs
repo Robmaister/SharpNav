@@ -36,6 +36,7 @@ namespace SharpNav
 		private NodePool tinyNodePool;
 		private NodePool nodePool;
 		private PriorityQueue<Node> openList;
+		private QueryData query;
 
 		public NavMeshQuery(TiledNavMesh nav, int maxNodes)
 		{
@@ -937,6 +938,323 @@ namespace SharpNav
 			return true;
 		}
 
+		public bool InitSlicedFindPath(int startRef, int endRef, Vector3 startPos, Vector3 endPos)
+		{
+			//init path state
+			query = new QueryData();
+			query.Status = false;
+			query.StartRef = startRef;
+			query.EndRef = endRef;
+			query.StartPos = startPos;
+			query.EndPos = endPos;
+
+			if (query.StartRef == 0 || query.EndRef == 0)
+				return false;
+
+			//validate input
+			if (!nav.IsValidPolyRef(startRef) || !nav.IsValidPolyRef(endRef))
+				return false;
+
+			if (startRef == endRef)
+			{
+				query.Status = true;
+				return true;
+			}
+
+			nodePool.Clear();
+			openList.Clear();
+
+			Node startNode = nodePool.GetNode(startRef);
+			startNode.pos = startPos;
+			startNode.pidx = 0;
+			startNode.cost = 0;
+			startNode.total = (endPos - startPos).Length() * H_SCALE;
+			startNode.id = startRef;
+			startNode.flags = NodeFlags.Open;
+			openList.Push(startNode);
+
+			query.Status = true;
+			query.LastBestNode = startNode;
+			query.LastBestNodeCost = startNode.total;
+
+			return query.Status;
+		}
+
+		public bool UpdateSlicedFindPath(int maxIter, ref int doneIters)
+		{
+			if (query.Status != true)
+				return query.Status;
+
+			//make sure the request is still valid
+			if (!nav.IsValidPolyRef(query.StartRef) || !nav.IsValidPolyRef(query.EndRef))
+			{
+				query.Status = false;
+				return false;
+			}
+
+			int iter = 0;
+			while (iter < maxIter && !openList.Empty())
+			{
+				iter++;
+
+				//remove node from open list and put it in closed list
+				Node bestNode = openList.Pop();
+				SetNodeFlagClosed(ref bestNode);
+
+				//reached the goal, stop searching
+				if (bestNode.id == query.EndRef)
+				{
+					query.LastBestNode = bestNode;
+					query.Status = true;
+					doneIters = iter;
+					return query.Status;
+				}
+
+				//get current poly and tile
+				int bestRef = bestNode.id;
+				MeshTile bestTile;
+				Poly bestPoly;
+				if (nav.TryGetTileAndPolyByRef(bestRef, out bestTile, out bestPoly) == false)
+				{
+					//the polygon has disappeared during the sliced query, fail
+					query.Status = false;
+					doneIters = iter;
+					return query.Status;
+				}
+
+				//get parent poly and tile
+				int parentRef = 0;
+				MeshTile parentTile;
+				Poly parentPoly;
+				if (bestNode.pidx != 0)
+					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
+				if (parentRef != 0)
+				{
+					if (nav.TryGetTileAndPolyByRef(parentRef, out parentTile, out parentPoly) == false)
+					{
+						//the polygon has disappeared during the sliced query, fail
+						query.Status = false;
+						doneIters = iter;
+						return query.Status;
+					}
+				}
+
+				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
+				{
+					int neighbourRef = bestTile.Links[i].Reference;
+
+					//skip invalid ids and do not expand back to where we came from
+					if (neighbourRef == 0 || neighbourRef == parentRef)
+						continue;
+
+					//get neighbour poly and tile
+					MeshTile neighbourTile;
+					Poly neighbourPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+
+					Node neighbourNode = nodePool.GetNode(neighbourRef);
+					if (neighbourNode == null)
+						continue;
+
+					if (neighbourNode.flags == 0)
+					{
+						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.pos);
+					}
+
+					//calculate cost and heuristic
+					float cost = 0;
+					float heuristic = 0;
+
+					//special case for last node
+					if (neighbourRef == query.EndRef)
+					{
+						//cost
+						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+						float endCost = GetCost(neighbourNode.pos, query.EndPos, neighbourPoly);
+
+						cost = bestNode.cost + curCost + endCost;
+						heuristic = 0;
+					}
+					else
+					{
+						//cost
+						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+
+						cost = bestNode.cost + curCost;
+						heuristic = (neighbourNode.pos - query.EndPos).Length() * H_SCALE;
+					}
+
+					float total = cost + heuristic;
+
+					//the node is already in open list and new result is worse, skip
+					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
+						continue;
+
+					//the node is already visited and processesd, and the new result is worse, skip
+					if (IsInClosedList(neighbourNode) && total >= neighbourNode.total)
+						continue;
+
+					//add or update the node
+					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
+					neighbourNode.id = neighbourRef;
+					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
+					neighbourNode.cost = cost;
+					neighbourNode.total = total;
+
+					if (IsInOpenList(neighbourNode))
+					{
+						//already in open, update node location
+						openList.Modify(neighbourNode);
+					}
+					else
+					{
+						//put the node in the open list
+						SetNodeFlagOpen(ref neighbourNode);
+						openList.Push(neighbourNode);
+					}
+
+					//update nearest node to target so far
+					if (heuristic < query.LastBestNodeCost)
+					{
+						query.LastBestNodeCost = heuristic;
+						query.LastBestNode = neighbourNode;
+					}
+				}
+			}
+
+			//exhausted all nodes, but could not find path
+			if (openList.Empty())
+			{
+				query.Status = true;
+			}
+
+			doneIters = iter;
+
+			return query.Status;
+		}
+
+		public bool FinalizeSlicedFindPath(int[] path, ref int pathCount, int maxPath)
+		{
+			pathCount = 0;
+
+			if (query.Status == false)
+			{
+				query = new QueryData();
+				return false;
+			}
+
+			int n = 0;
+
+			if (query.StartRef == query.EndRef)
+			{
+				//special case: the search starts and ends at the same poly
+				path[n++] = query.StartRef;
+			}
+			else
+			{
+				//reverse the path
+				Node prev = null;
+				Node node = query.LastBestNode;
+				do
+				{
+					Node next = nodePool.GetNodeAtIdx(node.pidx);
+					node.pidx = nodePool.GetNodeIdx(prev);
+					prev = node;
+					node = next;
+				}
+				while (node != null);
+
+				//store path
+				node = prev;
+				do
+				{
+					path[n++] = node.id;
+					if (n >= maxPath)
+					{
+						break;
+					}
+					node = nodePool.GetNodeAtIdx(node.pidx);
+				}
+				while (node != null);
+			}
+
+			query = new QueryData();
+
+			pathCount = n;
+
+			return true;
+		}
+
+		public bool FinalizedSlicedPathPartial(int[] existing, int existingSize, int[] path, ref int pathCount, int maxPath)
+		{
+			pathCount = 0;
+
+			if (existingSize == 0)
+			{
+				return false;
+			}
+
+			if (query.Status == false)
+			{
+				query = new QueryData();
+				return false;
+			}
+
+			int n = 0;
+
+			if (query.StartRef == query.EndRef)
+			{
+				//special case: the search starts and ends at the same poly
+				path[n++] = query.StartRef;
+			}
+			else
+			{
+				//find furthest existing node that was visited
+				Node prev = null;
+				Node node = null;
+				for (int i = existingSize - 1; i >= 0; i--)
+				{
+					node = nodePool.FindNode(existing[i]);
+					if (node != null)
+						break;
+				}
+
+				if (node == null)
+				{
+					node = query.LastBestNode;
+				}
+
+				//reverse the path
+				do
+				{
+					Node next = nodePool.GetNodeAtIdx(node.pidx);
+					node.pidx = nodePool.GetNodeIdx(prev);
+					prev = node;
+					node = next;
+				}
+				while (node != null);
+
+				//store path
+				node = prev;
+				do
+				{
+					path[n++] = node.id;
+					if (n >= maxPath)
+					{
+						break;
+					}
+					node = nodePool.GetNodeAtIdx(node.pidx);
+				}
+				while (node != null);
+			}
+
+			query = new QueryData();
+
+			pathCount = n;
+
+			return true;
+		}
+
 		/// <summary>
 		/// Get edge midpoint between two prolygons
 		/// </summary>
@@ -1499,6 +1817,15 @@ namespace SharpNav
 		public NodeFlags RemoveNodeFlagClosed(Node node)
 		{
 			return node.flags & ~NodeFlags.Closed;
+		}
+
+		private struct QueryData
+		{
+			public bool Status;
+			public Node LastBestNode;
+			public float LastBestNodeCost;
+			public int StartRef, EndRef;
+			public Vector3 StartPos, EndPos;
 		}
 	}
 }

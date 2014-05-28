@@ -58,11 +58,20 @@ namespace SharpNav.Collections.Generic
 		}
 
 		/// <summary>
-		/// Remove all the elements from the priorirty queue.
+		/// Remove all the elements from the priority queue.
 		/// </summary>
 		public void Clear()
 		{
 			size = 0;
+		}
+
+		/// <summary>
+		/// Determines whether the priority queue is empty
+		/// </summary>
+		/// <returns>True if empty, false if not</returns>
+		public bool Empty()
+		{
+			return size == 0;
 		}
 
 		/// <summary>
