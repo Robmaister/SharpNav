@@ -78,6 +78,12 @@ namespace SharpNav
 
 		private NavMeshQuery navquery;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Crowd" /> class.
+		/// </summary>
+		/// <param name="maxAgents">The maximum agents allowed</param>
+		/// <param name="maxAgentRadius">The maximum radius for an agent</param>
+		/// <param name="nav">The navigation mesh</param>
 		public Crowd(int maxAgents, float maxAgentRadius, ref TiledNavMesh nav)
 		{
 			this.maxAgents = maxAgents;
@@ -132,6 +138,12 @@ namespace SharpNav
 			this.navquery = new NavMeshQuery(nav, 512);
 		}
 
+		/// <summary>
+		/// Add an agent to the crowd.
+		/// </summary>
+		/// <param name="pos">The agent's position</param>
+		/// <param name="parameters">The settings</param>
+		/// <returns>The id of the agent (-1 if there is no empty slot)</returns>
 		public int AddAgent(Vector3 pos, CrowdAgentParams parameters)
 		{
 			//find empty slot
@@ -191,6 +203,10 @@ namespace SharpNav
 			return idx;
 		}
 
+		/// <summary>
+		/// The agent is deactivated and will no longer be processed. It can still be reused later.
+		/// </summary>
+		/// <param name="idx">The agent's id</param>
 		public void RemoveAgent(int idx)
 		{
 			if (idx >= 0 && idx < maxAgents)
@@ -199,6 +215,13 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Change the move target ds
+		/// </summary>
+		/// <param name="idx"></param>
+		/// <param name="reference"></param>
+		/// <param name="pos"></param>
+		/// <returns></returns>
 		public bool RequestTargetMoveReplan(int idx, uint reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
@@ -221,6 +244,13 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Request a new move target
+		/// </summary>
+		/// <param name="idx">The agent id</param>
+		/// <param name="reference">The polygon reference</param>
+		/// <param name="pos">The target's coordinates</param>
+		/// <returns>True if request met, false if not</returns>
 		public bool RequestTargetMove(int idx, uint reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
@@ -245,6 +275,12 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Request a new move velocity
+		/// </summary>
+		/// <param name="idx">The agent's id</param>
+		/// <param name="vel">The agent's velocity</param>
+		/// <returns>True if request met, false if not</returns>
 		public bool RequestMoveVelocity(int idx, Vector3 vel)
 		{
 			if (idx < 0 || idx >= maxAgents)
@@ -264,6 +300,11 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Reset the move target of an agent
+		/// </summary>
+		/// <param name="idx">The agent's id</param>
+		/// <returns>True if the agent exists, false if not</returns>
 		public bool ResetMoveTarget(int idx)
 		{
 			if (idx < 0 || idx >= maxAgents)
@@ -283,6 +324,12 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// The crowd contains active and inactive agents. Only add all the active agents to a separate array.
+		/// </summary>
+		/// <param name="agents">The array of active agents</param>
+		/// <param name="maxAgents">The maximum agents allowed</param>
+		/// <returns>The number of active agents</returns>
 		public int GetActiveAgents(CrowdAgent[] agents, int maxAgents)
 		{
 			int n = 0;
@@ -298,13 +345,18 @@ namespace SharpNav
 			return n;
 		}
 
+		/// <summary>
+		/// Modify the agent parameters
+		/// </summary>
+		/// <param name="idx">The agent's id</param>
+		/// <param name="parameters">The new parameters</param>
 		public void UpdateAgentParameters(int idx, CrowdAgentParams parameters)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return;
 			agents[idx].Parameters = parameters;
 		}
-
+		
 		private struct ObstacleAvoidanceParams
 		{
 			public float VelBias;
@@ -319,6 +371,9 @@ namespace SharpNav
 			public byte AdaptiveDepth;
 		}
 
+		/// <summary>
+		/// A crowd agent is a unit that moves across the navigation mesh
+		/// </summary>
 		public struct CrowdAgent
 		{
 			public bool Active;
@@ -359,6 +414,9 @@ namespace SharpNav
 			public float Dist;
 		}
 
+		/// <summary>
+		/// Settings for a particular crowd agent
+		/// </summary>
 		public struct CrowdAgentParams
 		{
 			public float Radius;
