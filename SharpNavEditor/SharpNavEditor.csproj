@@ -51,6 +51,10 @@
   <ItemGroup>
     <Compile Include="EditorWindow.cs" />
     <Compile Include="EntryPoint.cs" />
+    <Compile Include="IO\IModelLoader.cs" />
+    <Compile Include="IO\IModelData.cs" />
+    <Compile Include="IO\ObjData.cs" />
+    <Compile Include="IO\ObjLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

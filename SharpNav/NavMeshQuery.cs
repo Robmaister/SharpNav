@@ -1797,6 +1797,16 @@ namespace SharpNav
 			return polys.Count != 0;
 		}
 
+		public bool IsValidPolyRef(int reference)
+		{
+			MeshTile tile;
+			Poly poly;
+			bool status = nav.TryGetTileAndPolyByRef(reference, out tile, out poly);
+			if (status == false)
+				return false;
+			return true;
+		}
+
 		public bool IsInOpenList(Node node)
 		{
 			return (node.flags & NodeFlags.Open) != 0;
