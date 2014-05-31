@@ -32,7 +32,14 @@ namespace SharpNavTests
 		[Test]
 		public void WriteJSONTest()
         {
-            TiledNavMesh mesh = new TiledNavMesh(null);
+			NavMeshGenerationSettings settings = NavMeshGenerationSettings.Default;
+			CompactHeightfield heightField = new CompactHeightfield(new Heightfield(
+                new BBox3(1, 1, 1, 5, 5, 5), settings), settings); 
+            PolyMesh polyMesh = new PolyMesh(new ContourSet(heightField, settings), 8);
+            PolyMeshDetail polyMeshDetail = new PolyMeshDetail(polyMesh, heightField, settings); 
+            
+            NavMeshBuilder buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
+            TiledNavMesh mesh = new TiledNavMesh(buildData);
             mesh.SaveJson("mesh.json"); 
 		}
 
