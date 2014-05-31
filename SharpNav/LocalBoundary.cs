@@ -29,14 +29,14 @@ namespace SharpNav
 		private Segment[] segs;
 		private int nsegs;
 
-		private uint[] polys;
+		private int[] polys;
 		private int npolys;
 
 		public LocalBoundary()
 		{
 			Reset();
 			segs = new Segment[8];
-			polys = new uint[16];
+			polys = new int[16];
 		}
 
 		public void Reset()
