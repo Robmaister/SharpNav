@@ -49,7 +49,7 @@ namespace SharpNav
 			for (int i = 0; i < MAX_QUEUE; i++)
 			{
 				queue[i].Reference = PATHQ_INVALID;
-				queue[i].Path = new List<int>(maxPathSize);
+				queue[i].Path = new int[maxPathSize];
 			}
 
 			this.queueHead = 0;
@@ -114,8 +114,7 @@ namespace SharpNav
 				}
 				if (q.status == Status.SUCCESS)
 				{
-					bool status = navquery.FinalizeSlicedFindPath(q.Path, maxPathSize);
-					q.NPath = q.Path.Count;
+					bool status = navquery.FinalizeSlicedFindPath(q.Path, ref q.NPath, maxPathSize);
 
 					if (status)
 						q.status = Status.SUCCESS;
@@ -187,7 +186,7 @@ namespace SharpNav
 					q.status = 0;
 					//copy path
 					int n = Math.Min(q.NPath, maxPath);
-					q.Path.CopyTo(path);
+					q.Path.CopyTo(path, 0);
 					pathSize = n;
 
 					queue[i] = q;
@@ -208,7 +207,7 @@ namespace SharpNav
 			public uint StartRef, EndRef;
 
 			//result
-			public List<int> Path;
+			public int[] Path;
 			public int NPath;
 
 			//state

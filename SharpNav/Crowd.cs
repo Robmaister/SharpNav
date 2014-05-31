@@ -35,6 +35,8 @@ namespace SharpNav
 		/// </summary>
 		private const int CROWDAGENT_MAX_CORNERS = 4;
 
+		private const int MAX_ITERS_PER_UPDATE = 100;
+
 		enum CrowdAgentState 
 		{
 			CROWDAGENT_STATE_INVALID,
@@ -174,7 +176,7 @@ namespace SharpNav
 				reference = 0;
 			}
 
-			ag.Corridor.Reset((uint)reference, nearest);
+			ag.Corridor.Reset(reference, nearest);
 			ag.Boundary.Reset();
 			ag.Partial = false;
 
@@ -322,6 +324,281 @@ namespace SharpNav
 			agents[idx] = ag;
 
 			return true;
+		}
+
+		public void UpdateMoveRequest()
+		{
+			const int PATH_MAX_AGENTS = 8;
+			CrowdAgent[] queue = new CrowdAgent[PATH_MAX_AGENTS];
+			int nqueue = 0;
+
+			//fire off new requests
+			for (int i = 0; i < maxAgents; i++)
+			{
+				CrowdAgent ag = agents[i];
+
+				if (!ag.Active)
+					continue;
+				if (ag.State == (byte)CrowdAgentState.CROWDAGENT_STATE_INVALID)
+					continue;
+				if (ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_NONE ||
+					ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_VELOCITY)
+					continue;
+
+				if (ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_REQUESTING)
+				{
+					int[] path = ag.Corridor.GetPath();
+					int npath = ag.Corridor.GetPathCount();
+
+					const int MAX_RES = 32;
+					Vector3 reqPos = new Vector3();
+					int[] reqPath = new int[MAX_RES];
+					int reqPathCount = 0;
+
+					//quick search towards the goal
+					const int MAX_ITER = 20;
+					navquery.InitSlicedFindPath((int)path[0], (int)ag.TargetRef, ag.NPos, ag.TargetPos);
+					int tempInt = 0;
+					navquery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
+					bool boolStatus = false;
+					if (ag.TargetReplan)
+					{
+						//try to use an existing steady path during replan if possible
+						boolStatus = navquery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES);
+					}
+					else
+					{
+						//try to move towards the target when the goal changes
+						boolStatus = navquery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES);
+					}
+
+					if (boolStatus != false && reqPathCount > 0)
+					{
+						//in progress or succeed
+						if (reqPath[reqPathCount - 1] != ag.TargetRef)
+						{
+							//partial path, constrain target position in last polygon
+							bool tempBool;
+							boolStatus = navquery.ClosestPointOnPoly(reqPath[reqPathCount - 1], ag.TargetPos, out reqPos, out tempBool);
+							if (boolStatus == false)
+								reqPathCount = 0;
+
+						}
+						else
+						{
+							reqPos = ag.TargetPos;
+						}
+					}
+					else
+					{
+						reqPathCount = 0;
+					}
+
+					if (reqPathCount == 0)
+					{
+						//could not find path, start the request from the current location
+						reqPos = ag.NPos;
+						reqPath[0] = path[0];
+						reqPathCount = 1;
+					}
+
+					ag.Corridor.SetCorridor(reqPos, reqPath, reqPathCount);
+					ag.Boundary.Reset();
+					ag.Partial = false;
+
+					if (reqPath[reqPathCount - 1] == ag.TargetRef)
+					{
+						ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_VALID;
+						ag.TargetReplanTime = 0.0f;
+					}
+					else
+					{
+						//the path is longer or potentially unreachable, full plan
+						ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_WAITING_FOR_QUEUE;
+					}
+				}
+
+				if (ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_WAITING_FOR_QUEUE)
+				{
+					nqueue = AddToPathQueue(ag, queue, nqueue, PATH_MAX_AGENTS);
+				}
+					
+				agents[i] = ag;
+			}
+
+			for (int i = 0; i < nqueue; i++)
+			{
+				CrowdAgent ag = queue[i];
+
+				ag.TargetPathqRef = pathq.Request((uint)ag.Corridor.GetLastPoly(), ag.TargetRef, ag.Corridor.GetTarget(), ag.TargetPos);
+				if (ag.TargetPathqRef != PathQueue.PATHQ_INVALID)
+					ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_WAITING_FOR_PATH;
+
+				queue[i] = ag;
+			}
+
+			//update requests
+			pathq.Update(MAX_ITERS_PER_UPDATE);
+
+			PathQueue.Status status;
+
+			//process path results
+			for (int i = 0; i < maxAgents; i++)
+			{
+				CrowdAgent ag = agents[i];
+
+				if (!ag.Active)
+					continue;
+				if (ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_NONE ||
+					ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_VELOCITY)
+					continue;
+
+				if (ag.TargetState == (byte)MoveRequestState.CROWDAGENT_TARGET_WAITING_FOR_PATH)
+				{
+					//poll path queue
+					status = pathq.GetRequestStatus(ag.TargetPathqRef);
+					if (status == PathQueue.Status.FAILURE)
+					{
+						//path find failed, retry if the target location is still valid
+						ag.TargetPathqRef = PathQueue.PATHQ_INVALID;
+						if (ag.TargetRef != 0)
+							ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_REQUESTING;
+						else
+							ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_FAILED;
+						ag.TargetReplanTime = 0.0f;
+					}
+					else if (status == PathQueue.Status.SUCCESS)
+					{
+						int[] path = ag.Corridor.GetPath();
+						int npath = ag.Corridor.GetPathCount();
+
+						//apply results
+						Vector3 targetPos = new Vector3();
+						targetPos = ag.TargetPos;
+
+						int[] res = new int[this.maxPathResult];
+						for (int j = 0; j < this.maxPathResult; j++)
+							res[i] = (int)pathResult[j];
+						bool valid = true;
+						int nres = 0;
+						bool boolStatus = pathq.GetPathResult(ag.TargetPathqRef, res, ref nres, maxPathResult);
+						if (boolStatus == false || nres == 0)
+							valid = false;
+
+						//Merge result and existing path
+
+						if (valid && path[npath - 1] != res[0])
+							valid = false;
+
+						if (valid)
+						{
+							//put the old path infront of the old path
+							if (npath > 1)
+							{
+								//make space for the old path
+								if ((npath - 1) + nres > maxPathResult)
+									nres = maxPathResult - (npath - 1);
+
+								for (int j = 0; j < nres; j++)
+									res[npath - 1 + j] = res[j];
+
+								//copy old path in the beginning
+								for (int j = 0; j < npath - 1; j++)
+									res[j] = path[j];
+								nres += npath - 1;
+
+								//remove trackbacks
+								for (int j = 0; j < nres; j++)
+								{
+									if (j - 1 >= 0 && j + 1 < nres)
+									{
+										if (res[j - 1] == res[j + 1])
+										{
+											for (int k = 0; k < nres - (j + 1); k++)
+												res[j - 1 + k] = res[j + 1 + k];
+											nres -= 2;
+											j -= 2;
+										}
+									}
+								}
+							}
+
+							//check for partial path
+							if (res[nres - 1] != ag.TargetRef)
+							{
+								//partial path, constrain target position inside the last polygon
+								Vector3 nearest;
+								bool tempBool = false;
+								bool boolStatus1 = navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool);
+								if (boolStatus1)
+									targetPos = nearest;
+								else
+									valid = false;
+							}
+						}
+
+						if (valid)
+						{
+							//set current corridor
+							ag.Corridor.SetCorridor(targetPos, res, nres);
+							//forced to update boundary
+							ag.Boundary.Reset();
+							ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_VALID;
+						}
+						else
+						{
+							//something went wrong
+							ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_FAILED;
+						}
+
+						ag.TargetReplanTime = 0.0f;
+					}
+				}
+
+				agents[i] = ag;
+			}
+
+			//....
+
+
+
+		}
+
+		public int AddToPathQueue(CrowdAgent newag, CrowdAgent[] agents, int nagents, int maxAgents)
+		{
+			//insert neighbour based on greatest time
+			int slot = 0;
+			if (nagents == 0)
+			{
+				slot = nagents;
+			}
+			else if (newag.TargetReplanTime <= agents[nagents - 1].TargetReplanTime)
+			{
+				if (nagents >= maxAgents)
+					return nagents;
+				slot = nagents;
+			}
+			else
+			{
+				int i;
+				for (i = 0; i < nagents; i++)
+					if (newag.TargetReplanTime >= agents[i].TargetReplanTime)
+						break;
+
+				int tgt = i + 1;
+				int n = Math.Min(nagents - i, maxAgents - tgt);
+
+				if (n > 0)
+				{
+					for (int j = 0; j < n; j++)
+						agents[tgt + j] = agents[i + j];
+				}
+				slot = i;
+			}
+			agents[slot] = newag;
+
+			return Math.Min(nagents + 1, maxAgents);
+
 		}
 
 		/// <summary>

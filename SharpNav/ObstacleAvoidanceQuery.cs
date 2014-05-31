@@ -60,7 +60,6 @@ namespace SharpNav
 			/// </summary>
 			public Vector3 P, Q;
 
-
 			public bool Touch;
 		}
 	}

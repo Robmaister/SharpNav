@@ -1133,18 +1133,22 @@ namespace SharpNav
 			return query.Status;
 		}
 
-		public bool FinalizeSlicedFindPath(List<int> path, int maxPath)
+		public bool FinalizeSlicedFindPath(int[] path, ref int pathCount, int maxPath)
 		{
+			pathCount = 0;
+
 			if (query.Status == false)
 			{
 				query = new QueryData();
 				return false;
 			}
 
+			int n = 0;
+
 			if (query.StartRef == query.EndRef)
 			{
 				//special case: the search starts and ends at the same poly
-				path.Add(query.StartRef);
+				path[n++] = query.StartRef;
 			}
 			else
 			{
@@ -1164,8 +1168,8 @@ namespace SharpNav
 				node = prev;
 				do
 				{
-					path.Add(node.id);
-					if (path.Count >= maxPath)
+					path[n++] = node.id;
+					if (n >= maxPath)
 					{
 						break;
 					}
@@ -1174,14 +1178,20 @@ namespace SharpNav
 				while (node != null);
 			}
 
+			//reset query
 			query = new QueryData();
+
+			//remember to update the path length
+			pathCount = n;
 
 			return true;
 		}
 
-		public bool FinalizedSlicedPathPartial(List<int> existing, List<int> path, int maxPath)
+		public bool FinalizedSlicedPathPartial(int[] existing, int existingSize, int[] path, ref int pathCount, int maxPath)
 		{
-			if (existing.Count == 0)
+			pathCount = 0;
+
+			if (existingSize == 0)
 			{
 				return false;
 			}
@@ -1192,17 +1202,19 @@ namespace SharpNav
 				return false;
 			}
 
+			int n = 0;
+
 			if (query.StartRef == query.EndRef)
 			{
 				//special case: the search starts and ends at the same poly
-				path.Add(query.StartRef);
+				path[n++] = query.StartRef;
 			}
 			else
 			{
 				//find furthest existing node that was visited
 				Node prev = null;
 				Node node = null;
-				for (int i = existing.Count - 1; i >= 0; i--)
+				for (int i = existingSize - 1; i >= 0; i--)
 				{
 					node = nodePool.FindNode(existing[i]);
 					if (node != null)
@@ -1228,8 +1240,8 @@ namespace SharpNav
 				node = prev;
 				do
 				{
-					path.Add(node.id);
-					if (path.Count >= maxPath)
+					path[n++] = node.id;
+					if (n >= maxPath)
 					{
 						break;
 					}
@@ -1238,7 +1250,11 @@ namespace SharpNav
 				while (node != null);
 			}
 
+			//reset query
 			query = new QueryData();
+
+			//remember to update the path length
+			pathCount = n;
 
 			return true;
 		}
