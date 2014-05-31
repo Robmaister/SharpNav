@@ -67,7 +67,7 @@ namespace SharpNav
 
 		//private ProximityGrid[] grid;
 
-		private uint[] pathResult;
+		private int[] pathResult;
 		private int maxPathResult;
 
 		private Vector3 ext;
@@ -117,7 +117,7 @@ namespace SharpNav
 
 			//allocate temp buffer for merging paths
 			this.maxPathResult = 256;
-			this.pathResult = new uint[this.maxPathResult];
+			this.pathResult = new int[this.maxPathResult];
 
 			this.pathq = new PathQueue(maxPathResult, 4096, ref nav);
 
@@ -224,7 +224,7 @@ namespace SharpNav
 		/// <param name="reference"></param>
 		/// <param name="pos"></param>
 		/// <returns></returns>
-		public bool RequestTargetMoveReplan(int idx, uint reference, Vector3 pos)
+		public bool RequestTargetMoveReplan(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -253,7 +253,7 @@ namespace SharpNav
 		/// <param name="reference">The polygon reference</param>
 		/// <param name="pos">The target's coordinates</param>
 		/// <returns>True if request met, false if not</returns>
-		public bool RequestTargetMove(int idx, uint reference, Vector3 pos)
+		public bool RequestTargetMove(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -331,6 +331,7 @@ namespace SharpNav
 			const int PATH_MAX_AGENTS = 8;
 			CrowdAgent[] queue = new CrowdAgent[PATH_MAX_AGENTS];
 			int nqueue = 0;
+			bool boolStatus;
 
 			//fire off new requests
 			for (int i = 0; i < maxAgents; i++)
@@ -360,7 +361,7 @@ namespace SharpNav
 					navquery.InitSlicedFindPath((int)path[0], (int)ag.TargetRef, ag.NPos, ag.TargetPos);
 					int tempInt = 0;
 					navquery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
-					bool boolStatus = false;
+					boolStatus = false;
 					if (ag.TargetReplan)
 					{
 						//try to use an existing steady path during replan if possible
@@ -430,7 +431,7 @@ namespace SharpNav
 			{
 				CrowdAgent ag = queue[i];
 
-				ag.TargetPathqRef = pathq.Request((uint)ag.Corridor.GetLastPoly(), ag.TargetRef, ag.Corridor.GetTarget(), ag.TargetPos);
+				ag.TargetPathqRef = pathq.Request(ag.Corridor.GetLastPoly(), ag.TargetRef, ag.Corridor.GetTarget(), ag.TargetPos);
 				if (ag.TargetPathqRef != PathQueue.PATHQ_INVALID)
 					ag.TargetState = (byte)MoveRequestState.CROWDAGENT_TARGET_WAITING_FOR_PATH;
 
@@ -478,10 +479,10 @@ namespace SharpNav
 
 						int[] res = new int[this.maxPathResult];
 						for (int j = 0; j < this.maxPathResult; j++)
-							res[i] = (int)pathResult[j];
+							res[i] = pathResult[j];
 						bool valid = true;
 						int nres = 0;
-						bool boolStatus = pathq.GetPathResult(ag.TargetPathqRef, res, ref nres, maxPathResult);
+						boolStatus = pathq.GetPathResult(ag.TargetPathqRef, res, ref nres, maxPathResult);
 						if (boolStatus == false || nres == 0)
 							valid = false;
 
@@ -529,8 +530,8 @@ namespace SharpNav
 								//partial path, constrain target position inside the last polygon
 								Vector3 nearest;
 								bool tempBool = false;
-								bool boolStatus1 = navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool);
-								if (boolStatus1)
+								boolStatus = navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool);
+								if (boolStatus)
 									targetPos = nearest;
 								else
 									valid = false;
@@ -557,11 +558,6 @@ namespace SharpNav
 
 				agents[i] = ag;
 			}
-
-			//....
-
-
-
 		}
 
 		public int AddToPathQueue(CrowdAgent newag, CrowdAgent[] agents, int nagents, int maxAgents)
@@ -673,14 +669,14 @@ namespace SharpNav
 
 			public Vector3[] CornerVerts;	//size = CROWDAGENT_MAX_CORNERS
 			public byte[] CornerFlags;		//size = CROWDAGENT_MAX_CORNERS
-			public uint[] CornerPolys;		//size = CROWDAGENT_MAX_CORNERS
+			public int[] CornerPolys;		//size = CROWDAGENT_MAX_CORNERS
 
 			public int NCorners;
 
 			public byte TargetState;
-			public uint TargetRef;
+			public int TargetRef;
 			public Vector3 TargetPos;
-			public uint TargetPathqRef;
+			public int TargetPathqRef;
 			public bool TargetReplan;
 			public float TargetReplanTime;
 		}
@@ -718,7 +714,7 @@ namespace SharpNav
 		{
 			public bool Active;
 			public Vector3 InitPos, StartPos, EndPos;
-			public uint PolyRef;
+			public int PolyRef;
 			public float T, TMax;
 		}
 	}

@@ -29,7 +29,7 @@ namespace SharpNav
 
 		private const int MAX_QUEUE = 8;
 		private PathQuery[] queue; //size = MAX_QUEUE
-		private uint nextHandle;
+		private int nextHandle;
 		private int maxPathSize;
 		private int queueHead;
 		private NavMeshQuery navquery;
@@ -129,7 +129,7 @@ namespace SharpNav
 			}
 		}
 
-		public uint Request(uint startRef, uint endRef, Vector3 startPos, Vector3 endPos)
+		public int Request(int startRef, int endRef, Vector3 startPos, Vector3 endPos)
 		{
 			//find empty slot
 			int slot = -1;
@@ -145,7 +145,7 @@ namespace SharpNav
 			if (slot == -1)
 				return PATHQ_INVALID;
 
-			uint reference = nextHandle++;
+			int reference = nextHandle++;
 			if (nextHandle == PATHQ_INVALID) nextHandle++;
 
 			PathQuery q = queue[slot];
@@ -164,7 +164,7 @@ namespace SharpNav
 			return reference;
 		}
 
-		public Status GetRequestStatus(uint reference)
+		public Status GetRequestStatus(int reference)
 		{
 			for (int i = 0; i < MAX_QUEUE; i++)
 			{
@@ -174,7 +174,7 @@ namespace SharpNav
 			return Status.FAILURE;
 		}
 
-		public bool GetPathResult(uint reference, int[] path, ref int pathSize, int maxPath)
+		public bool GetPathResult(int reference, int[] path, ref int pathSize, int maxPath)
 		{
 			for (int i = 0; i < MAX_QUEUE; i++)
 			{
@@ -200,11 +200,11 @@ namespace SharpNav
 
 		private struct PathQuery
 		{
-			public uint Reference;
+			public int Reference;
 			
 			//path find start and end location
 			public Vector3 StartPos, EndPos;
-			public uint StartRef, EndRef;
+			public int StartRef, EndRef;
 
 			//result
 			public int[] Path;
