@@ -44,7 +44,7 @@ namespace SharpNav
 			CROWDAGENT_STATE_OFFMESH
 		}
 
-		private enum MoveRequestState
+		public enum MoveRequestState
 		{
 			CROWDAGENT_TARGET_NONE = 0,
 			CROWDAGENT_TARGET_FAILED,

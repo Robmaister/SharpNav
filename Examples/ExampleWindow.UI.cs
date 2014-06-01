@@ -105,7 +105,7 @@ namespace Examples
 			rsSettings.Dock = Pos.Top;
 			rsSettings.Height = 90;
 
-			BBox3 bounds = level.GetTriangles().GetBoundingBox();
+			BBox3 bounds = TriangleEnumerable.FromFloat(level.Positions, 0, 0, level.Positions.Length / 9).GetBoundingBox();
 
 			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0f, 1f, 0.001f, "N2", leftMax, rightMax, v => areaSettings.MaxTriSlope = v);
 			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", bounds.Min.Y, bounds.Max.Y, bounds.Min.Y, "N0", leftMax, rightMax, v => areaSettings.MinLevelHeight = v);

@@ -14,15 +14,6 @@ namespace SharpNavEditor.IO
 {
 	public interface IModelData
 	{
-		bool HasPositions { get; }
-		bool HasTextureCoordinates { get; }
-		bool HasNormals { get; }
-		bool HasTangents { get; }
-		bool HasBitangents { get; }
-		bool HasColors { get; }
-		bool HasAnimation { get; }
-		bool HasSkeleton { get; }
-		bool HasIndices { get; }
 		int CustomVertexDataTypesCount { get; }
 
 		int PositionVertexSize { get; }

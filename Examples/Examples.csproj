@@ -96,6 +96,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SharpNavEditor\SharpNavEditor.csproj">
+      <Project>{f4fcefad-0589-45cb-977a-270657084377}</Project>
+      <Name>SharpNavEditor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
       <Project>{0E3C6E73-CCE6-4148-B847-36487FFEA225}</Project>
       <Name>SharpNav</Name>

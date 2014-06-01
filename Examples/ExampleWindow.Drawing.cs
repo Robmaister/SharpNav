@@ -29,8 +29,9 @@ namespace Examples
 	{
 		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo, squareVbo, squareIbo;
 		private int levelNumVerts;
+		private bool levelHasNorm;
 
-		private ObjModel level;
+		private SharpNavEditor.IO.ObjData level;
 
 		private static readonly byte[] squareInds =
 		{
@@ -108,27 +109,31 @@ namespace Examples
 			GL.Enable(EnableCap.Lighting);
 			GL.Enable(EnableCap.Light0);
 			GL.Light(LightName.Light0, LightParameter.Ambient, new Vector4(0.6f, 0.6f, 0.6f, 1f));
+			GL.Disable(EnableCap.Light0);
+			GL.Disable(EnableCap.Lighting);
 		}
 
 		private void LoadLevel()
 		{
-			level = new ObjModel("nav_test.obj");
+			level = (SharpNavEditor.IO.ObjData)(new SharpNavEditor.IO.ObjLoader().LoadModel("nav_test.obj"));
+			levelNumVerts = level.Positions.Length / 3;
+			levelHasNorm = level.Normals != null;
 
-			var bounds = level.GetTriangles().GetBoundingBox().Center;
+			var bounds = TriangleEnumerable.FromFloat(level.Positions, 0, 0, levelNumVerts / 3).GetBoundingBox().Center;
 			cam.Position = new Vector3(bounds.X, bounds.Y, bounds.Z);
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
-			Triangle3[] modelTris = level.GetTriangles();
-			levelNumVerts = modelTris.Length * 3;
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(modelTris.Length * 3 * 3 * 4), modelTris, BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(level.Positions.Length * 4), level.Positions, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-			levelNormVbo = GL.GenBuffer();
-			GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
-			var modelNorms = level.GetNormals();
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(modelNorms.Length * 3 * 4), modelNorms, BufferUsageHint.StaticDraw);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			if (levelHasNorm)
+			{
+				levelNormVbo = GL.GenBuffer();
+				GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
+				GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(level.Normals.Length * 4), level.Normals, BufferUsageHint.StaticDraw);
+				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			}
 		}
 
 		private void LoadDebugMeshes()
@@ -186,18 +191,27 @@ namespace Examples
 		private void DrawLevel()
 		{
 			GL.EnableClientState(ArrayCap.VertexArray);
-			GL.EnableClientState(ArrayCap.NormalArray);
+
+			if (levelHasNorm)
+				GL.EnableClientState(ArrayCap.NormalArray);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
 			GL.VertexPointer(3, VertexPointerType.Float, 0, 0);
-			GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
-			GL.NormalPointer(NormalPointerType.Float, 0, 0);
+
+			if (levelHasNorm)
+			{
+				GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
+				GL.NormalPointer(NormalPointerType.Float, 0, 0);
+			}
+
 			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumVerts);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 
-			GL.DisableClientState(ArrayCap.NormalArray);
+			if (levelHasNorm)
+				GL.DisableClientState(ArrayCap.NormalArray);
+
 			GL.DisableClientState(ArrayCap.VertexArray);
 		}
 

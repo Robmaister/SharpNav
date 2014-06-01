@@ -7,119 +7,39 @@ namespace SharpNavEditor.IO
 {
 	public class ObjData : IModelData
 	{
-		public bool HasPositions
+		public ObjData(float[] pos, float[] texcoords, float[] norm)
 		{
-			get { throw new NotImplementedException(); }
+			Positions = pos;
+			TextureCoordinates = texcoords;
+			Normals = norm;
 		}
 
-		public bool HasTextureCoordinates
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int CustomVertexDataTypesCount { get { return 0; } }
 
-		public bool HasNormals
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int PositionVertexSize { get { return 3; } }
 
-		public bool HasTangents
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int TextureCoordinateVertexSize { get { return 2; } }
 
-		public bool HasBitangents
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int NormalVertexSize { get { return 3; } }
 
-		public bool HasColors
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int TangentVertexSize { get { return 0; } }
 
-		public bool HasAnimation
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int BitangentVertexSize { get { return 0; } }
 
-		public bool HasSkeleton
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int ColorVertexSize { get { return 0; } }
 
-		public bool HasIndices
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] Positions { get; private set; }
 
-		public int CustomVertexDataTypesCount
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] TextureCoordinates { get; private set; }
 
-		public int PositionVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] Normals { get; private set; }
 
-		public int TextureCoordinateVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] Tangents { get { return null; } }
 
-		public int NormalVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] Bitangents { get { return null; } }
 
-		public int TangentVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public float[] Colors { get { return null; } }
 
-		public int BitangentVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public int ColorVertexSize
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] Positions
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] TextureCoordinates
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] Normals
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] Tangents
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] Bitangents
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public float[] Colors
-		{
-			get { throw new NotImplementedException(); }
-		}
-
-		public int[] Indices
-		{
-			get { throw new NotImplementedException(); }
-		}
+		public int[] Indices { get { return null; } }
 	}
 }
