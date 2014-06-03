@@ -276,7 +276,7 @@ namespace SharpNav
 			else if (floatStride == 0)
 				floatStride = 3;
 
-			int floatEnd = triCount * floatStride + floatOffset;
+			int floatEnd = triCount * (floatStride * 3) + floatOffset;
 
 			if (floatEnd > verts.Length)
 				throw new ArgumentOutOfRangeException("triCount", "The specified offset, count, and stride end outside the bounds of the provided array.");
@@ -545,7 +545,7 @@ namespace SharpNav
 		/// <param name="area">The area flags for all of the triangles.</param>
 		public void RasterizeTriangles(float[] verts, int floatOffset, int floatStride, int triCount, AreaId area = AreaId.Walkable)
 		{
-			int floatEnd = triCount * floatStride + floatOffset;
+			int floatEnd = triCount * (floatStride * 3) + floatOffset;
 
 			if (verts == null)
 				throw new ArgumentNullException("verts");

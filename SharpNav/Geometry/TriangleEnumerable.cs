@@ -83,7 +83,7 @@ namespace SharpNav.Geometry
 
 			for (int i = 0; i < triCount; i++)
 			{
-				int indA = i * floatStride + floatOffset;
+				int indA = i * (floatStride * 3) + floatOffset;
 				int indB = indA + floatStride;
 				int indC = indB + floatStride;
 
@@ -187,7 +187,7 @@ namespace SharpNav.Geometry
 			}
 
 			//pad the bounding box a bit to make sure outer triangles are fully contained.
-			ApplyPaddingToBounds(float.Epsilon, ref bounds);
+			ApplyPaddingToBounds(1.0f, ref bounds);
 
 			return bounds;
 		}
@@ -207,7 +207,7 @@ namespace SharpNav.Geometry
 				ApplyVertexToBounds(ref v, ref bounds);
 			}
 
-			ApplyPaddingToBounds(float.Epsilon, ref bounds);
+			ApplyPaddingToBounds(1.0f, ref bounds);
 
 			return bounds;
 		}

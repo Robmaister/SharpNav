@@ -334,7 +334,7 @@ namespace Examples
 			try
 			{
 				//level.SetBoundingBoxOffset(new SVector3(settings.CellSize * 0.5f, settings.CellHeight * 0.5f, settings.CellSize * 0.5f));
-				Triangle3[] tris = level.GetTriangles();
+				var tris = TriangleEnumerable.FromFloat(level.Positions, 0, 0, level.Positions.Length / 9);
 				BBox3 bounds = tris.GetBoundingBox();
 
 				heightfield = new Heightfield(bounds, settings);
@@ -343,13 +343,13 @@ namespace Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
+				/*AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
 					.MarkAboveHeight(areaSettings.MaxLevelHeight, AreaId.Null)
 					.MarkBelowHeight(areaSettings.MinLevelHeight, AreaId.Null)
 					.MarkAboveSlope(areaSettings.MaxTriSlope, AreaId.Null)
 					.ToArray();
-				heightfield.RasterizeTrianglesWithAreas(level.GetTriangles(), areas);
-				//heightfield.RasterizeTriangles(tris);
+				heightfield.RasterizeTrianglesWithAreas(level.Positions, areas);*/
+				heightfield.RasterizeTriangles(level.Positions);
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
@@ -430,7 +430,7 @@ namespace Examples
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 
 				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
-				Console.WriteLine("Rasterized " + level.GetTriangles().Length + " triangles.");
+				Console.WriteLine("Rasterized " + level.Positions.Length / 9 + " triangles.");
 				Console.WriteLine("Generated " + contourSet.Count + " regions.");
 				Console.WriteLine("PolyMesh contains " + polyMesh.VertCount + " vertices in " + polyMesh.PolyCount + " polys.");
 				Console.WriteLine("PolyMeshDetail contains " + polyMeshDetail.VertCount + " vertices and " + polyMeshDetail.TrisCount + " tris in " + polyMeshDetail.MeshCount + " meshes.");

@@ -11,9 +11,10 @@ using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
+using Newtonsoft.Json; 
 
 
-#if MONOGAME || XNA
+#if MONOGAME || XNA    
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
@@ -1246,23 +1247,31 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// 
+		/// Serializes the navigation mesh into a JSON format and writes the 
+        /// serialized data to a file. 
 		/// </summary>
-		/// <param name="filename"></param>
-		/// <returns></returns>
+		/// <param name="filename">Path to file to be written</param>
+		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
+            string data = JsonConvert.SerializeObject(this);
+            File.WriteAllText(filename, data); 
 			return true; 
 		}
 
 		/// <summary>
-		/// 
+		/// Reads the JSON data from a file, deserializes it and updates the current
+        /// TiledNavMesh instance to reflect the deserialized data. 
 		/// </summary>
-		/// <param name="filename"></param>
-		/// <returns></returns>
-		public bool LoadJson(string filename)
+		/// <param name="filename">Path to file to be read</param>
+		/// <returns>True if file exists and was read successfully, false otherwise</returns>
+		public static TiledNavMesh LoadJson(string filename)
 		{
-			return true;
+            if (!File.Exists(filename))    
+                return null; 
+
+            string data = File.ReadAllText(filename); 
+            return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
 		}
 	}
 }
