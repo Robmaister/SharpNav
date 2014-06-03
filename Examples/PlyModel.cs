@@ -204,8 +204,6 @@ namespace Examples
 								if (!int.TryParse(line[i + 1], out vii)) continue;
 
 
-								vi -= 1;
-								vii -= 1;
 
 								tris.Add(new Triangle3(tempVerts[v0], tempVerts[vi], tempVerts[vii]));
 							}
