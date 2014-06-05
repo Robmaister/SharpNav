@@ -556,6 +556,57 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Retrieve the endpoints of the offmesh connection at the specified polygon
+		/// </summary>
+		/// <param name="prevRef">The previous polygon reference</param>
+		/// <param name="polyRef">The current polygon reference</param>
+		/// <param name="startPos">The starting position</param>
+		/// <param name="endPos">The ending position</param>
+		/// <returns>True if endpoints found, false if not</returns>
+		public bool GetOffMeshConnectionPolyEndPoints(int prevRef, int polyRef, ref Vector3 startPos, ref Vector3 endPos)
+		{
+			int salt = 0, indexTile = 0, indexPoly = 0;
+
+			if (polyRef == 0)
+				return false;
+
+			//get current polygon
+			DecodePolyId(polyRef, ref salt, ref indexTile, ref indexPoly);
+			if (indexTile >= maxTiles)
+				return false;
+			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
+				return false;
+			MeshTile tile = tiles[indexTile];
+			if (indexPoly >= tile.Header.polyCount)
+				return false;
+			Poly poly = tile.Polys[indexPoly];
+
+			if (poly.PolyType != PolygonType.OffMeshConnection)
+				return false;
+
+			int idx0 = 0, idx1 = 1;
+
+			//find the link that points to the first vertex
+			for (int i = poly.FirstLink; i != PathfinderCommon.NULL_LINK; i = tile.Links[i].Next)
+			{
+				if (tile.Links[i].Edge == 0)
+				{
+					if (tile.Links[i].Reference != prevRef)
+					{
+						idx0 = 1;
+						idx1 = 0;
+					}
+					break;
+				}
+			}
+
+			startPos = tile.Verts[poly.Verts[idx0]];
+			endPos = tile.Verts[poly.Verts[idx1]];
+
+			return true;
+		}
+
+		/// <summary>
 		/// Search for neighbor polygons in the tile.
 		/// </summary>
 		/// <param name="va">Vertex A</param>

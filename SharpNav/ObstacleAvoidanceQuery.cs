@@ -25,6 +25,39 @@ namespace SharpNav
 {
 	public class ObstacleAvoidanceQuery
 	{
+		private const int MAX_PATTERN_DIVS = 32;
+		private const int MAX_PATTERN_RINGS = 4;
+
+		private ObstacleAvoidanceParams parameters;
+		private float invHorizTime;
+		private float vmax;
+		private float invVmax;
+
+		private int maxCircles;
+		private ObstacleCircle[] circles;
+		private int ncircles;
+
+		private int maxSegments;
+		private ObstacleSegment[] segments;
+		private int nsegments;
+
+		public ObstacleAvoidanceQuery(int maxCircles, int maxSegments)
+		{
+			this.maxCircles = maxCircles;
+			this.ncircles = 0;
+			this.circles = new ObstacleCircle[this.maxCircles];
+
+			this.maxSegments = maxSegments;
+			this.nsegments = 0;
+			this.segments = new ObstacleSegment[this.maxSegments];
+		}
+
+		public void Reset()
+		{
+			ncircles = 0;
+			nsegments = 0;
+		}
+
 		private struct ObstacleCircle
 		{
 			/// <summary>
@@ -61,6 +94,20 @@ namespace SharpNav
 			public Vector3 P, Q;
 
 			public bool Touch;
+		}
+
+		public struct ObstacleAvoidanceParams
+		{
+			public float VelBias;
+			public float WeightDesVel;
+			public float WeightCurVel;
+			public float WeightSide;
+			public float WeightToi;
+			public float HorizTime;
+			public int GridSize;
+			public int AdaptiveDivs;
+			public int AdaptiveRings;
+			public int AdaptiveDepth;
 		}
 	}
 }

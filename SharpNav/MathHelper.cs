@@ -562,6 +562,136 @@ namespace SharpNav
 
 				return true;
 			}
+
+			/// <summary>
+			/// Determines whether two polygons A and B are intersecting
+			/// </summary>
+			/// <param name="polya">Polygon A's vertices</param>
+			/// <param name="npolya">Number of vertices for polygon A</param>
+			/// <param name="polyb">Polygon B's vertices</param>
+			/// <param name="npolyb">Number of vertices for polygon B</param>
+			/// <returns>True if intersecting, false if not</returns>
+			internal static bool PolyPoly2D(Vector3[] polya, int npolya, Vector3[] polyb, int npolyb)
+			{
+				const float EPS = 1E-4f;
+
+				for (int i = 0, j = npolya - 1; i < npolya; j = i++)
+				{
+					Vector3 va = polya[j];
+					Vector3 vb = polya[i];
+					Vector3 n = new Vector3(va.X - vb.X, 0.0f, va.Z - vb.Z);
+					float amin, amax, bmin, bmax;
+					ProjectPoly(n, polya, npolya, out amin, out amax);
+					ProjectPoly(n, polyb, npolyb, out bmin, out bmax);
+					if (!OverlapRange(amin, amax, bmin, bmax, EPS))
+					{
+						//found separating axis
+						return false;
+					}
+				}
+				for (int i = 0, j = npolyb - 1; i < npolyb; j = i++)
+				{
+					Vector3 va = polyb[j];
+					Vector3 vb = polyb[i];
+					Vector3 n = new Vector3(va.X - vb.X, 0.0f, va.Z - vb.Z);
+					float amin, amax, bmin, bmax;
+					ProjectPoly(n, polya, npolya, out amin, out amax);
+					ProjectPoly(n, polyb, npolyb, out bmin, out bmax);
+					if (!OverlapRange(amin, amax, bmin, bmax, EPS))
+					{
+						//found separating axis
+						return false;
+					}
+				}
+				return true;
+			}
+
+			/// <summary>
+			/// Determines whether the segment interesects with the polygon.
+			/// </summary>
+			/// <param name="p0">Segment's first endpoint</param>
+			/// <param name="p1">Segment's second endpoint</param>
+			/// <param name="verts">Polygon's vertices</param>
+			/// <param name="nverts">The number of vertices in the polygon</param>
+			/// <param name="tmin">Parameter t minimum</param>
+			/// <param name="tmax">Parameter t maximum</param>
+			/// <param name="segMin">Minimum vertex index</param>
+			/// <param name="segMax">Maximum vertex index</param>
+			/// <returns>True if intersect, false if not</returns>
+			internal static bool SegmentPoly2D(Vector3 p0, Vector3 p1, Vector3[] verts, int nverts, out float tmin, out float tmax, out int segMin, out int segMax)
+			{
+				float EPS = 0.00000001f;
+
+				tmin = 0;
+				tmax = 1;
+				segMin = -1;
+				segMax = -1;
+
+				Vector3 dir = p1 - p0;
+
+				for (int i = 0, j = nverts - 1; i < nverts; j = i++)
+				{
+					Vector3 edge = verts[i] - verts[j];
+					Vector3 diff = p0 - verts[j];
+					float n = edge.Z * diff.X - edge.X * diff.Z;
+					float d = dir.Z * edge.X - dir.X * edge.Z;
+					if (Math.Abs(d) < EPS)
+					{
+						//S is nearly parallel to this edge
+						if (n < 0)
+							return false;
+						else
+							continue;
+					}
+					float t = n / d;
+					if (d < 0)
+					{
+						//segment S is entering across this edge
+						if (t > tmin)
+						{
+							tmin = t;
+							segMin = j;
+
+							//S enters after leaving the polygon
+							if (tmin > tmax)
+								return false;
+						}
+					}
+					else
+					{
+						//segment S is leaving across this edge
+						if (t < tmax)
+						{
+							tmax = t;
+							segMax = j;
+
+							//S leaves before entering the polygon
+							if (tmax < tmin)
+								return false;
+						}
+					}
+				}
+
+				return true;
+			}
+
+			internal static void ProjectPoly(Vector3 axis, Vector3[] poly, int npoly, out float rmin, out float rmax)
+			{
+				Vector3Extensions.Dot2D(ref axis, ref poly[0], out rmin);
+				Vector3Extensions.Dot2D(ref axis, ref poly[0], out rmax);
+				for (int i = 1; i < npoly; i++)
+				{
+					float d;
+					Vector3Extensions.Dot2D(ref axis, ref poly[i], out d);
+					rmin = Math.Min(rmin, d);
+					rmax = Math.Max(rmax, d);
+				}
+			}
+
+			internal static bool OverlapRange(float amin, float amax, float bmin, float bmax, float eps)
+			{
+				return ((amin + eps) > bmax || (amax - eps) < bmin) ? false : true;
+			}
 		}
 	}
 }

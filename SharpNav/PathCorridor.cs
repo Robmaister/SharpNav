@@ -66,6 +66,49 @@ namespace SharpNav
 			this.npath = npath;
 		}
 
+		public int FindCorners(Vector3[] cornerVerts, int[] cornerFlags, int[] cornerPolys, int maxCorners, NavMeshQuery navquery)
+		{
+			float MIN_TARGET_DIST = 0.01f;
+
+			int ncorners = 0;
+			navquery.FindStraightPath(pos, target, path, npath, cornerVerts, cornerFlags, cornerPolys, ref ncorners, maxCorners, 0);
+
+			//prune points in the beginning of the path which are too close
+			while (ncorners > 0)
+			{
+				if (((cornerFlags[0] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) ||
+					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MIN_TARGET_DIST)
+					break;
+				ncorners--;
+				if (ncorners > 0)
+				{
+					for (int i = 0; i < ncorners; i++)
+					{
+						cornerFlags[i] = cornerFlags[i + 1];
+						cornerPolys[i] = cornerPolys[i + 1];
+						cornerVerts[i] = cornerVerts[i + 1];
+					}
+				}
+			}
+
+			//prune points after an off-mesh connection
+			for (int i = 0; i < ncorners; i++)
+			{
+				if ((cornerFlags[i] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
+				{
+					ncorners = i + 1;
+					break;
+				}
+			}
+
+			return ncorners;
+		}
+
+		/// <summary>
+		/// Use a local area path search to try to reoptimize this corridor
+		/// </summary>
+		/// <param name="navquery">The NavMeshQuery</param>
+		/// <returns>True if optimized, false if not</returns>
 		public bool OptimizePathTopology(NavMeshQuery navquery)
 		{
 			if (npath < 3)
@@ -90,12 +133,55 @@ namespace SharpNav
 			return false;
 		}
 
+		/// <summary>
+		/// Use an efficient local visibility search to try to optimize the corridor between the current position and the next.
+		/// </summary>
+		/// <param name="next">The next postion</param>
+		/// <param name="pathOptimizationRange">The range</param>
+		/// <param name="navquery">The NavMeshQuery</param>
+		public void OptimizePathVisibility(Vector3 next, float pathOptimizationRange, NavMeshQuery navquery)
+		{
+			//clamp the ray to max distance
+			Vector3 goal = next;
+			float dist = Vector3Extensions.Distance2D(pos, goal);
+
+			//if too close to the goal, do not try to optimize
+			if (dist < 0.01f)
+				return;
+
+			dist = Math.Min(dist + 0.01f, pathOptimizationRange);
+
+			//adjust ray length
+			Vector3 delta = goal - pos;
+			goal = pos + delta * (pathOptimizationRange / dist);
+
+			const int MAX_RES = 32;
+			int[] res = new int[MAX_RES];
+			float t = 0;
+			Vector3 norm = new Vector3();
+			int nres = 0;
+			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MAX_RES);
+			if (nres > 1 && t > 0.99f)
+			{
+				npath = MergeCorridorStartShortcut(path, npath, maxPath, res, nres);
+			}
+		}
+
+		/// <summary>
+		/// Merge two paths
+		/// </summary>
+		/// <param name="path">The current path</param>
+		/// <param name="npath">Current path length</param>
+		/// <param name="maxPath">Maximum path length allowed</param>
+		/// <param name="visited">The visited polygons</param>
+		/// <param name="nvisited">Visited path length</param>
+		/// <returns>New path length</returns>
 		public int MergeCorridorStartShortcut(int[] path, int npath, int maxPath, int[] visited, int nvisited)
 		{
 			int furthestPath = -1;
 			int furthestVisited = -1;
 
-			//find furhtest common polygon
+			//find furthest common polygon
 			for (int i = npath - 1; i >= 0; i--)
 			{
 				bool found = false;
@@ -137,6 +223,48 @@ namespace SharpNav
 			return req + size;
 		}
 
+		public bool MoveOverOffmeshConnection(int offMeshConRef, int[] refs, ref Vector3 startPos, ref Vector3 endPos, NavMeshQuery navquery)
+		{
+			//advance the path up to and over the off-mesh connection
+			int prevRef = 0, polyRef = path[0];
+			int npos = 0;
+			while (npos < npath && polyRef != offMeshConRef)
+			{
+				prevRef = polyRef;
+				polyRef = path[npos];
+				npos++;
+			}
+			if (npos == npath)
+			{
+				//could not find offMeshConRef
+				return false;
+			}
+
+			//prune path
+			for (int i = npos; i < npath; i++)
+				path[i - npos] = path[i];
+			npath -= npos;
+
+			refs[0] = prevRef;
+			refs[1] = polyRef;
+
+			TiledNavMesh nav = navquery.Nav;
+
+			if (nav.GetOffMeshConnectionPolyEndPoints(refs[0], refs[1], ref startPos, ref endPos) == true)
+			{
+				pos = endPos;
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Adjust the beginning of the path
+		/// </summary>
+		/// <param name="safeRef">The starting polygon reference</param>
+		/// <param name="safePos">The starting position</param>
+		/// <returns></returns>
 		public bool FixPathStart(int safeRef, Vector3 safePos)
 		{
 			pos = safePos;
@@ -156,6 +284,12 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Determines whether all the polygons in the path are valid
+		/// </summary>
+		/// <param name="maxLookAhead">The amount of polygons to examine</param>
+		/// <param name="navquery">The NavMeshQuery</param>
+		/// <returns>True if all valid, false if otherwise</returns>
 		public bool IsValid(int maxLookAhead, NavMeshQuery navquery)
 		{
 			int n = Math.Min(npath, maxLookAhead);

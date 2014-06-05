@@ -63,6 +63,14 @@ namespace SharpNav
 			return (pa - pb).Length() * areaCost[(int)curPoly.Area];
 		}
 
+		public TiledNavMesh Nav
+		{
+			get
+			{
+				return nav;
+			}
+		}
+
 		/// <summary>
 		/// Find a random point on a polygon. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
 		/// </summary>
@@ -938,6 +946,14 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Initialize a sliced path, which is used mostly for crowd pathfinding.
+		/// </summary>
+		/// <param name="startRef">Start polygon reference</param>
+		/// <param name="endRef">End polygon reference</param>
+		/// <param name="startPos">Start position's coordinates</param>
+		/// <param name="endPos">End position's coordinates</param>
+		/// <returns>True if path initialized, false if no</returns>
 		public bool InitSlicedFindPath(int startRef, int endRef, Vector3 startPos, Vector3 endPos)
 		{
 			//init path state
@@ -980,6 +996,12 @@ namespace SharpNav
 			return query.Status;
 		}
 
+		/// <summary>
+		/// Update the sliced path as agents move across the path.
+		/// </summary>
+		/// <param name="maxIter">Maximum iterations</param>
+		/// <param name="doneIters">Number of times iterated through</param>
+		/// <returns>True if updated, false if not</returns>
 		public bool UpdateSlicedFindPath(int maxIter, ref int doneIters)
 		{
 			if (query.Status != true)
@@ -1133,6 +1155,13 @@ namespace SharpNav
 			return query.Status;
 		}
 
+		/// <summary>
+		/// Save the sliced path 
+		/// </summary>
+		/// <param name="path">The path in terms of polygon references</param>
+		/// <param name="pathCount">The path length</param>
+		/// <param name="maxPath">The maximum path length allowed</param>
+		/// <returns>True if the path is saved, false if not</returns>
 		public bool FinalizeSlicedFindPath(int[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
@@ -1187,6 +1216,15 @@ namespace SharpNav
 			return true;
 		}
 
+		/// <summary>
+		/// Save a partial path
+		/// </summary>
+		/// <param name="existing">Existing path</param>
+		/// <param name="existingSize">Existing path's length</param>
+		/// <param name="path">New path</param>
+		/// <param name="pathCount">New path's length</param>
+		/// <param name="maxPath">Maximum path length allowed</param>
+		/// <returns>True if path saved, false if not</returns>
 		public bool FinalizedSlicedPathPartial(int[] existing, int existingSize, int[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
@@ -1257,6 +1295,499 @@ namespace SharpNav
 			pathCount = n;
 
 			return true;
+		}
+
+		public bool Raycast(int startRef, Vector3 startPos, Vector3 endPos, ref float t, ref Vector3 hitNormal, int[] path, ref int pathCount, int maxPath)
+		{
+			t = 0;
+			pathCount = 0;
+
+			//validate input
+			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
+				return false;
+
+			int curRef = startRef;
+			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			int n = 0;
+
+			hitNormal = new Vector3(0, 0, 0);
+
+			while (curRef != 0)
+			{
+				//cast ray against current polygon
+
+				MeshTile tile;
+				Poly poly;
+				nav.TryGetTileAndPolyByRefUnsafe(curRef, out tile, out poly);
+
+				//collect vertices
+				int nv = 0;
+				for (int i = 0; i < poly.VertCount; i++)
+				{
+					verts[nv] = tile.Verts[poly.Verts[i]];
+					nv++;
+				}
+
+				float tmin, tmax;
+				int segMin, segMax;
+				if (!MathHelper.Intersection.SegmentPoly2D(startPos, endPos, verts, nv, out tmin, out tmax, out segMin, out segMax))
+				{
+					//could not hit the polygon, keep the old t and report hit
+					pathCount = n;
+					return true;
+				}
+
+				//keep track of furthest t so far
+				if (tmax > t)
+					t = tmax;
+
+				//store visited polygons
+				if (n < maxPath)
+					path[n++] = curRef;
+
+				//ray end is completely inside the polygon
+				if (segMax == -1)
+				{
+					t = float.MaxValue;
+					pathCount = n;
+					return true;
+				}
+
+				//follow neighbours
+				int nextRef = 0;
+
+				for (int i = poly.FirstLink; i != PathfinderCommon.NULL_LINK; i = tile.Links[i].Next)
+				{
+					Link link = tile.Links[i];
+
+					//find link which contains the edge
+					if (link.Edge != segMax)
+						continue;
+
+					//get pointer to the next polygon
+					MeshTile nextTile;
+					Poly nextPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(link.Reference, out nextTile, out nextPoly);
+
+					//skip off-mesh connection
+					if (nextPoly.PolyType == PolygonType.OffMeshConnection)
+						continue;
+
+					//if the link is internal, just return the ref
+					if (link.Side == 0xff)
+					{
+						nextRef = link.Reference;
+						break;
+					}
+
+					//if the link is at the tile boundary
+
+					//check if the link spans the whole edge and accept
+					if (link.BMin == 0 && link.BMax == 255)
+					{
+						nextRef = link.Reference;
+						break;
+					}
+
+					//check for partial edge links
+					int v0 = poly.Verts[link.Edge];
+					int v1 = poly.Verts[(link.Edge + 1) % poly.VertCount];
+					Vector3 left = tile.Verts[v0];
+					Vector3 right = tile.Verts[v1];
+
+					//check that the intersection lies inside the link portal
+					if (link.Side == 0 || link.Side == 4)
+					{
+						//calculate link size
+						float s = 1.0f / 255.0f;
+						float lmin = left.Z + (right.Z - left.Z) * (link.BMin * s);
+						float lmax = left.Z + (right.Z - left.Z) * (link.BMax * s);
+						if (lmin > lmax)
+						{
+							//swap
+							float temp = lmin;
+							lmin = lmax;
+							lmax = temp;
+						}
+
+						//find z intersection
+						float z = startPos.Z + (endPos.Z - startPos.Z) * tmax;
+						if (z >= lmin && z <= lmax)
+						{
+							nextRef = link.Reference;
+							break;
+						}
+					}
+					else if (link.Side == 2 || link.Side == 6)
+					{
+						//calculate link size
+						float s = 1.0f / 255.0f;
+						float lmin = left.X + (right.X - left.X) * (link.BMin * s);
+						float lmax = left.X + (right.X - left.X) * (link.BMax * s);
+						if (lmin > lmax)
+						{
+							//swap
+							float temp = lmin;
+							lmin = lmax;
+							lmax = temp;
+						}
+
+						//find x intersection
+						float x = startPos.X + (endPos.X - startPos.X) * tmax;
+						if (x >= lmin && x <= lmax)
+						{
+							nextRef = link.Reference;
+							break;
+						}
+					}
+				}
+
+				if (nextRef == 0)
+				{
+					//no neighbour, we hit a wall
+
+					//calculate hit normal
+					int a = segMax;
+					int b = (segMax + 1) < nv ? segMax + 1 : 0;
+					Vector3 va = verts[a];
+					Vector3 vb = verts[b];
+					float dx = vb.X - va.X;
+					float dz = vb.Z - va.Z;
+					hitNormal.X = dz;
+					hitNormal.Y = 0;
+					hitNormal.Z = -dx;
+					hitNormal.Normalize();
+
+					pathCount = n;
+					return true;
+				}
+
+				//no hit, advance to neighbour polygon
+				curRef = nextRef;
+			}
+
+			pathCount = n;
+
+			return true;
+		}
+
+		/// <summary>
+		/// Store polygons that are within a certain range from the current polygon
+		/// </summary>
+		/// <param name="startRef">Starting polygon reference</param>
+		/// <param name="centerPos">Starting position</param>
+		/// <param name="radius">Range to search within</param>
+		/// <param name="resultRef">All the polygons within range</param>
+		/// <param name="resultParent">Polygon's parents</param>
+		/// <param name="resultCount">Number of polygons stored</param>
+		/// <param name="maxResult">Maximum number of polygons allowed</param>
+		/// <returns>True, unless input is invalid</returns>
+		public bool FindLocalNeighbourhood(int startRef, Vector3 centerPos, float radius, 
+			int[] resultRef, int[] resultParent, ref int resultCount, int maxResult)
+		{
+			resultCount = 0;
+
+			//validate input
+			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
+				return false;
+
+			int MAX_STACK = 48;
+			Node[] stack = new Node[MAX_STACK];
+			int nstack = 0;
+
+			tinyNodePool.Clear();
+
+			Node startNode = tinyNodePool.GetNode(startRef);
+			startNode.pidx = 0;
+			startNode.id = startRef;
+			startNode.flags = NodeFlags.Closed;
+			stack[nstack++] = startNode;
+
+			float radiusSqr = radius * radius;
+
+			Vector3[] pa = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] pb = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+
+			int n = 0;
+			if (n < maxResult)
+			{
+				resultRef[n] = startNode.id;
+				resultParent[n] = 0;
+				++n;
+			}
+
+			while (nstack > 0)
+			{
+				//pop front
+				Node curNode = stack[0];
+				for (int i = 0; i < nstack - 1; i++)
+					stack[i] = stack[i + 1];
+				nstack--;
+
+				//get poly and tile
+				int curRef = curNode.id;
+				MeshTile curTile;
+				Poly curPoly;
+				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
+
+				for (int i = curPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = curTile.Links[i].Next)
+				{
+					Link link = curTile.Links[i];
+					int neighbourRef = link.Reference;
+
+					//skip invalid neighbours
+					if (neighbourRef == 0)
+						continue;
+
+					//skip if cannot allocate more nodes
+					Node neighbourNode = tinyNodePool.GetNode(neighbourRef);
+					if (neighbourNode == null)
+						continue;
+					//skip visited
+					if ((neighbourNode.flags & NodeFlags.Closed) != 0)
+						continue;
+
+					//expand to neighbour
+					MeshTile neighbourTile;
+					Poly neighbourPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+
+					//skip off-mesh connections
+					if (neighbourPoly.PolyType == PolygonType.OffMeshConnection)
+						continue;
+
+					//find edge and calculate distance to edge
+					Vector3 va = new Vector3();
+					Vector3 vb = new Vector3();
+					if (!GetPortalPoints(curRef, curPoly, curTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb))
+						continue;
+
+					//if the circle is not touching the next polygon, skip it
+					float tseg;
+					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
+					if (distSqr > radiusSqr)
+						continue;
+
+					//mark node visited
+					neighbourNode.flags |= NodeFlags.Closed;
+					neighbourNode.pidx = tinyNodePool.GetNodeIdx(curNode);
+
+					//check that the polygon doesn't collide with existing polygons
+
+					//collect vertices of the neighbour poly
+					int npa = neighbourPoly.VertCount;
+					for (int k = 0; k < npa; k++)
+						pa[k] = neighbourTile.Verts[neighbourPoly.Verts[k]];
+
+					bool overlap = false;
+					for (int j = 0; j < n; j++)
+					{
+						int pastRef = resultRef[j];
+
+						//connected polys do not overlap
+						bool connected = false;
+						for (int k = curPoly.FirstLink; k != PathfinderCommon.NULL_LINK; k = curTile.Links[k].Next)
+						{
+							if (curTile.Links[k].Reference == pastRef)
+							{
+								connected = true;
+								break;
+							}
+						}
+						if (connected)
+							continue;
+
+						//potentially overlapping
+						MeshTile pastTile;
+						Poly pastPoly;
+						nav.TryGetTileAndPolyByRefUnsafe(pastRef, out pastTile, out pastPoly);
+
+						//get vertices and test overlap
+						int npb = pastPoly.VertCount;
+						for (int k = 0; k < npb; k++)
+							pb[k] = pastTile.Verts[pastPoly.Verts[k]];
+
+						if (MathHelper.Intersection.PolyPoly2D(pa, npa, pb, npb))
+						{
+							overlap = true;
+							break;
+						}
+					}
+					if (overlap)
+						continue;
+
+					//store poly
+					if (n < maxResult)
+					{
+						resultRef[n] = neighbourRef;
+						resultParent[n] = curRef;
+						++n;
+					}
+
+					if (nstack < MAX_STACK)
+					{
+						stack[nstack++] = neighbourNode;
+					}
+				}
+			}
+
+			resultCount = n;
+
+			return true;
+		}
+
+		/// <summary>
+		/// Collect all the edges from a polygon.
+		/// </summary>
+		/// <param name="reference">The polygon reference</param>
+		/// <param name="segmentVerts">Segment vertices</param>
+		/// <param name="segmentRefs">The polygon reference containing the segment</param>
+		/// <param name="segmentCount">The number of segments stored</param>
+		/// <param name="maxSegments">The maximum number of segments allowed</param>
+		/// <returns>True, unless the polygon reference is invalid</returns>
+		public bool GetPolyWallSegments(int reference, LocalBoundary.Segment[] segmentVerts, int[] segmentRefs, ref int segmentCount, int maxSegments)
+		{
+			segmentCount = 0;
+
+			MeshTile tile;
+			Poly poly;
+			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
+				return false;
+
+			int n = 0;
+			int MAX_INTERVAL = 16;
+			SegInterval[] ints = new SegInterval[MAX_INTERVAL];
+			int nints;
+
+			bool storePortals = (segmentRefs.Length != 0);
+
+			for (int i = 0, j = poly.VertCount - 1; i < poly.VertCount; j = i++)
+			{
+				//skip non-solid edges
+				nints = 0;
+				if ((poly.Neis[j] & PathfinderCommon.EXT_LINK) != 0)
+				{
+					//tile border
+					for (int k = poly.FirstLink; k != PathfinderCommon.NULL_LINK; k = tile.Links[k].Next)
+					{
+						Link link = tile.Links[k];
+						if (link.Edge == j)
+						{
+							if (link.Reference != 0)
+							{
+								MeshTile neiTile;
+								Poly neiPoly;
+								nav.TryGetTileAndPolyByRefUnsafe(link.Reference, out neiTile, out neiPoly);
+								InsertInterval(ints, ref nints, MAX_INTERVAL, link.BMin, link.BMax, link.Reference);
+							}
+						}
+					}
+				}
+				else
+				{
+					//internal edge
+					int neiRef = 0;
+					if (poly.Neis[j] != 0)
+					{
+						int idx = poly.Neis[j] - 1;
+						neiRef = nav.GetPolyRefBase(tile) | idx;
+					}
+
+					//if the edge leads to another polygon and portals are not stored, skip
+					if (neiRef != 0 && !storePortals)
+						continue;
+
+					if (n < maxSegments)
+					{
+						Vector3 vj = tile.Verts[poly.Verts[j]];
+						Vector3 vi = tile.Verts[poly.Verts[i]];
+						segmentVerts[n].Start = vj;
+						segmentVerts[n].End = vi;
+						segmentRefs[n] = neiRef;
+						n++; //could be n += 2, since segments have 2 vertices
+					}
+
+					continue;
+				}
+
+				//add sentinels
+				InsertInterval(ints, ref nints, MAX_INTERVAL, -1, 0, 0);
+				InsertInterval(ints, ref nints, MAX_INTERVAL, 255, 256, 0);
+
+				//store segments
+				Vector3 vj2 = tile.Verts[poly.Verts[j]];
+				Vector3 vi2 = tile.Verts[poly.Verts[i]];
+				for (int k = 1; k < nints; k++)
+				{
+					//portal segment
+					if (storePortals && ints[k].Reference != 0)
+					{
+						float tmin = ints[k].TMin / 255.0f;
+						float tmax = ints[k].TMax / 255.0f;
+						if (n < maxSegments)
+						{
+							Vector3.Lerp(ref vj2, ref vi2, tmin, out segmentVerts[n].Start);
+							Vector3.Lerp(ref vj2, ref vi2, tmax, out segmentVerts[n].End);
+							segmentRefs[n] = ints[k].Reference;
+							n++;
+						}
+					}
+
+					//wall segment
+					int imin = ints[k - 1].TMax;
+					int imax = ints[k].TMin;
+					if (imin != imax)
+					{
+						float tmin = imin / 255.0f;
+						float tmax = imax / 255.0f;
+						if (n < maxSegments)
+						{
+							Vector3.Lerp(ref vj2, ref vi2, tmin, out segmentVerts[n].Start);
+							Vector3.Lerp(ref vj2, ref vi2, tmax, out segmentVerts[n].End);
+							segmentRefs[n] = 0;
+							n++; 
+						}
+					}
+				}
+			}
+
+			segmentCount = n;
+
+			return true;
+		}
+
+		/// <summary>
+		/// Insert a segment into the array
+		/// </summary>
+		/// <param name="ints">The array of segments</param>
+		/// <param name="nints">The number of segments</param>
+		/// <param name="maxInts">The maximium number of segments allowed</param>
+		/// <param name="tmin">Parameter t minimum</param>
+		/// <param name="tmax">Parameter t maximum</param>
+		/// <param name="reference">Polygon reference</param>
+		public void InsertInterval(SegInterval[] ints, ref int nints, int maxInts, int tmin, int tmax, int reference)
+		{
+			if (nints + 1 > maxInts)
+				return;
+			//find insertion point
+			int idx = 0;
+			while (idx < nints)
+			{
+				if (tmax <= ints[idx].TMin)
+					break;
+				idx++;
+			}
+			//move current results
+			if (nints - idx > 0)
+			{
+				for (int i = 0; i < nints - idx; i++)
+					ints[idx + 1 + i] = ints[idx + i];
+			}
+			//store
+			ints[idx].Reference = reference;
+			ints[idx].TMin = tmin;
+			ints[idx].TMax = tmax;
+			nints++;
 		}
 
 		/// <summary>
@@ -1840,6 +2371,12 @@ namespace SharpNav
 			public float LastBestNodeCost;
 			public int StartRef, EndRef;
 			public Vector3 StartPos, EndPos;
+		}
+
+		public struct SegInterval
+		{
+			public int Reference;
+			public int TMin, TMax;
 		}
 	}
 }

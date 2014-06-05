@@ -138,6 +138,7 @@
     <Compile Include="PathfinderCommon.cs" />
     <Compile Include="Pathfinding\PolygonType.cs" />
     <Compile Include="PolyVertex.cs" />
+    <Compile Include="ProximityGrid.cs" />
     <Compile Include="Region.cs" />
     <Compile Include="Geometry\BBox3.cs" />
     <Compile Include="Geometry\Triangle3.cs" />
