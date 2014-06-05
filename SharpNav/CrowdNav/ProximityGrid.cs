@@ -21,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav
+namespace SharpNav.CrowdNav
 {
 	public class ProximityGrid
 	{

@@ -1645,7 +1645,7 @@ namespace SharpNav
 		/// <param name="segmentCount">The number of segments stored</param>
 		/// <param name="maxSegments">The maximum number of segments allowed</param>
 		/// <returns>True, unless the polygon reference is invalid</returns>
-		public bool GetPolyWallSegments(int reference, LocalBoundary.Segment[] segmentVerts, int[] segmentRefs, ref int segmentCount, int maxSegments)
+		public bool GetPolyWallSegments(int reference, CrowdNav.LocalBoundary.Segment[] segmentVerts, int[] segmentRefs, ref int segmentCount, int maxSegments)
 		{
 			segmentCount = 0;
 
