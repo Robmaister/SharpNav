@@ -172,6 +172,16 @@ namespace SharpNav.CrowdNav
 			return center;
 		}
 
+		public int GetSegmentCount()
+		{
+			return nsegs;
+		}
+
+		public Segment GetSegment(int i)
+		{
+			return segs[i];
+		}
+
 		public struct Segment
 		{
 			/// <summary>

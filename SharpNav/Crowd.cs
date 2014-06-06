@@ -85,8 +85,6 @@ namespace SharpNav
 
 		private Vector3 ext;
 
-		//private QueryFilter m_filters[MAX_QUERY_FILTER_TYPE];
-
 		private float maxAgentRadius;
 
 		private int velocitySampleCount;
@@ -476,7 +474,253 @@ namespace SharpNav
 				}
 			}
 
-			//TODO: fill in the rest of the details
+			//calculate steering
+			for (int i = 0; i < nagents; i++)
+			{
+				if (agents[i].State != CrowdAgentState.Walking)
+					continue;
+				if (agents[i].TargetState == TargetState.None)
+					continue;
+
+				Vector3 dvel = new Vector3(0, 0, 0);
+
+				if (agents[i].TargetState == TargetState.Velocity)
+				{
+					dvel = agents[i].TargetPos;
+					agents[i].DesiredSpeed = agents[i].TargetPos.Length();
+				}
+				else
+				{
+					//calculate steering direction
+					if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_ANTICIPATE_TURNS) != 0)
+						CalcSmoothSteerDirection(agents[i], ref dvel);
+					else
+						CalcStraightSteerDirection(agents[i], ref dvel);
+
+					//calculate speed scale, which tells the agent to slowdown at the end of the path
+					float slowDownRadius = agents[i].Parameters.Radius * 2;
+					float speedScale = GetDistanceToGoal(agents[i], slowDownRadius) / slowDownRadius;
+
+					agents[i].DesiredSpeed = agents[i].Parameters.MaxSpeed;
+					dvel = dvel * (agents[i].DesiredSpeed * speedScale);
+				}
+
+				//separation
+				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_SEPARATION) != 0)
+				{
+					float separationDist = agents[i].Parameters.CollisionQueryRange;
+					float invSeparationDist = 1.0f / separationDist;
+					float separationWeight = agents[i].Parameters.SeparationWeight;
+
+					float w = 0;
+					Vector3 disp = new Vector3(0, 0, 0);
+
+					for (int j = 0; j < agents[i].NNeis; j++)
+					{
+						CrowdAgent nei = agents[agents[i].neis[j].Idx];
+
+						Vector3 diff = agents[i].NPos - nei.NPos;
+						diff.Y = 0;
+
+						float distSqr = diff.LengthSquared();
+						if (distSqr < 0.00001f)
+							continue;
+						if (distSqr > separationDist * separationDist)
+							continue;
+						float dist = (float)Math.Sqrt(distSqr);
+						float weight = separationWeight * (1.0f - (dist * invSeparationDist) * (dist * invSeparationDist));
+
+						disp = disp + diff * (weight / dist);
+						w += 1.0f;
+					}
+
+					if (w > 0.0001f)
+					{
+						//adjust desired veloctiy
+						dvel = dvel + disp * (1.0f / w);
+
+						//clamp desired velocity to desired speed
+						float speedSqr = dvel.LengthSquared();
+						float desiredSqr = agents[i].DesiredSpeed * agents[i].DesiredSpeed;
+						if (speedSqr > desiredSqr)
+							dvel = dvel * (desiredSqr / speedSqr);
+					}
+				}
+
+				//set the desired velocity
+				agents[i].DVel = dvel;
+			}
+
+			//velocity planning
+			for (int i = 0; i < nagents; i++)
+			{
+				if (agents[i].State != CrowdAgentState.Walking)
+					continue;
+
+				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_OBSTACLE_AVOIDANCE) != 0)
+				{
+					this.obstacleQuery.Reset();
+
+					//add neighhbors as obstacles
+					for (int j = 0; j < agents[i].NNeis; j++)
+					{
+						CrowdAgent nei = agents[agents[i].neis[j].Idx];
+						obstacleQuery.AddCircle(nei.NPos, nei.Parameters.Radius, nei.Vel, nei.DVel);
+					}
+
+					//append neighbour segments as obstacles
+					for (int j = 0; j < agents[i].Boundary.GetSegmentCount(); j++)
+					{
+						LocalBoundary.Segment s = agents[i].Boundary.GetSegment(j);
+						if (Triangle3.Area2D(agents[i].NPos, s.Start, s.End) < 0.0f)
+							continue;
+						obstacleQuery.AddSegment(s.Start, s.End);
+					}
+
+					//sample new safe velocity
+					bool adaptive = true;
+					int ns = 0;
+
+					ObstacleAvoidanceQuery.ObstacleAvoidanceParams parameters = obstacleQueryParams[agents[i].Parameters.ObstacleAvoidanceType];
+
+					if (adaptive)
+					{
+						ns = obstacleQuery.SampleVelocityAdaptive(agents[i].NPos, agents[i].Parameters.Radius, agents[i].DesiredSpeed,
+							agents[i].Vel, agents[i].DVel, ref agents[i].NVel, parameters);
+					}
+					else
+					{
+						ns = obstacleQuery.SampleVelocityGrid(agents[i].NPos, agents[i].Parameters.Radius, agents[i].DesiredSpeed,
+							agents[i].Vel, agents[i].DVel, ref agents[i].NVel, parameters);
+					}
+					this.velocitySampleCount += ns;
+				}
+				else
+				{
+					//if not using velocity planning, new velocity is directly the desired velocity
+					agents[i].NVel = agents[i].DVel;
+				}
+			}
+
+			//integrate
+			for (int i = 0; i < nagents; i++)
+			{
+				if (agents[i].State != CrowdAgentState.Walking)
+					continue;
+				Integrate(agents[i], dt);
+			}
+
+			//handle collisions
+			const float COLLISION_RESOLVE_FACTOR = 0.7f;
+
+			for (int iter = 0; iter < 4; iter++)
+			{
+				for (int i = 0; i < nagents; i++)
+				{
+					int idx0 = GetAgentIndex(agents[i]);
+
+					if (agents[i].State != CrowdAgentState.Walking)
+						continue;
+
+					agents[i].Disp = new Vector3(0, 0, 0);
+
+					float w = 0;
+
+					for (int j = 0; j < agents[i].NNeis; j++)
+					{
+						CrowdAgent nei = agents[agents[i].neis[j].Idx];
+						int idx1 = GetAgentIndex(nei);
+
+						Vector3 diff = agents[i].NPos - nei.NPos;
+						diff.Y = 0;
+
+						float dist = diff.LengthSquared();
+						if (dist > (agents[i].Parameters.Radius + nei.Parameters.Radius) * (agents[i].Parameters.Radius + nei.Parameters.Radius))
+							continue;
+						dist = (float)Math.Sqrt(dist);
+						float pen = (agents[i].Parameters.Radius + nei.Parameters.Radius) - dist;
+						if (dist < 0.0001f)
+						{
+							//agents on top of each other, try to choose diverging separation directions
+							if (idx0 > idx1)
+								diff = new Vector3(-agents[i].DVel.Z, 0, agents[i].DVel.X);
+							else
+								diff = new Vector3(agents[i].DVel.Z, 0, -agents[i].DVel.X);
+							pen = 0.01f;
+						}
+						else
+						{
+							pen = (1.0f / dist) * (pen * 0.5f) * COLLISION_RESOLVE_FACTOR;
+						}
+
+						agents[i].Disp = agents[i].Disp + diff * pen;
+
+						w += 1.0f;
+					}
+
+					if (w > 0.0001f)
+					{
+						float iw = 1.0f / w;
+						agents[i].Disp = agents[i].Disp * iw;
+					}
+				}
+
+				for (int i = 0; i < nagents; i++)
+				{
+					if (agents[i].State != CrowdAgentState.Walking)
+						continue;
+
+					//move along navmesh
+					agents[i].Corridor.MovePosition(agents[i].NPos, navquery);
+
+					//get valid constrained position back
+					agents[i].NPos = agents[i].Corridor.GetPos();
+
+					//if not using path, truncate the corridor to just one poly
+					if (agents[i].TargetState == TargetState.None ||
+						agents[i].TargetState == TargetState.Velocity)
+					{
+						agents[i].Corridor.Reset(agents[i].Corridor.GetFirstPoly(), agents[i].NPos);
+						agents[i].Partial = false;
+					}
+				}
+
+				//update agents using offmesh connections
+				for (int i = 0; i < maxAgents; i++)
+				{
+					if (!agentAnims[i].Active)
+						continue;
+
+					agentAnims[i].T += dt;
+					if (agentAnims[i].T > agentAnims[i].TMax)
+					{
+						//reset animation
+						agentAnims[i].Active = false;
+
+						//prepare agent for walking
+						agents[i].State = CrowdAgentState.Walking;
+
+						continue;
+					}
+
+					//update position
+					float ta = agentAnims[i].TMax * 0.15f;
+					float tb = agentAnims[i].TMax;
+					if (agentAnims[i].T < ta)
+					{
+						float u = Tween(agentAnims[i].T, 0.0f, ta);
+						Vector3.Lerp(ref agentAnims[i].InitPos, ref agentAnims[i].StartPos, u, out agents[i].NPos);
+					}
+					else
+					{
+						float u = Tween(agentAnims[i].T, ta, tb);
+						Vector3.Lerp(ref agentAnims[i].StartPos, ref agentAnims[i].EndPos, u, out agents[i].NPos);
+					}
+
+					agents[i].Vel = new Vector3(0, 0, 0);
+					agents[i].DVel = new Vector3(0, 0, 0);
+				}
+			}
 		}
 
 		/// <summary>
@@ -703,23 +947,6 @@ namespace SharpNav
 			}
 		}
 
-		public bool OverOffmeshConnection(CrowdAgent ag, float radius)
-		{
-			if (ag.NCorners == 0)
-				return false;
-
-			bool offmeshConnection = ((ag.CornerFlags[ag.NCorners - 1] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) 
-				? true : false;
-			if (offmeshConnection)
-			{
-				float dist = Vector3Extensions.Distance2D(ag.NPos, ag.CornerVerts[ag.NCorners - 1]);
-				if (dist * dist < radius * radius)
-					return true;
-			}
-
-			return false;
-		}
-
 		/// <summary>
 		/// Reoptimize the path corridor for all agents
 		/// </summary>
@@ -859,6 +1086,115 @@ namespace SharpNav
 					}
 				}
 			}
+		}
+
+		public bool OverOffmeshConnection(CrowdAgent ag, float radius)
+		{
+			if (ag.NCorners == 0)
+				return false;
+
+			bool offmeshConnection = ((ag.CornerFlags[ag.NCorners - 1] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
+				? true : false;
+			if (offmeshConnection)
+			{
+				float dist = Vector3Extensions.Distance2D(ag.NPos, ag.CornerVerts[ag.NCorners - 1]);
+				if (dist * dist < radius * radius)
+					return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Calculate a vector based off of the map
+		/// </summary>
+		/// <param name="ag">The agent</param>
+		/// <param name="dir">The resulting steer direction</param>
+		public void CalcSmoothSteerDirection(CrowdAgent ag, ref Vector3 dir)
+		{
+			if (ag.NCorners == 0)
+			{
+				dir = new Vector3(0, 0, 0);
+				return;
+			}
+
+			int ip0 = 0;
+			int ip1 = Math.Min(1, ag.NCorners - 1);
+			Vector3 p0 = ag.CornerVerts[ip0];
+			Vector3 p1 = ag.CornerVerts[ip1];
+
+			Vector3 dir0 = p0 - ag.NPos;
+			Vector3 dir1 = p1 - ag.NPos;
+			dir0.Y = 0;
+			dir1.Y = 0;
+
+			float len0 = dir0.Length();
+			float len1 = dir1.Length();
+			if (len1 > 0.001f)
+				dir1 = dir1 * 1.0f / len1;
+
+			dir.X = dir0.X - dir1.X * len0 * 0.5f;
+			dir.Y = 0;
+			dir.Z = dir0.Z - dir1.Z * len0 * 0.5f;
+
+			dir.Normalize();
+		}
+
+		/// <summary>
+		/// Calculate a straight vector to the destination
+		/// </summary>
+		/// <param name="ag">The agent</param>
+		/// <param name="dir">The resulting steer direction</param>
+		public void CalcStraightSteerDirection(CrowdAgent ag, ref Vector3 dir)
+		{
+			if (ag.NCorners == 0)
+			{
+				dir = new Vector3(0, 0, 0);
+				return;
+			}
+			dir = ag.CornerVerts[0] - ag.NPos;
+			dir.Y = 0;
+			dir.Normalize();
+		}
+
+		/// <summary>
+		/// Find the crowd agent's distance to its goal
+		/// </summary>
+		/// <param name="ag">Thw crowd agent</param>
+		/// <param name="range">The maximum range</param>
+		/// <returns>Distance to goal</returns>
+		public float GetDistanceToGoal(CrowdAgent ag, float range)
+		{
+			if (ag.NCorners == 0)
+				return range;
+
+			bool endOfPath = ((ag.CornerFlags[ag.NCorners - 1] & PathfinderCommon.STRAIGHTPATH_END) != 0) ? true : false;
+			if (endOfPath)
+				return Math.Min(Vector3Extensions.Distance2D(ag.NPos, ag.CornerVerts[ag.NCorners - 1]), range);
+
+			return range;
+		}
+
+		/// <summary>
+		/// Update the position after a certain time 'dt'
+		/// </summary>
+		/// <param name="ag">The crowd agent</param>
+		/// <param name="dt">Time that passed</param>
+		public void Integrate(CrowdAgent ag, float dt)
+		{
+			//fake dyanmic constraint
+			float maxDelta = ag.Parameters.MaxAcceleration * dt;
+			Vector3 dv = ag.NVel - ag.Vel;
+			float ds = dv.Length();
+			if (ds > maxDelta)
+				dv = dv * (maxDelta / ds);
+			ag.Vel = ag.Vel + dv;
+
+			//integrate
+			if (ag.Vel.Length() > 0.0001f)
+				ag.NPos = ag.NPos + ag.Vel * dt;
+			else
+				ag.Vel = new Vector3(0, 0, 0);
 		}
 
 		/// <summary>
@@ -1038,6 +1374,18 @@ namespace SharpNav
 			agents[slot] = newag;
 
 			return Math.Min(nagents + 1, maxAgents);
+		}
+
+		/// <summary>
+		/// Basically a clamp function
+		/// </summary>
+		/// <param name="t">The value</param>
+		/// <param name="t0">The lower bound</param>
+		/// <param name="t1">The upper bound</param>
+		/// <returns>The 'clamped' value</returns>
+		public float Tween(float t, float t0, float t1)
+		{
+			return MathHelper.Clamp((t - t0) / (t1 - t0), 0.0f, 1.0f);
 		}
 
 		/// <summary>

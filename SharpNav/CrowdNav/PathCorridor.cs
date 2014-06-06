@@ -66,6 +66,38 @@ namespace SharpNav.CrowdNav
 			this.npath = npath;
 		}
 
+		/// <summary>
+		/// Move along the NavMeshQuery and update the position
+		/// </summary>
+		/// <param name="npos">Current position</param>
+		/// <param name="navquery">The NavMeshQuery</param>
+		/// <returns>True if position changed, false if not</returns>
+		public bool MovePosition(Vector3 npos, NavMeshQuery navquery)
+		{
+			//move along navmesh and update new position
+			Vector3 result = new Vector3();
+			const int MAX_VISITED = 16;
+			int[] visited = new int[MAX_VISITED];
+			List<int> listVisited = new List<int>(MAX_VISITED);
+			int nvisited = 0;
+			bool status = navquery.MoveAlongSurface(path[0], pos, npos, ref result, listVisited);
+			visited = listVisited.ToArray();
+
+			if (status == true)
+			{
+				npath = MergeCorridorStartMoved(path, npath, maxPath, visited, nvisited);
+
+				//adjust the position to stay on top of the navmesh
+				float h = pos.Y;
+				navquery.GetPolyHeight(path[0], result, ref h);
+				result.Y = h;
+				pos = result;
+				return true;
+			}
+
+			return false;
+		}
+
 		public int FindCorners(Vector3[] cornerVerts, int[] cornerFlags, int[] cornerPolys, int maxCorners, NavMeshQuery navquery)
 		{
 			float MIN_TARGET_DIST = 0.01f;
@@ -168,7 +200,63 @@ namespace SharpNav.CrowdNav
 		}
 
 		/// <summary>
-		/// Merge two paths
+		/// Merge two paths after the start is changed
+		/// </summary>
+		/// <param name="path">The current path</param>
+		/// <param name="npath">Current path length</param>
+		/// <param name="maxPath">Maximum path length allowed</param>
+		/// <param name="visited">The visited polygons</param>
+		/// <param name="nvisited">Visited path length</param>
+		/// <returns>New path length</returns>
+		public int MergeCorridorStartMoved(int[] path, int npath, int maxPath, int[] visited, int nvisited)
+		{
+			int furthestPath = -1;
+			int furthestVisited = -1;
+
+			//find furthest common polygon
+			for (int i = npath - 1; i >= 0; i--)
+			{
+				bool found = false;
+				for (int j = nvisited - 1; j >= 0; j--)
+				{
+					if (path[i] == visited[j])
+					{
+						furthestPath = i;
+						furthestVisited = j;
+						found = false;
+					}
+				}
+				if (found)
+					break;
+			}
+
+			//if no intersection found just return current path
+			if (furthestPath == -1 || furthestVisited == -1)
+				return npath;
+
+			//concatenate paths
+
+			//adjust beginning of buffer to include the visited
+			int req = nvisited - furthestVisited;
+			int orig = Math.Min(furthestPath + 1, npath);
+			int size = Math.Max(0, npath - orig);
+			if (req + size > maxPath)
+				size = maxPath - req;
+			if (size > 0)
+			{
+				for (int i = 0; i < size; i++)
+					path[req + i] = path[orig + i];
+			}
+
+			//store visited
+			for (int i = 0; i < req; i++)
+				path[i] = visited[(nvisited - 1) - i];
+
+			return req + size;
+		}
+
+		/// <summary>
+		/// Merge two paths when a shorter path is found
 		/// </summary>
 		/// <param name="path">The current path</param>
 		/// <param name="npath">Current path length</param>
@@ -300,6 +388,11 @@ namespace SharpNav.CrowdNav
 			}
 
 			return true;
+		}
+
+		public Vector3 GetPos()
+		{
+			return pos;
 		}
 
 		public int[] GetPath()

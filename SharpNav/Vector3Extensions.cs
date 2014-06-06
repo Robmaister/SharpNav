@@ -134,6 +134,17 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Calculates the dot product of two vectors projected onto the XZ plane.
+		/// </summary>
+		/// <param name="left">A vector.</param>
+		/// <param name="right">Another vector</param>
+		/// <returns>The dot product</returns>
+		internal static float Dot2D(ref Vector3 left, ref Vector3 right)
+		{
+			return left.X * right.X + left.Z * right.Z;
+		}
+
+		/// <summary>
 		/// Calculates the cross product of two vectors (formed from three points)
 		/// </summary>
 		/// <param name="p1">The first point</param>
