@@ -34,13 +34,6 @@ namespace SharpNav.CrowdNav
 		private int queueHead;
 		private NavMeshQuery navquery;
 
-		public enum Status
-		{
-			FAILURE = 1,
-			SUCCESS = 2,
-			IN_PROGRESS = 3
-		}
-
 		public PathQueue(int maxPathSize, int maxSearchNodeCount, ref TiledNavMesh nav)
 		{
 			this.navquery = new NavMeshQuery(nav, maxSearchNodeCount);
@@ -75,7 +68,7 @@ namespace SharpNav.CrowdNav
 				}
 
 				//handle completed request
-				if (q.status == Status.SUCCESS || q.status == Status.FAILURE)
+				if (q.status == Status.Success || q.status == Status.Failure)
 				{
 					q.KeepAlive++;
 					if (q.KeepAlive > MAX_KEEP_ALIVE)
@@ -94,32 +87,32 @@ namespace SharpNav.CrowdNav
 					bool status = navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos);
 					
 					if (status)
-						q.status = Status.SUCCESS;
+						q.status = Status.Success;
 					else
-						q.status = Status.FAILURE;
+						q.status = Status.Failure;
 				}
 
 				//handle query in progress
-				if (q.status == Status.IN_PROGRESS)
+				if (q.status == Status.InProgress)
 				{
 					int iters = 0;
 					bool status = navquery.UpdateSlicedFindPath(iterCount, ref iters);
 
 					if (status)
-						q.status = Status.SUCCESS;
+						q.status = Status.Success;
 					else
-						q.status = Status.FAILURE;
+						q.status = Status.Failure;
 
 					iterCount -= iters;
 				}
-				if (q.status == Status.SUCCESS)
+				if (q.status == Status.Success)
 				{
 					bool status = navquery.FinalizeSlicedFindPath(q.Path, ref q.NPath, maxPathSize);
 
 					if (status)
-						q.status = Status.SUCCESS;
+						q.status = Status.Success;
 					else
-						q.status = Status.FAILURE;
+						q.status = Status.Failure;
 				}
 
 				if (iterCount <= 0)
@@ -171,7 +164,7 @@ namespace SharpNav.CrowdNav
 				if (queue[i].Reference == reference)
 					return queue[i].status;
 			}
-			return Status.FAILURE;
+			return Status.Failure;
 		}
 
 		public bool GetPathResult(int reference, int[] path, ref int pathSize, int maxPath)

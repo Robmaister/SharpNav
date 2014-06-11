@@ -113,6 +113,10 @@
     <Compile Include="ContourSet.cs" />
     <Compile Include="ContourVertex.cs" />
     <Compile Include="Crowd.cs" />
+    <Compile Include="CrowdNav\CrowdAgentState.cs" />
+    <Compile Include="CrowdNav\Status.cs" />
+    <Compile Include="CrowdNav\TargetState.cs" />
+    <Compile Include="CrowdNav\UpdateFlags.cs" />
     <Compile Include="Direction.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />

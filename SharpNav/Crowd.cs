@@ -41,33 +41,6 @@ namespace SharpNav
 
 		private const int MAX_ITERS_PER_UPDATE = 100;
 
-		public enum CrowdAgentState 
-		{
-			Invalid,
-			Walking,
-			Offmesh
-		}
-
-		public enum TargetState
-		{
-			None = 0,
-			Failed,
-			Valid,
-			Requesting,
-			WaitingForQueue,
-			WaitingForPath,
-			Velocity
-		}
-
-		public enum UpdateFlags
-		{
-			CROWD_ANTICIPATE_TURNS = 1,
-			CROWD_OBSTACLE_AVOIDANCE = 2,
-			CROWD_SEPARATION = 4,
-			CROWD_OPTIMIZE_VIS = 8,
-			CROWD_OPTIMIZE_TOPO = 16
-		}
-
 		private int maxAgents;
 		private CrowdAgent[] agents;
 		private CrowdAgent[] activeAgents;
@@ -312,7 +285,7 @@ namespace SharpNav
 			agents[idx].TargetPos = new Vector3(0.0f, 0.0f, 0.0f);
 			agents[idx].TargetPathqRef = PathQueue.PATHQ_INVALID;
 			agents[idx].TargetReplan = false;
-			agents[idx].TargetState = (byte)TargetState.None;
+			agents[idx].TargetState = TargetState.None;
 
 			return true;
 		}
@@ -431,7 +404,7 @@ namespace SharpNav
 					CROWDAGENT_MAX_CORNERS, navquery);
 
 				//check to see if the corner after the next corner is directly visible 
-				if (((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_OPTIMIZE_VIS) != 0) && agents[i].NCorners > 0)
+				if (((agents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeVis) != 0) && agents[i].NCorners > 0)
 				{
 					Vector3 target = agents[i].CornerVerts[Math.Min(1, agents[i].NCorners - 1)];
 					agents[i].Corridor.OptimizePathVisibility(target, agents[i].Parameters.PathOptimizationRange, navquery);
@@ -492,7 +465,7 @@ namespace SharpNav
 				else
 				{
 					//calculate steering direction
-					if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_ANTICIPATE_TURNS) != 0)
+					if ((agents[i].Parameters.UpdateFlags & UpdateFlags.AnticipateTurns) != 0)
 						CalcSmoothSteerDirection(agents[i], ref dvel);
 					else
 						CalcStraightSteerDirection(agents[i], ref dvel);
@@ -506,7 +479,7 @@ namespace SharpNav
 				}
 
 				//separation
-				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_SEPARATION) != 0)
+				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.Separation) != 0)
 				{
 					float separationDist = agents[i].Parameters.CollisionQueryRange;
 					float invSeparationDist = 1.0f / separationDist;
@@ -557,7 +530,7 @@ namespace SharpNav
 				if (agents[i].State != CrowdAgentState.Walking)
 					continue;
 
-				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_OBSTACLE_AVOIDANCE) != 0)
+				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.ObstacleAvoidance) != 0)
 				{
 					this.obstacleQuery.Reset();
 
@@ -740,8 +713,7 @@ namespace SharpNav
 					continue;
 				if (agents[i].State == CrowdAgentState.Invalid)
 					continue;
-				if (agents[i].TargetState == TargetState.None ||
-					agents[i].TargetState == TargetState.Velocity)
+				if (agents[i].TargetState == TargetState.None || agents[i].TargetState == TargetState.Velocity)
 					continue;
 
 				if (agents[i].TargetState == TargetState.Requesting)
@@ -832,22 +804,21 @@ namespace SharpNav
 			//update requests
 			pathq.Update(MAX_ITERS_PER_UPDATE);
 
-			PathQueue.Status status;
+			Status status;
 
 			//process path results
 			for (int i = 0; i < maxAgents; i++)
 			{
 				if (!agents[i].Active)
 					continue;
-				if (agents[i].TargetState == TargetState.None ||
-					agents[i].TargetState == TargetState.Velocity)
+				if (agents[i].TargetState == TargetState.None || agents[i].TargetState == TargetState.Velocity)
 					continue;
 
 				if (agents[i].TargetState == TargetState.WaitingForPath)
 				{
 					//poll path queue
 					status = pathq.GetRequestStatus(agents[i].TargetPathqRef);
-					if (status == PathQueue.Status.FAILURE)
+					if (status == Status.Failure)
 					{
 						//path find failed, retry if the target location is still valid
 						agents[i].TargetPathqRef = PathQueue.PATHQ_INVALID;
@@ -857,7 +828,7 @@ namespace SharpNav
 							agents[i].TargetState = TargetState.Failed;
 						agents[i].TargetReplanTime = 0.0f;
 					}
-					else if (status == PathQueue.Status.SUCCESS)
+					else if (status == Status.Success)
 					{
 						int[] path = agents[i].Corridor.GetPath();
 						int npath = agents[i].Corridor.GetPathCount();
@@ -970,7 +941,7 @@ namespace SharpNav
 				if (agents[i].TargetState == TargetState.None ||
 					agents[i].TargetState == TargetState.Velocity)
 					continue;
-				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.CROWD_OPTIMIZE_TOPO) == 0)
+				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeTopo) == 0)
 					continue;
 				agents[i].TopologyOptTime += dt;
 				if (agents[i].TopologyOptTime >= OPT_TIME_THR)
