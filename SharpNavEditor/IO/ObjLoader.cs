@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 
 using OpenTK;
+using System.Diagnostics;
 
 namespace SharpNavEditor.IO
 {
@@ -48,8 +49,9 @@ namespace SharpNavEditor.IO
 				trimmedLine = trimmedLine.Trim();
 
 				string[] lineData = trimmedLine.Split(lineSplitChars, StringSplitOptions.RemoveEmptyEntries);
-				if (lineData == null || line.Length == 0)
-					continue;
+                if (lineData == null || lineData.Length == 0) 
+                    continue; 
+					
 
 				switch (lineData[0])
 				{
