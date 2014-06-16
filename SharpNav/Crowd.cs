@@ -580,7 +580,7 @@ namespace SharpNav
 			{
 				if (agents[i].State != CrowdAgentState.Walking)
 					continue;
-				Integrate(agents[i], dt);
+				Integrate(ref agents[i], dt);
 			}
 
 			//handle collisions
@@ -1151,7 +1151,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="ag">The crowd agent</param>
 		/// <param name="dt">Time that passed</param>
-		public void Integrate(CrowdAgent ag, float dt)
+		public void Integrate(ref CrowdAgent ag, float dt)
 		{
 			//fake dyanmic constraint
 			float maxDelta = ag.Parameters.MaxAcceleration * dt;
