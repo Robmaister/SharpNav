@@ -10,7 +10,6 @@ using System.Collections.Generic;
 
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
-using SharpNav.CrowdNav;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -22,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav
+namespace SharpNav.Crowd
 {
 	/// <summary>
 	/// The Crowd class manages pathfinding for multiple agents simulatenously.

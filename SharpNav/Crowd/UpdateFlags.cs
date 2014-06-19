@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpNav.CrowdNav
+namespace SharpNav.Crowd
 {
 	/// <summary>
 	/// The UpdateFlag affects the way the agent moves acorss its path.

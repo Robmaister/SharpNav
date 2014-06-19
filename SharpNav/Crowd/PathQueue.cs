@@ -21,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav.CrowdNav
+namespace SharpNav.Crowd
 {
 	public class PathQueue
 	{
