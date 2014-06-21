@@ -19,9 +19,11 @@ namespace SharpNav.Collections.Generic
 	/// <typeparam name="T">Type of element that given BufferedQueue object stores. </typeparam>
 	public class BufferedQueue<T> : ICollection<T>
 	{
-		private T[] data;       // Internal data array
-		private int size;       // Size of the queue
-		private int first;      // Index of first element in queue
+        private const int SIZE = 100;   // Fixed internal size of the data array
+		private T[] data;               // Internal data array
+	    private int first;              // Index of first element in queue
+        private int last;               // Index of last element in queue
+
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BufferedQueue{T}"/> class.
@@ -29,9 +31,8 @@ namespace SharpNav.Collections.Generic
 		/// <param name="size">The maximum number of items that will be stored.</param>
 		public BufferedQueue(int size)
 		{
-			this.data = new T[size];
-			this.size = size; 
-			this.first = 0; 
+			this.data = new T[SIZE];
+            this.first = this.last = -1;
 		}
 
 		/// <summary>
@@ -40,20 +41,17 @@ namespace SharpNav.Collections.Generic
 		/// </summary>
 		/// <param name="size">The number of elements to copy from the collection.</param>
 		/// <param name="items">The collection to copy from.</param>
-		public BufferedQueue(int size, ICollection<T> items)
+		public BufferedQueue(ICollection<T> items)
 		{
-			if (items.Count <= size)
+			if (items.Count <= SIZE)
 			{
-				this.data = new T[size];
+                this.data = new T[SIZE];
 				items.CopyTo(data, 0);
-
-				this.size = items.Count;
 				this.first = 0;
 			}
 			else
 			{
-				this.data = items.Skip(items.Count - size).ToArray();
-				this.size = size;
+                this.data = items.Skip(items.Count - SIZE).ToArray();
 				this.first = 0;
 			}
 		}
@@ -65,7 +63,7 @@ namespace SharpNav.Collections.Generic
 		{
 			get
 			{
-				return size - first;
+                return (last >= 0 && first >= 0) ? last - first : 0;
 			}
 		}
 
@@ -100,9 +98,11 @@ namespace SharpNav.Collections.Generic
 		/// <returns>True if element was added to queue, False otherwise</returns>
 		public bool Enqueue(T item)
 		{
-			if (size == data.Length)
+			if (last == data.Length)
 				return false;
-			data[size++] = item;
+            if (first < 0)
+                first = 0; 
+			data[++last] = item;
 			return true;
 		}
 
@@ -112,20 +112,20 @@ namespace SharpNav.Collections.Generic
 		/// <returns>Bottom element</returns>
 		public T Dequeue()
 		{
-			if (first == size)
+			if (first < 0)
 				throw new InvalidOperationException("The queue is empty.");
 			return data[first++];
 		}
 
 		/// <summary>
-		/// Returns copy of the size element of the queue.
+		/// Returns last element in the queue
 		/// </summary>
 		/// <returns>size element</returns>
 		public T Peek()
 		{
-			if (size == 0)
+			if (last == 0)
 				throw new InvalidOperationException("The queue is empty.");
-			return data[size - 1];
+            return data[last]; 
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace SharpNav.Collections.Generic
 		/// </summary>
 		public void Clear()
 		{
-			size = 0;
+			first = last = -1;
 		}
 
 		/// <summary>
@@ -143,7 +143,7 @@ namespace SharpNav.Collections.Generic
 		/// <returns>True if item exists in queue, False if not</returns>
 		public bool Contains(T item)
 		{
-			for (int i = 0; i < size; i++)
+			for (int i = 0; i <= last; i++)
 				if (item.Equals(data[i]))
 					return true;
 
@@ -166,11 +166,11 @@ namespace SharpNav.Collections.Generic
 		/// <returns>The enumerator.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
-			if (size == 0)
+			if (last < 0 || first < 0)
 				yield break;
 
 			//TODO handle wrap-arounds.
-			for (int i = 0; i < size; i++)
+			for (int i = 0; i <= last; i++)
 				yield return data[i];
 		}
 
