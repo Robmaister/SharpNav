@@ -424,7 +424,14 @@ namespace Examples
 
 			if (hasGenerated)
 			{
-				GeneratePathfinding();
+				try
+				{
+					GeneratePathfinding();
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("Pathfinding generation failed with exception" + Environment.NewLine + e.ToString());
+				}
 
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";

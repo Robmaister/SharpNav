@@ -33,9 +33,9 @@ namespace SharpNavTests
 		public void WriteJSONTest()
 		{
 			var tris = TriangleEnumerable.FromTriangle(new Triangle3[] {
-				new Triangle3(new Vector3(2, 3, 2), new Vector3(2, 3, 3), new Vector3(3, 3, 2)),
-				new Triangle3(new Vector3(2, 3, 3), new Vector3(3, 3, 2), new Vector3(3, 3, 3)),
-				new Triangle3(new Vector3(0, 0, 0), new Vector3(0, 0, 1), new Vector3(5, 5, 5))
+				new Triangle3(new Vector3(20, 30, 20), new Vector3(20, 30, 30), new Vector3(30, 30, 20)),
+				new Triangle3(new Vector3(20, 30, 30), new Vector3(30, 30, 30), new Vector3(30, 30, 20)),
+				new Triangle3(new Vector3(0, 0, 0), new Vector3(0, 0, 10), new Vector3(5, 5, 5))
 			}, 0, 3);
 
 			NavMeshGenerationSettings settings = NavMeshGenerationSettings.Default;

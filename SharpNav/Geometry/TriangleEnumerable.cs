@@ -174,6 +174,16 @@ namespace SharpNav.Geometry
 		/// <returns>A bounding box containing every triangle.</returns>
 		public static BBox3 GetBoundingBox(this IEnumerable<Triangle3> tris)
 		{
+			return GetBoundingBox(tris, float.Epsilon * 2f);
+		}
+
+		/// <summary>
+		/// Generates a bounding box for a collection of triangles.
+		/// </summary>
+		/// <param name="tris">The triangles to create a bounding box from.</param>
+		/// <returns>A bounding box containing every triangle.</returns>
+		public static BBox3 GetBoundingBox(this IEnumerable<Triangle3> tris, float padding)
+		{
 			BBox3 bounds = new BBox3();
 			Vector3 va, vb, vc;
 			foreach (Triangle3 tri in tris)
@@ -187,7 +197,7 @@ namespace SharpNav.Geometry
 			}
 
 			//pad the bounding box a bit to make sure outer triangles are fully contained.
-			ApplyPaddingToBounds(1.0f, ref bounds);
+			ApplyPaddingToBounds(padding, ref bounds);
 
 			return bounds;
 		}

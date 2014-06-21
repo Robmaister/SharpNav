@@ -17,21 +17,15 @@ namespace SharpNavTests
 	public class CellTests
 	{
 		[Test]
-		public void AddSpan_NoThickness_Throws()
-		{
-			var cell = new Cell(40);
-			var span = new Span(10, 10);
-
-			Assert.Throws<ArgumentException>(() => cell.AddSpan(span));
-		}
-
-		[Test]
-		public void AddSpan_Flipped_Throws()
+		public void AddSpan_Flipped_Success()
 		{
 			var cell = new Cell(40);
 			var span = new Span(20, 10);
 
-			Assert.Throws<ArgumentException>(() => cell.AddSpan(span));
+			cell.AddSpan(span);
+
+			Assert.AreEqual(cell.Spans[0].Minimum, span.Maximum);
+			Assert.AreEqual(cell.Spans[0].Maximum, span.Minimum);
 		}
 
 		[Test]

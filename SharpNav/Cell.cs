@@ -124,12 +124,16 @@ namespace SharpNav
 		/// <exception cref="ArgumentException">Thrown if an invalid span is provided.</exception>
 		public void AddSpan(Span span)
 		{
+			if (span.Minimum > span.Maximum)
+			{
+				int tmp = span.Minimum;
+				span.Minimum = span.Maximum;
+				span.Maximum = tmp;
+			}
+
 			//clamp the span to the cell's range of [0, maxHeight]
 			MathHelper.Clamp(ref span.Minimum, 0, height);
-			MathHelper.Clamp(ref span.Maximum, span.Minimum, height);
-
-			if (span.Minimum == span.Maximum)
-				throw new ArgumentException("Span has invalid bounds.");
+			MathHelper.Clamp(ref span.Maximum, 0, height);
 
 			for (int i = 0; i < spans.Count; i++)
 			{
