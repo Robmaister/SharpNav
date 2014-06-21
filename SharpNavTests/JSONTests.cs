@@ -49,6 +49,7 @@ namespace SharpNavTests
 			
 			NavMeshBuilder buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
 			TiledNavMesh mesh = new TiledNavMesh(buildData);*/
+
 			mesh.SaveJson("mesh.json"); 
 		}
 
