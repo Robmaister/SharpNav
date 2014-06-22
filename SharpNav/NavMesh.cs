@@ -29,7 +29,7 @@ namespace SharpNav
 		/// <returns>A <see cref="NavMesh"/>.</returns>
 		public static NavMesh Generate(IEnumerable<Triangle3> triangles, NavMeshGenerationSettings settings)
 		{
-			BBox3 bounds = triangles.GetBoundingBox();
+			BBox3 bounds = triangles.GetBoundingBox(settings.CellSize);
 			var hf = new Heightfield(bounds, settings);
 			hf.RasterizeTriangles(triangles);
 			hf.FilterLedgeSpans(settings.VoxelAgentHeight, settings.VoxelMaxClimb);

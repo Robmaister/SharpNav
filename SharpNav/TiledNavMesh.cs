@@ -1299,30 +1299,30 @@ namespace SharpNav
 
 		/// <summary>
 		/// Serializes the navigation mesh into a JSON format and writes the 
-        /// serialized data to a file. 
+		/// serialized data to a file. 
 		/// </summary>
 		/// <param name="filename">Path to file to be written</param>
 		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
-            string data = JsonConvert.SerializeObject(this);
-            File.WriteAllText(filename, data); 
+			string data = JsonConvert.SerializeObject(this);
+			File.WriteAllText(filename, data); 
 			return true; 
 		}
 
 		/// <summary>
 		/// Reads the JSON data from a file, deserializes it and updates the current
-        /// TiledNavMesh instance to reflect the deserialized data. 
+		/// TiledNavMesh instance to reflect the deserialized data. 
 		/// </summary>
 		/// <param name="filename">Path to file to be read</param>
 		/// <returns>True if file exists and was read successfully, false otherwise</returns>
 		public static TiledNavMesh LoadJson(string filename)
 		{
-            if (!File.Exists(filename))    
-                return null; 
+			if (!File.Exists(filename))    
+				return null; 
 
-            string data = File.ReadAllText(filename); 
-            return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
+			string data = File.ReadAllText(filename); 
+			return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
 		}
 	}
 }

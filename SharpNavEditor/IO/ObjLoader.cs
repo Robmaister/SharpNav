@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 namespace SharpNavEditor.IO
 {
+	[FileLoader(".obj")]
 	public class ObjLoader : IModelLoader
 	{
 		private static readonly char[] lineSplitChars = { ' ' };
@@ -49,8 +50,8 @@ namespace SharpNavEditor.IO
 				trimmedLine = trimmedLine.Trim();
 
 				string[] lineData = trimmedLine.Split(lineSplitChars, StringSplitOptions.RemoveEmptyEntries);
-                if (lineData == null || lineData.Length == 0) 
-                    continue; 
+				if (lineData == null || lineData.Length == 0) 
+					continue; 
 					
 
 				switch (lineData[0])
