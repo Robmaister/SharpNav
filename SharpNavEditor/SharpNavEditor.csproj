@@ -59,6 +59,7 @@
     <Compile Include="IO\ObjData.cs" />
     <Compile Include="IO\ObjLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="IO\PlyData.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
