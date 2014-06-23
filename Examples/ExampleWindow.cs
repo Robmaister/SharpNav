@@ -21,6 +21,7 @@ using OpenTK.Input;
 
 using SharpNav;
 using SharpNav.Geometry;
+using SharpNav.Crowd;
 
 using Key = OpenTK.Input.Key;
 
@@ -47,27 +48,35 @@ namespace Examples
 			SimplifiedContours,
 			PolyMesh,
 			PolyMeshDetail,
-			Pathfinding
+			Pathfinding,
+			Crowd
 		}
 
 		private Camera cam;
 		private float zoom = MathHelper.PiOver4;
 
+		//Generate poly mesh
 		private Heightfield heightfield;
 		private CompactHeightfield compactHeightfield;
 		private Color4[] regionColors;
 		private ContourSet contourSet;
 		private PolyMesh polyMesh;
 		private PolyMeshDetail polyMeshDetail;
+		
+		//Pathfinding
 		//private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
 		private TiledNavMesh tiledNavMesh;
 		private NavMeshQuery navMeshQuery;
 
+		//Smooth path for a single unit
 		private SVector3 startPos;
 		private SVector3 endPos;
 		private List<int> path;
 		private List<SVector3> smoothPath;
+
+		//A crowd is made up of multiple units, each with their own path
+		private Crowd crowd;
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -289,6 +298,9 @@ namespace Examples
 					case DisplayMode.Pathfinding:
 						DrawPathfinding();
 						break;
+					case DisplayMode.Crowd:
+						DrawCrowd();
+						break;
 				}
 			}
 
@@ -432,6 +444,9 @@ namespace Examples
 				{
 					Console.WriteLine("Pathfinding generation failed with exception" + Environment.NewLine + e.ToString());
 				}
+
+				//Pathfinding with multiple units
+				GenerateCrowd();
 
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
@@ -639,6 +654,11 @@ namespace Examples
 				path[i] = visited[(visited.Count - 1) - i];
 
 			return req + size;
+		}
+
+		private void GenerateCrowd()
+		{
+
 		}
 
 		/// <summary>

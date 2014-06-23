@@ -824,5 +824,9 @@ namespace Examples
 
 			GL.PopMatrix();
 		}
+
+		private void DrawCrowd()
+		{
+		}
 	}
 }
