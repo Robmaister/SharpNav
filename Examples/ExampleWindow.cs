@@ -77,6 +77,15 @@ namespace Examples
 
 		//A crowd is made up of multiple units, each with their own path
 		private Crowd crowd;
+		private const int MAX_AGENTS = 3;
+		private const int AGENT_MAX_TRAIL = 64;
+		private AgentTrail[] trails = new AgentTrail[AGENT_MAX_TRAIL];
+
+		private struct AgentTrail
+		{
+			public SVector3[] Trail;
+			public int HTrail;
+		}
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -658,7 +667,31 @@ namespace Examples
 
 		private void GenerateCrowd()
 		{
+			crowd = new Crowd(MAX_AGENTS, 0.6f, ref tiledNavMesh);
+	
+			SVector3 c = new SVector3(10, 0, 0);
+			SVector3 e = new SVector3(5, 5, 5);
 
+			//initialize starting positions for each agent
+			for (int i = 0; i < MAX_AGENTS; i++)
+			{
+				//Get the polygon that the starting point is in
+				int startRef;
+				SVector3 startPos;
+				navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
+
+				//Pick a random point that is within a certain radius of the current point
+				int endRef;
+				SVector3 endPos;
+				navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out endRef, out endPos);
+
+				c = endPos;
+
+				//Save this random point as the starting position
+				trails[i].Trail = new SVector3[AGENT_MAX_TRAIL];
+				trails[i].Trail[0] = endPos;
+				trails[i].HTrail = 0;
+			}
 		}
 
 		/// <summary>

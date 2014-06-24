@@ -39,6 +39,7 @@ namespace SharpNav.Crowd
 			this.navquery = new NavMeshQuery(nav, maxSearchNodeCount);
 
 			this.maxPathSize = maxPathSize;
+			this.queue = new PathQuery[MAX_QUEUE];
 			for (int i = 0; i < MAX_QUEUE; i++)
 			{
 				queue[i].Reference = PATHQ_INVALID;

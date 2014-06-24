@@ -827,6 +827,25 @@ namespace Examples
 
 		private void DrawCrowd()
 		{
+			 GL.PushMatrix();
+
+			//intial crowd positions
+			//draw lines connecting their starting positions
+			GL.Color4(Color4.Black);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < MAX_AGENTS - 1; i++)
+			{
+				SVector3 v0 = trails[i].Trail[0];
+				GL.Vertex3(v0.X, v0.Y, v0.Z);
+
+				SVector3 v1 = trails[i + 1].Trail[0];
+				GL.Vertex3(v1.X, v1.Y, v1.Z);
+			}
+			GL.End();
+
+			GL.DepthMask(true);
+
+			GL.PopMatrix();
 		}
 	}
 }
