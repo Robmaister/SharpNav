@@ -672,6 +672,15 @@ namespace Examples
 			SVector3 c = new SVector3(10, 0, 0);
 			SVector3 e = new SVector3(5, 5, 5);
 
+			Crowd.CrowdAgentParams ap = new Crowd.CrowdAgentParams();
+			ap.Radius = 0.6f;
+			ap.Height = 2.0f;
+			ap.MaxAcceleration = 8.0f;
+			ap.MaxSpeed = 3.5f;
+			ap.CollisionQueryRange = ap.Radius * 12.0f;
+			ap.PathOptimizationRange = ap.Radius * 30.0f;
+			ap.UpdateFlags = new UpdateFlags();
+
 			//initialize starting positions for each agent
 			for (int i = 0; i < MAX_AGENTS; i++)
 			{
@@ -680,17 +689,28 @@ namespace Examples
 				SVector3 startPos;
 				navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
 
-				//Pick a random point that is within a certain radius of the current point
-				int endRef;
-				SVector3 endPos;
-				navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out endRef, out endPos);
+				//Pick a new random point that is within a certain radius of the current point
+				int newRef;
+				SVector3 newPos;
+				navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out newRef, out newPos);
 
-				c = endPos;
+				c = newPos;
 
 				//Save this random point as the starting position
 				trails[i].Trail = new SVector3[AGENT_MAX_TRAIL];
-				trails[i].Trail[0] = endPos;
+				trails[i].Trail[0] = newPos;
 				trails[i].HTrail = 0;
+
+				//add this agent to the crowd
+				int idx = crowd.AddAgent(newPos, ap);
+
+				//Give this agent a target point
+				int targetRef;
+				SVector3 targetPos;
+				navMeshQuery.FindRandomPointAroundCircle(newRef, newPos, 1000, out targetRef, out targetPos);
+
+				crowd.RequestMoveTarget(idx, targetRef, targetPos);
+				trails[i].Trail[1] = targetPos;
 			}
 		}
 

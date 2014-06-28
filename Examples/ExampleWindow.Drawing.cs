@@ -14,6 +14,7 @@ using OpenTK.Graphics.OpenGL;
 using SharpNav;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
+using SharpNav.Crowd;
 
 //Prevents name collision under the Standalone configuration
 #if !OPENTK
@@ -827,18 +828,22 @@ namespace Examples
 
 		private void DrawCrowd()
 		{
-			 GL.PushMatrix();
+			GL.PushMatrix();
 
-			//intial crowd positions
-			//draw lines connecting their starting positions
-			GL.Color4(Color4.Black);
+			//draw the crowd path
+			Color4 color = Color4.Blue;
+			
 			GL.Begin(PrimitiveType.Lines);
-			for (int i = 0; i < MAX_AGENTS - 1; i++)
+			for (int i = 0; i < MAX_AGENTS; i++)
 			{
+				color.B = Color4.Blue.B * (float)i / (float)MAX_AGENTS;
+
+				GL.Color4(color);
+
 				SVector3 v0 = trails[i].Trail[0];
 				GL.Vertex3(v0.X, v0.Y, v0.Z);
 
-				SVector3 v1 = trails[i + 1].Trail[0];
+				SVector3 v1 = trails[i].Trail[1];
 				GL.Vertex3(v1.X, v1.Y, v1.Z);
 			}
 			GL.End();

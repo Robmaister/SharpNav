@@ -118,6 +118,7 @@ namespace SharpNav.Crowd
 				this.agents[i] = new CrowdAgent();
 				this.agents[i].Active = false;
 				this.agents[i].Corridor = new PathCorridor(maxPathResult);
+				this.agents[i].Boundary = new LocalBoundary();
 			}
 
 			for (int i = 0; i < maxAgents; i++)
@@ -223,7 +224,7 @@ namespace SharpNav.Crowd
 		/// <param name="reference"></param>
 		/// <param name="pos"></param>
 		/// <returns></returns>
-		public bool RequestTargetMoveReplan(int idx, int reference, Vector3 pos)
+		public bool RequestMoveTargetReplan(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -248,7 +249,7 @@ namespace SharpNav.Crowd
 		/// <param name="reference">The polygon reference</param>
 		/// <param name="pos">The target's coordinates</param>
 		/// <returns>True if request met, false if not</returns>
-		public bool RequestTargetMove(int idx, int reference, Vector3 pos)
+		public bool RequestMoveTarget(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -1072,7 +1073,7 @@ namespace SharpNav.Crowd
 				{
 					if (agents[i].TargetState != TargetState.None)
 					{
-						RequestTargetMoveReplan(idx, agents[i].TargetRef, agents[i].TargetPos);
+						RequestMoveTargetReplan(idx, agents[i].TargetRef, agents[i].TargetPos);
 					}
 				}
 			}
