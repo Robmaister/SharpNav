@@ -11,7 +11,8 @@ using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
-using Newtonsoft.Json; 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 #if MONOGAME || XNA    
@@ -31,6 +32,19 @@ namespace SharpNav
 	/// </summary>
 	public class TiledNavMesh
 	{
+        /// <summary>
+        /// The settings for the TiledNavMesh
+        /// </summary>
+        public struct TiledNavMeshParams
+        {
+            public Vector3 Origin;
+            public float TileWidth;
+            public float TileHeight;
+            public int MaxTiles;
+            public int MaxPolys;
+        }
+
+
 		private TiledNavMeshParams parameters;
 		private Vector3 origin;
 		private float tileWidth, tileHeight;
@@ -1286,18 +1300,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The settings for the TiledNavMesh
-		/// </summary>
-		public struct TiledNavMeshParams
-		{
-			public Vector3 Origin;
-			public float TileWidth;
-			public float TileHeight;
-			public int MaxTiles;
-			public int MaxPolys;
-		}
-
-		/// <summary>
 		/// Serializes the navigation mesh into a JSON format and writes the 
         /// serialized data to a file. 
 		/// </summary>
@@ -1305,7 +1307,7 @@ namespace SharpNav
 		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
-            string data = JsonConvert.SerializeObject(this);
+            string data = this.GetJSONObject().ToString();
             File.WriteAllText(filename, data); 
 			return true; 
 		}
@@ -1324,5 +1326,21 @@ namespace SharpNav
             string data = File.ReadAllText(filename); 
             return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
 		}
+
+        /// <summary>
+        /// Serialize all data into a JSON object and return it
+        /// </summary>
+        /// <returns>JObject instance</returns>
+        public JObject GetJSONObject()
+        {
+            return new JObject(
+                new JProperty("maxTiles", maxTiles),
+                new JProperty("tileWidth", tileWidth),
+                new JProperty("tileHeight", tileHeight),
+                new JProperty("saltBits", saltBits),
+                new JProperty("tileBits", tileBits),
+                new JProperty("polyBits", polyBits)
+            );
+        }
 	}
 }
