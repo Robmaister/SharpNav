@@ -7,15 +7,16 @@
 
 using System;
 
-namespace SharpNavEditor
+namespace SharpNavEditor.IO
 {
-	class EntryPoint
+	[AttributeUsage(AttributeTargets.Class)]
+	public class FileLoaderAttribute : Attribute
 	{
-		[STAThread]
-		static void Main(string[] args)
+		public string Extension { get; private set; }
+
+		public FileLoaderAttribute(string extension)
 		{
-			using (var window = new EditorWindow())
-				window.Run();
+			Extension = extension;
 		}
 	}
 }

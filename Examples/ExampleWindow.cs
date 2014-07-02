@@ -21,6 +21,7 @@ using OpenTK.Input;
 
 using SharpNav;
 using SharpNav.Geometry;
+using SharpNav.Crowd;
 
 using Key = OpenTK.Input.Key;
 
@@ -47,27 +48,44 @@ namespace Examples
 			SimplifiedContours,
 			PolyMesh,
 			PolyMeshDetail,
-			Pathfinding
+			Pathfinding,
+			Crowd
 		}
 
 		private Camera cam;
 		private float zoom = MathHelper.PiOver4;
 
+		//Generate poly mesh
 		private Heightfield heightfield;
 		private CompactHeightfield compactHeightfield;
 		private Color4[] regionColors;
 		private ContourSet contourSet;
 		private PolyMesh polyMesh;
 		private PolyMeshDetail polyMeshDetail;
+		
+		//Pathfinding
 		//private NavMeshCreateParams parameters;
 		private NavMeshBuilder buildData;
 		private TiledNavMesh tiledNavMesh;
 		private NavMeshQuery navMeshQuery;
 
+		//Smooth path for a single unit
 		private SVector3 startPos;
 		private SVector3 endPos;
 		private List<int> path;
 		private List<SVector3> smoothPath;
+
+		//A crowd is made up of multiple units, each with their own path
+		private Crowd crowd;
+		private const int MAX_AGENTS = 3;
+		private const int AGENT_MAX_TRAIL = 64;
+		private AgentTrail[] trails = new AgentTrail[AGENT_MAX_TRAIL];
+
+		private struct AgentTrail
+		{
+			public SVector3[] Trail;
+			public int HTrail;
+		}
 
 		private bool hasGenerated;
 		private bool displayLevel;
@@ -289,6 +307,9 @@ namespace Examples
 					case DisplayMode.Pathfinding:
 						DrawPathfinding();
 						break;
+					case DisplayMode.Crowd:
+						DrawCrowd();
+						break;
 				}
 			}
 
@@ -432,6 +453,9 @@ namespace Examples
 				{
 					Console.WriteLine("Pathfinding generation failed with exception" + Environment.NewLine + e.ToString());
 				}
+
+				//Pathfinding with multiple units
+				GenerateCrowd();
 
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
@@ -639,6 +663,55 @@ namespace Examples
 				path[i] = visited[(visited.Count - 1) - i];
 
 			return req + size;
+		}
+
+		private void GenerateCrowd()
+		{
+			crowd = new Crowd(MAX_AGENTS, 0.6f, ref tiledNavMesh);
+	
+			SVector3 c = new SVector3(10, 0, 0);
+			SVector3 e = new SVector3(5, 5, 5);
+
+			Crowd.CrowdAgentParams ap = new Crowd.CrowdAgentParams();
+			ap.Radius = 0.6f;
+			ap.Height = 2.0f;
+			ap.MaxAcceleration = 8.0f;
+			ap.MaxSpeed = 3.5f;
+			ap.CollisionQueryRange = ap.Radius * 12.0f;
+			ap.PathOptimizationRange = ap.Radius * 30.0f;
+			ap.UpdateFlags = new UpdateFlags();
+
+			//initialize starting positions for each agent
+			for (int i = 0; i < MAX_AGENTS; i++)
+			{
+				//Get the polygon that the starting point is in
+				int startRef;
+				SVector3 startPos;
+				navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
+
+				//Pick a new random point that is within a certain radius of the current point
+				int newRef;
+				SVector3 newPos;
+				navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out newRef, out newPos);
+
+				c = newPos;
+
+				//Save this random point as the starting position
+				trails[i].Trail = new SVector3[AGENT_MAX_TRAIL];
+				trails[i].Trail[0] = newPos;
+				trails[i].HTrail = 0;
+
+				//add this agent to the crowd
+				int idx = crowd.AddAgent(newPos, ap);
+
+				//Give this agent a target point
+				int targetRef;
+				SVector3 targetPos;
+				navMeshQuery.FindRandomPointAroundCircle(newRef, newPos, 1000, out targetRef, out targetPos);
+
+				crowd.RequestMoveTarget(idx, targetRef, targetPos);
+				trails[i].Trail[1] = targetPos;
+			}
 		}
 
 		/// <summary>

@@ -38,6 +38,11 @@ namespace SharpNav.Crowd
 		/// </summary>
 		private const int CROWDAGENT_MAX_CORNERS = 4;
 
+		/// <summary>
+		/// The maximum number of crowd avoidance configurations supported by the crowd manager
+		/// </summary>
+		private const int CROWDAGENT_MAX_OBSTAVOIDANCE_PARAMS = 8;
+
 		private const int MAX_ITERS_PER_UPDATE = 100;
 
 		private int maxAgents;
@@ -83,7 +88,7 @@ namespace SharpNav.Crowd
 			this.obstacleQuery = new ObstacleAvoidanceQuery(6, 8);
 
 			//initialize obstancle query params
-			this.obstacleQueryParams = new ObstacleAvoidanceQuery.ObstacleAvoidanceParams[8];
+			this.obstacleQueryParams = new ObstacleAvoidanceQuery.ObstacleAvoidanceParams[CROWDAGENT_MAX_OBSTAVOIDANCE_PARAMS];
 			for (int i = 0; i < this.obstacleQueryParams.Length; i++)
 			{
 				this.obstacleQueryParams[i].VelBias = 0.4f;
@@ -110,8 +115,10 @@ namespace SharpNav.Crowd
 
 			for (int i = 0; i < maxAgents; i++)
 			{
+				this.agents[i] = new CrowdAgent();
 				this.agents[i].Active = false;
 				this.agents[i].Corridor = new PathCorridor(maxPathResult);
+				this.agents[i].Boundary = new LocalBoundary();
 			}
 
 			for (int i = 0; i < maxAgents; i++)
@@ -121,6 +128,20 @@ namespace SharpNav.Crowd
 
 			//allocate nav mesh query
 			this.navquery = new NavMeshQuery(nav, 512);
+		}
+
+		public ObstacleAvoidanceQuery.ObstacleAvoidanceParams GetObstacleAvoidanceParams(int idx)
+		{
+			if (idx >= 0 && idx < CROWDAGENT_MAX_OBSTAVOIDANCE_PARAMS)
+				return obstacleQueryParams[idx];
+
+			return new ObstacleAvoidanceQuery.ObstacleAvoidanceParams();
+		}
+
+		public void SetObstacleAvoidanceParams(int idx, ObstacleAvoidanceQuery.ObstacleAvoidanceParams parameters)
+		{
+			if (idx >= 0 && idx < CROWDAGENT_MAX_OBSTAVOIDANCE_PARAMS)
+				obstacleQueryParams[idx] = parameters;
 		}
 
 		/// <summary>
@@ -203,7 +224,7 @@ namespace SharpNav.Crowd
 		/// <param name="reference"></param>
 		/// <param name="pos"></param>
 		/// <returns></returns>
-		public bool RequestTargetMoveReplan(int idx, int reference, Vector3 pos)
+		public bool RequestMoveTargetReplan(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -228,7 +249,7 @@ namespace SharpNav.Crowd
 		/// <param name="reference">The polygon reference</param>
 		/// <param name="pos">The target's coordinates</param>
 		/// <returns>True if request met, false if not</returns>
-		public bool RequestTargetMove(int idx, int reference, Vector3 pos)
+		public bool RequestMoveTarget(int idx, int reference, Vector3 pos)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return false;
@@ -1052,7 +1073,7 @@ namespace SharpNav.Crowd
 				{
 					if (agents[i].TargetState != TargetState.None)
 					{
-						RequestTargetMoveReplan(idx, agents[i].TargetRef, agents[i].TargetPos);
+						RequestMoveTargetReplan(idx, agents[i].TargetRef, agents[i].TargetPos);
 					}
 				}
 			}

@@ -6,6 +6,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 using OpenTK;
 using OpenTK.Input;
@@ -13,6 +17,8 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 using Gwen.Control;
+
+using SharpNavEditor.IO;
 
 namespace SharpNavEditor
 {
@@ -34,8 +40,10 @@ namespace SharpNavEditor
 		private StatusBar statusBar;
 		private MenuStrip mainMenu;
 
+		private IModelData testModel;
+
 		public EditorWindow()
-			: base(1024, 600)
+			: base(1024, 600, new GraphicsMode(32, 8, 0, 4))
 		{
 			Keyboard.KeyDown += OnKeyboardKeyDown;
 			Keyboard.KeyUp += OnKeyboardKeyUp;
@@ -69,7 +77,7 @@ namespace SharpNavEditor
 
 			MenuItem menuFile = mainMenu.AddItem("File");
 			menuFile.Menu.AddItem("New");
-			menuFile.Menu.AddItem("Open...");
+			menuFile.Menu.AddItem("Open...").Clicked += MainMenuFileOpen;
 			menuFile.Menu.AddDivider();
 			menuFile.Menu.AddItem("Save...");
 			menuFile.Menu.AddItem("Save As...");
@@ -89,6 +97,14 @@ namespace SharpNavEditor
 			menuHelp.Menu.AddItem("About...");
 
 			GL.ClearColor(Color4.CornflowerBlue);
+			GL.Enable(EnableCap.Lighting);
+			GL.Enable(EnableCap.Light0);
+			GL.Enable(EnableCap.DepthTest);
+			GL.DepthMask(true);
+			GL.DepthFunc(DepthFunction.Lequal);
+			GL.Enable(EnableCap.CullFace);
+			GL.Enable(EnableCap.Blend);
+			GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 		}
 
 		protected override void OnUpdateFrame(FrameEventArgs e)
@@ -214,6 +230,38 @@ namespace SharpNavEditor
 
 			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
+
+			if (testModel != null)
+			{
+				GL.PushMatrix();
+
+				if (testModel.Positions != null)
+				{
+					GL.EnableClientState(ArrayCap.VertexArray);
+					GL.VertexPointer(testModel.PositionVertexSize, VertexPointerType.Float, 0, testModel.Positions);
+				}
+				if (testModel.Normals != null)
+				{
+					GL.EnableClientState(ArrayCap.NormalArray);
+					GL.NormalPointer(NormalPointerType.Float, 0, testModel.Normals);
+				}
+
+				if (testModel.Indices != null)
+					GL.DrawElements(PrimitiveType.Triangles, testModel.Indices.Length, DrawElementsType.UnsignedInt, testModel.Indices);
+				else
+					GL.DrawArrays(PrimitiveType.Triangles, 0, testModel.Positions.Length / testModel.PositionVertexSize);
+
+				if (testModel.Positions != null)
+					GL.DisableClientState(ArrayCap.VertexArray);
+				if (testModel.Normals != null)
+					GL.DisableClientState(ArrayCap.NormalArray);
+
+				GL.PopMatrix();
+			}
+
+			GL.Disable(EnableCap.Lighting);
+
 			GL.PushMatrix();
 			GL.LoadIdentity();
 			GL.MatrixMode(MatrixMode.Projection);
@@ -225,6 +273,8 @@ namespace SharpNavEditor
 			GL.PopMatrix();
 			GL.MatrixMode(MatrixMode.Modelview);
 			GL.PopMatrix();
+
+			GL.Enable(EnableCap.Lighting);
 
 			SwapBuffers();
 		}
@@ -253,6 +303,29 @@ namespace SharpNavEditor
 			gwenRenderer.Dispose();
 
 			base.OnUnload(e);
+		}
+
+		private void MainMenuFileOpen(Base control, EventArgs e)
+		{
+			//use reflection to get all model loaders and their file extensions.
+			var extFileTypes = (from t in Assembly.GetExecutingAssembly().GetTypes()
+				where t.IsClass && !t.IsAbstract && typeof(IModelLoader).IsAssignableFrom(t) && t.GetConstructor(Type.EmptyTypes) != null
+				from attr in t.GetCustomAttributes(false)
+				where attr is FileLoaderAttribute
+				select new { Ext = (attr as FileLoaderAttribute).Extension, Loader = (IModelLoader)Activator.CreateInstance(t) })
+				.ToDictionary(item => item.Ext, item => item.Loader);
+
+			//create a filter string for the open file dialog
+			var filterStrings = extFileTypes.Keys.Select(s => "*" + s);
+			var allFilter = "All Model Formats(" + filterStrings.Aggregate((seq, next) => seq + ", " + next) + ")";
+			var filters = allFilter + "|" + filterStrings.Aggregate((seq, next) => seq + "|" + next);
+
+			//open a new dialog and load the model if successful
+			Gwen.Platform.Neutral.FileOpen("Load Model", ".", filters,
+				(s) =>
+				{
+					testModel = extFileTypes[Path.GetExtension(s)].LoadModel(s);
+				});
 		}
 
 		private void MainMenuFileExit(Base control, EventArgs e)
