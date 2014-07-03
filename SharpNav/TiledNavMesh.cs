@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
@@ -42,6 +43,23 @@ namespace SharpNav
             public float TileHeight;
             public int MaxTiles;
             public int MaxPolys;
+
+            /// <summary>
+            /// Serialized JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        //new JProperty("Origin", Origin)
+                        new JProperty("TileWidth", TileWidth),
+                        new JProperty("TileHeight", TileHeight),
+                        new JProperty("MaxTiles", MaxTiles),
+                        new JProperty("MaxPolys", MaxPolys)
+                    );
+                }
+            }
         }
 
 
@@ -1307,7 +1325,7 @@ namespace SharpNav
 		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
-            string data = this.GetJSONObject().ToString();
+            string data = this.JSONObject.ToString();
             File.WriteAllText(filename, data); 
 			return true; 
 		}
@@ -1328,19 +1346,33 @@ namespace SharpNav
 		}
 
         /// <summary>
-        /// Serialize all data into a JSON object and return it
+        /// Serialized JSON object
         /// </summary>
-        /// <returns>JObject instance</returns>
-        public JObject GetJSONObject()
+        public JObject JSONObject
         {
-            return new JObject(
-                new JProperty("maxTiles", maxTiles),
-                new JProperty("tileWidth", tileWidth),
-                new JProperty("tileHeight", tileHeight),
-                new JProperty("saltBits", saltBits),
-                new JProperty("tileBits", tileBits),
-                new JProperty("polyBits", polyBits)
-            );
+            get
+            {
+                return new JObject(
+                    new JProperty("general", new JObject(
+                        new JProperty("maxTiles", maxTiles),
+                        new JProperty("tileWidth", tileWidth),
+                        new JProperty("tileHeight", tileHeight),
+                        new JProperty("saltBits", saltBits),
+                        new JProperty("tileBits", tileBits),
+                        new JProperty("polyBits", polyBits),
+                        new JProperty("tileLookupTableSize", tileLookupTableSize),
+                        new JProperty("tileLookupTableMask", tileLookupTableMask)
+                    )), 
+                    new JProperty("parameters", parameters.JSONObject)
+
+                    /*
+                    new JObject("origin", origin),
+                    new JObject("nextFree", nextFree),
+                    new JProperty("tiles", new JArray(from x in tiles select new JValue(x))),
+                    new JProperty("posLookup", new JArray(from x in posLookup select new JValue(x)))
+                    */
+                );
+            }
         }
 	}
 }
