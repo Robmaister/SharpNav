@@ -25,9 +25,10 @@ SOFTWARE.
 #if !MONOGAME && !OPENTK && !SHARPDX && !XNA && !UNITY3D
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
-
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SharpNav
 {
@@ -57,6 +58,21 @@ namespace SharpNav
 		/// The Z component of the Vector3.
 		/// </summary>
 		public float Z;
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("X", X),
+                    new JProperty("Y", Y),
+                    new JProperty("Z", Z)
+                );
+            }
+        }
 
 		#endregion
 

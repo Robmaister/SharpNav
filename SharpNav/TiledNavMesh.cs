@@ -52,7 +52,7 @@ namespace SharpNav
                 get
                 {
                     return new JObject(
-                        //new JProperty("Origin", Origin)
+                        new JProperty("Origin", Origin.JSONObject),
                         new JProperty("TileWidth", TileWidth),
                         new JProperty("TileHeight", TileHeight),
                         new JProperty("MaxTiles", MaxTiles),
@@ -1363,10 +1363,10 @@ namespace SharpNav
                         new JProperty("tileLookupTableSize", tileLookupTableSize),
                         new JProperty("tileLookupTableMask", tileLookupTableMask)
                     )), 
-                    new JProperty("parameters", parameters.JSONObject)
-
+                    new JProperty("parameters", parameters.JSONObject),
+                    new JProperty("origin", origin.JSONObject)
+                    
                     /*
-                    new JObject("origin", origin),
                     new JObject("nextFree", nextFree),
                     new JProperty("tiles", new JArray(from x in tiles select new JValue(x))),
                     new JProperty("posLookup", new JArray(from x in posLookup select new JValue(x)))
