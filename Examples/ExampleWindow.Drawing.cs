@@ -830,24 +830,56 @@ namespace Examples
 		{
 			GL.PushMatrix();
 
-			//draw the crowd path
-			Color4 color = Color4.Blue;
-			
+			//The black line represents the actual path that the agent takes
+			GL.Color4(Color4.Black);
 			GL.Begin(PrimitiveType.Lines);
-			for (int i = 0; i < MAX_AGENTS; i++)
+			for (int i = 0; i < numActiveAgents; i++)
 			{
-				color.B = Color4.Blue.B * (float)i / (float)MAX_AGENTS;
+				for (int j = 0; j < numIterations - 1; j++)
+				{
+					SVector3 v0 = trails[i].Trail[j];
+					GL.Vertex3(v0.X, v0.Y, v0.Z);
 
-				GL.Color4(color);
+					SVector3 v1 = trails[i].Trail[j + 1];
+					GL.Vertex3(v1.X, v1.Y, v1.Z);
+				}
+			}
+			GL.End();
 
+			//The yellow line represents the ideal path from the start to the target
+			GL.Color4(Color4.Yellow);
+			GL.LineWidth(1.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < numActiveAgents; i++)
+			{
 				SVector3 v0 = trails[i].Trail[0];
 				GL.Vertex3(v0.X, v0.Y, v0.Z);
 
-				SVector3 v1 = trails[i].Trail[1];
+				SVector3 v1 = trails[i].Trail[AGENT_MAX_TRAIL - 1];
 				GL.Vertex3(v1.X, v1.Y, v1.Z);
 			}
 			GL.End();
 
+			//The cyan point represents the agent's starting location
+			GL.PointSize(10.0f);
+			GL.Color4(Color4.Cyan);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < numActiveAgents; i++)
+			{
+				SVector3 v0 = trails[i].Trail[0];
+				GL.Vertex3(v0.X, v0.Y, v0.Z);
+			}
+			GL.End();
+
+			//The red point represent's the agent's target location
+			GL.Color4(Color4.PaleVioletRed);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < numActiveAgents; i++)
+			{
+				SVector3 v0 = trails[i].Trail[AGENT_MAX_TRAIL - 1];
+				GL.Vertex3(v0.X, v0.Y, v0.Z);
+			}
+			GL.End();
 			GL.DepthMask(true);
 
 			GL.PopMatrix();

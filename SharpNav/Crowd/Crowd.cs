@@ -119,6 +119,10 @@ namespace SharpNav.Crowd
 				this.agents[i].Active = false;
 				this.agents[i].Corridor = new PathCorridor(maxPathResult);
 				this.agents[i].Boundary = new LocalBoundary();
+				this.agents[i].neis = new CrowdNeighbor[32];
+				this.agents[i].CornerVerts = new Vector3[CROWDAGENT_MAX_CORNERS];
+				this.agents[i].CornerFlags = new int[CROWDAGENT_MAX_CORNERS];
+				this.agents[i].CornerPolys = new int[CROWDAGENT_MAX_CORNERS];
 			}
 
 			for (int i = 0; i < maxAgents; i++)
@@ -142,6 +146,19 @@ namespace SharpNav.Crowd
 		{
 			if (idx >= 0 && idx < CROWDAGENT_MAX_OBSTAVOIDANCE_PARAMS)
 				obstacleQueryParams[idx] = parameters;
+		}
+
+		public int GetAgentCount()
+		{
+			return maxAgents;
+		}
+
+		public CrowdAgent GetAgent(int idx)
+		{
+			if (idx < 0 || idx >= maxAgents)
+				return null;
+
+			return agents[idx];
 		}
 
 		/// <summary>
@@ -714,6 +731,7 @@ namespace SharpNav.Crowd
 					agents[i].DVel = new Vector3(0, 0, 0);
 				}
 			}
+			 
 		}
 
 		/// <summary>

@@ -127,7 +127,8 @@ namespace SharpNav.Crowd
 			center = pos;
 
 			//first query non-overlapping polygons
-			navquery.FindLocalNeighbourhood(reference, pos, collisionQueryRange, polys, null, ref npolys, MAX_LOCAL_POLYS);
+			int[] tempArray = new int[polys.Length];
+			navquery.FindLocalNeighbourhood(reference, pos, collisionQueryRange, polys, tempArray, ref npolys, MAX_LOCAL_POLYS);
 
 			//secondly, store all polygon edges
 			this.nsegs = 0;
@@ -135,7 +136,8 @@ namespace SharpNav.Crowd
 			int nsegs = 0;
 			for (int j = 0; j < npolys; j++)
 			{
-				navquery.GetPolyWallSegments(polys[j], segs, null, ref nsegs, MAX_SEGS_PER_POLY);
+				tempArray = new int[segs.Length];
+				navquery.GetPolyWallSegments(polys[j], segs, tempArray, ref nsegs, MAX_SEGS_PER_POLY);
 				for (int k = 0; k < nsegs; k++)
 				{
 					//skip too distant segments

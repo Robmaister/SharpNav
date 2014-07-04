@@ -108,7 +108,7 @@ namespace SharpNav.Crowd
 						pool[idx].X = x;
 						pool[idx].Y = y;
 						pool[idx].Id = id;
-						pool[idx].Next = buckets[h];
+						pool[idx].Next = buckets[h]; 
 						buckets[h] = idx;
 					}
 				}
@@ -140,7 +140,9 @@ namespace SharpNav.Crowd
 				{
 					int h = HashPos2(x, y, bucketsSize);
 					int idx = buckets[h];
-					while (idx != 0xffff)
+					//NOTE: the idx value will never be 0xfff f(because the bucket will never store such
+					//a high number). The idx could equal 0xff, which is the default value
+					while (idx != 0xff) 
 					{
 						if (pool[idx].X == x && pool[idx].Y == y)
 						{

@@ -77,8 +77,10 @@ namespace Examples
 
 		//A crowd is made up of multiple units, each with their own path
 		private Crowd crowd;
-		private const int MAX_AGENTS = 3;
+		private const int MAX_AGENTS = 128;
 		private const int AGENT_MAX_TRAIL = 64;
+		private int numIterations = 50;
+		private int numActiveAgents = 3;
 		private AgentTrail[] trails = new AgentTrail[AGENT_MAX_TRAIL];
 
 		private struct AgentTrail
@@ -681,8 +683,8 @@ namespace Examples
 			ap.PathOptimizationRange = ap.Radius * 30.0f;
 			ap.UpdateFlags = new UpdateFlags();
 
-			//initialize starting positions for each agent
-			for (int i = 0; i < MAX_AGENTS; i++)
+			//initialize starting positions for each active agent
+			for (int i = 0; i < numActiveAgents; i++)
 			{
 				//Get the polygon that the starting point is in
 				int startRef;
@@ -710,7 +712,25 @@ namespace Examples
 				navMeshQuery.FindRandomPointAroundCircle(newRef, newPos, 1000, out targetRef, out targetPos);
 
 				crowd.RequestMoveTarget(idx, targetRef, targetPos);
-				trails[i].Trail[1] = targetPos;
+				trails[i].Trail[AGENT_MAX_TRAIL - 1] = targetPos;
+			}
+
+			//Update 50 times
+			for (int i = 0; i < numIterations; i++)
+			{
+				crowd.Update(1.0f / 20.0f);
+
+				//Iterate through each crowd agent
+				for (int j = 0; j < 3; j++)
+				{
+					Crowd.CrowdAgent ag = crowd.GetAgent(j);
+					if (!ag.Active)
+						continue;
+
+					//update agent movement trail
+					trails[j].HTrail = (trails[j].HTrail + 1) % AGENT_MAX_TRAIL;
+					trails[j].Trail[trails[j].HTrail] = ag.NPos;
+				}
 			}
 		}
 
