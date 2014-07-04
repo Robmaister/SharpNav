@@ -6,7 +6,10 @@
 #endregion
 
 using System;
+using System.Linq;
 using SharpNav.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -89,5 +92,21 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the next MeshTile
 		/// </summary>
 		public MeshTile Next { get; set; }
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("Salt", Salt),
+                    new JProperty("LinksFreeList", LinksFreeList),
+                    new JProperty("Header", Header.JSONObject)
+                    /* rest TBD */
+                );
+            }
+        }
 	}
 }

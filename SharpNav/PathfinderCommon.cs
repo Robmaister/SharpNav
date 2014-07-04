@@ -6,10 +6,13 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
-
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -236,6 +239,10 @@ namespace SharpNav
 			pt = a * pointA + b * pointB + c * pointC;
 		}
 
+
+        /// <summary>
+        /// Contains information about a navigation mesh
+        /// </summary>
 		public class NavMeshInfo
 		{
 			public int x;
@@ -260,6 +267,41 @@ namespace SharpNav
 			public float walkableClimb;
 			public BBox3 bounds;
 			public float bvQuantFactor;
+
+
+            /// <summary>
+            /// Serialized JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        new JProperty("x", x),
+                        new JProperty("y", y),
+                        new JProperty("layer", layer),
+                        new JProperty("userId", userId),
+                        new JProperty("polyCount", polyCount),
+                        new JProperty("vertCount", vertCount),
+                        new JProperty("maxLinkCount", maxLinkCount)
+
+                        /*
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                        new JProperty("x", x),
+                         * */
+                    );
+                }
+            }
 		}
 	}
 }
