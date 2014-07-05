@@ -6,10 +6,13 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -37,6 +40,26 @@ namespace SharpNav
 		private PolyMeshDetail.TriangleData[] navDTris;
 		private BVTree navBvTree;
 		private OffMeshConnection[] offMeshConnections;
+
+        /// <summary>
+        /// Serializable JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("header", header.JSONObject),
+                    new JProperty("navVerts", from v in navVerts select v.JSONObject),
+                    new JProperty("navPolys", from p in navPolys select p.JSONObject),
+                    new JProperty("navDMeshes", from m in navDMeshes select m.JSONObject),
+                    new JProperty("navDVerts", from v in navDVerts select v.JSONObject),
+                    new JProperty("navDTris", from t in navDTris select t.JSONObject),
+                    //new JProperty("navBvTree", navBvTree.JSONObject),
+                    new JProperty("offMeshConnections", from o in offMeshConnections select o.JSONObject)
+                );
+            }
+        }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="NavMeshBuilder" /> class.

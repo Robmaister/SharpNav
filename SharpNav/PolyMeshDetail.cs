@@ -6,10 +6,13 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
-
+using SharpNav;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -1253,6 +1256,22 @@ namespace SharpNav
 			public int VertexCount;
 			public int TriangleIndex;
 			public int TriangleCount;
+
+            /// <summary>
+            /// Serializable JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        new JProperty("VertexIndex", VertexIndex),
+                        new JProperty("VertexCount", VertexCount),
+                        new JProperty("TriangleIndex", TriangleIndex),
+                        new JProperty("TriangleCount", TriangleCount)
+                    );
+                }
+            }
 		}
 
 		/// <summary>
@@ -1264,6 +1283,22 @@ namespace SharpNav
 			public int VertexHash1;
 			public int VertexHash2;
 			public int Flags; //indicates which 3 vertices are part of the polygon
+
+            /// <summary>
+            /// Serializable JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        new JProperty("VertexHash0", VertexHash0),
+                        new JProperty("VertexHash1", VertexHash1),
+                        new JProperty("VertexHash2", VertexHash2),
+                        new JProperty("Flags", Flags)
+                    );
+                }
+            }
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="TriangleData" /> struct.
@@ -1397,6 +1432,22 @@ namespace SharpNav
 			public int Y;
 			public int Z;
 			public bool IsSampled;
+
+            /// <summary>
+            /// Serializable JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        new JProperty("X", X),
+                        new JProperty("Y", Y),
+                        new JProperty("Z", Z),
+                        new JProperty("IsSampled", IsSampled)
+                    );
+                }
+            }
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="SamplingData"/> struct.

@@ -81,7 +81,7 @@ namespace SharpNav.Pathfinding
                 return new JObject(
                     new JProperty("polyType", polyType),
                     new JProperty("FirstLink", FirstLink),
-                    new JProperty("Verts", new JArray(from v in Verts select new JValue(v)),
+                    new JProperty("Verts", new JArray(from v in Verts select new JValue(v))),
                     new JProperty("Neis", new JArray(from n in Neis select new JValue(n))),
                     new JProperty("Flags", Flags),
                     new JProperty("VertCount", VertCount),

@@ -6,6 +6,10 @@
 #endregion
 
 using System;
+using System.Linq;
+using SharpNav;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -58,6 +62,25 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the id 
 		/// </summary>
-		public uint UserId { get; set; } 
+		public uint UserId { get; set; }
+
+        /// <summary>
+        /// Serializable JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("Pos0", Pos0.JSONObject),
+                    new JProperty("Pos1", Pos1.JSONObject),
+                    new JProperty("Radius", Radius),
+                    new JProperty("Poly", Poly),
+                    new JProperty("Flags", Flags),
+                    new JProperty("Side", Side),
+                    new JProperty("UserId", UserId)
+                );
+            }
+        }
 	}
 }
