@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-
+using SharpNav;
 using SharpNav.Geometry;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -20,6 +23,32 @@ namespace SharpNav.Collections.Generic
 	/// </summary>
 	public class BVTree
 	{
+        /// <summary>
+        /// The data stored in a bounding volume node.
+        /// </summary>
+        public struct Node
+        {
+            public PolyBounds Bounds;
+            public int Index;
+
+            /// <summary>
+            /// Serialized JSON object
+            /// </summary>
+            public JObject JSONObject
+            {
+                get
+                {
+                    return new JObject(
+                        new JProperty("Bounds", Bounds.JSONObject),
+                        new JProperty("Index", Index)
+                    );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Nodes in the tree
+        /// </summary>
 		private Node[] nodes;
 
 		/// <summary>
@@ -182,15 +211,6 @@ namespace SharpNav.Collections.Generic
 			}
 
 			return curNode;
-		}
-
-		/// <summary>
-		/// The data stored in a bounding volume node.
-		/// </summary>
-		public struct Node
-		{
-			public PolyBounds Bounds;
-			public int Index;
 		}
 
 		/// <summary>

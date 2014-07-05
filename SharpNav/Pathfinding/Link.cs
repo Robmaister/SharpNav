@@ -6,6 +6,10 @@
 #endregion
 
 using System;
+using System.Linq;
+using SharpNav;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SharpNav.Pathfinding
 {
@@ -43,5 +47,23 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the maximum Vector3 of the bounding box
 		/// </summary>
 		public int BMax { get; set; }
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("Reference", Reference),
+                    new JProperty("Next", Next),
+                    new JProperty("Edge", Edge),
+                    new JProperty("Side", Side),
+                    new JProperty("BMin", BMin),
+                    new JProperty("BMax", BMax)
+                );
+            }
+        }
 	}
 }

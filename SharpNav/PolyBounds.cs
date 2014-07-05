@@ -6,7 +6,10 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SharpNav
 {
@@ -25,6 +28,20 @@ namespace SharpNav
 		/// The upper bound of the bounding box.
 		/// </summary>
 		public PolyVertex Max;
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("Min", Min.JSONObject),
+                    new JProperty("Max", Max.JSONObject)
+                );
+            }
+        }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyBounds"/> struct.

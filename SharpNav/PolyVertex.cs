@@ -6,8 +6,12 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using SharpNav;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SharpNav
 {
@@ -31,6 +35,21 @@ namespace SharpNav
 		/// The Z coordinate.
 		/// </summary>
 		public int Z;
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("X", X),
+                    new JProperty("Y", Y),
+                    new JProperty("Z", Z)
+                );
+            }
+        }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyVertex"/> struct.
