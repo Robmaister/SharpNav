@@ -7,8 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-
 using SharpNav;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
@@ -37,6 +38,20 @@ namespace SharpNav.Geometry
 		/// The maximum bounds.
 		/// </summary>
 		public Vector3 Max;
+
+        /// <summary>
+        /// Serialized JSON object
+        /// </summary>
+        public JObject JSONObject
+        {
+            get
+            {
+                return new JObject(
+                    new JProperty("Min", Min.JSONObject),
+                    new JProperty("Max", Max.JSONObject)
+                );
+            }
+        }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BBox3"/> struct.
