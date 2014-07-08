@@ -324,6 +324,10 @@ namespace SharpNavEditor
 			Gwen.Platform.Neutral.FileOpen("Load Model", ".", filters,
 				(s) =>
 				{
+					//HACK fix this in GWEN.NET
+					if (s == "")
+						return;
+
 					testModel = extFileTypes[Path.GetExtension(s)].LoadModel(s);
 				});
 		}
