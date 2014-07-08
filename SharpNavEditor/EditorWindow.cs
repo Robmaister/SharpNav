@@ -18,7 +18,11 @@ using OpenTK.Graphics.OpenGL;
 
 using Gwen.Control;
 
+using SharpNav;
+using SharpNav.Geometry;
+
 using SharpNavEditor.IO;
+using Gwen.ControlInternal;
 
 namespace SharpNavEditor
 {
@@ -40,7 +44,15 @@ namespace SharpNavEditor
 		private StatusBar statusBar;
 		private MenuStrip mainMenu;
 
-		private IModelData testModel;
+		private List<Mesh> meshes;
+		private ListBox meshListBox;
+
+		private Mesh selectedMesh;
+		private Base meshProperties;
+
+		private PolyMesh polyMesh;
+		private PolyMeshDetail polyMeshDetail;
+		private NavMesh navMesh;
 
 		public EditorWindow()
 			: base(1024, 600, new GraphicsMode(32, 8, 0, 4))
@@ -53,6 +65,8 @@ namespace SharpNavEditor
 			Mouse.WheelChanged += OnMouseWheel;
 
 			this.Title = "SharpNav Editor";
+
+			meshes = new List<Mesh>();
 		}
 
 		protected override void OnLoad(EventArgs e)
@@ -77,7 +91,7 @@ namespace SharpNavEditor
 
 			MenuItem menuFile = mainMenu.AddItem("File");
 			menuFile.Menu.AddItem("New");
-			menuFile.Menu.AddItem("Open...").Clicked += MainMenuFileOpen;
+			//menuFile.Menu.AddItem("Open...").Clicked += LoadModelBtn;
 			menuFile.Menu.AddDivider();
 			menuFile.Menu.AddItem("Save...");
 			menuFile.Menu.AddItem("Save As...");
@@ -95,6 +109,135 @@ namespace SharpNavEditor
 
 			MenuItem menuHelp = mainMenu.AddItem("Help");
 			menuHelp.Menu.AddItem("About...");
+
+			Button statusLoadModelBtn = new Button(statusBar);
+			statusLoadModelBtn.Dock = Gwen.Pos.Left;
+			statusLoadModelBtn.Text = "Load model";
+			statusLoadModelBtn.Clicked += LoadModelBtn;
+
+			Button statusGenNavmesh = new Button(statusBar);
+			statusGenNavmesh.Dock = Gwen.Pos.Left;
+			statusGenNavmesh.Text = "Generate NavMesh";
+			statusGenNavmesh.AutoSizeToContents = true;
+			statusGenNavmesh.Clicked += GenNavMesh;
+
+			TabControl sidePanel = new TabControl(gwenCanvas);
+			sidePanel.Width = 300;
+			sidePanel.Dock = Gwen.Pos.Right;
+
+			Resizer sidePanelResizer = new Resizer(sidePanel);
+			sidePanelResizer.Dock = Gwen.Pos.Left;
+			sidePanelResizer.ResizeDir = Gwen.Pos.Left;
+			sidePanelResizer.SetSize(4, 4);
+
+			var generalTab = sidePanel.AddPage("General").Page;
+
+			HorizontalSplitter generalSplitter = new HorizontalSplitter(generalTab);
+			generalSplitter.SplitterSize = 5;
+			generalSplitter.Dock = Gwen.Pos.Fill;
+			//generalSplitter.SplittersVisible = true;
+
+			meshListBox = new ListBox(generalSplitter);
+			meshListBox.EnableScroll(false, false);
+			//meshListBox.UpdateScrollBars();
+			//meshListBox.Dock = Gwen.Pos.Top;
+			//meshListBox.Height = 100;
+
+			generalSplitter.SetPanel(0, meshListBox);
+
+			ScrollControl generalScrollBase = new ScrollControl(generalSplitter);
+			generalScrollBase.Dock = Gwen.Pos.Fill;
+			generalScrollBase.EnableScroll(false, true);
+
+			meshProperties = new Base(generalScrollBase);
+			meshProperties.Dock = Gwen.Pos.Top;
+			meshProperties.Height = 200;
+			//meshProperties.Disable();
+			meshProperties.Hide();
+
+			Label nameLabel = new Label(meshProperties);
+			nameLabel.Text = "Name";
+			nameLabel.Dock = Gwen.Pos.Top;
+			nameLabel.AutoSizeToContents = true;
+			nameLabel.Padding = new Gwen.Padding(0, 2, 5, 0);
+
+			TextBox nameTextbox = new TextBox(meshProperties);
+			nameTextbox.Name = "Name";
+			//nameTextbox.Width = 200;
+			//nameTextbox.Height = 50;
+			nameTextbox.Dock = Gwen.Pos.Top;
+			nameTextbox.TextChanged += (s, se) =>
+			{
+				if (selectedMesh != null)
+				{
+					selectedMesh.Name = ((TextBox)s).Text;
+					meshListBox.SelectedRow.Text = selectedMesh.Name;
+				}
+			};
+
+			Label xLabel = new Label(meshProperties);
+			xLabel.Text = "X";
+			xLabel.Dock = Gwen.Pos.Top;
+
+			TextBoxNumeric xTextBox = new TextBoxNumeric(meshProperties);
+			xTextBox.Dock = Gwen.Pos.Top;
+			xTextBox.TextChanged += (s, se) =>
+			{
+				if (selectedMesh != null)
+				{
+					Transform t = selectedMesh.Transform;
+					t.Translation.X = ((TextBoxNumeric)s).Value;
+					selectedMesh.Transform = t;
+				}
+			};
+
+			Label yLabel = new Label(meshProperties);
+			yLabel.Text = "Y";
+			yLabel.Dock = Gwen.Pos.Top;
+
+			TextBoxNumeric yTextBox = new TextBoxNumeric(meshProperties);
+			yTextBox.Dock = Gwen.Pos.Top;
+			yTextBox.TextChanged += (s, se) =>
+			{
+				if (selectedMesh != null)
+				{
+					Transform t = selectedMesh.Transform;
+					t.Translation.Y = ((TextBoxNumeric)s).Value;
+					selectedMesh.Transform = t;
+				}
+			};
+
+			Label zLabel = new Label(meshProperties);
+			zLabel.Text = "Z";
+			zLabel.Dock = Gwen.Pos.Top;
+
+			TextBoxNumeric zTextBox = new TextBoxNumeric(meshProperties);
+			zTextBox.Dock = Gwen.Pos.Top;
+			zTextBox.TextChanged += (s, se) =>
+			{
+				if (selectedMesh != null)
+				{
+					Transform t = selectedMesh.Transform;
+					t.Translation.Z = ((TextBoxNumeric)s).Value;
+					selectedMesh.Transform = t;
+				}
+			};
+
+			meshListBox.RowSelected += (s, se) =>
+			{
+				var mesh = (Mesh)se.SelectedItem.UserData;
+				selectedMesh = mesh;
+				meshProperties.Show();
+				nameTextbox.Text = selectedMesh.Name;
+				xTextBox.Value = selectedMesh.Transform.Translation.X;
+				yTextBox.Value = selectedMesh.Transform.Translation.Y;
+				zTextBox.Value = selectedMesh.Transform.Translation.Z;
+			};
+
+			generalSplitter.SetPanel(1, generalScrollBase);
+
+			var navMeshTab = sidePanel.AddPage("NavMesh").Page;
+			var otherTab = sidePanel.AddPage("Other").Page;
 
 			GL.ClearColor(Color4.CornflowerBlue);
 			GL.Enable(EnableCap.Lighting);
@@ -232,35 +375,53 @@ namespace SharpNavEditor
 
 			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
 
-			if (testModel != null)
+			Matrix4 meshTrans;
+			foreach (var mesh in meshes)
 			{
-				GL.PushMatrix();
+				meshTrans = mesh.Transform.Matrix;
+				var model = mesh.Model;
 
-				if (testModel.Positions != null)
+				if (model != null)
 				{
-					GL.EnableClientState(ArrayCap.VertexArray);
-					GL.VertexPointer(testModel.PositionVertexSize, VertexPointerType.Float, 0, testModel.Positions);
+					if (mesh == selectedMesh)
+						GL.Light(LightName.Light0, LightParameter.Diffuse, Color4.Green);
+					else
+						GL.Light(LightName.Light0, LightParameter.Diffuse, Color4.White);
+
+					GL.PushMatrix();
+					GL.MultMatrix(ref meshTrans);
+
+					if (model.Positions != null)
+					{
+						GL.EnableClientState(ArrayCap.VertexArray);
+						GL.VertexPointer(model.PositionVertexSize, VertexPointerType.Float, 0, model.Positions);
+					}
+					if (model.Normals != null)
+					{
+						GL.EnableClientState(ArrayCap.NormalArray);
+						GL.NormalPointer(NormalPointerType.Float, 0, model.Normals);
+					}
+
+					if (model.Indices != null)
+						GL.DrawElements(PrimitiveType.Triangles, model.Indices.Length, DrawElementsType.UnsignedInt, model.Indices);
+					else
+						GL.DrawArrays(PrimitiveType.Triangles, 0, model.Positions.Length / model.PositionVertexSize);
+
+					if (model.Positions != null)
+						GL.DisableClientState(ArrayCap.VertexArray);
+					if (model.Normals != null)
+						GL.DisableClientState(ArrayCap.NormalArray);
+
+					GL.PopMatrix();
 				}
-				if (testModel.Normals != null)
-				{
-					GL.EnableClientState(ArrayCap.NormalArray);
-					GL.NormalPointer(NormalPointerType.Float, 0, testModel.Normals);
-				}
-
-				if (testModel.Indices != null)
-					GL.DrawElements(PrimitiveType.Triangles, testModel.Indices.Length, DrawElementsType.UnsignedInt, testModel.Indices);
-				else
-					GL.DrawArrays(PrimitiveType.Triangles, 0, testModel.Positions.Length / testModel.PositionVertexSize);
-
-				if (testModel.Positions != null)
-					GL.DisableClientState(ArrayCap.VertexArray);
-				if (testModel.Normals != null)
-					GL.DisableClientState(ArrayCap.NormalArray);
-
-				GL.PopMatrix();
 			}
 
 			GL.Disable(EnableCap.Lighting);
+
+			if (navMesh != null)
+			{
+				DrawPolyMeshDetail();
+			}
 
 			GL.PushMatrix();
 			GL.LoadIdentity();
@@ -305,7 +466,7 @@ namespace SharpNavEditor
 			base.OnUnload(e);
 		}
 
-		private void MainMenuFileOpen(Base control, EventArgs e)
+		private void LoadModelBtn(Base control, EventArgs e)
 		{
 			//use reflection to get all model loaders and their file extensions.
 			var extFileTypes = (from t in Assembly.GetExecutingAssembly().GetTypes()
@@ -328,7 +489,9 @@ namespace SharpNavEditor
 					if (s == "")
 						return;
 
-					testModel = extFileTypes[Path.GetExtension(s)].LoadModel(s);
+					Mesh m = new Mesh(Path.GetFileNameWithoutExtension(s), extFileTypes[Path.GetExtension(s)].LoadModel(s));
+					meshes.Add(m);
+					meshListBox.AddRow(m.Name, m.Name, m);
 				});
 		}
 
@@ -338,6 +501,148 @@ namespace SharpNavEditor
 			MessageBox askSave = new MessageBox(gwenCanvas, "Are you sure you want to exit? All unsaved changes will be lost.","Exit");
 			askSave.Dismissed = (c, ea) => Exit();
 			//Exit();
+		}
+
+		private void GenNavMesh(Base control, EventArgs e)
+		{
+			IEnumerable<Triangle3> tris = Enumerable.Empty<Triangle3>();
+			foreach (var mesh in meshes)
+				tris = tris.Concat(mesh.GetTransformedTris());
+
+			var settings = NavMeshGenerationSettings.Default;
+
+			BBox3 bounds = tris.GetBoundingBox(settings.CellSize);
+			var hf = new Heightfield(bounds, settings);
+			hf.RasterizeTriangles(tris);
+			hf.FilterLedgeSpans(settings.VoxelAgentHeight, settings.VoxelMaxClimb);
+			hf.FilterLowHangingWalkableObstacles(settings.VoxelMaxClimb);
+			hf.FilterWalkableLowHeightSpans(settings.VoxelAgentHeight);
+
+			var chf = new CompactHeightfield(hf, settings);
+			chf.Erode(settings.VoxelAgentWidth);
+			chf.BuildDistanceField();
+			chf.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
+
+			var cont = new ContourSet(chf, settings);
+
+			polyMesh = new PolyMesh(cont, settings);
+
+			polyMeshDetail = new PolyMeshDetail(polyMesh, chf, settings);
+
+			var buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
+
+			navMesh = new NavMesh(buildData);
+		}
+
+		private void DrawPolyMeshDetail()
+		{
+			GL.PushMatrix();
+
+			Color4 color = Color4.DarkViolet;
+			color.A = 0.5f;
+			GL.Color4(color);
+
+			GL.Begin(PrimitiveType.Triangles);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				PolyMeshDetail.MeshData m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+
+					var v = polyMeshDetail.Verts[vertIndex + t.VertexHash0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = polyMeshDetail.Verts[vertIndex + t.VertexHash1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = polyMeshDetail.Verts[vertIndex + t.VertexHash2];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			GL.Color4(Color4.Purple);
+			GL.LineWidth(1.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) == 0)
+						{
+							if (t[kp] < t[k])
+							{
+								var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+
+								v = polyMeshDetail.Verts[vertIndex + t[k]];
+								GL.Vertex3(v.X, v.Y, v.Z);
+							}
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.LineWidth(3.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				int vertIndex = m.VertexIndex;
+				int triIndex = m.TriangleIndex;
+
+				for (int j = 0; j < m.TriangleCount; j++)
+				{
+					var t = polyMeshDetail.Tris[triIndex + j];
+					for (int k = 0, kp = 2; k < 3; kp = k++)
+					{
+						if (((t.Flags >> (kp * 2)) & 0x3) != 0)
+						{
+							var v = polyMeshDetail.Verts[vertIndex + t[kp]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+
+							v = polyMeshDetail.Verts[vertIndex + t[k]];
+							GL.Vertex3(v.X, v.Y, v.Z);
+						}
+					}
+				}
+			}
+
+			GL.End();
+
+			GL.PointSize(4.8f);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
+			{
+				var m = polyMeshDetail.Meshes[i];
+
+				for (int j = 0; j < m.VertexCount; j++)
+				{
+					var v = polyMeshDetail.Verts[m.VertexIndex + j];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			GL.PopMatrix();
 		}
 	}
 }
