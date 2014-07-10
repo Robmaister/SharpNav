@@ -125,41 +125,41 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Magic = Encoding.UTF8.GetString(byteMe, 0, 16);
-                Version = BitConverter.ToUInt32(byteMe, 16);
-                FileSize = BitConverter.ToUInt32(byteMe, 17);
-                Flags = BitConverter.ToUInt32(byteMe, 18);
-                TextCount = BitConverter.ToUInt32(byteMe, 19);
-                TextOffset = BitConverter.ToUInt32(byteMe, 20);
-                MeshesCount = BitConverter.ToUInt32(byteMe, 21);
-                MeshesOffset = BitConverter.ToUInt32(byteMe, 22);
+                Version = BitConverter.ToUInt32(byteMe, 4 * 4);
+                FileSize = BitConverter.ToUInt32(byteMe, 5 * 4);
+                Flags = BitConverter.ToUInt32(byteMe, 6 * 4);
+                TextCount = BitConverter.ToUInt32(byteMe, 7 * 4);
+                TextOffset = BitConverter.ToUInt32(byteMe, 8 * 4);
+                MeshesCount = BitConverter.ToUInt32(byteMe, 9 * 4);
+                MeshesOffset = BitConverter.ToUInt32(byteMe, 10 * 4);
 
-                VertexArraysCount = BitConverter.ToUInt32(byteMe, 23);
-                VertexesCount = BitConverter.ToUInt32(byteMe, 24);
-                VertexArraysOffset = BitConverter.ToUInt32(byteMe, 25);
+                VertexArraysCount = BitConverter.ToUInt32(byteMe, 11 * 4);
+                VertexesCount = BitConverter.ToUInt32(byteMe, 12 * 4);
+                VertexArraysOffset = BitConverter.ToUInt32(byteMe, 13 * 4);
 
-                TrianglesCount = BitConverter.ToUInt32(byteMe, 26);
-                TrianglesOffset = BitConverter.ToUInt32(byteMe, 27);
-                AdjacencyOffset = BitConverter.ToUInt32(byteMe, 28);
+                TrianglesCount = BitConverter.ToUInt32(byteMe, 14 * 4);
+                TrianglesOffset = BitConverter.ToUInt32(byteMe, 15 * 4);
+                AdjacencyOffset = BitConverter.ToUInt32(byteMe, 16 * 4);
 
-                JointsCount = BitConverter.ToUInt32(byteMe, 29);
-                JointsOffset = BitConverter.ToUInt32(byteMe, 30);
+                JointsCount = BitConverter.ToUInt32(byteMe, 17 * 4);
+                JointsOffset = BitConverter.ToUInt32(byteMe, 18 * 4);
 
-                PosesCount = BitConverter.ToUInt32(byteMe, 31);
-                PosesOffset = BitConverter.ToUInt32(byteMe, 32);
+                PosesCount = BitConverter.ToUInt32(byteMe, 19 * 4);
+                PosesOffset = BitConverter.ToUInt32(byteMe, 20 * 4);
 
-                AnimationsCount = BitConverter.ToUInt32(byteMe, 33);
-                AnimationsOffset = BitConverter.ToUInt32(byteMe, 34);
+                AnimationsCount = BitConverter.ToUInt32(byteMe, 21 * 4);
+                AnimationsOffset = BitConverter.ToUInt32(byteMe, 22 * 4);
 
-                FramesCount = BitConverter.ToUInt32(byteMe, 35);
-                FrameChannelsCount = BitConverter.ToUInt32(byteMe, 36);
-                FramesOffset = BitConverter.ToUInt32(byteMe, 37);
-                BoundsOffset = BitConverter.ToUInt32(byteMe, 38);
+                FramesCount = BitConverter.ToUInt32(byteMe, 23 * 4);
+                FrameChannelsCount = BitConverter.ToUInt32(byteMe, 24 * 4);
+                FramesOffset = BitConverter.ToUInt32(byteMe, 25 * 4);
+                BoundsOffset = BitConverter.ToUInt32(byteMe, 26 * 4);
 
-                CommentCount = BitConverter.ToUInt32(byteMe, 39);
-                CommentOffset = BitConverter.ToUInt32(byteMe, 40);
+                CommentCount = BitConverter.ToUInt32(byteMe, 27 * 4);
+                CommentOffset = BitConverter.ToUInt32(byteMe, 28 * 4);
 
-                ExtensionsCount = BitConverter.ToUInt32(byteMe, 41);
-                ExtensionsOffset = BitConverter.ToUInt32(byteMe, 42);
+                ExtensionsCount = BitConverter.ToUInt32(byteMe, 29 * 4);
+                ExtensionsOffset = BitConverter.ToUInt32(byteMe, 30 * 4);
             }
         }
 
@@ -180,13 +180,13 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Name = BitConverter.ToUInt32(byteMe, 0);
-                Material = BitConverter.ToUInt32(byteMe, 1);
+                Material = BitConverter.ToUInt32(byteMe, 1 * 4);
 
-                FirstVertex = BitConverter.ToUInt32(byteMe, 2);
-                VertexesCount = BitConverter.ToUInt32(byteMe, 3);
+                FirstVertex = BitConverter.ToUInt32(byteMe, 2 * 4);
+                VertexesCount = BitConverter.ToUInt32(byteMe, 3 * 4);
 
-                FirstTriangle = BitConverter.ToUInt32(byteMe, 4);
-                TrianglesCount = BitConverter.ToUInt32(byteMe, 5);
+                FirstTriangle = BitConverter.ToUInt32(byteMe, 4 * 4);
+                TrianglesCount = BitConverter.ToUInt32(byteMe, 5 * 4);
             }
         }
 
@@ -202,8 +202,8 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Vertex0 = BitConverter.ToUInt32(byteMe, 0);
-                Vertex1 = BitConverter.ToUInt32(byteMe, 1);
-                Vertex2 = BitConverter.ToUInt32(byteMe, 2);
+                Vertex1 = BitConverter.ToUInt32(byteMe, 1 * 4);
+                Vertex2 = BitConverter.ToUInt32(byteMe, 2 * 4);
             }
         }
 
@@ -219,8 +219,8 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Triangle0 = BitConverter.ToUInt32(byteMe, 0);
-                Triangle1 = BitConverter.ToUInt32(byteMe, 1);
-                Triangle2 = BitConverter.ToUInt32(byteMe, 2);
+                Triangle1 = BitConverter.ToUInt32(byteMe, 1 * 4);
+                Triangle2 = BitConverter.ToUInt32(byteMe, 2 * 4);
             }
         }
 
@@ -239,10 +239,10 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Name = BitConverter.ToUInt32(byteMe, 0);
-                Parent = BitConverter.ToInt32(byteMe, 1);
-                Translate = new Vector3(BitConverter.ToSingle(byteMe, 2), BitConverter.ToSingle(byteMe, 3), BitConverter.ToSingle(byteMe, 4));
-                Rotate = new Quaternion(BitConverter.ToSingle(byteMe, 5), BitConverter.ToSingle(byteMe, 6), BitConverter.ToSingle(byteMe, 7), BitConverter.ToSingle(byteMe, 8));
-                Scale = new Vector3(BitConverter.ToSingle(byteMe, 9), BitConverter.ToSingle(byteMe, 10), BitConverter.ToSingle(byteMe, 11));
+                Parent = BitConverter.ToInt32(byteMe, 1 * 4);
+                Translate = new Vector3(BitConverter.ToSingle(byteMe, 2 * 4), BitConverter.ToSingle(byteMe, 3 * 4), BitConverter.ToSingle(byteMe, 4 * 4));
+                Rotate = new Quaternion(BitConverter.ToSingle(byteMe, 5 * 4), BitConverter.ToSingle(byteMe, 6 * 4), BitConverter.ToSingle(byteMe, 7 * 4), BitConverter.ToSingle(byteMe, 8 * 4));
+                Scale = new Vector3(BitConverter.ToSingle(byteMe, 9 * 4), BitConverter.ToSingle(byteMe, 10 * 4), BitConverter.ToSingle(byteMe, 11 * 4));
             }
         }
 
@@ -263,11 +263,11 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Parent = BitConverter.ToInt32(byteMe, 0);
-                Mask = BitConverter.ToUInt32(byteMe, 1);
+                Mask = BitConverter.ToUInt32(byteMe, 1 * 4);
                 for (int x = 0; x < 10; x++)
                 {
-                    ChannelOffset[x] = BitConverter.ToSingle(byteMe, 1+x);
-                    ChannelScale[x] = BitConverter.ToSingle(byteMe, 11 + x);
+                    ChannelOffset[x] = BitConverter.ToSingle(byteMe, (1 + x) * 4);
+                    ChannelScale[x] = BitConverter.ToSingle(byteMe, (11 + x) * 4);
                 }
             }
         }
@@ -289,10 +289,10 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Name = BitConverter.ToUInt32(byteMe, 0);
-                FirstFrame = BitConverter.ToUInt32(byteMe, 1);
-                FramesCount = BitConverter.ToUInt32(byteMe, 2);
-                Framerate = BitConverter.ToSingle(byteMe, 3);
-                Flags = BitConverter.ToUInt32(byteMe, 4);
+                FirstFrame = BitConverter.ToUInt32(byteMe, 1 * 4);
+                FramesCount = BitConverter.ToUInt32(byteMe, 2 * 4);
+                Framerate = BitConverter.ToSingle(byteMe, 3 * 4);
+                Flags = BitConverter.ToUInt32(byteMe, 4 * 4);
             }
         }
 
@@ -310,10 +310,10 @@ namespace SharpNavEditor.IO
             public void Parse(byte[] byteMe)
             {
                 Type = (IqmAttributeType)BitConverter.ToInt32(byteMe, 0);
-                Flags = BitConverter.ToUInt32(byteMe, 1);
-                Format = (IqmDataFormat)BitConverter.ToInt32(byteMe, 2);
-                Size = BitConverter.ToUInt32(byteMe, 3);
-                Offset = BitConverter.ToUInt32(byteMe, 4);
+                Flags = BitConverter.ToUInt32(byteMe, 1 * 4);
+                Format = (IqmDataFormat)BitConverter.ToInt32(byteMe, 2 * 4);
+                Size = BitConverter.ToUInt32(byteMe, 3 * 4);
+                Offset = BitConverter.ToUInt32(byteMe, 4 * 4);
 
             }
         }
@@ -331,10 +331,10 @@ namespace SharpNavEditor.IO
 
             public void Parse(byte[] byteMe)
             {
-                BBMin = new Vector3(BitConverter.ToSingle(byteMe, 0), BitConverter.ToSingle(byteMe, 1), BitConverter.ToSingle(byteMe, 2));
-                BBMax = new Vector3(BitConverter.ToSingle(byteMe, 3), BitConverter.ToSingle(byteMe, 4), BitConverter.ToSingle(byteMe, 5));
-                XYRadius = BitConverter.ToSingle(byteMe, 6);
-                Radius = BitConverter.ToSingle(byteMe, 7);
+                BBMin = new Vector3(BitConverter.ToSingle(byteMe, 0), BitConverter.ToSingle(byteMe, 1 * 4), BitConverter.ToSingle(byteMe, 2 * 4));
+                BBMax = new Vector3(BitConverter.ToSingle(byteMe, 3 * 4), BitConverter.ToSingle(byteMe, 4 * 4), BitConverter.ToSingle(byteMe, 5 * 4));
+                XYRadius = BitConverter.ToSingle(byteMe, 6 * 4);
+                Radius = BitConverter.ToSingle(byteMe, 7 * 4);
             }
         }
 
@@ -342,6 +342,7 @@ namespace SharpNavEditor.IO
         public IModelData LoadModel(string path)
         {
             var position = new List<Vector3>();
+            var pos = new List<float>();
 
             if (!File.Exists(path))
                 throw new ArgumentException("The file \"" + path + "\" does not exist.", "path");
@@ -364,6 +365,10 @@ namespace SharpNavEditor.IO
                 using (BinaryReader reader = new BinaryReader(fs))
                 {
                     //make sure the file is long enough to parse a header before we check the other requirements.
+                    Console.WriteLine(fs.Length);
+                    Console.WriteLine(IqmHeader.SizeInBytes);
+                    //Debug.Write(fs.Length);
+                    //Debug.Write(IqmHeader.SizeInBytes);
                     if (fs.Length < IqmHeader.SizeInBytes)
                         throw new ArgumentException("The file \"" + path + "\" is not an IQM file.", "path");
 
@@ -373,13 +378,25 @@ namespace SharpNavEditor.IO
                     IqmHeader header = new IqmHeader(); 
                     header.Parse(headerData);
 
-                    if (header.Magic != "INTERQUAKEMODEL")
+                    Console.Write(header.Magic);
+                    Console.WriteLine("XXX");
+                    if (header.Magic != "INTERQUAKEMODEL\0")
                         throw new ArgumentException("The file \"" + path + "\" is not an IQM file.", "path");
 
+                    Console.WriteLine(header.FileSize.ToString());
+                    //Console.WriteLine(header.Version);
                     if (header.FileSize != fs.Length)
                         throw new ArgumentException("The file \"" + path + "\" is invalid or corrupted. The file size doesn't match the size reported in the header.");
                         //throw new DataCorruptionException("The file \"" + path + "\" is invalid or corrupted. The file size doesn't match the size reported in the header.");
 
+                    long positionStore = reader.BaseStream.Position;
+                    reader.BaseStream.Position = 0;
+                    byte[] fileData = reader.ReadBytes((int)fs.Length);
+                    reader.BaseStream.Position = positionStore;
+                    Console.WriteLine("array size");
+                    Console.WriteLine((int)fs.Length);
+
+                    Console.WriteLine(header.Version);
                     if (header.Version != 2)
                         throw new ArgumentException("The file \"" + path + "\" is using a different version of the IQM specification. Make sure to compile the model as version 2.");
                         //throw new OutdatedClientException("The file \"" + path + "\" is using a different version of the IQM specification. Make sure to compile the model as version 2.");
@@ -402,6 +419,8 @@ namespace SharpNavEditor.IO
                     else
                         vertexArrays = new List<IqmVertexArray>();
 
+                    Console.WriteLine(header.TrianglesOffset);
+                    Console.WriteLine(header.TrianglesCount);
                     //Parse triangles
                     if (header.TrianglesOffset != 0)
                         triangles = ParseTriangles(reader, (int)header.TrianglesOffset, (int)header.TrianglesCount);
@@ -466,15 +485,70 @@ namespace SharpNavEditor.IO
 
                     //return d;
 
-                    
+                    //note: foreach mesh, look into vertarray and tri, 
+                    //save loc, for each triangle, for each vert, pull value from vert array
+                    //throw that value into the possition arrray
+                    uint triOff, arrOff, vertOff;
+                    Vector3 VertTemp;
+                    float x,y,z;
+                    for (int m = 0; m < header.MeshesCount; m++)
+                    {
+                        triOff = meshes[m].FirstTriangle;
+                        arrOff = meshes[m].FirstVertex;
+                        vertOff = vertexArrays[(int)arrOff].Offset;
+                        for (int t = 0; t < meshes[m].TrianglesCount; t++)
+                        {
+                            if (triangles[(int)triOff + t].Vertex0 > meshes[m].VertexesCount
+                                || triangles[(int)triOff + t].Vertex1 > meshes[m].VertexesCount
+                                || triangles[(int)triOff + t].Vertex2 > meshes[m].VertexesCount
+                                ) { throw new Exception("Something is not lineing up correctlly"); }
+
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4);
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4);
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4);
+                            VertTemp = new Vector3(x,y,z);
+                            position.Add(VertTemp);
+                            pos.Add(x);
+                            pos.Add(y);
+                            pos.Add(z);
+                        }
+                    }
+
+                    Console.WriteLine("   *****   Pos Size = " + pos.Count);
+
+                        for (int X = 0; X < header.FileSize / 4; X++)
+                        {
+                            Console.Write("\n[" + X * 4 + "]");
+                            Console.Write("UInt:");
+                            Console.Write(BitConverter.ToUInt32(fileData, X * 4));
+                            Console.Write("\tFloat:");
+                            Console.Write(BitConverter.ToSingle(fileData, X * 4));
+
+                            if (X * 4 == header.TrianglesOffset) { Console.Write("  <<- TriangleStart"); }
+                            if (X * 4 == header.MeshesOffset) { Console.Write("  <<- MeshStart"); }
+                            if (X * 4 == header.VertexArraysOffset) { Console.Write("  <<- ArrayStart"); }
+
+                        }
+                    Console.ReadLine();
+
+                        Console.WriteLine("Vertstart");
                     foreach (var t in triangles)
                     {
-                        Debug.Write(t.Vertex0);
-                        Debug.Write(t.Vertex1);
-                        Debug.Write(t.Vertex2);
-                        Debug.Write("/n");
+                        Console.WriteLine("Tri");
+                        Console.WriteLine(t.Vertex0);
+                        Console.WriteLine(t.Vertex1);
+                        Console.WriteLine(t.Vertex2);
+                        Console.Write("xxx");
+                        Console.WriteLine(header.TrianglesOffset);
+                        Console.WriteLine(fileData.Length);
+                        Console.Write("Vert1X");
+                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex0 * 4 * 3 + header.TrianglesOffset)));
+                        Console.Write("Vert2y");
+                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex1 * 4 * 3 + header.TrianglesOffset+4)));
+                        Console.Write("Vert3z");
+                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + header.TrianglesOffset+8)));
                     }
-                    return new IqmData(new float[10]); 
+                    return new IqmData(pos.ToArray()); 
                     
                 }
             }

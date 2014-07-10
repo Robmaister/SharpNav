@@ -479,7 +479,7 @@ namespace SharpNavEditor
 			//create a filter string for the open file dialog
 			var filterStrings = extFileTypes.Keys.Select(s => "*" + s);
 			var allFilter = "All Model Formats(" + filterStrings.Aggregate((seq, next) => seq + ", " + next) + ")";
-			var filters = allFilter + "|" + filterStrings.Aggregate((seq, next) => seq + "|" + next);
+			var filters = allFilter + "|" + filterStrings.Aggregate((seq, next) => seq + ";" + next);
 
 			//open a new dialog and load the model if successful
 			Gwen.Platform.Neutral.FileOpen("Load Model", ".", filters,
