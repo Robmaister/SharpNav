@@ -831,7 +831,7 @@ namespace Examples
 			GL.PushMatrix();
 
 			//The black line represents the actual path that the agent takes
-			GL.Color4(Color4.Black);
+			/*GL.Color4(Color4.Black);
 			GL.Begin(PrimitiveType.Lines);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
@@ -861,7 +861,7 @@ namespace Examples
 			GL.End();
 
 			//The cyan point represents the agent's starting location
-			GL.PointSize(10.0f);
+			GL.PointSize(100.0f);
 			GL.Color4(Color4.Cyan);
 			GL.Begin(PrimitiveType.Points);
 			for (int i = 0; i < numActiveAgents; i++)
@@ -879,8 +879,18 @@ namespace Examples
 				SVector3 v0 = trails[i].Trail[AGENT_MAX_TRAIL - 1];
 				GL.Vertex3(v0.X, v0.Y, v0.Z);
 			}
+			GL.End();*/
+			//GL.DepthMask(true);
+
+			GL.Color4(Color4.PaleVioletRed);
+			GL.PointSize(50f);
+			GL.Begin(PrimitiveType.Points);
+			for (int i = 0; i < numActiveAgents; i++)
+			{
+				SVector3 p = crowd.GetAgent(i).NPos;
+				GL.Vertex3(p.X, p.Y, p.Z);
+			}
 			GL.End();
-			GL.DepthMask(true);
 
 			GL.PopMatrix();
 		}
