@@ -504,14 +504,15 @@ namespace SharpNavEditor.IO
                                 ) { throw new Exception("Something is not lineing up correctlly"); }
 
                             //BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset)));
-                            
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4);
+
+
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + "] = x = ");
                             Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 4);
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 4 +"] = y = ");
                             Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 8);
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 8 + "] = z = ");
                             Console.WriteLine(z);
 
@@ -521,13 +522,13 @@ namespace SharpNavEditor.IO
                             pos.Add(y);
                             pos.Add(z);
 
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4);
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + "] = x = ");
                             Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 4);
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 4 + "] = y = ");
                             Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 8);
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 8 + "] = z = ");
                             Console.WriteLine(z);
 
@@ -537,13 +538,13 @@ namespace SharpNavEditor.IO
                             pos.Add(y);
                             pos.Add(z);
 
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4);
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + "] = x = ");
                             Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 4);
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 4 + "] = y = ");
                             Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 8);
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 8 + "] = z = ");
                             Console.WriteLine(z);
 
