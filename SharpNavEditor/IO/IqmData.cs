@@ -7,11 +7,11 @@ namespace SharpNavEditor.IO
 {
     public class IqmData : IModelData
     {
-        public IqmData(float[] pos) //, float[] texcoords, float[] norm)
+        public IqmData(float[] pos, float[] norm) //, float[] texcoords, float[] norm)
         {
             Positions = pos;
             //TextureCoordinates = texcoords;
-            //Normals = norm;
+            Normals = norm;
         }
 
         public int CustomVertexDataTypesCount { get { return 0; } }
@@ -20,7 +20,7 @@ namespace SharpNavEditor.IO
 
         public int TextureCoordinateVertexSize { get { return 0; } }
 
-        public int NormalVertexSize { get { return 0; } }
+        public int NormalVertexSize { get { return 3; } }
 
         public int TangentVertexSize { get { return 0; } }
 
@@ -32,7 +32,7 @@ namespace SharpNavEditor.IO
 
         public float[] TextureCoordinates { get { return null; } }
 
-        public float[] Normals { get { return null; } }
+        public float[] Normals { get; private set; }
 
         public float[] Tangents { get { return null; } }
 

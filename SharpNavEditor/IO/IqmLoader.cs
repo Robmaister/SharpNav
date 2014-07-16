@@ -343,6 +343,7 @@ namespace SharpNavEditor.IO
         {
             var position = new List<Vector3>();
             var pos = new List<float>();
+            var norm = new List<float>();
 
             if (!File.Exists(path))
                 throw new ArgumentException("The file \"" + path + "\" does not exist.", "path");
@@ -488,32 +489,36 @@ namespace SharpNavEditor.IO
                     //note: foreach mesh, look into vertarray and tri, 
                     //save loc, for each triangle, for each vert, pull value from vert array
                     //throw that value into the possition arrray
-                    uint triOff, arrOff, vertOff;
+                    uint triOff, arrOff, vertOff, normVertOff;
                     Vector3 VertTemp;
                     float x,y,z;
+                    float xNorm, yNorm, zNorm;
                     for (int m = 0; m < header.MeshesCount; m++)
                     {
                         triOff = meshes[m].FirstTriangle;
                         arrOff = meshes[m].FirstVertex;
                         vertOff = vertexArrays[0].Offset;
+                        normVertOff = vertexArrays[2].Offset;
                         for (int t = 0; t < meshes[m].TrianglesCount; t++)
                         {
+                            /*
                             if (triangles[(int)triOff + t].Vertex0 > meshes[m].VertexesCount
                                 || triangles[(int)triOff + t].Vertex1 > meshes[m].VertexesCount
                                 || triangles[(int)triOff + t].Vertex2 > meshes[m].VertexesCount
                                 ) { throw new Exception("Something is not lineing up correctlly"); }
+                             */
 
                             //BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset)));
 
 
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + "] = x = ");
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + "] = x = ");
                             Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 4 +"] = y = ");
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 4 +"] = y = ");
                             Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 8 + "] = z = ");
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 8 + "] = z = ");
                             Console.WriteLine(z);
 
                             VertTemp = new Vector3(x, y, z);
@@ -522,6 +527,14 @@ namespace SharpNavEditor.IO
                             pos.Add(y);
                             pos.Add(z);
 
+                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
+                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
+                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
+
+                            norm.Add(xNorm);
+                            norm.Add(yNorm);
+                            norm.Add(zNorm);
+                            
                             x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
                             Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + "] = x = ");
                             Console.WriteLine(x);
@@ -538,14 +551,22 @@ namespace SharpNavEditor.IO
                             pos.Add(y);
                             pos.Add(z);
 
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + "] = x = ");
+                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
+                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
+                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
+
+                            norm.Add(xNorm);
+                            norm.Add(yNorm);
+                            norm.Add(zNorm);
+
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + "] = x = ");
                             Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 4 + "] = y = ");
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 4 + "] = y = ");
                             Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 8 + "] = z = ");
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
+                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 8 + "] = z = ");
                             Console.WriteLine(z);
 
                             VertTemp = new Vector3(x,y,z);
@@ -553,8 +574,18 @@ namespace SharpNavEditor.IO
                             pos.Add(x);
                             pos.Add(y);
                             pos.Add(z);
+
+
+                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
+                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
+                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
+
+                            norm.Add(xNorm);
+                            norm.Add(yNorm);
+                            norm.Add(zNorm);
                         }
                     }
+                    /*
 
                     Console.WriteLine("TriangleStart: " + header.TrianglesOffset);
                     Console.WriteLine("MeshStart: " + header.MeshesOffset);
@@ -595,7 +626,7 @@ namespace SharpNavEditor.IO
                         Console.Write("\tFloat:");
                         Console.Write(BitConverter.ToSingle(fileData, (int)(t * 4 + header.VertexArraysOffset)));
                     }
-
+                    */
                     
                         /*
                             for (int X = 0; X < header.FileSize / 4; X++)
@@ -612,6 +643,8 @@ namespace SharpNavEditor.IO
                                 if (X * 4 == header.VertexArraysOffset) { Console.Write("  <<- ArrayStart"); }
 
                             }*/
+
+                    /*
                         Console.ReadLine();
 
                         Console.WriteLine("Vertstart");
@@ -647,8 +680,9 @@ namespace SharpNavEditor.IO
                     for (int p = 0; p < pos.Count; p++){
                         Console.WriteLine(pos[p]);
                     }
+                    */
                     
-                    return new IqmData(pos.ToArray()); 
+                    return new IqmData((pos.Count != 0 ? pos.ToArray() : null), (norm.Count != 0 ? norm.ToArray() : null)); 
                     
                 }
             }
