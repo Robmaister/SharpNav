@@ -85,35 +85,20 @@ namespace SharpNav.Crowd
 				//handle query start
 				if (q.status == 0)
 				{
-					bool status = navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos);
-					
-					if (status)
-						q.status = Status.Success;
-					else
-						q.status = Status.Failure;
+					q.status = BoolToStatus(navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos));
 				}
 
 				//handle query in progress
 				if (q.status == Status.InProgress)
 				{
 					int iters = 0;
-					bool status = navquery.UpdateSlicedFindPath(iterCount, ref iters);
-
-					if (status)
-						q.status = Status.Success;
-					else
-						q.status = Status.Failure;
+					q.status = BoolToStatus(navquery.UpdateSlicedFindPath(iterCount, ref iters));
 
 					iterCount -= iters;
 				}
 				if (q.status == Status.Success)
 				{
-					bool status = navquery.FinalizeSlicedFindPath(q.Path, ref q.NPath, maxPathSize);
-
-					if (status)
-						q.status = Status.Success;
-					else
-						q.status = Status.Failure;
+					q.status = BoolToStatus(navquery.FinalizeSlicedFindPath(q.Path, ref q.NPath, maxPathSize));
 				}
 
 				if (iterCount <= 0)
@@ -175,9 +160,11 @@ namespace SharpNav.Crowd
 				if (queue[i].Reference == reference)
 				{
 					PathQuery q = queue[i];
+					
 					//free request for reuse
 					q.Reference = PATHQ_INVALID;
 					q.status = 0;
+					
 					//copy path
 					int n = Math.Min(q.NPath, maxPath);
 					q.Path.CopyTo(path, 0);
@@ -190,6 +177,14 @@ namespace SharpNav.Crowd
 			}
 
 			return false;
+		}
+
+		public Status BoolToStatus(bool variable)
+		{
+			if (variable)
+				return Status.Success;
+			else
+				return Status.Failure;
 		}
 
 		private struct PathQuery

@@ -742,7 +742,7 @@ namespace SharpNav.Crowd
 			const int PATH_MAX_AGENTS = 8;
 			CrowdAgent[] queue = new CrowdAgent[PATH_MAX_AGENTS];
 			int nqueue = 0;
-			bool boolStatus;
+			Status status;
 
 			//fire off new requests
 			for (int i = 0; i < maxAgents; i++)
@@ -769,27 +769,27 @@ namespace SharpNav.Crowd
 					navquery.InitSlicedFindPath(path[0], agents[i].TargetRef, agents[i].NPos, agents[i].TargetPos);
 					int tempInt = 0;
 					navquery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
-					boolStatus = false;
+					status = Status.Failure;
 					if (agents[i].TargetReplan)
 					{
 						//try to use an existing steady path during replan if possible
-						boolStatus = navquery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES);
+						status = BoolToStatus(navquery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES));
 					}
 					else
 					{
 						//try to move towards the target when the goal changes
-						boolStatus = navquery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES);
+						status = BoolToStatus(navquery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES));
 					}
 
-					if (boolStatus != false && reqPathCount > 0)
+					if (status != Status.Failure && reqPathCount > 0)
 					{
 						//in progress or succeed
 						if (reqPath[reqPathCount - 1] != agents[i].TargetRef)
 						{
 							//partial path, constrain target position in last polygon
 							bool tempBool;
-							boolStatus = navquery.ClosestPointOnPoly(reqPath[reqPathCount - 1], agents[i].TargetPos, out reqPos, out tempBool);
-							if (boolStatus == false)
+							status = BoolToStatus(navquery.ClosestPointOnPoly(reqPath[reqPathCount - 1], agents[i].TargetPos, out reqPos, out tempBool));
+							if (status == Status.Failure)
 								reqPathCount = 0;
 						}
 						else
@@ -842,8 +842,6 @@ namespace SharpNav.Crowd
 			//update requests
 			pathq.Update(MAX_ITERS_PER_UPDATE);
 
-			Status status;
-
 			//process path results
 			for (int i = 0; i < maxAgents; i++)
 			{
@@ -880,8 +878,8 @@ namespace SharpNav.Crowd
 							res[i] = pathResult[j];
 						bool valid = true;
 						int nres = 0;
-						boolStatus = pathq.GetPathResult(agents[i].TargetPathqRef, res, ref nres, maxPathResult);
-						if (boolStatus == false || nres == 0)
+						status = BoolToStatus(pathq.GetPathResult(agents[i].TargetPathqRef, res, ref nres, maxPathResult));
+						if (status == Status.Failure || nres == 0)
 							valid = false;
 
 						//Merge result and existing path
@@ -928,8 +926,8 @@ namespace SharpNav.Crowd
 								//partial path, constrain target position inside the last polygon
 								Vector3 nearest;
 								bool tempBool = false;
-								boolStatus = navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool);
-								if (boolStatus)
+								status = BoolToStatus(navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool));
+								if (status == Status.Success)
 									targetPos = nearest;
 								else
 									valid = false;
@@ -1395,6 +1393,14 @@ namespace SharpNav.Crowd
 		public float Tween(float t, float t0, float t1)
 		{
 			return MathHelper.Clamp((t - t0) / (t1 - t0), 0.0f, 1.0f);
+		}
+
+		public Status BoolToStatus(bool variable)
+		{
+			if (variable)
+				return Status.Success;
+			else
+				return Status.Failure;
 		}
 
 		/// <summary>

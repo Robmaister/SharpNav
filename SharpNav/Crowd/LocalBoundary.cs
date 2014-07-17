@@ -124,7 +124,7 @@ namespace SharpNav.Crowd
 				return;
 			}
 
-			center = pos;
+			this.center = pos;
 
 			//first query non-overlapping polygons
 			int[] tempArray = new int[polys.Length];
