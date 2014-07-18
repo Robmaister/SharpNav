@@ -82,7 +82,7 @@ namespace SharpNav.Crowd
 			this.ext = new Vector3(maxAgentRadius * 2.0f, maxAgentRadius * 1.5f, maxAgentRadius * 2.0f);
 
 			//initialize proximity grid
-			grid = new ProximityGrid(maxAgents * 4, maxAgentRadius * 3);
+			this.grid = new ProximityGrid(maxAgents * 4, maxAgentRadius * 3);
 
 			//allocate obstacle avoidance query
 			this.obstacleQuery = new ObstacleAvoidanceQuery(6, 8);
@@ -412,7 +412,7 @@ namespace SharpNav.Crowd
 
 				//update the collision boundary after certain distance has passed or if it has become invalid
 				float updateThr = agents[i].Parameters.CollisionQueryRange * 0.25f;
-				if (Vector3Extensions.Distance2D(agents[i].NPos, agents[i].Boundary.GetCenter()) > updateThr * updateThr ||
+				if (Vector3Extensions.Distance2D(agents[i].NPos, agents[i].Boundary.Center) > updateThr * updateThr ||
 					!agents[i].Boundary.IsValid(navquery))
 				{
 					agents[i].Boundary.Update(agents[i].Corridor.GetFirstPoly(), agents[i].NPos, 
@@ -579,9 +579,9 @@ namespace SharpNav.Crowd
 					}
 
 					//append neighbour segments as obstacles
-					for (int j = 0; j < agents[i].Boundary.GetSegmentCount(); j++)
+					for (int j = 0; j < agents[i].Boundary.SegCount; j++)
 					{
-						LocalBoundary.Segment s = agents[i].Boundary.GetSegment(j);
+						LocalBoundary.Segment s = agents[i].Boundary.Segs[j];
 						if (Triangle3.Area2D(agents[i].NPos, s.Start, s.End) < 0.0f)
 							continue;
 						obstacleQuery.AddSegment(s.Start, s.End);
@@ -684,7 +684,7 @@ namespace SharpNav.Crowd
 					agents[i].Corridor.MovePosition(agents[i].NPos, navquery);
 
 					//get valid constrained position back
-					agents[i].NPos = agents[i].Corridor.GetPos();
+					agents[i].NPos = agents[i].Corridor.Pos;
 
 					//if not using path, truncate the corridor to just one poly
 					if (agents[i].TargetState == TargetState.None ||
@@ -756,8 +756,8 @@ namespace SharpNav.Crowd
 
 				if (agents[i].TargetState == TargetState.Requesting)
 				{
-					int[] path = agents[i].Corridor.GetPath();
-					int npath = agents[i].Corridor.GetPathCount();
+					int[] path = agents[i].Corridor.Path;
+					int npath = agents[i].Corridor.PathCount;
 
 					const int MAX_RES = 32;
 					Vector3 reqPos = new Vector3();
@@ -834,7 +834,7 @@ namespace SharpNav.Crowd
 
 			for (int i = 0; i < nqueue; i++)
 			{
-				queue[i].TargetPathqRef = pathq.Request(queue[i].Corridor.GetLastPoly(), queue[i].TargetRef, queue[i].Corridor.GetTarget(), queue[i].TargetPos);
+				queue[i].TargetPathqRef = pathq.Request(queue[i].Corridor.GetLastPoly(), queue[i].TargetRef, queue[i].Corridor.Target, queue[i].TargetPos);
 				if (queue[i].TargetPathqRef != PathQueue.PATHQ_INVALID)
 					queue[i].TargetState = TargetState.WaitingForPath;
 			}
@@ -866,8 +866,8 @@ namespace SharpNav.Crowd
 					}
 					else if (status == Status.Success)
 					{
-						int[] path = agents[i].Corridor.GetPath();
-						int npath = agents[i].Corridor.GetPathCount();
+						int[] path = agents[i].Corridor.Path;
+						int npath = agents[i].Corridor.PathCount;
 
 						//apply results
 						Vector3 targetPos = new Vector3();
@@ -1031,7 +1031,7 @@ namespace SharpNav.Crowd
 						agents[i].Corridor.Reset(0, agentPos);
 						agents[i].Partial = false;
 						agents[i].Boundary.Reset();
-						agents[i].State = (byte)CrowdAgentState.Invalid;
+						agents[i].State = CrowdAgentState.Invalid;
 						continue;
 					}
 
@@ -1079,7 +1079,7 @@ namespace SharpNav.Crowd
 				if (agents[i].TargetState == TargetState.Valid)
 				{
 					if (agents[i].TargetReplanTime > TARGET_REPLAN_DELAY &&
-						agents[i].Corridor.GetPathCount() < CHECK_LOOKAHEAD &&
+						agents[i].Corridor.PathCount < CHECK_LOOKAHEAD &&
 						agents[i].Corridor.GetLastPoly() != agents[i].TargetRef)
 						replan = true;
 				}

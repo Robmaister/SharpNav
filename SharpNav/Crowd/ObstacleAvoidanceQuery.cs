@@ -418,7 +418,7 @@ namespace SharpNav.Crowd
 			public Vector3 Vel;
 
 			/// <summary>
-			/// The velocity of the obstacle
+			/// The desired velocity of the obstacle
 			/// </summary>
 			public Vector3 DVel;
 
