@@ -366,10 +366,6 @@ namespace SharpNavEditor.IO
                 using (BinaryReader reader = new BinaryReader(fs))
                 {
                     //make sure the file is long enough to parse a header before we check the other requirements.
-                    Console.WriteLine(fs.Length);
-                    Console.WriteLine(IqmHeader.SizeInBytes);
-                    //Debug.Write(fs.Length);
-                    //Debug.Write(IqmHeader.SizeInBytes);
                     if (fs.Length < IqmHeader.SizeInBytes)
                         throw new ArgumentException("The file \"" + path + "\" is not an IQM file.", "path");
 
@@ -378,14 +374,9 @@ namespace SharpNavEditor.IO
                     byte[] headerData = reader.ReadBytes(IqmHeader.SizeInBytes);
                     IqmHeader header = new IqmHeader(); 
                     header.Parse(headerData);
-
-                    Console.Write(header.Magic);
-                    Console.WriteLine("XXX");
                     if (header.Magic != "INTERQUAKEMODEL\0")
                         throw new ArgumentException("The file \"" + path + "\" is not an IQM file.", "path");
 
-                    Console.WriteLine(header.FileSize.ToString());
-                    //Console.WriteLine(header.Version);
                     if (header.FileSize != fs.Length)
                         throw new ArgumentException("The file \"" + path + "\" is invalid or corrupted. The file size doesn't match the size reported in the header.");
                         //throw new DataCorruptionException("The file \"" + path + "\" is invalid or corrupted. The file size doesn't match the size reported in the header.");
@@ -394,10 +385,6 @@ namespace SharpNavEditor.IO
                     reader.BaseStream.Position = 0;
                     byte[] fileData = reader.ReadBytes((int)fs.Length);
                     reader.BaseStream.Position = positionStore;
-                    Console.WriteLine("array size");
-                    Console.WriteLine((int)fs.Length);
-
-                    Console.WriteLine(header.Version);
                     if (header.Version != 2)
                         throw new ArgumentException("The file \"" + path + "\" is using a different version of the IQM specification. Make sure to compile the model as version 2.");
                         //throw new OutdatedClientException("The file \"" + path + "\" is using a different version of the IQM specification. Make sure to compile the model as version 2.");
@@ -420,8 +407,6 @@ namespace SharpNavEditor.IO
                     else
                         vertexArrays = new List<IqmVertexArray>();
 
-                    Console.WriteLine(header.TrianglesOffset);
-                    Console.WriteLine(header.TrianglesCount);
                     //Parse triangles
                     if (header.TrianglesOffset != 0)
                         triangles = ParseTriangles(reader, (int)header.TrianglesOffset, (int)header.TrianglesCount);
@@ -465,223 +450,91 @@ namespace SharpNavEditor.IO
 
                         if ((int)va.Type > 3) //HACK no animation stuff set up yet.
                             continue;
-
-                        //IBuffer buf = Resources.CreateBuffer();
-
-                        //reader.BaseStream.Position = va.Offset;
-                        //buf.SetData(reader.ReadBytes((int)va.Size * SizeOfIqmFormat(va.Format) * (int)header.VertexesCount), BufferUsageHint.StaticDraw);
-                        //attributes.Add(new VertexAttribute(buf, (int)va.Size, 0, 0, ConvertIqmFormat(va.Format), ConvertIqmAttribute(va.Type)));
                     }
 
-                    //Drawable d = new Drawable(attributes);
-                    //d.DrawMode = BeginMode.Triangles;
 
-                    //Parse indices
-                    //IBuffer indBuf = Resources.CreateBuffer();
-                    //indBuf.SetData(triangles.ToArray(), BufferUsageHint.StaticDraw);
-
-                    //d.IndexBuffer = indBuf;
-                    //d.IndexType = DrawElementsType.UnsignedInt;
-                    //d.IndexCount = triangles.Count * 3;
-
-                    //return d;
-
-                    //note: foreach mesh, look into vertarray and tri, 
-                    //save loc, for each triangle, for each vert, pull value from vert array
-                    //throw that value into the possition arrray
                     uint triOff, arrOff, vertOff, normVertOff;
-                    Vector3 VertTemp;
                     float x,y,z;
                     float xNorm, yNorm, zNorm;
+                    Boolean normExists = false;
+                    int normVertIndex = 2; // standard location, automaticly set to actual
+                    if (header.VertexArraysCount > 1)
+                    {
+                        for (int i = 0; i < header.VertexArraysCount; i++) 
+                        {
+                            if (vertexArrays[i].Type == IqmAttributeType.Normal) //if type = normal
+                            {
+                                normVertIndex = i;
+                                normExists = true;
+                            }
+                        }
+                    }
                     for (int m = 0; m < header.MeshesCount; m++)
                     {
                         triOff = meshes[m].FirstTriangle;
                         arrOff = meshes[m].FirstVertex;
                         vertOff = vertexArrays[0].Offset;
-                        normVertOff = vertexArrays[2].Offset;
+                        
                         for (int t = 0; t < meshes[m].TrianglesCount; t++)
                         {
-                            /*
-                            if (triangles[(int)triOff + t].Vertex0 > meshes[m].VertexesCount
-                                || triangles[(int)triOff + t].Vertex1 > meshes[m].VertexesCount
-                                || triangles[(int)triOff + t].Vertex2 > meshes[m].VertexesCount
-                                ) { throw new Exception("Something is not lineing up correctlly"); }
-                             */
-
-                            //BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset)));
-
-
                             x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + "] = x = ");
-                            Console.WriteLine(x);
                             y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 4 +"] = y = ");
-                            Console.WriteLine(y);
                             z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 + 8 + "] = z = ");
-                            Console.WriteLine(z);
-
-                            VertTemp = new Vector3(x, y, z);
-                            position.Add(VertTemp);
-                            pos.Add(x);
-                            pos.Add(y);
-                            pos.Add(z);
-
-                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
-                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
-                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
-
-                            norm.Add(xNorm);
-                            norm.Add(yNorm);
-                            norm.Add(zNorm);
                             
-                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + "] = x = ");
-                            Console.WriteLine(x);
-                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 4 + "] = y = ");
-                            Console.WriteLine(y);
-                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 + 8 + "] = z = ");
-                            Console.WriteLine(z);
-
-                            VertTemp = new Vector3(x, y, z);
-                            position.Add(VertTemp);
                             pos.Add(x);
                             pos.Add(y);
                             pos.Add(z);
 
-                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
-                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
-                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
+                            x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
+                            y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
+                            z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
 
-                            norm.Add(xNorm);
-                            norm.Add(yNorm);
-                            norm.Add(zNorm);
+                            pos.Add(x);
+                            pos.Add(y);
+                            pos.Add(z);
 
                             x = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + "] = x = ");
-                            Console.WriteLine(x);
                             y = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 4 + "] = y = ");
-                            Console.WriteLine(y);
                             z = BitConverter.ToSingle(fileData, (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
-                            Console.Write("[" + (int)vertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 + 8 + "] = z = ");
-                            Console.WriteLine(z);
 
-                            VertTemp = new Vector3(x,y,z);
-                            position.Add(VertTemp);
+                            
                             pos.Add(x);
                             pos.Add(y);
                             pos.Add(z);
 
-
-                            xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
-                            yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
-                            zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
-
-                            norm.Add(xNorm);
-                            norm.Add(yNorm);
-                            norm.Add(zNorm);
-                        }
-                    }
-                    /*
-
-                    Console.WriteLine("TriangleStart: " + header.TrianglesOffset);
-                    Console.WriteLine("MeshStart: " + header.MeshesOffset);
-                    Console.WriteLine("ArrayStart: " + header.VertexArraysOffset);
-
-                    Console.WriteLine("   *****   Pos Size = " + pos.Count);
-
-                    
-                    Console.WriteLine("\nTri: ");
-                    Console.WriteLine("TriangleCount: " + header.TrianglesCount);
-                    Console.WriteLine(IqmTriangle.SizeInBytes);
-                    for (int t = 0; t < header.TrianglesCount * IqmTriangle.SizeInBytes/4; t++)
-                    {
-                        Console.Write("\n[" + (t * 4 + header.TrianglesOffset) + "]");
-                        Console.Write("UInt:");
-                        Console.Write(BitConverter.ToUInt32(fileData, (int)(t * 4 + header.TrianglesOffset)));
-                        Console.Write("\tFloat:");
-                        Console.Write(BitConverter.ToSingle(fileData, (int)(t * 4 + header.TrianglesOffset)));
-                    }
-                    Console.WriteLine("\nMesh: ");
-                    Console.WriteLine("MeshCount: " + header.MeshesCount);
-                    for (int t = 0; t < header.MeshesCount * IqmMesh.SizeInBytes/4; t++)
-                    {
-                        Console.Write("\n[" + (t * 4 + header.MeshesOffset) + "]");
-                        Console.Write("UInt:");
-                        Console.Write(BitConverter.ToUInt32(fileData, (int)(t * 4 + header.MeshesOffset)));
-                        Console.Write("\tFloat:");
-                        Console.Write(BitConverter.ToSingle(fileData, (int)(t * 4 + header.MeshesOffset)));
-                    }
-                    Console.WriteLine("\nVertArr: ");
-                    Console.WriteLine("VertArrCount: " + header.VertexArraysCount);
-                    Console.WriteLine("VertexCount: " + header.VertexesCount);
-                    for (int t = 0; t < header.VertexArraysCount * IqmVertexArray.SizeInBytes/4; t++)
-                    {
-                        Console.Write("\n[" + (t * 4 + header.VertexArraysOffset) + "]");
-                        Console.Write("UInt:");
-                        Console.Write(BitConverter.ToUInt32(fileData, (int)(t * 4 + header.VertexArraysOffset)));
-                        Console.Write("\tFloat:");
-                        Console.Write(BitConverter.ToSingle(fileData, (int)(t * 4 + header.VertexArraysOffset)));
-                    }
-                    */
-                    
-                        /*
-                            for (int X = 0; X < header.FileSize / 4; X++)
+                            if (normExists)
                             {
-                                Console.Write("\n[" + X * 4 + "]");
-                                Console.Write("UInt:");
-                                Console.Write(BitConverter.ToUInt32(fileData, X * 4));
-                                Console.Write("\tFloat:");
-                                Console.Write(BitConverter.ToSingle(fileData, X * 4));
+                                normVertOff = vertexArrays[normVertIndex].Offset;
+
+                                xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3);
+                                yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 4);
+                                zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex2) * 4 * 3 + 8);
+
+                                norm.Add(xNorm);
+                                norm.Add(yNorm);
+                                norm.Add(zNorm);
+
+                                xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3);
+                                yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 4);
+                                zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex1) * 4 * 3 + 8);
+
+                                norm.Add(xNorm);
+                                norm.Add(yNorm);
+                                norm.Add(zNorm);
+
+                                xNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3);
+                                yNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 4);
+                                zNorm = BitConverter.ToSingle(fileData, (int)normVertOff + (int)(triangles[(int)triOff + t].Vertex0) * 4 * 3 + 8);
+
+                                norm.Add(xNorm);
+                                norm.Add(yNorm);
+                                norm.Add(zNorm);
+                            }
 
                             
-                                if (X * 4 == header.TrianglesOffset) { Console.Write("  <<- TriangleStart"); }
-                                if (X * 4 == header.MeshesOffset) { Console.Write("  <<- MeshStart"); }
-                                if (X * 4 == header.VertexArraysOffset) { Console.Write("  <<- ArrayStart"); }
-
-                            }*/
-
-                    /*
-                        Console.ReadLine();
-
-                        Console.WriteLine("Vertstart");
-                    foreach (var t in triangles)
-                    {
-                        Console.WriteLine("Tri");
-                        Console.WriteLine(t.Vertex0);
-                        Console.WriteLine(t.Vertex1);
-                        Console.WriteLine(t.Vertex2);
-                        Console.Write("xxx");
-                        Console.WriteLine(header.TrianglesOffset);
-                        Console.WriteLine(fileData.Length);
-                        Console.Write("Vert1x");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex0 * 4 * 3 + vertexArrays[0].Offset)));
-                        Console.Write("Vert1y");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex0 * 4 * 3 + vertexArrays[0].Offset + 4)));
-                        Console.Write("Vert1z");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex0 * 4 * 3 + vertexArrays[0].Offset + 8)));
-                        Console.Write("Vert2x");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex1 * 4 * 3 + vertexArrays[0].Offset)));
-                        Console.Write("Vert2y");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex1 * 4 * 3 + vertexArrays[0].Offset + 4)));
-                        Console.Write("Vert2z");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex1 * 4 * 3 + vertexArrays[0].Offset + 8)));
-                        Console.Write("Vert3x");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset)));
-                        Console.Write("Vert3y");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset + 4)));
-                        Console.Write("Vert3z");
-                        Console.WriteLine(BitConverter.ToSingle(fileData, (int)(t.Vertex2 * 4 * 3 + vertexArrays[0].Offset + 8)));
+                        }
                     }
-                    Console.WriteLine("printing contents of pos");
-                    for (int p = 0; p < pos.Count; p++){
-                        Console.WriteLine(pos[p]);
-                    }
-                    */
-                    
+                   
                     return new IqmData((pos.Count != 0 ? pos.ToArray() : null), (norm.Count != 0 ? norm.ToArray() : null)); 
                     
                 }
@@ -699,7 +552,6 @@ namespace SharpNavEditor.IO
         private static List<string> ParseText(BinaryReader reader, int position, int count)
         {
             List<string> text = new List<string>();
-            //StringBuilder builder = new StringBuilder();
             char[] tempCharToBuildString = new char[count];
 
             reader.BaseStream.Position = position;
@@ -707,14 +559,11 @@ namespace SharpNavEditor.IO
             for (int i = 0; i < count; i++)
             {
                 byte nextByte = reader.ReadByte();
-                //builder.Append((char)nextByte);
                 tempCharToBuildString[i] = (char)nextByte;
 
                 if (nextByte == 0)
                 {
-                    //text.Add(builder.ToString());
                     text.Add(new string(tempCharToBuildString));
-                    //builder.Clear();
                 }
             }
 
@@ -850,58 +699,7 @@ namespace SharpNavEditor.IO
 
             return bound;
         }
-        /*
-        private static T PtrToStructure<T>(byte* data)
-            where T : struct
-        {
-            return (T)Marshal.PtrToStructure((IntPtr)data, typeof(T));
-        }
-         * /
-        /*
-        private static AttributeType ConvertIqmAttribute(IqmAttributeType type)
-        {
-            switch (type)
-            {
-                case IqmAttributeType.Position:
-                    return AttributeType.Position;
-                case IqmAttributeType.TexCoord:
-                    return AttributeType.TexCoord;
-                case IqmAttributeType.Normal:
-                    return AttributeType.Normal;
-                case IqmAttributeType.Tangent:
-                    return AttributeType.Tangent;
-                default:
-                    return AttributeType.Position; //return 0.
-            }
-        }
-
-        private static VertexAttribPointerType ConvertIqmFormat(IqmDataFormat format)
-        {
-            switch (format)
-            {
-                case IqmDataFormat.Byte:
-                    return VertexAttribPointerType.Byte;
-                case IqmDataFormat.Double:
-                    return VertexAttribPointerType.Double;
-                case IqmDataFormat.Float:
-                    return VertexAttribPointerType.Float;
-                case IqmDataFormat.Half:
-                    return VertexAttribPointerType.HalfFloat;
-                case IqmDataFormat.Int:
-                    return VertexAttribPointerType.Int;
-                case IqmDataFormat.Short:
-                    return VertexAttribPointerType.Short;
-                case IqmDataFormat.UnsignedByte:
-                    return VertexAttribPointerType.UnsignedByte;
-                case IqmDataFormat.UnsignedInt:
-                    return VertexAttribPointerType.UnsignedInt;
-                case IqmDataFormat.UnsignedShort:
-                    return VertexAttribPointerType.UnsignedShort;
-                default:
-                    return VertexAttribPointerType.Float;
-            }
-        }
-        */
+        
         private static int SizeOfIqmFormat(IqmDataFormat format)
         {
             switch (format)
