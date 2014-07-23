@@ -132,21 +132,21 @@ namespace SharpNav.Crowd
 
 		public int FindCorners(Vector3[] cornerVerts, int[] cornerFlags, int[] cornerPolys, int maxCorners, NavMeshQuery navquery)
 		{
-			float MIN_TARGET_DIST = 0.01f;
+			const float MinTargetDist = 0.01f;
 
-			int ncorners = 0;
-			navquery.FindStraightPath(pos, target, path, pathCount, cornerVerts, cornerFlags, cornerPolys, ref ncorners, maxCorners, 0);
+			int numCorners = 0;
+			navquery.FindStraightPath(pos, target, path, pathCount, cornerVerts, cornerFlags, cornerPolys, ref numCorners, maxCorners, 0);
 
 			//prune points in the beginning of the path which are too close
-			while (ncorners > 0)
+			while (numCorners > 0)
 			{
 				if (((cornerFlags[0] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) ||
-					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MIN_TARGET_DIST)
+					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MinTargetDist)
 					break;
-				ncorners--;
-				if (ncorners > 0)
+				numCorners--;
+				if (numCorners > 0)
 				{
-					for (int i = 0; i < ncorners; i++)
+					for (int i = 0; i < numCorners; i++)
 					{
 						cornerFlags[i] = cornerFlags[i + 1];
 						cornerPolys[i] = cornerPolys[i + 1];
@@ -156,16 +156,16 @@ namespace SharpNav.Crowd
 			}
 
 			//prune points after an off-mesh connection
-			for (int i = 0; i < ncorners; i++)
+			for (int i = 0; i < numCorners; i++)
 			{
 				if ((cornerFlags[i] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
 				{
-					ncorners = i + 1;
+					numCorners = i + 1;
 					break;
 				}
 			}
 
-			return ncorners;
+			return numCorners;
 		}
 
 		/// <summary>
@@ -258,6 +258,7 @@ namespace SharpNav.Crowd
 						found = false;
 					}
 				}
+
 				if (found)
 					break;
 			}
@@ -354,6 +355,7 @@ namespace SharpNav.Crowd
 				polyRef = path[npos];
 				npos++;
 			}
+
 			if (npos == pathCount)
 			{
 				//could not find offMeshConRef
@@ -384,7 +386,7 @@ namespace SharpNav.Crowd
 		/// </summary>
 		/// <param name="safeRef">The starting polygon reference</param>
 		/// <param name="safePos">The starting position</param>
-		/// <returns></returns>
+		/// <returns>True if path start changed, false if not</returns>
 		public bool FixPathStart(int safeRef, Vector3 safePos)
 		{
 			pos = safePos;

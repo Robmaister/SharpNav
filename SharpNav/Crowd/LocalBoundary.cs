@@ -28,18 +28,18 @@ namespace SharpNav.Crowd
 	/// </summary>
 	public class LocalBoundary
 	{
-		private const int MAX_LOCAL_SEGS = 8;
-		private const int MAX_LOCAL_POLYS = 16;
+		private const int MaxLocalSegs = 8;
+		private const int MaxLocalPolys = 16;
 
 		private Vector3 center;
 		private Segment[] segs;
 		private int segCount;
 
 		private int[] polys;
-		private int npolys;
+		private int numPolys;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="LocalBoundart" /> class.
+		/// Initializes a new instance of the <see cref="LocalBoundary" /> class.
 		/// </summary>
 		public LocalBoundary()
 		{
@@ -48,6 +48,9 @@ namespace SharpNav.Crowd
 			polys = new int[16];
 		}
 
+		/// <summary>
+		/// Gets the center
+		/// </summary>
 		public Vector3 Center
 		{
 			get
@@ -56,6 +59,9 @@ namespace SharpNav.Crowd
 			}
 		}
 
+		/// <summary>
+		/// Gets the segments
+		/// </summary>
 		public Segment[] Segs
 		{
 			get
@@ -64,6 +70,9 @@ namespace SharpNav.Crowd
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of segments
+		/// </summary>
 		public int SegCount
 		{
 			get
@@ -79,15 +88,14 @@ namespace SharpNav.Crowd
 		{
 			center = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 			segCount = 0;
-			npolys = 0;
+			numPolys = 0;
 		}
 
 		/// <summary>
 		/// Add a line segment
 		/// </summary>
 		/// <param name="dist">The distance</param>
-		/// <param name="start">Segment's start coordinate</param>
-		/// <param name="end">Segment's end coordinate</param>
+		/// <param name="s">The line segment</param>
 		public void AddSegment(float dist, Segment s)
 		{
 			//insert neighbour based on distance
@@ -99,8 +107,9 @@ namespace SharpNav.Crowd
 			else if (dist >= segs[segCount - 1].Dist)
 			{
 				//further than the last segment, skip
-				if (segCount >= MAX_LOCAL_SEGS)
+				if (segCount >= MaxLocalSegs)
 					return;
+
 				//last, trivial accept
 				segPos = segCount;
 			}
@@ -112,12 +121,13 @@ namespace SharpNav.Crowd
 					if (dist <= segs[i].Dist)
 						break;
 				int tgt = i + 1;
-				int n = Math.Min(segCount - i, MAX_LOCAL_SEGS - tgt);
+				int n = Math.Min(segCount - i, MaxLocalSegs - tgt);
 				if (n > 0)
 				{
 					for (int j = 0; j < n; j++)
 						segs[tgt + j] = segs[i + j];
 				}
+
 				segPos = i;
 			}
 
@@ -125,7 +135,7 @@ namespace SharpNav.Crowd
 			segs[segPos].Start = s.Start;
 			segs[segPos].End = s.End;
 
-			if (segCount < MAX_LOCAL_SEGS)
+			if (segCount < MaxLocalSegs)
 				segCount++;
 		}
 
@@ -144,7 +154,7 @@ namespace SharpNav.Crowd
 			{
 				this.center = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 				this.segCount = 0;
-				this.npolys = 0;
+				this.numPolys = 0;
 				return;
 			}
 
@@ -152,13 +162,13 @@ namespace SharpNav.Crowd
 
 			//first query non-overlapping polygons
 			int[] tempArray = new int[polys.Length];
-			navquery.FindLocalNeighbourhood(reference, pos, collisionQueryRange, polys, tempArray, ref npolys, MAX_LOCAL_POLYS);
+			navquery.FindLocalNeighbourhood(reference, pos, collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
 
 			//secondly, store all polygon edges
 			this.segCount = 0;
 			Segment[] segs = new Segment[MAX_SEGS_PER_POLY];
 			int nsegs = 0;
-			for (int j = 0; j < npolys; j++)
+			for (int j = 0; j < numPolys; j++)
 			{
 				tempArray = new int[segs.Length];
 				navquery.GetPolyWallSegments(polys[j], segs, tempArray, ref nsegs, MAX_SEGS_PER_POLY);
@@ -181,10 +191,10 @@ namespace SharpNav.Crowd
 		/// <returns>True if valid, false if not</returns>
 		public bool IsValid(NavMeshQuery navquery)
 		{
-			if (npolys == 0)
+			if (numPolys == 0)
 				return false;
 
-			for (int i = 0; i < npolys; i++)
+			for (int i = 0; i < numPolys; i++)
 			{
 				if (!navquery.IsValidPolyRef(polys[i]))
 					return false;
@@ -193,6 +203,9 @@ namespace SharpNav.Crowd
 			return true;
 		}
 
+		/// <summary>
+		/// A line segment contains two points
+		/// </summary>
 		public struct Segment
 		{
 			/// <summary>
