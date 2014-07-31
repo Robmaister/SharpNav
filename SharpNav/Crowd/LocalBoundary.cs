@@ -44,8 +44,8 @@ namespace SharpNav.Crowd
 		public LocalBoundary()
 		{
 			Reset();
-			segs = new Segment[8];
-			polys = new int[16];
+			segs = new Segment[MaxLocalSegs];
+			polys = new int[MaxLocalPolys];
 		}
 
 		/// <summary>
@@ -167,12 +167,12 @@ namespace SharpNav.Crowd
 			//secondly, store all polygon edges
 			this.segCount = 0;
 			Segment[] segs = new Segment[MAX_SEGS_PER_POLY];
-			int nsegs = 0;
+			int numSegs = 0;
 			for (int j = 0; j < numPolys; j++)
 			{
 				tempArray = new int[segs.Length];
-				navquery.GetPolyWallSegments(polys[j], segs, tempArray, ref nsegs, MAX_SEGS_PER_POLY);
-				for (int k = 0; k < nsegs; k++)
+				navquery.GetPolyWallSegments(polys[j], segs, tempArray, ref numSegs, MAX_SEGS_PER_POLY);
+				for (int k = 0; k < numSegs; k++)
 				{
 					//skip too distant segments
 					float tseg;

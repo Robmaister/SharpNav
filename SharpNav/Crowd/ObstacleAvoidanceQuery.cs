@@ -57,6 +57,9 @@ namespace SharpNav.Crowd
 			this.segments = new ObstacleSegment[this.maxSegments];
 		}
 
+		/// <summary>
+		/// Resets the ObstacleAvoidanceQuery's internal data
+		/// </summary>
 		public void Reset()
 		{
 			numCircles = 0;
@@ -100,21 +103,21 @@ namespace SharpNav.Crowd
 		/// <summary>
 		/// Prepare the obstacles for further calculations
 		/// </summary>
-		/// <param name="pos">Current position</param>
-		/// <param name="dvel">Desired velocity</param>
-		public void Prepare(Vector3 pos, Vector3 dvel)
+		/// <param name="position">Current position</param>
+		/// <param name="desiredVel">Desired velocity</param>
+		public void Prepare(Vector3 position, Vector3 desiredVel)
 		{
 			//prepare obstacles
 			for (int i = 0; i < numCircles; i++)
 			{
 				//side
-				Vector3 pa = pos;
+				Vector3 pa = position;
 				Vector3 pb = circles[i].Position;
 
 				Vector3 orig = new Vector3(0, 0, 0);
 				circles[i].Dp = pb - pa;
 				circles[i].Dp.Normalize();
-				Vector3 dv = circles[i].DesiredVel - dvel;
+				Vector3 dv = circles[i].DesiredVel - desiredVel;
 
 				float a = Triangle3.Area2D(orig, circles[i].Dp, dv);
 				if (a < 0.01f)
@@ -134,12 +137,12 @@ namespace SharpNav.Crowd
 				//precalculate if the agent is close to the segment
 				float r = 0.01f;
 				float t;
-				segments[i].Touch = MathHelper.Distance.PointToSegment2DSquared(ref pos, ref segments[i].P, 
+				segments[i].Touch = MathHelper.Distance.PointToSegment2DSquared(ref position, ref segments[i].P, 
 					ref segments[i].Q, out t) < (r * r);
 			}
 		}
 
-		public float ProcessSample(Vector3 vcand, float cs, Vector3 pos, float rad, Vector3 vel, Vector3 dvel)
+		public float ProcessSample(Vector3 vcand, float cs, Vector3 position, float radius, Vector3 vel, Vector3 desiredVel)
 		{
 			//find min time of impact and exit amongst all obstacles
 			float tmin = parameters.HorizTime;
@@ -161,7 +164,7 @@ namespace SharpNav.Crowd
 				numSide++;
 
 				float htmin = 0, htmax = 0;
-				if (!SweepCircleCircle(pos, rad, vab, cir.Position, cir.Radius, ref htmin, ref htmax))
+				if (!SweepCircleCircle(position, radius, vab, cir.Position, cir.Radius, ref htmin, ref htmax))
 					continue;
 
 				//handle overlapping obstacles
@@ -201,7 +204,7 @@ namespace SharpNav.Crowd
 				}
 				else
 				{
-					if (!IntersectRaySegment(pos, vcand, seg.P, seg.Q, ref htmin))
+					if (!IntersectRaySegment(position, vcand, seg.P, seg.Q, ref htmin))
 						continue;
 				}
 
@@ -217,7 +220,7 @@ namespace SharpNav.Crowd
 			if (numSide != 0)
 				side /= numSide;
 
-			float vpen = parameters.WeightDesVel * (Vector3Extensions.Distance2D(vcand, dvel) * invVmax);
+			float vpen = parameters.WeightDesVel * (Vector3Extensions.Distance2D(vcand, desiredVel) * invVmax);
 			float vcpen = parameters.WeightCurVel * (Vector3Extensions.Distance2D(vcand, vel) * invVmax);
 			float spen = parameters.WeightSide * side;
 			float tpen = parameters.WeightToi * (1.0f / (0.1f + tmin * invHorizTime));
@@ -227,11 +230,11 @@ namespace SharpNav.Crowd
 			return penalty;
 		}
 
-		public bool SweepCircleCircle(Vector3 c0, float r0, Vector3 v, Vector3 c1, float r1, ref float tmin, ref float tmax)
+		public bool SweepCircleCircle(Vector3 center0, float radius0, Vector3 v, Vector3 center1, float radius1, ref float tmin, ref float tmax)
 		{
 			const float EPS = 0.0001f;
-			Vector3 s = c1 - c0;
-			float r = r0 + r1;
+			Vector3 s = center1 - center0;
+			float r = radius0 + radius1;
 			float c = Vector3Extensions.Dot2D(ref s, ref s) - r * r;
 			float a = Vector3Extensions.Dot2D(ref v, ref v);
 			if (a < EPS)
@@ -300,7 +303,7 @@ namespace SharpNav.Crowd
 			float half = (this.parameters.GridSize - 1) * cs * 0.5f;
 
 			float minPenalty = float.MaxValue;
-			int ns = 0;
+			int numSamples = 0;
 
 			for (int y = 0; y < this.parameters.GridSize; y++)
 			{
@@ -315,7 +318,7 @@ namespace SharpNav.Crowd
 						continue;
 
 					float penalty = ProcessSample(vcand, cs, pos, rad, vel, desiredVel);
-					ns++;
+					numSamples++;
 					if (penalty < minPenalty)
 					{
 						minPenalty = penalty;
@@ -324,13 +327,13 @@ namespace SharpNav.Crowd
 				}
 			}
 
-			return ns;
+			return numSamples;
 		}
 
-		public int SampleVelocityAdaptive(Vector3 pos, float rad, float vmax, Vector3 vel, 
-			Vector3 dvel, ref Vector3 nvel, ObstacleAvoidanceParams parameters)
+		public int SampleVelocityAdaptive(Vector3 position, float radius, float vmax, Vector3 vel, 
+			Vector3 desiredVel, ref Vector3 nvel, ObstacleAvoidanceParams parameters)
 		{
-			Prepare(pos, dvel);
+			Prepare(position, desiredVel);
 
 			this.parameters = parameters;
 			this.invHorizTime = 1.0f / parameters.HorizTime;
@@ -340,39 +343,39 @@ namespace SharpNav.Crowd
 			nvel = new Vector3(0, 0, 0);
 
 			//build sampling pattern aligned to desired velocity
-			float[] pat = new float[(MaxPatternDivs * MaxPatternRings + 1) * 2];
-			int npat = 0;
+			float[] pattern = new float[(MaxPatternDivs * MaxPatternRings + 1) * 2];
+			int numPatterns = 0;
 
-			int ndivs = parameters.AdaptiveDivs;
-			int nrings = parameters.AdaptiveRings;
+			int numDivs = parameters.AdaptiveDivs;
+			int numRings = parameters.AdaptiveRings;
 			int depth = parameters.AdaptiveDepth;
 
-			int nd = MathHelper.Clamp(ndivs, 1, MaxPatternDivs);
-			int nr = MathHelper.Clamp(nrings, 1, MaxPatternRings);
-			float da = (1.0f / nd) * (float)Math.PI * 2;
-			float dang = (float)Math.Atan2(dvel.Z, dvel.X);
+			int newNumDivs = MathHelper.Clamp(numDivs, 1, MaxPatternDivs);
+			int newNumRings = MathHelper.Clamp(numRings, 1, MaxPatternRings);
+			float da = (1.0f / newNumDivs) * (float)Math.PI * 2;
+			float dang = (float)Math.Atan2(desiredVel.Z, desiredVel.X);
 
 			//always add sample at zero
-			pat[npat * 2 + 0] = 0;
-			pat[npat * 2 + 1] = 0;
-			npat++;
+			pattern[numPatterns * 2 + 0] = 0;
+			pattern[numPatterns * 2 + 1] = 0;
+			numPatterns++;
 
-			for (int j = 0; j < nr; j++)
+			for (int j = 0; j < newNumRings; j++)
 			{
-				float r = (float)(nr - j) / (float)nr;
+				float r = (float)(newNumRings - j) / (float)newNumRings;
 				float a = dang + (j & 1) * 0.5f * da;
-				for (int i = 0; i < nd; i++)
+				for (int i = 0; i < newNumDivs; i++)
 				{
-					pat[npat * 2 + 0] = (float)Math.Cos(a) * r;
-					pat[npat * 2 + 1] = (float)Math.Sin(a) * r;
-					npat++;
+					pattern[numPatterns * 2 + 0] = (float)Math.Cos(a) * r;
+					pattern[numPatterns * 2 + 1] = (float)Math.Sin(a) * r;
+					numPatterns++;
 					a += da;
 				}
 			}
 
 			//start sampling
 			float cr = vmax * (1.0f - parameters.VelBias);
-			Vector3 res = new Vector3(dvel.X * parameters.VelBias, 0, dvel.Z * parameters.VelBias);
+			Vector3 res = new Vector3(desiredVel.X * parameters.VelBias, 0, desiredVel.Z * parameters.VelBias);
 			int ns = 0;
 
 			for (int k = 0; k < depth; k++)
@@ -380,17 +383,17 @@ namespace SharpNav.Crowd
 				float minPenalty = float.MaxValue;
 				Vector3 bvel = new Vector3(0, 0, 0);
 
-				for (int i = 0; i < npat; i++)
+				for (int i = 0; i < numPatterns; i++)
 				{
 					Vector3 vcand = new Vector3();
-					vcand.X = res.X + pat[i * 2 + 0] * cr;
+					vcand.X = res.X + pattern[i * 2 + 0] * cr;
 					vcand.Y = 0;
-					vcand.Z = res.Z + pat[i * 2 + 1] * cr;
+					vcand.Z = res.Z + pattern[i * 2 + 1] * cr;
 
 					if (vcand.X * vcand.X + vcand.Z * vcand.Z > (vmax + 0.001f) * (vmax + 0.001f))
 						continue;
 
-					float penalty = ProcessSample(vcand, cr / 10, pos, rad, vel, dvel);
+					float penalty = ProcessSample(vcand, cr / 10, position, radius, vel, desiredVel);
 					ns++;
 					if (penalty < minPenalty)
 					{

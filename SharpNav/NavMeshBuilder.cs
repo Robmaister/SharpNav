@@ -42,7 +42,7 @@ namespace SharpNav
 		private OffMeshConnection[] offMeshConnections;
 
         /// <summary>
-        /// Serializable JSON object
+        /// Gets a serializable JSON object
         /// </summary>
         public JObject JSONObject
         {
@@ -207,24 +207,24 @@ namespace SharpNav
 
 			//store header
 			//HACK TiledNavMesh should figure out the X/Y/layer instead of the user maybe?
-			header.x = 0;
-			header.y = 0;
-			header.layer = 0;
-			header.userId = 0;
-			header.polyCount = totPolyCount;
-			header.vertCount = totVertCount;
-			header.maxLinkCount = maxLinkCount;
-			header.bounds = polyMesh.Bounds;
-			header.detailMeshCount = polyMesh.PolyCount;
-			header.detailVertCount = uniqueDetailVertCount;
-			header.detailTriCount = detailTriCount;
-			header.offMeshBase = polyMesh.PolyCount;
-			header.walkableHeight = settings.AgentHeight;
-			header.walkableRadius = settings.AgentWidth;
-			header.walkableClimb = settings.MaxClimb;
-			header.offMeshConCount = storedOffMeshConCount;
-			header.bvNodeCount = settings.BuildBoundingVolumeTree ? polyMesh.PolyCount * 2 : 0;
-			header.bvQuantFactor = 1f / settings.CellSize;
+			header.X = 0;
+			header.Y = 0;
+			header.Layer = 0;
+			header.UserId = 0;
+			header.PolyCount = totPolyCount;
+			header.VertCount = totVertCount;
+			header.MaxLinkCount = maxLinkCount;
+			header.Bounds = polyMesh.Bounds;
+			header.DetailMeshCount = polyMesh.PolyCount;
+			header.DetailVertCount = uniqueDetailVertCount;
+			header.DetailTriCount = detailTriCount;
+			header.OffMeshBase = polyMesh.PolyCount;
+			header.WalkableHeight = settings.AgentHeight;
+			header.WalkableRadius = settings.AgentWidth;
+			header.WalkableClimb = settings.MaxClimb;
+			header.OffMeshConCount = storedOffMeshConCount;
+			header.BvNodeCount = settings.BuildBoundingVolumeTree ? polyMesh.PolyCount * 2 : 0;
+			header.BvQuantFactor = 1f / settings.CellSize;
 
 			int offMeshVertsBase = polyMesh.VertCount;
 			int offMeshPolyBase = polyMesh.PolyCount;

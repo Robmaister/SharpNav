@@ -108,16 +108,16 @@ namespace SharpNav.Crowd
 		{
 			//move along navmesh and update new position
 			Vector3 result = new Vector3();
-			const int MAX_VISITED = 16;
-			int[] visited = new int[MAX_VISITED];
-			List<int> listVisited = new List<int>(MAX_VISITED);
-			int nvisited = 0;
+			const int MaxVisited = 16;
+			int[] visited = new int[MaxVisited];
+			List<int> listVisited = new List<int>(MaxVisited);
+			int numVisited = 0;
 			bool status = navquery.MoveAlongSurface(path[0], pos, npos, ref result, listVisited);
 			visited = listVisited.ToArray();
 
 			if (status == true)
 			{
-				pathCount = MergeCorridorStartMoved(path, pathCount, maxPath, visited, nvisited);
+				pathCount = MergeCorridorStartMoved(path, pathCount, maxPath, visited, numVisited);
 
 				//adjust the position to stay on top of the navmesh
 				float h = pos.Y;
@@ -178,19 +178,19 @@ namespace SharpNav.Crowd
 			if (pathCount < 3)
 				return false;
 
-			const int MAX_ITER = 32;
-			const int MAX_RES = 32;
+			const int MaxIter = 32;
+			const int MaxRes = 32;
 
-			int[] res = new int[MAX_RES];
-			int nres = 0;
+			int[] res = new int[MaxRes];
+			int numRes = 0;
 			int tempInt = 0;
 			navquery.InitSlicedFindPath(path[0], path[pathCount - 1], pos, target);
-			navquery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
-			bool status = navquery.FinalizedSlicedPathPartial(path, pathCount, res, ref nres, MAX_RES);
+			navquery.UpdateSlicedFindPath(MaxIter, ref tempInt);
+			bool status = navquery.FinalizedSlicedPathPartial(path, pathCount, res, ref numRes, MaxRes);
 
-			if (status == true && nres > 0)
+			if (status == true && numRes > 0)
 			{
-				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, nres); 
+				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, numRes); 
 				return true;
 			}
 
@@ -219,12 +219,12 @@ namespace SharpNav.Crowd
 			Vector3 delta = goal - pos;
 			goal = pos + delta * (pathOptimizationRange / dist);
 
-			const int MAX_RES = 32;
-			int[] res = new int[MAX_RES];
+			const int MaxRes = 32;
+			int[] res = new int[MaxRes];
 			float t = 0;
 			Vector3 norm = new Vector3();
 			int nres = 0;
-			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MAX_RES);
+			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MaxRes);
 			if (nres > 1 && t > 0.99f)
 			{
 				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, nres);
