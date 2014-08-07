@@ -76,11 +76,11 @@ namespace SharpNav
 				return null;
 
 			Node newNode = new Node();
-			newNode.pidx = 0;
+			newNode.ParentIdx = 0;
 			newNode.cost = 0;
 			newNode.total = 0;
-			newNode.id = id;
-			newNode.flags = 0;
+			newNode.Id = id;
+			newNode.Flags = 0;
 			
 			nodes.Add(newNode);
 			nodeDict.Add(id, newNode);

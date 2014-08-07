@@ -80,25 +80,25 @@ namespace SharpNav.Crowd
 		/// Take all the coordinates within a certain range and add them all to an array
 		/// </summary>
 		/// <param name="id">The id</param>
-		/// <param name="minx">Minimum x-coordinate</param>
-		/// <param name="miny">Minimum y-coordinate</param>
-		/// <param name="maxx">Maximum x-coordinate</param>
-		/// <param name="maxy">Maximum y-coordinate</param>
-		public void AddItem(int id, float minx, float miny, float maxx, float maxy)
+		/// <param name="minX">Minimum x-coordinate</param>
+		/// <param name="minY">Minimum y-coordinate</param>
+		/// <param name="maxX">Maximum x-coordinate</param>
+		/// <param name="maxY">Maximum y-coordinate</param>
+		public void AddItem(int id, float minX, float minY, float maxX, float maxY)
 		{
-			int iminx = (int)Math.Floor(minx * invCellSize);
-			int iminy = (int)Math.Floor(miny * invCellSize);
-			int imaxx = (int)Math.Floor(maxx * invCellSize);
-			int imaxy = (int)Math.Floor(maxy * invCellSize);
+			int invMinX = (int)Math.Floor(minX * invCellSize);
+			int invMinY = (int)Math.Floor(minY * invCellSize);
+			int invMaxX = (int)Math.Floor(maxX * invCellSize);
+			int invMaxY = (int)Math.Floor(maxY * invCellSize);
 
-			bounds[0] = Math.Min(bounds[0], iminx);
-			bounds[1] = Math.Min(bounds[1], iminy);
-			bounds[2] = Math.Max(bounds[2], imaxx);
-			bounds[3] = Math.Max(bounds[3], imaxy);
+			bounds[0] = Math.Min(bounds[0], invMinX);
+			bounds[1] = Math.Min(bounds[1], invMinY);
+			bounds[2] = Math.Max(bounds[2], invMaxX);
+			bounds[3] = Math.Max(bounds[3], invMaxY);
 
-			for (int y = iminy; y <= imaxy; y++)
+			for (int y = invMinY; y <= invMaxY; y++)
 			{
-				for (int x = iminx; x <= imaxx; x++)
+				for (int x = invMinX; x <= invMaxX; x++)
 				{
 					if (poolHead < poolSize)
 					{
@@ -118,28 +118,29 @@ namespace SharpNav.Crowd
 		/// <summary>
 		/// Take all the items within a certain range and add their ids to an array.
 		/// </summary>
-		/// <param name="minx">The minimum x-coordinate</param>
-		/// <param name="miny">The minimum y-coordinate</param>
-		/// <param name="maxx">The maximum x-coordinate</param>
-		/// <param name="maxy">The maximum y-coordinate</param>
+		/// <param name="minX">The minimum x-coordinate</param>
+		/// <param name="minY">The minimum y-coordinate</param>
+		/// <param name="maxX">The maximum x-coordinate</param>
+		/// <param name="maxY">The maximum y-coordinate</param>
 		/// <param name="ids">The array of ids</param>
 		/// <param name="maxIds">The maximum number of ids that can be stored</param>
 		/// <returns>The number of unique ids</returns>
-		public int QueryItems(float minx, float miny, float maxx, float maxy, int[] ids, int maxIds)
+		public int QueryItems(float minX, float minY, float maxX, float maxY, int[] ids, int maxIds)
 		{
-			int iminx = (int)Math.Floor(minx * invCellSize);
-			int iminy = (int)Math.Floor(miny * invCellSize);
-			int imaxx = (int)Math.Floor(maxx * invCellSize);
-			int imaxy = (int)Math.Floor(maxy * invCellSize);
+			int invMinX = (int)Math.Floor(minX * invCellSize);
+			int invMinY = (int)Math.Floor(minY * invCellSize);
+			int invMaxX = (int)Math.Floor(maxX * invCellSize);
+			int invMaxY = (int)Math.Floor(maxY * invCellSize);
 
 			int n = 0;
 
-			for (int y = iminy; y <= imaxy; y++)
+			for (int y = invMinY; y <= invMaxY; y++)
 			{
-				for (int x = iminx; x <= imaxx; x++)
+				for (int x = invMinX; x <= invMaxX; x++)
 				{
 					int h = HashPos2(x, y, bucketsSize);
 					int idx = buckets[h];
+					
 					//NOTE: the idx value will never be 0xfff f(because the bucket will never store such
 					//a high number). The idx could equal 0xff, which is the default value
 					while (idx != 0xff) 
@@ -159,6 +160,7 @@ namespace SharpNav.Crowd
 								ids[n++] = pool[idx].Id;
 							}
 						}
+
 						idx = pool[idx].Next;
 					}
 				}
@@ -179,6 +181,9 @@ namespace SharpNav.Crowd
 			return ((x * 73856093) ^ (y * 19349663)) & (n - 1);
 		}
 
+		/// <summary>
+		/// An "item" is simply a coordinate on the proximity grid
+		/// </summary>
 		private struct Item
 		{
 			public int Id;

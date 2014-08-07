@@ -245,45 +245,44 @@ namespace SharpNav
         /// </summary>
 		public class NavMeshInfo
 		{
-			public int x;
-			public int y;
-			public int layer;
-			public uint userId;
-			public int polyCount;
-			public int vertCount;
-			public int maxLinkCount;
+			public int X;
+			public int Y;
+			public int Layer;
+			public uint UserId;
+			public int PolyCount;
+			public int VertCount;
+			public int MaxLinkCount;
 
-			public int detailMeshCount;
-			public int detailVertCount;
-			public int detailTriCount;
+			public int DetailMeshCount;
+			public int DetailVertCount;
+			public int DetailTriCount;
 
-			public int bvNodeCount;
+			public int BvNodeCount;
 
-			public int offMeshConCount;
-			public int offMeshBase; //index of first polygon which is off-mesh connection
+			public int OffMeshConCount;
+			public int OffMeshBase; //index of first polygon which is off-mesh connection
 
-			public float walkableHeight;
-			public float walkableRadius;
-			public float walkableClimb;
-			public BBox3 bounds;
-			public float bvQuantFactor;
-
+			public float WalkableHeight;
+			public float WalkableRadius;
+			public float WalkableClimb;
+			public BBox3 Bounds;
+			public float BvQuantFactor;
 
             /// <summary>
-            /// Serialized JSON object
+            /// Gets a serialized JSON object
             /// </summary>
             public JObject JSONObject
             {
                 get
                 {
                     return new JObject(
-                        new JProperty("x", x),
-                        new JProperty("y", y),
-                        new JProperty("layer", layer),
-                        new JProperty("userId", userId),
-                        new JProperty("polyCount", polyCount),
-                        new JProperty("vertCount", vertCount),
-                        new JProperty("maxLinkCount", maxLinkCount)
+                        new JProperty("x", X),
+                        new JProperty("y", Y),
+                        new JProperty("layer", Layer),
+                        new JProperty("userId", UserId),
+                        new JProperty("polyCount", PolyCount),
+                        new JProperty("vertCount", VertCount),
+                        new JProperty("maxLinkCount", MaxLinkCount)
 
                         /*
                         new JProperty("x", x),

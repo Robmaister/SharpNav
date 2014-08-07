@@ -181,6 +181,7 @@ namespace SharpNav.Geometry
 		/// Generates a bounding box for a collection of triangles.
 		/// </summary>
 		/// <param name="tris">The triangles to create a bounding box from.</param>
+		/// <param name="padding">Padding to the bounding box</param>
 		/// <returns>A bounding box containing every triangle.</returns>
 		public static BBox3 GetBoundingBox(this IEnumerable<Triangle3> tris, float padding)
 		{

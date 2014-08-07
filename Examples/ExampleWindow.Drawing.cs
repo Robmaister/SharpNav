@@ -887,7 +887,7 @@ namespace Examples
 			GL.Begin(PrimitiveType.Points);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
-				SVector3 p = crowd.GetAgent(i).NPos;
+				SVector3 p = crowd.GetAgent(i).CurrentPos;
 				GL.Vertex3(p.X, p.Y, p.Z);
 			}
 			GL.End();

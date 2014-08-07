@@ -6,15 +6,14 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 
 #if MONOGAME || XNA    
 using Microsoft.Xna.Framework;
@@ -45,7 +44,7 @@ namespace SharpNav
             public int MaxPolys;
 
             /// <summary>
-            /// Serialized JSON object
+            /// Gets a serialized JSON object
             /// </summary>
             public JObject JSONObject
             {
@@ -61,7 +60,6 @@ namespace SharpNav
                 }
             }
         }
-
 
 		private TiledNavMeshParams parameters;
 		private Vector3 origin;
@@ -85,11 +83,11 @@ namespace SharpNav
 		public TiledNavMesh(NavMeshBuilder data)
 		{
 			TiledNavMeshParams parameters;
-			parameters.Origin = data.Header.bounds.Min;
-			parameters.TileWidth = data.Header.bounds.Max.X - data.Header.bounds.Min.X;
-			parameters.TileHeight = data.Header.bounds.Max.Z - data.Header.bounds.Min.Z;
+			parameters.Origin = data.Header.Bounds.Min;
+			parameters.TileWidth = data.Header.Bounds.Max.X - data.Header.Bounds.Min.X;
+			parameters.TileHeight = data.Header.Bounds.Max.Z - data.Header.Bounds.Min.Z;
 			parameters.MaxTiles = 1;
-			parameters.MaxPolys = data.Header.polyCount;
+			parameters.MaxPolys = data.Header.PolyCount;
 
 			if (!InitTileNavMesh(parameters))
 				return;
@@ -182,7 +180,7 @@ namespace SharpNav
 			PathfinderCommon.NavMeshInfo header = data.Header;
 
 			//make sure location is free
-			if (GetTileAt(header.x, header.y, header.layer) != null)
+			if (GetTileAt(header.X, header.Y, header.Layer) != null)
 				return;
 
 			//allocate a tile
@@ -232,11 +230,11 @@ namespace SharpNav
 				return;
 
 			//insert tile into position LookUp Table (lut)
-			int h = ComputeTileHash(header.x, header.y, tileLookupTableMask);
+			int h = ComputeTileHash(header.X, header.Y, tileLookupTableMask);
 			tile.Next = posLookup[h];
 			posLookup[h] = tile;
 
-			if (header.bvNodeCount == 0)
+			if (header.BvNodeCount == 0)
 				tile.BVTree = null;
 
 			//patch header
@@ -250,12 +248,12 @@ namespace SharpNav
 
 			//build links freelist
 			tile.LinksFreeList = 0;
-			tile.Links = new Link[header.maxLinkCount];
-			for (int i = 0; i < header.maxLinkCount; i++)
+			tile.Links = new Link[header.MaxLinkCount];
+			for (int i = 0; i < header.MaxLinkCount; i++)
 				tile.Links[i] = new Link();
 
-			tile.Links[header.maxLinkCount - 1].Next = PathfinderCommon.NULL_LINK;
-			for (int i = 0; i < header.maxLinkCount - 1; i++)
+			tile.Links[header.MaxLinkCount - 1].Next = PathfinderCommon.NULL_LINK;
+			for (int i = 0; i < header.MaxLinkCount - 1; i++)
 				tile.Links[i].Next = i + 1;
 
 			//init tile
@@ -270,7 +268,7 @@ namespace SharpNav
 			int nneis;
 
 			//connect with layers in current tile
-			nneis = GetTilesAt(header.x, header.y, neis);
+			nneis = GetTilesAt(header.X, header.Y, neis);
 			for (int j = 0; j < nneis; j++)
 			{
 				if (neis[j] != tile)
@@ -286,7 +284,7 @@ namespace SharpNav
 			//connect with neighbour tiles
 			for (int i = 0; i < 8; i++)
 			{
-				nneis = GetNeighbourTilesAt(header.x, header.y, i, neis);
+				nneis = GetNeighbourTilesAt(header.X, header.Y, i, neis);
 				for (int j = 0; j < nneis; j++)
 				{
 					ConnectExtLinks(ref tile, ref neis[j], i);
@@ -311,7 +309,7 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Iterate through all the polygons
-			for (int i = 0; i < tile.Header.polyCount; i++)
+			for (int i = 0; i < tile.Header.PolyCount; i++)
 			{
 				//The polygon links will end in a null link
 				tile.Polys[i].FirstLink = PathfinderCommon.NULL_LINK;
@@ -359,12 +357,12 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Base off-mesh connection start points
-			for (int i = 0; i < tile.Header.offMeshConCount; i++)
+			for (int i = 0; i < tile.Header.OffMeshConCount; i++)
 			{
 				int con = i;
 				int poly = tile.OffMeshConnections[con].Poly;
 
-				Vector3 extents = new Vector3(tile.OffMeshConnections[con].Radius, tile.Header.walkableClimb, tile.OffMeshConnections[con].Radius);
+				Vector3 extents = new Vector3(tile.OffMeshConnections[con].Radius, tile.Header.WalkableClimb, tile.OffMeshConnections[con].Radius);
 				
 				//Find polygon to connect to
 				Vector3 p = tile.OffMeshConnections[con].Pos0;
@@ -426,7 +424,7 @@ namespace SharpNav
 				return;
 
 			//Connect border links
-			for (int i = 0; i < tile.Header.polyCount; i++)
+			for (int i = 0; i < tile.Header.PolyCount; i++)
 			{
 				int numPolyVerts = tile.Polys[i].VertCount;
 
@@ -524,7 +522,7 @@ namespace SharpNav
 			int oppositeSide = (side == -1) ? 0xff : OppositeTile(side);
 
 			//Iterate through all the off-mesh connections of target tile
-			for (int i = 0; i < target.Header.offMeshConCount; i++)
+			for (int i = 0; i < target.Header.OffMeshConCount; i++)
 			{
 				OffMeshConnection targetCon = target.OffMeshConnections[i];
 				if (targetCon.Side != oppositeSide)
@@ -536,7 +534,7 @@ namespace SharpNav
 				if (!IsLinkAllocated(targetPoly.FirstLink))
 					continue;
 
-				Vector3 extents = new Vector3(targetCon.Radius, target.Header.walkableClimb, targetCon.Radius);
+				Vector3 extents = new Vector3(targetCon.Radius, target.Header.WalkableClimb, targetCon.Radius);
 
 				//Find polygon to connect to
 				Vector3 p = targetCon.Pos1;
@@ -609,7 +607,7 @@ namespace SharpNav
 			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
 				return false;
 			MeshTile tile = tiles[indexTile];
-			if (indexPoly >= tile.Header.polyCount)
+			if (indexPoly >= tile.Header.PolyCount)
 				return false;
 			Poly poly = tile.Polys[indexPoly];
 
@@ -628,6 +626,7 @@ namespace SharpNav
 						idx0 = 1;
 						idx1 = 0;
 					}
+
 					break;
 				}
 			}
@@ -664,7 +663,7 @@ namespace SharpNav
 			int polyBase = GetPolyRefBase(tile);
 
 			//Iterate through all the tile's polygons
-			for (int i = 0; i < tile.Header.polyCount; i++)
+			for (int i = 0; i < tile.Header.PolyCount; i++)
 			{
 				int numPolyVerts = tile.Polys[i].VertCount;
 
@@ -688,7 +687,7 @@ namespace SharpNav
 					CalcSlabEndPoints(vc, vd, bmin, bmax, side);
 
 					//Skip if slabs don't overlap
-					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.Header.walkableClimb))
+					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.Header.WalkableClimb))
 						continue;
 
 					//Add return value
@@ -865,9 +864,9 @@ namespace SharpNav
 			if (tile.BVTree.Count != 0)
 			{
 				int node = 0;
-				int end = tile.Header.bvNodeCount;
-				Vector3 tbmin = tile.Header.bounds.Min;
-				Vector3 tbmax = tile.Header.bounds.Max;
+				int end = tile.Header.BvNodeCount;
+				Vector3 tbmin = tile.Header.Bounds.Min;
+				Vector3 tbmax = tile.Header.Bounds.Max;
 				
 				//Clamp query box to world box
 				Vector3 qbmin = qbounds.Min;
@@ -882,12 +881,12 @@ namespace SharpNav
 
 				const int MinMask = unchecked((int)0xfffffffe);
 
-				b.Min.X = (int)(bminx * tile.Header.bvQuantFactor) & MinMask;
-				b.Min.Y = (int)(bminy * tile.Header.bvQuantFactor) & MinMask;
-				b.Min.Z = (int)(bminz * tile.Header.bvQuantFactor) & MinMask;
-				b.Max.X = (int)(bmaxx * tile.Header.bvQuantFactor + 1) | 1;
-				b.Max.Y = (int)(bmaxy * tile.Header.bvQuantFactor + 1) | 1;
-				b.Max.Z = (int)(bmaxz * tile.Header.bvQuantFactor + 1) | 1;
+				b.Min.X = (int)(bminx * tile.Header.BvQuantFactor) & MinMask;
+				b.Min.Y = (int)(bminy * tile.Header.BvQuantFactor) & MinMask;
+				b.Min.Z = (int)(bminz * tile.Header.BvQuantFactor) & MinMask;
+				b.Max.X = (int)(bmaxx * tile.Header.BvQuantFactor + 1) | 1;
+				b.Max.Y = (int)(bmaxy * tile.Header.BvQuantFactor + 1) | 1;
+				b.Max.Z = (int)(bmaxz * tile.Header.BvQuantFactor + 1) | 1;
 
 				//traverse tree
 				int polyBase = GetPolyRefBase(tile);
@@ -922,7 +921,7 @@ namespace SharpNav
 				BBox3 b;
 				int polyBase = GetPolyRefBase(tile);
 
-				for (int i = 0; i < tile.Header.polyCount; i++)
+				for (int i = 0; i < tile.Header.PolyCount; i++)
 				{
 					var poly = tile.Polys[i];
 
@@ -1004,7 +1003,7 @@ namespace SharpNav
 			while (tile != null)
 			{
 				//Found
-				if (tile.Header != null && tile.Header.x == x && tile.Header.y == y && tile.Header.layer == layer)
+				if (tile.Header != null && tile.Header.X == x && tile.Header.Y == y && tile.Header.Layer == layer)
 					return tile;
 
 				//Keep searching
@@ -1033,7 +1032,7 @@ namespace SharpNav
 			{
 				//Tile found. 
 				//Add to tile array
-				if (tile.Header != null && tile.Header.x == x && tile.Header.y == y)
+				if (tile.Header != null && tile.Header.X == x && tile.Header.Y == y)
 				{
 					if (n < tiles.Length)
 						tiles[n++] = tile;
@@ -1195,7 +1194,7 @@ namespace SharpNav
 			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
 				return false;
 
-			if (indexPoly >= tiles[indexTile].Header.polyCount)
+			if (indexPoly >= tiles[indexTile].Header.PolyCount)
 				return false;
 
 			//Retrieve tile and poly
@@ -1237,7 +1236,7 @@ namespace SharpNav
 			if (tiles[indexTile].Salt != salt || tiles[indexTile].Header == null)
 				return false;
 
-			if (indexPoly >= tiles[indexTile].Header.polyCount)
+			if (indexPoly >= tiles[indexTile].Header.PolyCount)
 				return false;
 
 			return true;
@@ -1346,7 +1345,7 @@ namespace SharpNav
 		}
 
         /// <summary>
-        /// Serialized JSON object
+        /// Gets a serialized JSON object
         /// </summary>
         public JObject JSONObject
         {

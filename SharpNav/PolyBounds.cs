@@ -30,7 +30,7 @@ namespace SharpNav
 		public PolyVertex Max;
 
         /// <summary>
-        /// Serialized JSON object
+        /// Gets a serialized JSON object
         /// </summary>
         public JObject JSONObject
         {

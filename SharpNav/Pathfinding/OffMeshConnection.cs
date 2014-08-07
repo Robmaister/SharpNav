@@ -65,7 +65,7 @@ namespace SharpNav.Pathfinding
 		public uint UserId { get; set; }
 
         /// <summary>
-        /// Serializable JSON object
+        /// Gets a serializable JSON object
         /// </summary>
         public JObject JSONObject
         {

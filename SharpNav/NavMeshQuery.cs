@@ -166,7 +166,7 @@ namespace SharpNav
 			int polyBase = nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
-			for (int i = 0; i < tile.Header.polyCount; i++)
+			for (int i = 0; i < tile.Header.PolyCount; i++)
 			{
 				Poly p = tile.Polys[i];
 
@@ -251,12 +251,12 @@ namespace SharpNav
 			openList.Clear();
 
 			Node startNode = nodePool.GetNode(startRef);
-			startNode.pos = centerPos;
-			startNode.pidx = 0;
+			startNode.Pos = centerPos;
+			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
-			startNode.id = startRef;
-			startNode.flags = NodeFlags.Open;
+			startNode.Id = startRef;
+			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
 			float radiusSqr = radius * radius;
@@ -272,7 +272,7 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//get poly and tile
-				int bestRef = bestNode.id;
+				int bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
@@ -304,8 +304,8 @@ namespace SharpNav
 				int parentRef = 0;
 				MeshTile parentTile;
 				Poly parentPoly;
-				if (bestNode.pidx != 0)
-					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
+				if (bestNode.ParentIdx != 0)
+					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
 				if (parentRef != 0)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
@@ -342,18 +342,18 @@ namespace SharpNav
 						continue;
 
 					//cost
-					if (neighbourNode.flags == 0)
-						neighbourNode.pos = Vector3.Lerp(va, vb, 0.5f);
+					if (neighbourNode.Flags == 0)
+						neighbourNode.Pos = Vector3.Lerp(va, vb, 0.5f);
 
-					float total = bestNode.total + (bestNode.pos - neighbourNode.pos).Length();
+					float total = bestNode.total + (bestNode.Pos - neighbourNode.Pos).Length();
 
 					//node is already in open list and new result is worse, so skip
 					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
 						continue;
 
-					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
-					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
+					neighbourNode.Id = neighbourRef;
+					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
+					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
 					neighbourNode.total = total;
 
 					if (IsInOpenList(neighbourNode))
@@ -362,7 +362,7 @@ namespace SharpNav
 					}
 					else
 					{
-						neighbourNode.flags = NodeFlags.Open;
+						neighbourNode.Flags = NodeFlags.Open;
 						openList.Push(neighbourNode);
 					}
 				}
@@ -415,12 +415,12 @@ namespace SharpNav
 
 			//initial node is located at the starting position
 			Node startNode = nodePool.GetNode(startRef);
-			startNode.pos = startPos;
-			startNode.pidx = 0;
+			startNode.Pos = startPos;
+			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = (startPos - endPos).Length() * H_SCALE;
-			startNode.id = startRef;
-			startNode.flags = NodeFlags.Open;
+			startNode.Id = startRef;
+			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
 			Node lastBestNode = startNode;
@@ -433,14 +433,14 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//reached the goal. stop searching
-				if (bestNode.id == endRef)
+				if (bestNode.Id == endRef)
 				{
 					lastBestNode = bestNode;
 					break;
 				}
 
 				//get current poly and tile
-				int bestRef = bestNode.id;
+				int bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
@@ -449,8 +449,8 @@ namespace SharpNav
 				int parentRef = 0;
 				MeshTile parentTile;
 				Poly parentPoly;
-				if (bestNode.pidx != 0)
-					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
+				if (bestNode.ParentIdx != 0)
+					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
 				if (parentRef != 0)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
@@ -473,9 +473,9 @@ namespace SharpNav
 						continue;
 
 					//if node is visited the first time, calculate node position
-					if (neighbourNode.flags == 0)
+					if (neighbourNode.Flags == 0)
 					{
-						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.pos);
+						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.Pos);
 					}
 
 					//calculate cost and heuristic
@@ -486,8 +486,8 @@ namespace SharpNav
 					if (neighbourRef == endRef)
 					{
 						//cost
-						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
-						float endCost = GetCost(neighbourNode.pos, endPos, neighbourPoly);
+						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
+						float endCost = GetCost(neighbourNode.Pos, endPos, neighbourPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -495,10 +495,10 @@ namespace SharpNav
 					else
 					{
 						//cost
-						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
 						
 						cost = bestNode.cost + curCost;
-						heuristic = (neighbourNode.pos - endPos).Length() * H_SCALE; 
+						heuristic = (neighbourNode.Pos - endPos).Length() * H_SCALE; 
 					}
 
 					float total = cost + heuristic;
@@ -512,9 +512,9 @@ namespace SharpNav
 						continue;
 
 					//add or update the node
-					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
-					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
+					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
+					neighbourNode.Id = neighbourRef;
+					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
 					neighbourNode.cost = cost;
 					neighbourNode.total = total;
 
@@ -543,11 +543,11 @@ namespace SharpNav
 			Node node = lastBestNode;
 			do
 			{
-				path.Add(node.id);
+				path.Add(node.Id);
 				if (path.Count >= path.Capacity)
 					break;
 		
-				node = nodePool.GetNodeAtIdx(node.pidx);
+				node = nodePool.GetNodeAtIdx(node.ParentIdx);
 			}
 			while (node != null);
 			
@@ -805,11 +805,11 @@ namespace SharpNav
 			tinyNodePool.Clear();
 
 			Node startNode = tinyNodePool.GetNode(startRef);
-			startNode.pidx = 0;
+			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
-			startNode.id = startRef;
-			startNode.flags = NodeFlags.Closed;
+			startNode.Id = startRef;
+			startNode.Flags = NodeFlags.Closed;
 			nodeQueue.Enqueue(startNode);
 
 			Vector3 bestPos = startPos;
@@ -829,7 +829,7 @@ namespace SharpNav
 				Node curNode = nodeQueue.Dequeue();
 
 				//get poly and tile
-				int curRef = curNode.id;
+				int curRef = curNode.Id;
 				MeshTile curTile;
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
@@ -903,7 +903,7 @@ namespace SharpNav
 								continue;
 							
 							//skip if already visited
-							if ((neighbourNode.flags & NodeFlags.Closed) != 0)
+							if ((neighbourNode.Flags & NodeFlags.Closed) != 0)
 								continue;
 
 							//skip the link if too far from search constraint
@@ -914,8 +914,8 @@ namespace SharpNav
 							//mark the node as visited and push to queue
 							if (nodeQueue.Count < MAX_STACK)
 							{
-								neighbourNode.pidx = tinyNodePool.GetNodeIdx(curNode);
-								neighbourNode.flags |= NodeFlags.Closed;
+								neighbourNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
+								neighbourNode.Flags |= NodeFlags.Closed;
 								nodeQueue.Enqueue(neighbourNode);
 							}
 						}
@@ -929,11 +929,11 @@ namespace SharpNav
 				Node node = bestNode;
 				do
 				{
-					visited.Add(node.id);
+					visited.Add(node.Id);
 					if (visited.Count >= visited.Capacity)
 						break;
 
-					node = tinyNodePool.GetNodeAtIdx(node.pidx);
+					node = tinyNodePool.GetNodeAtIdx(node.ParentIdx);
 				}
 				while (node != null);
 
@@ -981,12 +981,12 @@ namespace SharpNav
 			openList.Clear();
 
 			Node startNode = nodePool.GetNode(startRef);
-			startNode.pos = startPos;
-			startNode.pidx = 0;
+			startNode.Pos = startPos;
+			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = (endPos - startPos).Length() * H_SCALE;
-			startNode.id = startRef;
-			startNode.flags = NodeFlags.Open;
+			startNode.Id = startRef;
+			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
 			query.Status = true;
@@ -1024,7 +1024,7 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//reached the goal, stop searching
-				if (bestNode.id == query.EndRef)
+				if (bestNode.Id == query.EndRef)
 				{
 					query.LastBestNode = bestNode;
 					query.Status = true;
@@ -1033,7 +1033,7 @@ namespace SharpNav
 				}
 
 				//get current poly and tile
-				int bestRef = bestNode.id;
+				int bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				if (nav.TryGetTileAndPolyByRef(bestRef, out bestTile, out bestPoly) == false)
@@ -1048,8 +1048,8 @@ namespace SharpNav
 				int parentRef = 0;
 				MeshTile parentTile;
 				Poly parentPoly;
-				if (bestNode.pidx != 0)
-					parentRef = nodePool.GetNodeAtIdx(bestNode.pidx).id;
+				if (bestNode.ParentIdx != 0)
+					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
 				if (parentRef != 0)
 				{
 					if (nav.TryGetTileAndPolyByRef(parentRef, out parentTile, out parentPoly) == false)
@@ -1078,9 +1078,9 @@ namespace SharpNav
 					if (neighbourNode == null)
 						continue;
 
-					if (neighbourNode.flags == 0)
+					if (neighbourNode.Flags == 0)
 					{
-						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.pos);
+						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.Pos);
 					}
 
 					//calculate cost and heuristic
@@ -1091,8 +1091,8 @@ namespace SharpNav
 					if (neighbourRef == query.EndRef)
 					{
 						//cost
-						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
-						float endCost = GetCost(neighbourNode.pos, query.EndPos, neighbourPoly);
+						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
+						float endCost = GetCost(neighbourNode.Pos, query.EndPos, neighbourPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -1100,10 +1100,10 @@ namespace SharpNav
 					else
 					{
 						//cost
-						float curCost = GetCost(bestNode.pos, neighbourNode.pos, bestPoly);
+						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
 
 						cost = bestNode.cost + curCost;
-						heuristic = (neighbourNode.pos - query.EndPos).Length() * H_SCALE;
+						heuristic = (neighbourNode.Pos - query.EndPos).Length() * H_SCALE;
 					}
 
 					float total = cost + heuristic;
@@ -1117,9 +1117,9 @@ namespace SharpNav
 						continue;
 
 					//add or update the node
-					neighbourNode.pidx = nodePool.GetNodeIdx(bestNode);
-					neighbourNode.id = neighbourRef;
-					neighbourNode.flags = RemoveNodeFlagClosed(neighbourNode);
+					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
+					neighbourNode.Id = neighbourRef;
+					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
 					neighbourNode.cost = cost;
 					neighbourNode.total = total;
 
@@ -1186,8 +1186,8 @@ namespace SharpNav
 				Node node = query.LastBestNode;
 				do
 				{
-					Node next = nodePool.GetNodeAtIdx(node.pidx);
-					node.pidx = nodePool.GetNodeIdx(prev);
+					Node next = nodePool.GetNodeAtIdx(node.ParentIdx);
+					node.ParentIdx = nodePool.GetNodeIdx(prev);
 					prev = node;
 					node = next;
 				}
@@ -1197,12 +1197,12 @@ namespace SharpNav
 				node = prev;
 				do
 				{
-					path[n++] = node.id;
+					path[n++] = node.Id;
 					if (n >= maxPath)
 					{
 						break;
 					}
-					node = nodePool.GetNodeAtIdx(node.pidx);
+					node = nodePool.GetNodeAtIdx(node.ParentIdx);
 				}
 				while (node != null);
 			}
@@ -1267,8 +1267,8 @@ namespace SharpNav
 				//reverse the path
 				do
 				{
-					Node next = nodePool.GetNodeAtIdx(node.pidx);
-					node.pidx = nodePool.GetNodeIdx(prev);
+					Node next = nodePool.GetNodeAtIdx(node.ParentIdx);
+					node.ParentIdx = nodePool.GetNodeIdx(prev);
 					prev = node;
 					node = next;
 				}
@@ -1278,12 +1278,12 @@ namespace SharpNav
 				node = prev;
 				do
 				{
-					path[n++] = node.id;
+					path[n++] = node.Id;
 					if (n >= maxPath)
 					{
 						break;
 					}
-					node = nodePool.GetNodeAtIdx(node.pidx);
+					node = nodePool.GetNodeAtIdx(node.ParentIdx);
 				}
 				while (node != null);
 			}
@@ -1498,9 +1498,9 @@ namespace SharpNav
 			tinyNodePool.Clear();
 
 			Node startNode = tinyNodePool.GetNode(startRef);
-			startNode.pidx = 0;
-			startNode.id = startRef;
-			startNode.flags = NodeFlags.Closed;
+			startNode.ParentIdx = 0;
+			startNode.Id = startRef;
+			startNode.Flags = NodeFlags.Closed;
 			stack[nstack++] = startNode;
 
 			float radiusSqr = radius * radius;
@@ -1511,7 +1511,7 @@ namespace SharpNav
 			int n = 0;
 			if (n < maxResult)
 			{
-				resultRef[n] = startNode.id;
+				resultRef[n] = startNode.Id;
 				resultParent[n] = 0;
 				++n;
 			}
@@ -1525,7 +1525,7 @@ namespace SharpNav
 				nstack--;
 
 				//get poly and tile
-				int curRef = curNode.id;
+				int curRef = curNode.Id;
 				MeshTile curTile;
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
@@ -1544,7 +1544,7 @@ namespace SharpNav
 					if (neighbourNode == null)
 						continue;
 					//skip visited
-					if ((neighbourNode.flags & NodeFlags.Closed) != 0)
+					if ((neighbourNode.Flags & NodeFlags.Closed) != 0)
 						continue;
 
 					//expand to neighbour
@@ -1569,8 +1569,8 @@ namespace SharpNav
 						continue;
 
 					//mark node visited
-					neighbourNode.flags |= NodeFlags.Closed;
-					neighbourNode.pidx = tinyNodePool.GetNodeIdx(curNode);
+					neighbourNode.Flags |= NodeFlags.Closed;
+					neighbourNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
 
 					//check that the polygon doesn't collide with existing polygons
 
@@ -2270,7 +2270,7 @@ namespace SharpNav
 					MeshTile tile;
 					Poly poly;
 					nav.TryGetTileAndPolyByRefUnsafe(polys[i], out tile, out poly);
-					d = Math.Abs(diff.Y) - tile.Header.walkableClimb;
+					d = Math.Abs(diff.Y) - tile.Header.WalkableClimb;
 					d = d > 0 ? d * d : 0;
 				}
 				else
@@ -2340,28 +2340,28 @@ namespace SharpNav
 
 		public bool IsInOpenList(Node node)
 		{
-			return (node.flags & NodeFlags.Open) != 0;
+			return (node.Flags & NodeFlags.Open) != 0;
 		}
 
 		public bool IsInClosedList(Node node)
 		{
-			return (node.flags & NodeFlags.Closed) != 0;
+			return (node.Flags & NodeFlags.Closed) != 0;
 		}
 
 		public void SetNodeFlagOpen(ref Node node)
 		{
-			node.flags |= NodeFlags.Open;
+			node.Flags |= NodeFlags.Open;
 		}
 
 		public void SetNodeFlagClosed(ref Node node)
 		{
-			node.flags &= ~NodeFlags.Open;
-			node.flags |= NodeFlags.Closed;
+			node.Flags &= ~NodeFlags.Open;
+			node.Flags |= NodeFlags.Closed;
 		}
 
 		public NodeFlags RemoveNodeFlagClosed(Node node)
 		{
-			return node.flags & ~NodeFlags.Closed;
+			return node.Flags & ~NodeFlags.Closed;
 		}
 
 		private struct QueryData
