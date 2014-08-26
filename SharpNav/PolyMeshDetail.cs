@@ -6,8 +6,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using SharpNav;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
@@ -1258,7 +1258,7 @@ namespace SharpNav
 			public int TriangleCount;
 
             /// <summary>
-            /// Serializable JSON object
+            /// Gets a serializable JSON object
             /// </summary>
             public JObject JSONObject
             {
@@ -1285,7 +1285,7 @@ namespace SharpNav
 			public int Flags; //indicates which 3 vertices are part of the polygon
 
             /// <summary>
-            /// Serializable JSON object
+            /// Gets a serializable JSON object
             /// </summary>
             public JObject JSONObject
             {
@@ -1343,6 +1343,11 @@ namespace SharpNav
 				Flags = GetTriFlags(ref data, verts, vpoly);
 			}
 
+			/// <summary>
+			/// Gets a triangle's particular vertex
+			/// </summary>
+			/// <param name="index">Vertex index</param>
+			/// <returns>Triangle vertex hash</returns>
 			public int this[int index]
 			{
 				get
@@ -1434,7 +1439,7 @@ namespace SharpNav
 			public bool IsSampled;
 
             /// <summary>
-            /// Serializable JSON object
+            /// Gets a serializable JSON object
             /// </summary>
             public JObject JSONObject
             {

@@ -24,7 +24,6 @@ namespace SharpNav.Collections.Generic
 	    private int first;              // Index of first element in queue
         private int last;               // Index of last element in queue
 
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BufferedQueue{T}"/> class.
 		/// </summary>
@@ -39,7 +38,6 @@ namespace SharpNav.Collections.Generic
 		/// Initializes a new instance of the <see cref="BufferedQueue{T}"/> class as a copy of an
 		/// <see cref="ICollection{T}"/> of the same type.
 		/// </summary>
-		/// <param name="size">The number of elements to copy from the collection.</param>
 		/// <param name="items">The collection to copy from.</param>
 		public BufferedQueue(ICollection<T> items)
 		{

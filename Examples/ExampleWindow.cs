@@ -199,6 +199,24 @@ namespace Examples
 			GL.MatrixMode(MatrixMode.Modelview);
 			cam.LoadView();
 
+			if (hasGenerated && displayMode == DisplayMode.Crowd)
+			{
+				crowd.Update((float)e.Time);
+
+				//Iterate through each crowd agent
+				/*for (int j = 0; j < numActiveAgents; j++)
+				{
+					Crowd.CrowdAgent ag = crowd.GetAgent(j);
+					if (!ag.Active)
+						continue;
+
+					//update agent movement trail
+					trails[j].HTrail = (trails[j].HTrail + 1) % AGENT_MAX_TRAIL;
+					trails[j].Trail[trails[j].HTrail] = ag.NPos;
+				}*/
+
+			}
+
 			prevK = k;
 			prevM = m;
 
@@ -713,24 +731,6 @@ namespace Examples
 
 				crowd.RequestMoveTarget(idx, targetRef, targetPos);
 				trails[i].Trail[AGENT_MAX_TRAIL - 1] = targetPos;
-			}
-
-			//Update 50 times
-			for (int i = 0; i < numIterations; i++)
-			{
-				crowd.Update(1.0f / 20.0f);
-
-				//Iterate through each crowd agent
-				for (int j = 0; j < 3; j++)
-				{
-					Crowd.CrowdAgent ag = crowd.GetAgent(j);
-					if (!ag.Active)
-						continue;
-
-					//update agent movement trail
-					trails[j].HTrail = (trails[j].HTrail + 1) % AGENT_MAX_TRAIL;
-					trails[j].Trail[trails[j].HTrail] = ag.NPos;
-				}
 			}
 		}
 

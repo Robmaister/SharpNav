@@ -29,14 +29,46 @@ namespace SharpNav.Crowd
 		private Vector3 target;
 
 		private int[] path;
-		private int npath;
+		private int pathCount;
 		private int maxPath;
 
 		public PathCorridor(int maxPath)
 		{
 			this.path = new int[maxPath];
-			this.npath = 0;
+			this.pathCount = 0;
 			this.maxPath = maxPath;
+		}
+
+		public Vector3 Pos
+		{
+			get
+			{
+				return pos;
+			}
+		}
+
+		public Vector3 Target
+		{
+			get
+			{
+				return target;
+			}
+		}
+
+		public int[] Path
+		{
+			get
+			{
+				return path;
+			}
+		}
+
+		public int PathCount
+		{
+			get
+			{
+				return pathCount;
+			}
 		}
 
 		/// <summary>
@@ -49,7 +81,7 @@ namespace SharpNav.Crowd
 			this.pos = pos;
 			this.target = pos;
 			this.path[0] = reference;
-			this.npath = 1;
+			this.pathCount = 1;
 		}
 
 		/// <summary>
@@ -63,7 +95,7 @@ namespace SharpNav.Crowd
 		{
 			this.target = target;
 			path.CopyTo(this.path, 0);
-			this.npath = npath;
+			this.pathCount = npath;
 		}
 
 		/// <summary>
@@ -76,16 +108,16 @@ namespace SharpNav.Crowd
 		{
 			//move along navmesh and update new position
 			Vector3 result = new Vector3();
-			const int MAX_VISITED = 16;
-			int[] visited = new int[MAX_VISITED];
-			List<int> listVisited = new List<int>(MAX_VISITED);
-			int nvisited = 0;
+			const int MaxVisited = 16;
+			int[] visited = new int[MaxVisited];
+			List<int> listVisited = new List<int>(MaxVisited);
+			int numVisited = 0;
 			bool status = navquery.MoveAlongSurface(path[0], pos, npos, ref result, listVisited);
 			visited = listVisited.ToArray();
 
 			if (status == true)
 			{
-				npath = MergeCorridorStartMoved(path, npath, maxPath, visited, nvisited);
+				pathCount = MergeCorridorStartMoved(path, pathCount, maxPath, visited, numVisited);
 
 				//adjust the position to stay on top of the navmesh
 				float h = pos.Y;
@@ -100,21 +132,21 @@ namespace SharpNav.Crowd
 
 		public int FindCorners(Vector3[] cornerVerts, int[] cornerFlags, int[] cornerPolys, int maxCorners, NavMeshQuery navquery)
 		{
-			float MIN_TARGET_DIST = 0.01f;
+			const float MinTargetDist = 0.01f;
 
-			int ncorners = 0;
-			navquery.FindStraightPath(pos, target, path, npath, cornerVerts, cornerFlags, cornerPolys, ref ncorners, maxCorners, 0);
+			int numCorners = 0;
+			navquery.FindStraightPath(pos, target, path, pathCount, cornerVerts, cornerFlags, cornerPolys, ref numCorners, maxCorners, 0);
 
 			//prune points in the beginning of the path which are too close
-			while (ncorners > 0)
+			while (numCorners > 0)
 			{
 				if (((cornerFlags[0] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) ||
-					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MIN_TARGET_DIST)
+					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MinTargetDist)
 					break;
-				ncorners--;
-				if (ncorners > 0)
+				numCorners--;
+				if (numCorners > 0)
 				{
-					for (int i = 0; i < ncorners; i++)
+					for (int i = 0; i < numCorners; i++)
 					{
 						cornerFlags[i] = cornerFlags[i + 1];
 						cornerPolys[i] = cornerPolys[i + 1];
@@ -124,16 +156,16 @@ namespace SharpNav.Crowd
 			}
 
 			//prune points after an off-mesh connection
-			for (int i = 0; i < ncorners; i++)
+			for (int i = 0; i < numCorners; i++)
 			{
 				if ((cornerFlags[i] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
 				{
-					ncorners = i + 1;
+					numCorners = i + 1;
 					break;
 				}
 			}
 
-			return ncorners;
+			return numCorners;
 		}
 
 		/// <summary>
@@ -143,22 +175,22 @@ namespace SharpNav.Crowd
 		/// <returns>True if optimized, false if not</returns>
 		public bool OptimizePathTopology(NavMeshQuery navquery)
 		{
-			if (npath < 3)
+			if (pathCount < 3)
 				return false;
 
-			const int MAX_ITER = 32;
-			const int MAX_RES = 32;
+			const int MaxIter = 32;
+			const int MaxRes = 32;
 
-			int[] res = new int[MAX_RES];
-			int nres = 0;
+			int[] res = new int[MaxRes];
+			int numRes = 0;
 			int tempInt = 0;
-			navquery.InitSlicedFindPath(path[0], path[npath - 1], pos, target);
-			navquery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
-			bool status = navquery.FinalizedSlicedPathPartial(path, npath, res, ref nres, MAX_RES);
+			navquery.InitSlicedFindPath(path[0], path[pathCount - 1], pos, target);
+			navquery.UpdateSlicedFindPath(MaxIter, ref tempInt);
+			bool status = navquery.FinalizedSlicedPathPartial(path, pathCount, res, ref numRes, MaxRes);
 
-			if (status == true && nres > 0)
+			if (status == true && numRes > 0)
 			{
-				npath = MergeCorridorStartShortcut(path, npath, maxPath, res, nres); 
+				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, numRes); 
 				return true;
 			}
 
@@ -187,15 +219,15 @@ namespace SharpNav.Crowd
 			Vector3 delta = goal - pos;
 			goal = pos + delta * (pathOptimizationRange / dist);
 
-			const int MAX_RES = 32;
-			int[] res = new int[MAX_RES];
+			const int MaxRes = 32;
+			int[] res = new int[MaxRes];
 			float t = 0;
 			Vector3 norm = new Vector3();
 			int nres = 0;
-			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MAX_RES);
+			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MaxRes);
 			if (nres > 1 && t > 0.99f)
 			{
-				npath = MergeCorridorStartShortcut(path, npath, maxPath, res, nres);
+				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, nres);
 			}
 		}
 
@@ -226,6 +258,7 @@ namespace SharpNav.Crowd
 						found = false;
 					}
 				}
+
 				if (found)
 					break;
 			}
@@ -316,22 +349,23 @@ namespace SharpNav.Crowd
 			//advance the path up to and over the off-mesh connection
 			int prevRef = 0, polyRef = path[0];
 			int npos = 0;
-			while (npos < npath && polyRef != offMeshConRef)
+			while (npos < pathCount && polyRef != offMeshConRef)
 			{
 				prevRef = polyRef;
 				polyRef = path[npos];
 				npos++;
 			}
-			if (npos == npath)
+
+			if (npos == pathCount)
 			{
 				//could not find offMeshConRef
 				return false;
 			}
 
 			//prune path
-			for (int i = npos; i < npath; i++)
+			for (int i = npos; i < pathCount; i++)
 				path[i - npos] = path[i];
-			npath -= npos;
+			pathCount -= npos;
 
 			refs[0] = prevRef;
 			refs[1] = polyRef;
@@ -352,16 +386,16 @@ namespace SharpNav.Crowd
 		/// </summary>
 		/// <param name="safeRef">The starting polygon reference</param>
 		/// <param name="safePos">The starting position</param>
-		/// <returns></returns>
+		/// <returns>True if path start changed, false if not</returns>
 		public bool FixPathStart(int safeRef, Vector3 safePos)
 		{
 			pos = safePos;
-			if (npath < 3 && npath > 0)
+			if (pathCount < 3 && pathCount > 0)
 			{
-				path[2] = path[npath - 1];
+				path[2] = path[pathCount - 1];
 				path[0] = safeRef;
 				path[1] = 0;
-				npath = 3;
+				pathCount = 3;
 			}
 			else
 			{
@@ -380,7 +414,7 @@ namespace SharpNav.Crowd
 		/// <returns>True if all valid, false if otherwise</returns>
 		public bool IsValid(int maxLookAhead, NavMeshQuery navquery)
 		{
-			int n = Math.Min(npath, maxLookAhead);
+			int n = Math.Min(pathCount, maxLookAhead);
 			for (int i = 0; i < n; i++)
 			{
 				if (!navquery.IsValidPolyRef(path[i]))
@@ -390,34 +424,14 @@ namespace SharpNav.Crowd
 			return true;
 		}
 
-		public Vector3 GetPos()
-		{
-			return pos;
-		}
-
-		public int[] GetPath()
-		{
-			return path;
-		}
-
-		public int GetPathCount()
-		{
-			return npath;
-		}
-
 		public int GetFirstPoly()
 		{
-			return (npath != 0) ? path[0] : 0;
+			return (pathCount != 0) ? path[0] : 0;
 		}
 
 		public int GetLastPoly()
 		{
-			return (npath != 0) ? path[npath - 1] : 0;
-		}
-
-		public Vector3 GetTarget()
-		{
-			return target;
+			return (pathCount != 0) ? path[pathCount - 1] : 0;
 		}
 	}
 }

@@ -27,13 +27,19 @@ namespace SharpNav
 	/// </summary>
 	public class Node : IValueWithCost
 	{
-		public Vector3 pos;
+		public Vector3 Pos;
 		public float cost;
 		public float total;
-		public int pidx = 30; //index to parent node
-		public NodeFlags flags = 0; //node flags 0/open/closed
-		public int id; //polygon ref the node corresponds to
+		public int ParentIdx = 30; //index to parent node
+		public NodeFlags Flags = 0; //node flags 0/open/closed
+		public int Id; //polygon ref the node corresponds to
 
-		public float Cost { get { return total; } }
+		public float Cost 
+		{ 
+			get 
+			{ 
+				return total; 
+			} 
+		}
 	}
 }

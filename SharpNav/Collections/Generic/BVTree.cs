@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using SharpNav;
 using SharpNav.Geometry;
 using Newtonsoft.Json;
@@ -32,7 +32,7 @@ namespace SharpNav.Collections.Generic
             public int Index;
 
             /// <summary>
-            /// Serialized JSON object
+            /// Gets a serialized JSON object
             /// </summary>
             public JObject JSONObject
             {
