@@ -11,8 +11,6 @@
     <AssemblyName>Examples</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ProductVersion>12.0.0</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -101,7 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpNavEditor\SharpNavEditor.csproj">
-      <Project>{f4fcefad-0589-45cb-977a-270657084377}</Project>
+      <Project>{F4FCEFAD-0589-45CB-977A-270657084377}</Project>
       <Name>SharpNavEditor</Name>
     </ProjectReference>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
