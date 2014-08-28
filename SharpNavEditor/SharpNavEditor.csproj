@@ -56,11 +56,15 @@
     <Compile Include="IO\IModelLoader.cs" />
     <Compile Include="IO\IModelData.cs" />
     <Compile Include="IO\FileLoaderAttribute.cs" />
+    <Compile Include="IO\IqmData.cs" />
+    <Compile Include="IO\IqmLoader.cs" />
     <Compile Include="IO\ObjData.cs" />
     <Compile Include="IO\ObjLoader.cs" />
+    <Compile Include="Mesh.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IO\PlyData.cs" />
     <Compile Include="IO\PlyLoader.cs" />
+    <Compile Include="Transform.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -69,6 +73,12 @@
     <Content Include="GwenSkin.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharpNav\SharpNav.csproj">
+      <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
+      <Name>SharpNav</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
