@@ -23,32 +23,32 @@ namespace SharpNav.Collections.Generic
 	/// </summary>
 	public class BVTree
 	{
-        /// <summary>
-        /// The data stored in a bounding volume node.
-        /// </summary>
-        public struct Node
-        {
-            public PolyBounds Bounds;
-            public int Index;
+		/// <summary>
+		/// The data stored in a bounding volume node.
+		/// </summary>
+		public struct Node
+		{
+			public PolyBounds Bounds;
+			public int Index;
 
-            /// <summary>
-            /// Gets a serialized JSON object
-            /// </summary>
-            public JObject JSONObject
-            {
-                get
-                {
-                    return new JObject(
-                        new JProperty("Bounds", Bounds.JSONObject),
-                        new JProperty("Index", Index)
-                    );
-                }
-            }
-        }
+			/// <summary>
+			/// Gets a serialized JSON object
+			/// </summary>
+			/*public JObject JSONObject
+			{
+				get
+				{
+					return new JObject(
+						new JProperty("Bounds", Bounds.JSONObject),
+						new JProperty("Index", Index)
+					);
+				}
+			}*/
+		}
 
-        /// <summary>
-        /// Nodes in the tree
-        /// </summary>
+		/// <summary>
+		/// Nodes in the tree
+		/// </summary>
 		private Node[] nodes;
 
 		/// <summary>

@@ -17,64 +17,71 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;STANDALONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <DocumentationFile>..\Binaries\SharpNav\Debug\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Standalone\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\Standalone\</OutputPath>
     <DefineConstants>TRACE;STANDALONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <DocumentationFile>..\Binaries\SharpNav\Standalone\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
-    <OutputPath>bin\OpenTK\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\OpenTK\</OutputPath>
     <DefineConstants>TRACE;OPENTK</DefineConstants>
     <Optimize>true</Optimize>
     <SignAssembly>true</SignAssembly>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Binaries\SharpNav\OpenTK\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
-    <OutputPath>bin\SharpDX\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\SharpDX\</OutputPath>
     <DefineConstants>TRACE;SHARPDX</DefineConstants>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <DocumentationFile>..\Binaries\SharpNav\SharpDX\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
-    <OutputPath>bin\MonoGame\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\MonoGame\</OutputPath>
     <DefineConstants>TRACE;MONOGAME</DefineConstants>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Binaries\SharpNav\MonoGame\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
-    <OutputPath>bin\XNA\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\XNA\</OutputPath>
     <DefineConstants>TRACE;MONOGAME</DefineConstants>
     <Optimize>true</Optimize>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Binaries\SharpNav\XNA\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
-    <OutputPath>bin\Unity3D\</OutputPath>
+    <OutputPath>..\Binaries\SharpNav\Unity3D\</OutputPath>
     <DefineConstants>TRACE;UNITY3D</DefineConstants>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
     <ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
+    <DocumentationFile>..\Binaries\SharpNav\Unity3D\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Binaries\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\Dependencies\Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
@@ -82,12 +89,12 @@
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
     <Reference Include="OpenTK">
-      <HintPath>..\Binaries\OpenTK.dll</HintPath>
+      <HintPath>..\Dependencies\OpenTK.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
     <Reference Include="SharpDX">
-      <HintPath>..\Binaries\SharpDX.dll</HintPath>
+      <HintPath>..\Dependencies\SharpDX.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'XNA'">

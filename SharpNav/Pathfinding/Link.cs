@@ -48,22 +48,22 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		public int BMax { get; set; }
 
-        /// <summary>
-        /// Serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("Reference", Reference),
-                    new JProperty("Next", Next),
-                    new JProperty("Edge", Edge),
-                    new JProperty("Side", Side),
-                    new JProperty("BMin", BMin),
-                    new JProperty("BMax", BMax)
-                );
-            }
-        }
+		/// <summary>
+		/// Serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("Reference", Reference),
+					new JProperty("Next", Next),
+					new JProperty("Edge", Edge),
+					new JProperty("Side", Side),
+					new JProperty("BMin", BMin),
+					new JProperty("BMax", BMax)
+				);
+			}
+		}*/
 	}
 }

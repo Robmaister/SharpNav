@@ -52,7 +52,7 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the PolyMesh vertices
 		/// </summary>
 		public Vector3[] Verts { get; set; }
-                                                                    
+																	
 		/// <summary>
 		/// Gets or sets the links between polygons
 		/// </summary>
@@ -93,20 +93,19 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		public MeshTile Next { get; set; }
 
-        /// <summary>
-        /// Serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("Salt", Salt),
-                    new JProperty("LinksFreeList", LinksFreeList),
-                    new JProperty("Header", Header.JSONObject)
-                    /* rest TBD */
-                );
-            }
-        }
+		/// <summary>
+		/// Serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("Salt", Salt),
+					new JProperty("LinksFreeList", LinksFreeList),
+					new JProperty("Header", Header.JSONObject)
+				);
+			}
+		}*/
 	}
 }

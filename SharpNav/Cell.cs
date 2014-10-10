@@ -81,7 +81,7 @@ namespace SharpNav
 
 		/// <summary>
 		/// Gets a modifiable list of all the <see cref="Span"/>s contained in the cell.
-		/// Should only be used for filtering in <see cref="Heightmap"/>.
+		/// Should only be used for filtering in <see cref="Heightfield"/>.
 		/// </summary>
 		/// <value>A list of spans for modification.</value>
 		internal List<Span> MutableSpans

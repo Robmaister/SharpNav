@@ -40,10 +40,6 @@ namespace SharpNavEditor
 		/// <summary>
 		/// Initializes a new instance of the Camera class.
 		/// </summary>
-		/// <param name="fovX">Field of view on the X axis.</param>
-		/// <param name="perspectiveAspect">The screen aspect ratio (y / x).</param>
-		/// <param name="nearClip">The value of the camera's near clipping plane.</param>
-		/// <param name="farClip">The value of the camera's far clipping plane.</param>
 		public Camera()
 		{
 			//initalize position
@@ -62,10 +58,6 @@ namespace SharpNavEditor
 		/// <summary>
 		/// Initializes a new instance of the Camera class. Allows for an initial poisition.
 		/// </summary>
-		/// <param name="fovX">Field of view on the X axis.</param>
-		/// <param name="perspectiveAspect">The screen aspect ratio (y / x).</param>
-		/// <param name="nearClip">The value of the camera's near clipping plane.</param>
-		/// <param name="farClip">The value of the camera's far clipping plane.</param>
 		/// <param name="position">The camera's position.</param>
 		public Camera(Vector3 position)
 			: this()

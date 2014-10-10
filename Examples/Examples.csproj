@@ -17,62 +17,69 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Binaries\Examples\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>..\Binaries\Examples\Debug\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Standalone\</OutputPath>
+    <OutputPath>..\Binaries\Examples\Standalone\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>..\Binaries\Examples\Standalone\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
-    <OutputPath>bin\OpenTK\</OutputPath>
+    <OutputPath>..\Binaries\Examples\OpenTK\</OutputPath>
     <DefineConstants>OPENTK</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Binaries\Examples\OpenTK\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
-    <OutputPath>bin\SharpDX\</OutputPath>
+    <OutputPath>..\Binaries\Examples\SharpDX\</OutputPath>
     <Prefer32Bit>true</Prefer32Bit>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>..\Binaries\Examples\SharpDX\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
-    <OutputPath>bin\MonoGame\</OutputPath>
+    <OutputPath>..\Binaries\Examples\MonoGame\</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>..\Binaries\Examples\MonoGame\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
-    <OutputPath>bin\XNA\</OutputPath>
+    <OutputPath>..\Binaries\Examples\XNA\</OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>..\Binaries\Examples\XNA\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
-    <OutputPath>bin\Unity3D\</OutputPath>
+    <OutputPath>..\Binaries\Examples\Unity3D\</OutputPath>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
+    <DocumentationFile>..\Binaries\Examples\Unity3D\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gwen">
-      <HintPath>..\Binaries\Gwen.dll</HintPath>
+      <HintPath>..\Dependencies\Gwen.dll</HintPath>
     </Reference>
     <Reference Include="Gwen.Renderer.OpenTK">
-      <HintPath>..\Binaries\Gwen.Renderer.OpenTK.dll</HintPath>
+      <HintPath>..\Dependencies\Gwen.Renderer.OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK">
-      <HintPath>..\Binaries\OpenTK.dll</HintPath>
+      <HintPath>..\Dependencies\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

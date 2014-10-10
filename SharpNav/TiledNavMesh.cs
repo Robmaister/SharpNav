@@ -1316,7 +1316,7 @@ namespace SharpNav
 			ty = (int)Math.Floor((pos.Z - origin.Z) / tileHeight);
 		}
 
-		/// <summary>
+		/*/// <summary>
 		/// Serializes the navigation mesh into a JSON format and writes the 
 		/// serialized data to a file. 
 		/// </summary>
@@ -1324,8 +1324,8 @@ namespace SharpNav
 		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
-			/*string data = this.JSONObject.ToString();
-			File.WriteAllText(filename, data); */
+			string data = this.JSONObject.ToString();
+			File.WriteAllText(filename, data);
 			return true;
 		}
 
@@ -1342,7 +1342,7 @@ namespace SharpNav
 
 			string data = File.ReadAllText(filename); 
 			return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
-		}
+		}*/
 
 		/// <summary>
 		/// Gets a serialized JSON object

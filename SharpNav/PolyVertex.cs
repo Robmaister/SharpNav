@@ -36,20 +36,20 @@ namespace SharpNav
 		/// </summary>
 		public int Z;
 
-        /// <summary>
-        /// Serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("X", X),
-                    new JProperty("Y", Y),
-                    new JProperty("Z", Z)
-                );
-            }
-        }
+		/// <summary>
+		/// Serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("X", X),
+					new JProperty("Y", Y),
+					new JProperty("Z", Z)
+				);
+			}
+		}*/
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyVertex"/> struct.

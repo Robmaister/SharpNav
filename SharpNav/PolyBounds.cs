@@ -29,19 +29,19 @@ namespace SharpNav
 		/// </summary>
 		public PolyVertex Max;
 
-        /// <summary>
-        /// Gets a serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("Min", Min.JSONObject),
-                    new JProperty("Max", Max.JSONObject)
-                );
-            }
-        }
+		/// <summary>
+		/// Gets a serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("Min", Min.JSONObject),
+					new JProperty("Max", Max.JSONObject)
+				);
+			}
+		}*/
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyBounds"/> struct.

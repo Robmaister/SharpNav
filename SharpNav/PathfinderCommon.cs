@@ -240,9 +240,9 @@ namespace SharpNav
 		}
 
 
-        /// <summary>
-        /// Contains information about a navigation mesh
-        /// </summary>
+		/// <summary>
+		/// Contains information about a navigation mesh
+		/// </summary>
 		public class NavMeshInfo
 		{
 			public int X;
@@ -268,39 +268,24 @@ namespace SharpNav
 			public BBox3 Bounds;
 			public float BvQuantFactor;
 
-            /// <summary>
-            /// Gets a serialized JSON object
-            /// </summary>
-            public JObject JSONObject
-            {
-                get
-                {
-                    return new JObject(
-                        new JProperty("x", X),
-                        new JProperty("y", Y),
-                        new JProperty("layer", Layer),
-                        new JProperty("userId", UserId),
-                        new JProperty("polyCount", PolyCount),
-                        new JProperty("vertCount", VertCount),
-                        new JProperty("maxLinkCount", MaxLinkCount)
-
-                        /*
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                        new JProperty("x", x),
-                         * */
-                    );
-                }
-            }
+			/// <summary>
+			/// Gets a serialized JSON object
+			/// </summary>
+			/*public JObject JSONObject
+			{
+				get
+				{
+					return new JObject(
+						new JProperty("x", X),
+						new JProperty("y", Y),
+						new JProperty("layer", Layer),
+						new JProperty("userId", UserId),
+						new JProperty("polyCount", PolyCount),
+						new JProperty("vertCount", VertCount),
+						new JProperty("maxLinkCount", MaxLinkCount)
+					);
+				}
+			}*/
 		}
 	}
 }
