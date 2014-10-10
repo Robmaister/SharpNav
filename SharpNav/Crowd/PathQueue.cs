@@ -26,8 +26,8 @@ namespace SharpNav.Crowd
 	public class PathQueue
 	{
 		public const byte PATHQ_INVALID = 0;
-
 		private const int MaxQueue = 8;
+
 		private PathQuery[] queue; //size = MAX_QUEUE
 		private int nextHandle;
 		private int maxPathSize;

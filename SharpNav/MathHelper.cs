@@ -100,6 +100,18 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Normalizes a value in a specified range to be between 0 and 1.
+		/// </summary>
+		/// <param name="t">The value</param>
+		/// <param name="t0">The lower bound of the range.</param>
+		/// <param name="t1">The upper bound of the range.</param>
+		/// <returns>A normalized value.</returns>
+		public static float Normalize(float t, float t0, float t1)
+		{
+			return MathHelper.Clamp((t - t0) / (t1 - t0), 0.0f, 1.0f);
+		}
+
+		/// <summary>
 		/// Calculates the next highest power of two.
 		/// </summary>
 		/// <remarks>

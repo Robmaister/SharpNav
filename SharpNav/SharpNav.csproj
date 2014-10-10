@@ -44,6 +44,7 @@
     <DefineConstants>TRACE;SHARPDX</DefineConstants>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>bin\MonoGame\</OutputPath>
@@ -85,7 +86,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
-    <Reference Include="SharpDX" />
+    <Reference Include="SharpDX">
+      <HintPath>..\Binaries\SharpDX.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'XNA'">
     <Reference Include="Microsoft.Xna.Framework" />
@@ -150,6 +153,7 @@
     <Compile Include="Span.cs" />
     <Compile Include="SpanReference.cs" />
     <Compile Include="TiledNavMesh.cs" />
+    <Compile Include="Vector2.cs" />
     <Compile Include="Vector3.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

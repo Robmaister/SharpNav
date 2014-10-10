@@ -44,6 +44,7 @@
     <Optimize>true</Optimize>
     <DefineConstants>SHARPDX</DefineConstants>
     <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>bin\MonoGame\</OutputPath>
@@ -88,7 +89,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
-    <Reference Include="SharpDX" />
+    <Reference Include="SharpDX">
+      <HintPath>..\Binaries\SharpDX.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'XNA'">
     <Reference Include="Microsoft.Xna.Framework" />

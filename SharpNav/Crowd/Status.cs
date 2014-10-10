@@ -25,4 +25,12 @@ namespace SharpNav.Crowd
 		/// </summary>
 		InProgress = 3
 	}
+
+	public static class StatusExtensions
+	{
+		public static Status ToStatus(this bool variable)
+		{
+			return variable ? Status.Success : Status.Failure;
+		}
+	}
 }

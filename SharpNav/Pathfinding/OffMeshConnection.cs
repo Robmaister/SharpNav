@@ -64,23 +64,23 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		public uint UserId { get; set; }
 
-        /// <summary>
-        /// Gets a serializable JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("Pos0", Pos0.JSONObject),
-                    new JProperty("Pos1", Pos1.JSONObject),
-                    new JProperty("Radius", Radius),
-                    new JProperty("Poly", Poly),
-                    new JProperty("Flags", Flags),
-                    new JProperty("Side", Side),
-                    new JProperty("UserId", UserId)
-                );
-            }
-        }
+		/// <summary>
+		/// Gets a serializable JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("Pos0", Pos0.JSONObject),
+					new JProperty("Pos1", Pos1.JSONObject),
+					new JProperty("Radius", Radius),
+					new JProperty("Poly", Poly),
+					new JProperty("Flags", Flags),
+					new JProperty("Side", Side),
+					new JProperty("UserId", UserId)
+				);
+			}
+		}*/
 	}
 }

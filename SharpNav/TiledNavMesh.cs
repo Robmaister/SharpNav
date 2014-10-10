@@ -32,34 +32,34 @@ namespace SharpNav
 	/// </summary>
 	public class TiledNavMesh
 	{
-        /// <summary>
-        /// The settings for the TiledNavMesh
-        /// </summary>
-        public struct TiledNavMeshParams
-        {
-            public Vector3 Origin;
-            public float TileWidth;
-            public float TileHeight;
-            public int MaxTiles;
-            public int MaxPolys;
+		/// <summary>
+		/// The settings for the TiledNavMesh
+		/// </summary>
+		public struct TiledNavMeshParams
+		{
+			public Vector3 Origin;
+			public float TileWidth;
+			public float TileHeight;
+			public int MaxTiles;
+			public int MaxPolys;
 
-            /// <summary>
-            /// Gets a serialized JSON object
-            /// </summary>
-            public JObject JSONObject
-            {
-                get
-                {
-                    return new JObject(
-                        new JProperty("Origin", Origin.JSONObject),
-                        new JProperty("TileWidth", TileWidth),
-                        new JProperty("TileHeight", TileHeight),
-                        new JProperty("MaxTiles", MaxTiles),
-                        new JProperty("MaxPolys", MaxPolys)
-                    );
-                }
-            }
-        }
+			/// <summary>
+			/// Gets a serialized JSON object
+			/// </summary>
+			/*public JObject JSONObject
+			{
+				get
+				{
+					return new JObject(
+						new JProperty("Origin", Origin.JSONObject),
+						new JProperty("TileWidth", TileWidth),
+						new JProperty("TileHeight", TileHeight),
+						new JProperty("MaxTiles", MaxTiles),
+						new JProperty("MaxPolys", MaxPolys)
+					);
+				}
+			}*/
+		}
 
 		private TiledNavMeshParams parameters;
 		private Vector3 origin;
@@ -651,14 +651,14 @@ namespace SharpNav
 			if (tile == null)
 				return;
 
-			Vector3 amin = new Vector3();
-			Vector3 amax = new Vector3();
+			Vector2 amin = Vector2.Zero;
+			Vector2 amax = Vector2.Zero;
 			CalcSlabEndPoints(va, vb, amin, amax, side);
 			float apos = GetSlabCoord(va, side);
 
 			//Remove links pointing to 'side' and compact the links array
-			Vector3 bmin = new Vector3();
-			Vector3 bmax = new Vector3();
+			Vector2 bmin = Vector2.Zero;
+			Vector2 bmax = Vector2.Zero;
 
 			int polyBase = GetPolyRefBase(tile);
 
@@ -693,8 +693,8 @@ namespace SharpNav
 					//Add return value
 					if (con.Count < con.Capacity)
 					{
-						conarea.Add(Math.Max(amin[0], bmin[0]));
-						conarea.Add(Math.Min(amax[0], bmax[0]));
+						conarea.Add(Math.Max(amin.X, bmin.X));
+						conarea.Add(Math.Min(amax.X, bmax.X));
 						con.Add(GetReference(polyBase, i));
 					}
 
@@ -711,44 +711,44 @@ namespace SharpNav
 		/// <param name="bmin">Minimum bounds</param>
 		/// <param name="bmax">Maximum bounds</param>
 		/// <param name="side">The side</param>
-		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector3 bmin, Vector3 bmax, int side)
+		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector2 bmin, Vector2 bmax, int side)
 		{
 			if (side == 0 || side == 4)
 			{
 				if (va.Z < vb.Z)
 				{
-					bmin[0] = va.Z;
-					bmin[1] = va.Y;
+					bmin.X = va.Z;
+					bmin.Y = va.Y;
 					
-					bmax[0] = vb.Z;
-					bmax[1] = vb.Y;
+					bmax.X = vb.Z;
+					bmax.Y = vb.Y;
 				}
 				else
 				{
-					bmin[0] = vb.Z;
-					bmin[1] = vb.Y;
+					bmin.X = vb.Z;
+					bmin.Y = vb.Y;
 					
-					bmax[0] = va.Z;
-					bmax[1] = va.Y;
+					bmax.X = va.Z;
+					bmax.Y = va.Y;
 				}
 			}
 			else if (side == 2 || side == 6)
 			{
 				if (va.X < vb.X)
 				{
-					bmin[0] = va.X;
-					bmin[1] = va.Y;
+					bmin.X = va.X;
+					bmin.Y = va.Y;
 					
-					bmax[0] = vb.X;
-					bmax[1] = vb.Y;
+					bmax.X = vb.X;
+					bmax.Y = vb.Y;
 				}
 				else
 				{
-					bmin[0] = vb.X;
-					bmin[1] = vb.Y;
+					bmin.X = vb.X;
+					bmin.Y = vb.Y;
 					
-					bmax[0] = va.X;
-					bmax[1] = va.Y;
+					bmax.X = va.X;
+					bmax.Y = va.Y;
 				}
 			}
 		}
@@ -779,20 +779,20 @@ namespace SharpNav
 		/// <param name="px">Point's x</param>
 		/// <param name="py">Point's y</param>
 		/// <returns>True if slabs overlap</returns>
-		public bool OverlapSlabs(Vector3 amin, Vector3 amax, Vector3 bmin, Vector3 bmax, float px, float py)
+		public bool OverlapSlabs(Vector2 amin, Vector2 amax, Vector2 bmin, Vector2 bmax, float px, float py)
 		{
 			//Check for horizontal overlap
 			//Segment shrunk a little so that slabs which touch at endpoints aren't connected
-			float minX = Math.Max(amin[0] + px, bmin[0] + px);
-			float maxX = Math.Min(amax[0] - px, bmax[0] - px);
+			float minX = Math.Max(amin.X + px, bmin.X + px);
+			float maxX = Math.Min(amax.X - px, bmax.X - px);
 			if (minX > maxX)
 				return false;
 
 			//Check vertical overlap
-			float leftSlope = (amax[1] - amin[1]) / (amax[0] - amin[0]);
-			float leftConstant = amin[1] - leftSlope * amin[0];
-			float rightSlope = (bmax[1] - bmin[1]) / (bmax[0] - bmin[0]);
-			float rightConstant = bmin[1] - rightSlope * bmin[0];
+			float leftSlope = (amax.Y - amin.Y) / (amax.X - amin.X);
+			float leftConstant = amin.Y - leftSlope * amin.X;
+			float rightSlope = (bmax.Y - bmin.Y) / (bmax.X - bmin.X);
+			float rightConstant = bmin.Y - rightSlope * bmin.X;
 			float leftMinY = leftSlope * minX + leftConstant;
 			float leftMaxY = leftSlope * maxX + leftConstant;
 			float rightMinY = rightSlope * minX + rightConstant;
@@ -1324,9 +1324,9 @@ namespace SharpNav
 		/// <returns>True if JSON data read, false otherwise</returns>
 		public bool SaveJson(string filename)
 		{
-            string data = this.JSONObject.ToString();
-            File.WriteAllText(filename, data); 
-			return true; 
+			/*string data = this.JSONObject.ToString();
+			File.WriteAllText(filename, data); */
+			return true;
 		}
 
 		/// <summary>
@@ -1344,34 +1344,28 @@ namespace SharpNav
 			return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
 		}
 
-        /// <summary>
-        /// Gets a serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("general", new JObject(
-                        new JProperty("maxTiles", maxTiles),
-                        new JProperty("tileWidth", tileWidth),
-                        new JProperty("tileHeight", tileHeight),
-                        new JProperty("saltBits", saltBits),
-                        new JProperty("tileBits", tileBits),
-                        new JProperty("polyBits", polyBits),
-                        new JProperty("tileLookupTableSize", tileLookupTableSize),
-                        new JProperty("tileLookupTableMask", tileLookupTableMask)
-                    )), 
-                    new JProperty("parameters", parameters.JSONObject),
-                    new JProperty("origin", origin.JSONObject)
-                    
-                    /*
-                    new JObject("nextFree", nextFree),
-                    new JProperty("tiles", new JArray(from x in tiles select new JValue(x))),
-                    new JProperty("posLookup", new JArray(from x in posLookup select new JValue(x)))
-                    */
-                );
-            }
-        }
+		/// <summary>
+		/// Gets a serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("general", new JObject(
+						new JProperty("maxTiles", maxTiles),
+						new JProperty("tileWidth", tileWidth),
+						new JProperty("tileHeight", tileHeight),
+						new JProperty("saltBits", saltBits),
+						new JProperty("tileBits", tileBits),
+						new JProperty("polyBits", polyBits),
+						new JProperty("tileLookupTableSize", tileLookupTableSize),
+						new JProperty("tileLookupTableMask", tileLookupTableMask)
+					)), 
+					new JProperty("parameters", parameters.JSONObject),
+					new JProperty("origin", origin.JSONObject)
+				);
+			}
+		}*/
 	}
 }

@@ -39,19 +39,19 @@ namespace SharpNav.Geometry
 		/// </summary>
 		public Vector3 Max;
 
-        /// <summary>
-        /// Serialized JSON object
-        /// </summary>
-        public JObject JSONObject
-        {
-            get
-            {
-                return new JObject(
-                    new JProperty("Min", Min.JSONObject),
-                    new JProperty("Max", Max.JSONObject)
-                );
-            }
-        }
+		/// <summary>
+		/// Serialized JSON object
+		/// </summary>
+		/*public JObject JSONObject
+		{
+			get
+			{
+				return new JObject(
+					new JProperty("Min", Min.JSONObject),
+					new JProperty("Max", Max.JSONObject)
+				);
+			}
+		}*/
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BBox3"/> struct.

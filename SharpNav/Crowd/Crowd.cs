@@ -720,12 +720,12 @@ namespace SharpNav.Crowd
 					float tb = agentAnims[i].TMax;
 					if (agentAnims[i].T < ta)
 					{
-						float u = Tween(agentAnims[i].T, 0.0f, ta);
+						float u = MathHelper.Normalize(agentAnims[i].T, 0.0f, ta);
 						Vector3.Lerp(ref agentAnims[i].InitPos, ref agentAnims[i].StartPos, u, out agents[i].CurrentPos);
 					}
 					else
 					{
-						float u = Tween(agentAnims[i].T, ta, tb);
+						float u = MathHelper.Normalize(agentAnims[i].T, ta, tb);
 						Vector3.Lerp(ref agentAnims[i].StartPos, ref agentAnims[i].EndPos, u, out agents[i].CurrentPos);
 					}
 
@@ -774,12 +774,12 @@ namespace SharpNav.Crowd
 					if (agents[i].TargetReplan)
 					{
 						//try to use an existing steady path during replan if possible
-						status = BoolToStatus(navquery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES));
+						status = navquery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES).ToStatus();
 					}
 					else
 					{
 						//try to move towards the target when the goal changes
-						status = BoolToStatus(navquery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES));
+						status = navquery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES).ToStatus();
 					}
 
 					if (status != Status.Failure && reqPathCount > 0)
@@ -789,7 +789,7 @@ namespace SharpNav.Crowd
 						{
 							//partial path, constrain target position in last polygon
 							bool tempBool;
-							status = BoolToStatus(navquery.ClosestPointOnPoly(reqPath[reqPathCount - 1], agents[i].TargetPos, out reqPos, out tempBool));
+							status = navquery.ClosestPointOnPoly(reqPath[reqPathCount - 1], agents[i].TargetPos, out reqPos, out tempBool).ToStatus();
 							if (status == Status.Failure)
 								reqPathCount = 0;
 						}
@@ -879,7 +879,7 @@ namespace SharpNav.Crowd
 							res[i] = pathResult[j];
 						bool valid = true;
 						int nres = 0;
-						status = BoolToStatus(pathq.GetPathResult(agents[i].TargetPathqRef, res, ref nres, maxPathResult));
+						status = pathq.GetPathResult(agents[i].TargetPathqRef, res, ref nres, maxPathResult).ToStatus();
 						if (status == Status.Failure || nres == 0)
 							valid = false;
 
@@ -926,7 +926,7 @@ namespace SharpNav.Crowd
 								//partial path, constrain target position inside the last polygon
 								Vector3 nearest;
 								bool tempBool = false;
-								status = BoolToStatus(navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool));
+								status = navquery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool).ToStatus();
 								if (status == Status.Success)
 									targetPos = nearest;
 								else
@@ -1388,26 +1388,6 @@ namespace SharpNav.Crowd
 			agents[slot] = newag;
 
 			return Math.Min(numAgents + 1, maxAgents);
-		}
-
-		/// <summary>
-		/// Basically a clamp function
-		/// </summary>
-		/// <param name="t">The value</param>
-		/// <param name="t0">The lower bound</param>
-		/// <param name="t1">The upper bound</param>
-		/// <returns>The 'clamped' value</returns>
-		public float Tween(float t, float t0, float t1)
-		{
-			return MathHelper.Clamp((t - t0) / (t1 - t0), 0.0f, 1.0f);
-		}
-
-		public Status BoolToStatus(bool variable)
-		{
-			if (variable)
-				return Status.Success;
-			else
-				return Status.Failure;
 		}
 
 		/// <summary>
