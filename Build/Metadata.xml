@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <version>0.9.2</version>
+    <authors>Robert Rouhani</authors>
+    <owners>Robert Rouhani</owners>
+    <licenseUrl>https://github.com/Robmaister/SharpNav/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Robmaister/SharpNav</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A fully-managed navigation mesh library.</description>
+    <releaseNotes>Added dependencies to packages.</releaseNotes>
+    <copyright>Copyright (c) 2013-2014 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
+    <tags>Navigation Pathfinding NavMesh Nav Mesh Crowd Agent AI</tags>
+  </metadata>
+</package>

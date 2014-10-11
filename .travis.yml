@@ -4,5 +4,5 @@ install:
   - sudo apt-get install mono-devel mono-gmcs nunit-console
 
 script:
-  - xbuild TravisCI.proj
-  - nunit-console ./SharpNavTests/bin/Standalone/SharpNavTests.dll -exclude BrokenButUnused
+  - xbuild ./Build/TravisCI.proj
+  - nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused

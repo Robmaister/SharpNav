@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SharpNav.MonoGame</id>
+    <dependencies>
+      <dependency id="MonoGame.Binaries" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\Binaries\SharpNav\MonoGame\SharpNav.dll" target="lib\net40" />
+  </files>
+</package>

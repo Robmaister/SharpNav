@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SharpNav</id>
+  </metadata>
+  <files>
+    <file src="..\Binaries\SharpNav\Standalone\SharpNav.dll" target="lib\net40" />
+  </files>
+</package>
