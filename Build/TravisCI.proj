@@ -2,8 +2,8 @@
 <Project ToolsVersion="4.0" DefaultTargets="CI" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	
 	<ItemGroup>
-		<Projects Include="SharpNav/SharpNav.csproj" />
-		<Projects Include="SharpNavTests/SharpNavTests.csproj" />
+		<Projects Include="../SharpNav/SharpNav.csproj" />
+		<Projects Include="../SharpNavTests/SharpNavTests.csproj" />
 	</ItemGroup>
 	
 	<Target Name="CI">
