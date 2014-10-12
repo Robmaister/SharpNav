@@ -5,9 +5,9 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav", "SharpNav\SharpNav.csproj", "{0E3C6E73-CCE6-4148-B847-36487FFEA225}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Tests", "SharpNavTests\SharpNav.Tests.csproj", "{BB5D7B89-E81E-4815-A349-3752119495C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Tests", "SharpNav.Tests\SharpNav.Tests.csproj", "{BB5D7B89-E81E-4815-A349-3752119495C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Examples", "Examples\SharpNav.Examples.csproj", "{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Examples", "SharpNav.Examples\SharpNav.Examples.csproj", "{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNavEditor", "SharpNavEditor\SharpNavEditor.csproj", "{F4FCEFAD-0589-45CB-977A-270657084377}"
 EndProject
