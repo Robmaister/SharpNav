@@ -1,6 +1,6 @@
-SharpNav
+SharpNav [![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav)
 ========
-[![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav)
+
 
 ### What is it?
 
