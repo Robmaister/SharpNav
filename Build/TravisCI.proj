@@ -3,7 +3,7 @@
 	
 	<ItemGroup>
 		<Projects Include="../SharpNav/SharpNav.csproj" />
-		<Projects Include="../SharpNavTests/SharpNavTests.csproj" />
+		<Projects Include="../SharpNav.Tests/SharpNav.Tests.csproj" />
 	</ItemGroup>
 	
 	<Target Name="CI">
