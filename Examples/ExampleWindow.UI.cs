@@ -13,7 +13,7 @@ using Gwen.Control;
 using SharpNav;
 using SharpNav.Geometry;
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	public partial class ExampleWindow
 	{

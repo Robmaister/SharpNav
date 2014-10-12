@@ -23,7 +23,7 @@ using UnityEngine;
 
 using MathHelper = SharpNav.MathHelper;
 
-namespace SharpNavTests
+namespace SharpNav.Tests
 {
 	[TestFixture]
 	public class MathHelperTests

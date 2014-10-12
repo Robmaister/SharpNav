@@ -11,7 +11,7 @@ using NUnit.Framework;
 
 using SharpNav;
 
-namespace SharpNavTests
+namespace SharpNav.Tests
 {
 	[TestFixture]
 	public class CellTests

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpNav.Crowd
+namespace SharpNav.Crowds
 {
 	/// <summary>
 	/// Similar to a boolean, except there is an intermediate variable between true and false.

@@ -22,7 +22,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNavTests
+namespace SharpNav.Tests
 {
 	[TestFixture]
 	public class HeightfieldTests

@@ -20,7 +20,7 @@ using SharpNav.Geometry;
 using OpenTK;
 #endif
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	public class PlyModel
 	{

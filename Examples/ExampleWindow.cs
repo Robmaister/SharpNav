@@ -21,7 +21,7 @@ using OpenTK.Input;
 
 using SharpNav;
 using SharpNav.Geometry;
-using SharpNav.Crowd;
+using SharpNav.Crowds;
 
 using Key = OpenTK.Input.Key;
 
@@ -33,7 +33,7 @@ using SVector3 = SharpNav.Vector3;
 using SVector3 = OpenTK.Vector3;
 #endif
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	public partial class ExampleWindow : GameWindow
 	{

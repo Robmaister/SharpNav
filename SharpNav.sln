@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav", "SharpNav\SharpNav.csproj", "{0E3C6E73-CCE6-4148-B847-36487FFEA225}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNavTests", "SharpNavTests\SharpNavTests.csproj", "{BB5D7B89-E81E-4815-A349-3752119495C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Tests", "SharpNavTests\SharpNav.Tests.csproj", "{BB5D7B89-E81E-4815-A349-3752119495C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "Examples\Examples.csproj", "{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Examples", "Examples\SharpNav.Examples.csproj", "{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNavEditor", "SharpNavEditor\SharpNavEditor.csproj", "{F4FCEFAD-0589-45CB-977A-270657084377}"
 EndProject
@@ -77,42 +79,6 @@ Global
 		{0E3C6E73-CCE6-4148-B847-36487FFEA225}.XNA|Mixed Platforms.ActiveCfg = XNA|Any CPU
 		{0E3C6E73-CCE6-4148-B847-36487FFEA225}.XNA|Mixed Platforms.Build.0 = XNA|Any CPU
 		{0E3C6E73-CCE6-4148-B847-36487FFEA225}.XNA|Win32.ActiveCfg = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Any CPU.ActiveCfg = MonoGame|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Mixed Platforms.ActiveCfg = MonoGame|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Mixed Platforms.Build.0 = MonoGame|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Win32.ActiveCfg = MonoGame|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Any CPU.ActiveCfg = OpenTK|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Any CPU.Build.0 = OpenTK|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Mixed Platforms.ActiveCfg = OpenTK|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Mixed Platforms.Build.0 = OpenTK|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Win32.ActiveCfg = OpenTK|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Any CPU.ActiveCfg = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Any CPU.Build.0 = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Mixed Platforms.ActiveCfg = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Mixed Platforms.Build.0 = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Win32.ActiveCfg = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Any CPU.ActiveCfg = SharpDX|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Mixed Platforms.ActiveCfg = SharpDX|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Mixed Platforms.Build.0 = SharpDX|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Win32.ActiveCfg = SharpDX|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Any CPU.ActiveCfg = Standalone|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Any CPU.Build.0 = Standalone|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Mixed Platforms.ActiveCfg = Standalone|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Mixed Platforms.Build.0 = Standalone|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Win32.ActiveCfg = Standalone|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Any CPU.ActiveCfg = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Mixed Platforms.ActiveCfg = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Mixed Platforms.Build.0 = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Win32.ActiveCfg = Unity3D|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Any CPU.ActiveCfg = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.ActiveCfg = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.Build.0 = XNA|Any CPU
-		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Win32.ActiveCfg = XNA|Any CPU
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -153,6 +119,42 @@ Global
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.XNA|Mixed Platforms.ActiveCfg = XNA|Any CPU
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.XNA|Mixed Platforms.Build.0 = XNA|Any CPU
 		{BB5D7B89-E81E-4815-A349-3752119495C6}.XNA|Win32.ActiveCfg = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Any CPU.ActiveCfg = MonoGame|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Mixed Platforms.ActiveCfg = MonoGame|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Mixed Platforms.Build.0 = MonoGame|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.MonoGame|Win32.ActiveCfg = MonoGame|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Any CPU.ActiveCfg = OpenTK|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Any CPU.Build.0 = OpenTK|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Mixed Platforms.ActiveCfg = OpenTK|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Mixed Platforms.Build.0 = OpenTK|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.OpenTK|Win32.ActiveCfg = OpenTK|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Any CPU.ActiveCfg = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Any CPU.Build.0 = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Mixed Platforms.ActiveCfg = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Mixed Platforms.Build.0 = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Release|Win32.ActiveCfg = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Any CPU.ActiveCfg = SharpDX|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Mixed Platforms.ActiveCfg = SharpDX|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Mixed Platforms.Build.0 = SharpDX|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.SharpDX|Win32.ActiveCfg = SharpDX|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Any CPU.ActiveCfg = Standalone|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Any CPU.Build.0 = Standalone|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Mixed Platforms.ActiveCfg = Standalone|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Mixed Platforms.Build.0 = Standalone|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Standalone|Win32.ActiveCfg = Standalone|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Any CPU.ActiveCfg = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Mixed Platforms.ActiveCfg = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Mixed Platforms.Build.0 = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.Unity3D|Win32.ActiveCfg = Unity3D|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Any CPU.ActiveCfg = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.ActiveCfg = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.Build.0 = XNA|Any CPU
+		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Win32.ActiveCfg = XNA|Any CPU
 		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -194,10 +196,10 @@ Global
 		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Mixed Platforms.Build.0 = Release|Any CPU
 		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = SharpNavEditor\SharpNavEditor.csproj
-	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = SharpNavEditor\SharpNavEditor.csproj
 	EndGlobalSection
 EndGlobal

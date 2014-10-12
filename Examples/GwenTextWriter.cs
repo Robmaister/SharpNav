@@ -5,7 +5,7 @@ using System.IO;
 
 using Gwen.Control;
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	public class GwenTextWriter : TextWriter
 	{

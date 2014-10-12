@@ -12,8 +12,6 @@ using SharpNav.Geometry;
 
 using NUnit.Framework;
 
-using SharpNav;
-
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
 #elif OPENTK
@@ -24,7 +22,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNavTests
+namespace SharpNav.Tests
 {
 	[TestFixture]
 	public class ContourTests

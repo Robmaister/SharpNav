@@ -14,7 +14,7 @@ using OpenTK.Graphics.OpenGL;
 using SharpNav;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
-using SharpNav.Crowd;
+using SharpNav.Crowds;
 
 //Prevents name collision under the Standalone configuration
 #if !OPENTK
@@ -24,7 +24,7 @@ using SVector3 = SharpNav.Vector3;
 using SVector3 = OpenTK.Vector3;
 #endif
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	public partial class ExampleWindow
 	{
@@ -308,7 +308,7 @@ namespace Examples
 
 						GL.Color4(numCons / 4f, numCons / 4f, numCons / 4f, 1f);
 
-						var squarePosFinal = squarePos;
+						var squarePosFinal = new OpenTK.Vector3(squarePos.X, squarePos.Y, squarePos.Z);
 						squarePosFinal.Y += span.Minimum * cellSize.Y;
 						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
 						GL.MultMatrix(ref squareTrans);
@@ -365,7 +365,7 @@ namespace Examples
 						GL.Color4(val, val, val, 1f);
 
 						var span = compactHeightfield.Spans[k];
-						var squarePosFinal = squarePos;
+						var squarePosFinal = new OpenTK.Vector3(squarePos.X, squarePos.Y, squarePos.Z);
 						squarePosFinal.Y += span.Minimum * cellSize.Y;
 						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
 						GL.MultMatrix(ref squareTrans);
@@ -423,7 +423,7 @@ namespace Examples
 						Color4 col = regionColors[(int)region];
 						GL.Color4(col);
 
-						var squarePosFinal = squarePos;
+						var squarePosFinal = new OpenTK.Vector3(squarePos.X, squarePos.Y, squarePos.Z);
 						squarePosFinal.Y += span.Minimum * cellSize.Y;
 						Matrix4.CreateTranslation(ref squarePosFinal, out squareTrans);
 						GL.MultMatrix(ref squareTrans);

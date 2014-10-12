@@ -10,7 +10,7 @@ using System;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	/// <summary>
 	/// A camera that provides the necessary matrices to view a world in 3d.

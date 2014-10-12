@@ -21,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav.Crowd
+namespace SharpNav.Crowds
 {
 	/// <summary>
 	/// The Crowd class manages pathfinding for multiple agents simulatenously.

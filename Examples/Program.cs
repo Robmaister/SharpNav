@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Examples
+namespace SharpNav.Examples
 {
 	class Program
 	{

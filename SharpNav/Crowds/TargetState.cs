@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SharpNav.Crowd
+namespace SharpNav.Crowds
 {
 	/// <summary>
 	/// This state changes depending on what the crowd agent has to do next

@@ -21,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav.Crowd
+namespace SharpNav.Crowds
 {
 	/// <summary>
 	/// The LocalBoundary class stores segments and polygon indices for temporary use.

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 
 using SharpNav;
-using SharpNavTests;
+using SharpNav.Tests;
 using SharpNav.Geometry;
 
 #if MONOGAME || XNA
@@ -21,7 +21,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNavTests.Libraries
+namespace SharpNav.Tests.Libraries
 {
 	[TestFixture]
 	class JsonTest

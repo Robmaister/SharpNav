@@ -14,7 +14,7 @@ using NUnit.Framework;
 
 using SharpNav.Collections.Generic;
 
-namespace SharpNavTests.Collections.Generic
+namespace SharpNav.Tests.Collections.Generic
 {
 	[TestFixture]
 	public class BufferedStackTests
