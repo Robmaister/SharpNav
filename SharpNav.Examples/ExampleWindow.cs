@@ -384,13 +384,13 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				/*AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
+				AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
 					.MarkAboveHeight(areaSettings.MaxLevelHeight, AreaId.Null)
 					.MarkBelowHeight(areaSettings.MinLevelHeight, AreaId.Null)
-					.MarkAboveSlope(areaSettings.MaxTriSlope, AreaId.Null)
+					.MarkBelowSlope(areaSettings.MaxTriSlope, AreaId.Null)
 					.ToArray();
-				heightfield.RasterizeTrianglesWithAreas(level.Positions, areas);*/
-				heightfield.RasterizeTriangles(level.Positions);
+				heightfield.RasterizeTrianglesWithAreas(level.Positions, areas);
+				//heightfield.RasterizeTriangles(level.Positions);
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;

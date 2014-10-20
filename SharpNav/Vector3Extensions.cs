@@ -185,5 +185,13 @@ namespace SharpNav
 		{
 			result = a.X * b.Z - a.Z * b.X;
 		}
+
+		internal static void CalculateSlopeAngle(ref Vector3 vec, out float angle)
+		{
+			Vector3 up = Vector3.UnitY;
+			float dot;
+			Vector3.Dot(ref vec, ref up, out dot);
+			angle = (float)Math.Acos(dot);
+		}
 	}
 }

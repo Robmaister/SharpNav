@@ -227,7 +227,7 @@ namespace SharpNav
 		/// <summary>
 		/// Marks all triangles above a specified angle with a sepcified area ID.
 		/// </summary>
-		/// <param name="angle">The minimum angle.</param>
+		/// <param name="angle">The minimum angle in radians.</param>
 		/// <param name="area">The area ID to set for triangles above the slope.</param>
 		/// <returns>The same instance.</returns>
 		public AreaIdGenerator MarkAboveSlope(float angle, AreaId area)
@@ -236,7 +236,9 @@ namespace SharpNav
 				tri =>
 				{
 					Vector3 n = tri.Normal;
-					return Vector3.Dot(n, Vector3.UnitY) <= angle;
+					float a;
+					Vector3Extensions.CalculateSlopeAngle(ref n, out a);
+					return a <= angle;
 				},
 				area));
 
@@ -255,7 +257,9 @@ namespace SharpNav
 				tri =>
 				{
 					Vector3 n = tri.Normal;
-					return Vector3.Dot(n, Vector3.UnitY) >= angle;
+					float a;
+					Vector3Extensions.CalculateSlopeAngle(ref n, out a);
+					return a >= angle;
 				},
 				area));
 
@@ -275,8 +279,9 @@ namespace SharpNav
 				tri =>
 				{
 					Vector3 n = tri.Normal;
-					float ang = Vector3.Dot(n, Vector3.UnitY);
-					return ang >= angle - range && ang <= angle + range;
+					float a;
+					Vector3Extensions.CalculateSlopeAngle(ref n, out a);
+					return a >= angle - range && a <= angle + range;
 				},
 				area));
 
