@@ -619,7 +619,8 @@ namespace SharpNav.Crowds
 			{
 				if (agents[i].State != CrowdAgentState.Walking)
 					continue;
-				Integrate(ref agents[i], dt);
+
+				agents[i].Integrate(dt);
 			}
 
 			//handle collisions
@@ -1186,28 +1187,6 @@ namespace SharpNav.Crowds
 		}
 
 		/// <summary>
-		/// Update the position after a certain time 'dt'
-		/// </summary>
-		/// <param name="ag">The crowd agent</param>
-		/// <param name="dt">Time that passed</param>
-		public void Integrate(ref CrowdAgent ag, float dt)
-		{
-			//fake dyanmic constraint
-			float maxDelta = ag.Parameters.MaxAcceleration * dt;
-			Vector3 dv = ag.NVel - ag.Vel;
-			float ds = dv.Length();
-			if (ds > maxDelta)
-				dv = dv * (maxDelta / ds);
-			ag.Vel = ag.Vel + dv;
-
-			//integrate
-			if (ag.Vel.Length() > 0.0001f)
-				ag.CurrentPos = ag.CurrentPos + ag.Vel * dt;
-			else
-				ag.Vel = new Vector3(0, 0, 0);
-		}
-
-		/// <summary>
 		/// Get the crowd agent's neighbors.
 		/// </summary>
 		/// <param name="pos">Current position</param>
@@ -1425,6 +1404,27 @@ namespace SharpNav.Crowds
 			public int TargetPathqRef;
 			public bool TargetReplan;
 			public float TargetReplanTime;
+
+			/// <summary>
+			/// Update the position after a certain time 'dt'
+			/// </summary>
+			/// <param name="dt">Time that passed</param>
+			public void Integrate(float dt)
+			{
+				//fake dyanmic constraint
+				float maxDelta = Parameters.MaxAcceleration * dt;
+				Vector3 dv = NVel - Vel;
+				float ds = dv.Length();
+				if (ds > maxDelta)
+					dv = dv * (maxDelta / ds);
+				Vel = Vel + dv;
+
+				//integrate
+				if (Vel.Length() > 0.0001f)
+					CurrentPos = CurrentPos + Vel * dt;
+				else
+					Vel = new Vector3(0, 0, 0);
+			}
 		}
 
 		/// <summary>
@@ -1457,6 +1457,8 @@ namespace SharpNav.Crowds
 			public byte ObstacleAvoidanceType;
 
 			public byte QueryFilterType;
+
+
 		}
 
 		private struct CrowdAgentAnimation
