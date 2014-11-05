@@ -1,4 +1,4 @@
-SharpNav [![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav)[![NuGet Version](http://img.shields.io/nuget/v/SharpNav.svg)](https://www.nuget.org/packages/SharpNav)[![NuGet Downloads](http://img.shields.io/nuget/dt/SharpNav.svg)](https://www.nuget.org/packages/SharpNav)[![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
+SharpNav [![Build Status](https://travis-ci.org/Robmaister/SharpNav.svg?branch=master)](https://travis-ci.org/Robmaister/SharpNav) [![NuGet Version](http://img.shields.io/nuget/v/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![NuGet Downloads](http://img.shields.io/nuget/dt/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
 ========
 
 
