@@ -4,6 +4,7 @@
     <version>0.9.2</version>
     <authors>Robert Rouhani</authors>
     <owners>Robert Rouhani</owners>
+	<iconUrl>https://raw.githubusercontent.com/Robmaister/SharpNav/master/Graphics/Logo/NuGet.png"</iconUrl>
     <licenseUrl>https://github.com/Robmaister/SharpNav/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/Robmaister/SharpNav</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
