@@ -729,7 +729,7 @@ namespace SharpNav.Examples
 				SVector3 targetPos;
 				navMeshQuery.FindRandomPointAroundCircle(newRef, newPos, 1000, out targetRef, out targetPos);
 
-				crowd.RequestMoveTarget(idx, targetRef, targetPos);
+				crowd.GetAgent(idx).RequestMoveTarget(targetRef, targetPos);
 				trails[i].Trail[AGENT_MAX_TRAIL - 1] = targetPos;
 			}
 		}

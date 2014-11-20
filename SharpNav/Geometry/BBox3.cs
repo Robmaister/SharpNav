@@ -206,7 +206,7 @@ namespace SharpNav.Geometry
 		/// <returns>A human-readable string representation of this instance.</returns>
 		public override string ToString()
 		{
-			return "{ Min : " + Min.ToString() + ", Max : " + Max.ToString() + " }";
+			return "{ Min: " + Min.ToString() + ", Max: " + Max.ToString() + " }";
 		}
 	}
 }

@@ -125,7 +125,9 @@
     <Compile Include="Crowds\TargetState.cs" />
     <Compile Include="Crowds\UpdateFlags.cs" />
     <Compile Include="Direction.cs" />
+    <Compile Include="Geometry\BBox2i.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
+    <Compile Include="Vector2i.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="Crowds\LocalBoundary.cs" />

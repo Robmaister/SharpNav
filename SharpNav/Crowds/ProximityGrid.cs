@@ -36,7 +36,7 @@ namespace SharpNav.Crowds
 		private int[] buckets;
 		private int bucketsSize;
 
-		private int[] bounds; //size = 4
+		private BBox2i bounds;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProximityGrid" /> class.
@@ -57,7 +57,7 @@ namespace SharpNav.Crowds
 			this.poolHead = 0;
 			this.pool = new Item[this.poolSize];
 
-			this.bounds = new int[4];
+			this.bounds = new BBox2i(Vector2i.Max, Vector2i.Min);
 
 			Clear();
 		}
@@ -69,11 +69,10 @@ namespace SharpNav.Crowds
 		{
 			for (int i = 0; i < bucketsSize; i++)
 				buckets[i] = 0xff;
+
 			poolHead = 0;
-			bounds[0] = 0xffff;
-			bounds[1] = 0xffff;
-			bounds[2] = -0xffff;
-			bounds[3] = -0xffff;
+
+			this.bounds = new BBox2i(Vector2i.Max, Vector2i.Min);
 		}
 
 		/// <summary>
@@ -91,10 +90,10 @@ namespace SharpNav.Crowds
 			int invMaxX = (int)Math.Floor(maxX * invCellSize);
 			int invMaxY = (int)Math.Floor(maxY * invCellSize);
 
-			bounds[0] = Math.Min(bounds[0], invMinX);
-			bounds[1] = Math.Min(bounds[1], invMinY);
-			bounds[2] = Math.Max(bounds[2], invMaxX);
-			bounds[3] = Math.Max(bounds[3], invMaxY);
+			bounds.Min.X = Math.Min(bounds.Min.X, invMinX);
+			bounds.Min.Y = Math.Min(bounds.Min.Y, invMinY);
+			bounds.Max.X = Math.Max(bounds.Max.X, invMaxX);
+			bounds.Max.Y = Math.Max(bounds.Max.Y, invMaxY);
 
 			for (int y = invMinY; y <= invMaxY; y++)
 			{
