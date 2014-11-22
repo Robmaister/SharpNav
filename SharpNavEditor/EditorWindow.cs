@@ -260,6 +260,13 @@ namespace SharpNavEditor
 			KeyboardState k = OpenTK.Input.Keyboard.GetState();
 			MouseState m = OpenTK.Input.Mouse.GetState();
 
+            if(m[MouseButton.Left] && selectedMesh != null) {
+                Transform t = selectedMesh.Transform;
+                t.Translation.X += (m.X - prevM.X) * (float)e.Time * 2f;
+                t.Translation.Y += (prevM.Y - m.Y) * (float)e.Time * 2f;
+                selectedMesh.Transform = t;
+            }
+
 			bool isShiftDown = false;
 			if (k[Key.LShift] || k[Key.RShift])
 				isShiftDown = true;
