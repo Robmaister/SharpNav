@@ -9,7 +9,7 @@ namespace SharpNav.Crowds
 	/// Describes the current state of a crowd agent
 	/// </summary>
 	[Flags]
-	public enum CrowdAgentState
+	public enum AgentState
 	{
 		/// <summary>
 		/// Not in any state

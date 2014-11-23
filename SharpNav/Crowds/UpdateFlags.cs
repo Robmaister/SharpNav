@@ -8,6 +8,7 @@ namespace SharpNav.Crowds
 	/// <summary>
 	/// The UpdateFlag affects the way the agent moves acorss its path.
 	/// </summary>
+	[Flags]
 	public enum UpdateFlags
 	{
 		/// <summary>

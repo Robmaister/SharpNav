@@ -28,6 +28,8 @@ namespace SharpNav.Crowds
 	/// </summary>
 	public class LocalBoundary
 	{
+		#region Fields
+
 		private const int MaxLocalSegs = 8;
 		private const int MaxLocalPolys = 16;
 
@@ -38,6 +40,10 @@ namespace SharpNav.Crowds
 		private int[] polys;
 		private int numPolys;
 
+		#endregion
+
+		#region Constructors
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LocalBoundary" /> class.
 		/// </summary>
@@ -47,6 +53,10 @@ namespace SharpNav.Crowds
 			segs = new Segment[MaxLocalSegs];
 			polys = new int[MaxLocalPolys];
 		}
+
+		#endregion
+
+		#region Properties
 
 		/// <summary>
 		/// Gets the center
@@ -80,6 +90,10 @@ namespace SharpNav.Crowds
 				return segCount;
 			}
 		}
+
+		#endregion
+
+		#region Methods
 
 		/// <summary>
 		/// Reset all the internal data
@@ -202,6 +216,8 @@ namespace SharpNav.Crowds
 
 			return true;
 		}
+
+		#endregion
 
 		/// <summary>
 		/// A line segment contains two points

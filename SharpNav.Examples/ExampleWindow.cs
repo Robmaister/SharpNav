@@ -692,7 +692,7 @@ namespace SharpNav.Examples
 			SVector3 c = new SVector3(10, 0, 0);
 			SVector3 e = new SVector3(5, 5, 5);
 
-			Crowd.CrowdAgentParams ap = new Crowd.CrowdAgentParams();
+			AgentParams ap = new AgentParams();
 			ap.Radius = 0.6f;
 			ap.Height = 2.0f;
 			ap.MaxAcceleration = 8.0f;

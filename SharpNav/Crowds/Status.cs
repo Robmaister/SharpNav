@@ -13,17 +13,17 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// Operation failed to complete
 		/// </summary>
-		Failure = 1,
+		Failure,
 
 		/// <summary>
 		/// Operation finished
 		/// </summary>
-		Success = 2,
+		Success,
 		
 		/// <summary>
 		/// Operation in progress
 		/// </summary>
-		InProgress = 3
+		InProgress
 	}
 
 	public static class StatusExtensions

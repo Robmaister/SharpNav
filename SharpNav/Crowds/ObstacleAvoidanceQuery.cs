@@ -25,6 +25,8 @@ namespace SharpNav.Crowds
 {
 	public class ObstacleAvoidanceQuery
 	{
+		#region Fields
+
 		private const int MaxPatternDivs = 32;
 		private const int MaxPatternRings = 4;
 
@@ -41,6 +43,10 @@ namespace SharpNav.Crowds
 		private ObstacleSegment[] segments;
 		private int numSegments;
 
+		#endregion
+
+		#region Constructors
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ObstacleAvoidanceQuery" /> class.
 		/// </summary>
@@ -56,6 +62,10 @@ namespace SharpNav.Crowds
 			this.numSegments = 0;
 			this.segments = new ObstacleSegment[this.maxSegments];
 		}
+
+		#endregion
+
+		#region Methods
 
 		/// <summary>
 		/// Resets the ObstacleAvoidanceQuery's internal data
@@ -411,6 +421,8 @@ namespace SharpNav.Crowds
 
 			return ns;
 		}
+
+		#endregion
 
 		private struct ObstacleCircle
 		{

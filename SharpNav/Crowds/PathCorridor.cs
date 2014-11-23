@@ -25,6 +25,8 @@ namespace SharpNav.Crowds
 {
 	public class PathCorridor
 	{
+		#region Fields
+
 		private Vector3 pos;
 		private Vector3 target;
 
@@ -32,12 +34,20 @@ namespace SharpNav.Crowds
 		private int pathCount;
 		private int maxPath;
 
+		#endregion
+
+		#region Constructors
+
 		public PathCorridor(int maxPath)
 		{
 			this.path = new int[maxPath];
 			this.pathCount = 0;
 			this.maxPath = maxPath;
 		}
+
+		#endregion
+
+		#region Properties
 
 		public Vector3 Pos
 		{
@@ -70,6 +80,10 @@ namespace SharpNav.Crowds
 				return pathCount;
 			}
 		}
+
+		#endregion
+
+		#region Methods
 
 		/// <summary>
 		/// Resets the path to the first polygon.
@@ -433,5 +447,7 @@ namespace SharpNav.Crowds
 		{
 			return (pathCount != 0) ? path[pathCount - 1] : 0;
 		}
+
+		#endregion
 	}
 }

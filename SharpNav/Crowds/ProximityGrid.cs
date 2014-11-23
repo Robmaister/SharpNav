@@ -25,6 +25,8 @@ namespace SharpNav.Crowds
 {
 	public class ProximityGrid
 	{
+		#region Fields
+
 		private int maxItems;
 		private float cellSize;
 		private float invCellSize;
@@ -37,6 +39,10 @@ namespace SharpNav.Crowds
 		private int bucketsSize;
 
 		private BBox2i bounds;
+
+		#endregion
+
+		#region Constructors
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ProximityGrid" /> class.
@@ -61,6 +67,10 @@ namespace SharpNav.Crowds
 
 			Clear();
 		}
+
+		#endregion
+
+		#region Methods
 
 		/// <summary>
 		/// Reset all the data
@@ -179,6 +189,8 @@ namespace SharpNav.Crowds
 		{
 			return ((x * 73856093) ^ (y * 19349663)) & (n - 1);
 		}
+
+		#endregion
 
 		/// <summary>
 		/// An "item" is simply a coordinate on the proximity grid

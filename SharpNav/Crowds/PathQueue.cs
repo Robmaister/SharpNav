@@ -25,7 +25,9 @@ namespace SharpNav.Crowds
 {
 	public class PathQueue
 	{
-		public const byte PATHQ_INVALID = 0;
+		#region Fields
+
+		public const byte Invalid = 0;
 		private const int MaxQueue = 8;
 
 		private PathQuery[] queue; //size = MAX_QUEUE
@@ -33,6 +35,10 @@ namespace SharpNav.Crowds
 		private int maxPathSize;
 		private int queueHead;
 		private NavMeshQuery navquery;
+
+		#endregion
+
+		#region Constructors
 
 		public PathQueue(int maxPathSize, int maxSearchNodeCount, ref TiledNavMesh nav)
 		{
@@ -42,12 +48,16 @@ namespace SharpNav.Crowds
 			this.queue = new PathQuery[MaxQueue];
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				queue[i].Reference = PATHQ_INVALID;
+				queue[i].Reference = Invalid;
 				queue[i].Path = new int[maxPathSize];
 			}
 
 			this.queueHead = 0;
 		}
+
+		#endregion
+
+		#region Methods
 
 		public void Update(int maxIters)
 		{
@@ -62,7 +72,7 @@ namespace SharpNav.Crowds
 				PathQuery q = queue[queueHead % MaxQueue];
 
 				//skip inactive requests
-				if (q.Reference == PATHQ_INVALID)
+				if (q.Reference == Invalid)
 				{
 					queueHead++;
 					continue;
@@ -74,7 +84,7 @@ namespace SharpNav.Crowds
 					q.KeepAlive++;
 					if (q.KeepAlive > MAX_KEEP_ALIVE)
 					{
-						q.Reference = PATHQ_INVALID;
+						q.Reference = Invalid;
 						q.status = 0;
 					}
 
@@ -85,21 +95,21 @@ namespace SharpNav.Crowds
 				//handle query start
 				if (q.status == 0)
 				{
-					q.status = BoolToStatus(navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos));
+					q.status = navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos).ToStatus();
 				}
 
 				//handle query in progress
 				if (q.status == Status.InProgress)
 				{
 					int iters = 0;
-					q.status = BoolToStatus(navquery.UpdateSlicedFindPath(iterCount, ref iters));
+					q.status = navquery.UpdateSlicedFindPath(iterCount, ref iters).ToStatus();
 
 					iterCount -= iters;
 				}
 
 				if (q.status == Status.Success)
 				{
-					q.status = BoolToStatus(navquery.FinalizeSlicedFindPath(q.Path, ref q.PathCount, maxPathSize));
+					q.status = navquery.FinalizeSlicedFindPath(q.Path, ref q.PathCount, maxPathSize).ToStatus();
 				}
 
 				if (iterCount <= 0)
@@ -123,7 +133,7 @@ namespace SharpNav.Crowds
 			int slot = -1;
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				if (queue[i].Reference == PATHQ_INVALID)
+				if (queue[i].Reference == Invalid)
 				{
 					slot = i;
 					break;
@@ -132,10 +142,10 @@ namespace SharpNav.Crowds
 
 			//could not find slot
 			if (slot == -1)
-				return PATHQ_INVALID;
+				return Invalid;
 
 			int reference = nextHandle++;
-			if (nextHandle == PATHQ_INVALID) nextHandle++;
+			if (nextHandle == Invalid) nextHandle++;
 
 			PathQuery q = queue[slot];
 			q.Reference = reference;
@@ -178,7 +188,7 @@ namespace SharpNav.Crowds
 					PathQuery q = queue[i];
 					
 					//free request for reuse
-					q.Reference = PATHQ_INVALID;
+					q.Reference = Invalid;
 					q.status = 0;
 					
 					//copy path
@@ -195,13 +205,7 @@ namespace SharpNav.Crowds
 			return false;
 		}
 
-		public Status BoolToStatus(bool variable)
-		{
-			if (variable)
-				return Status.Success;
-			else
-				return Status.Failure;
-		}
+		#endregion
 
 		private struct PathQuery
 		{

@@ -119,6 +119,7 @@
     <Compile Include="ContourBuildFlags.cs" />
     <Compile Include="ContourSet.cs" />
     <Compile Include="ContourVertex.cs" />
+    <Compile Include="Crowds\Agent.cs" />
     <Compile Include="Crowds\Crowd.cs" />
     <Compile Include="Crowds\CrowdAgentState.cs" />
     <Compile Include="Crowds\Status.cs" />

@@ -46,9 +46,9 @@ namespace SharpNav.Crowds
 		private const int MaxItersPerUpdate = 100;
 
 		private int maxAgents;
-		private CrowdAgent[] agents;
-		private CrowdAgent[] activeAgents;
-		private CrowdAgentAnimation[] agentAnims; 
+		private Agent[] agents;
+		private Agent[] activeAgents;
+		private AgentAnimation[] agentAnims; 
 
 		private PathQueue pathq;
 
@@ -109,13 +109,13 @@ namespace SharpNav.Crowds
 
 			this.pathq = new PathQueue(maxPathResult, 4096, ref navMesh);
 
-			this.agents = new CrowdAgent[maxAgents];
-			this.activeAgents = new CrowdAgent[maxAgents];
-			this.agentAnims = new CrowdAgentAnimation[maxAgents];
+			this.agents = new Agent[maxAgents];
+			this.activeAgents = new Agent[maxAgents];
+			this.agentAnims = new AgentAnimation[maxAgents];
 
 			for (int i = 0; i < maxAgents; i++)
 			{
-				this.agents[i] = new CrowdAgent(maxPathResult);
+				this.agents[i] = new Agent(maxPathResult);
 			}
 
 			for (int i = 0; i < maxAgents; i++)
@@ -146,7 +146,7 @@ namespace SharpNav.Crowds
 			return maxAgents;
 		}
 
-		public CrowdAgent GetAgent(int idx)
+		public Agent GetAgent(int idx)
 		{
 			if (idx < 0 || idx >= maxAgents)
 				return null;
@@ -160,7 +160,7 @@ namespace SharpNav.Crowds
 		/// <param name="pos">The agent's position</param>
 		/// <param name="parameters">The settings</param>
 		/// <returns>The id of the agent (-1 if there is no empty slot)</returns>
-		public int AddAgent(Vector3 pos, CrowdAgentParams parameters)
+		public int AddAgent(Vector3 pos, AgentParams parameters)
 		{
 			//find empty slot
 			int idx = -1;
@@ -198,13 +198,13 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// The agent is deactivated and will no longer be processed. It can still be reused later.
 		/// </summary>
-		/// <param name="idx">The agent's id</param>
-		public bool RemoveAgent(int idx)
+		/// <param name="index">The agent's id</param>
+		public bool RemoveAgent(int index)
 		{
-			if (idx < 0 || idx >= maxAgents)
+			if (index < 0 || index >= maxAgents)
 				return false;
 
-			agents[idx].IsActive = false;
+			agents[index].IsActive = false;
 			return true;
 		}
 
@@ -212,12 +212,11 @@ namespace SharpNav.Crowds
 		/// The crowd contains active and inactive agents. Only add all the active agents to a separate array.
 		/// </summary>
 		/// <param name="agents">The array of active agents</param>
-		/// <param name="maxAgents">The maximum agents allowed</param>
 		/// <returns>The number of active agents</returns>
-		public int GetActiveAgents(CrowdAgent[] agents, int maxAgents)
+		public int GetActiveAgents(Agent[] agents)
 		{
 			int n = 0;
-			for (int i = 0; i < maxAgents; i++)
+			for (int i = 0; i < agents.Length; i++)
 			{
 				if (!agents[i].IsActive)
 					continue;
@@ -234,7 +233,7 @@ namespace SharpNav.Crowds
 		/// </summary>
 		/// <param name="agent">The agent</param>
 		/// <returns>The index</returns>
-		public int GetAgentIndex(CrowdAgent agent)
+		public int GetAgentIndex(Agent agent)
 		{
 			for (int i = 0; i < agents.Length; i++)
 			{
@@ -253,7 +252,7 @@ namespace SharpNav.Crowds
 		{
 			velocitySampleCount = 0;
 
-			int numAgents = GetActiveAgents(agents, maxAgents);
+			int numAgents = GetActiveAgents(agents);
 
 			//check that all agents have valid paths
 			CheckPathValidity(agents, numAgents, dt);
@@ -276,7 +275,7 @@ namespace SharpNav.Crowds
 			//get nearby navmesh segments and agents to collide with
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 
 				//update the collision boundary after certain distance has passed or if it has become invalid
@@ -293,13 +292,13 @@ namespace SharpNav.Crowds
 					agents[i], agents[i].Neighbors, AgentMaxNeighbours, agents, grid);
 
 				for (int j = 0; j < agents[i].NeighborCount; j++)
-					agents[i].Neighbors[j].Idx = GetAgentIndex(agents[agents[i].Neighbors[j].Idx]);
+					agents[i].Neighbors[j].Index = GetAgentIndex(agents[agents[i].Neighbors[j].Index]);
 			}
 
 			//find the next corner to steer to
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 				if (agents[i].TargetState == TargetState.None ||
 					agents[i].TargetState == TargetState.Velocity)
@@ -320,7 +319,7 @@ namespace SharpNav.Crowds
 			//trigger off-mesh connections (depends on corners)
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 				if (agents[i].TargetState == TargetState.None ||
 					agents[i].TargetState == TargetState.Velocity)
@@ -345,7 +344,7 @@ namespace SharpNav.Crowds
 						agentAnims[idx].TMax = (Vector3Extensions.Distance2D(agentAnims[idx].StartPos, agentAnims[idx].EndPos)
 							/ agents[i].Parameters.MaxSpeed) * 0.5f;
 
-						agents[i].State = CrowdAgentState.Offmesh;
+						agents[i].State = AgentState.Offmesh;
 						agents[i].CornerCount = 0;
 						agents[i].NeighborCount = 0;
 						continue;
@@ -356,7 +355,7 @@ namespace SharpNav.Crowds
 			//calculate steering
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 				if (agents[i].TargetState == TargetState.None)
 					continue;
@@ -396,7 +395,7 @@ namespace SharpNav.Crowds
 
 					for (int j = 0; j < agents[i].NeighborCount; j++)
 					{
-						CrowdAgent nei = agents[agents[i].Neighbors[j].Idx];
+						Agent nei = agents[agents[i].Neighbors[j].Index];
 
 						Vector3 diff = agents[i].Position - nei.Position;
 						diff.Y = 0;
@@ -433,7 +432,7 @@ namespace SharpNav.Crowds
 			//velocity planning
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 
 				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.ObstacleAvoidance) != 0)
@@ -443,7 +442,7 @@ namespace SharpNav.Crowds
 					//add neighhbors as obstacles
 					for (int j = 0; j < agents[i].NeighborCount; j++)
 					{
-						CrowdAgent nei = agents[agents[i].Neighbors[j].Idx];
+						Agent nei = agents[agents[i].Neighbors[j].Index];
 						obstacleQuery.AddCircle(nei.Position, nei.Parameters.Radius, nei.Vel, nei.DesiredVel);
 					}
 
@@ -485,10 +484,12 @@ namespace SharpNav.Crowds
 			//integrate
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				Agent ag = agents[i];
+
+				if (ag.State != AgentState.Walking)
 					continue;
 
-				agents[i].Integrate(dt);
+				ag.Integrate(dt);
 			}
 
 			//handle collisions
@@ -500,7 +501,7 @@ namespace SharpNav.Crowds
 				{
 					int idx0 = GetAgentIndex(agents[i]);
 
-					if (agents[i].State != CrowdAgentState.Walking)
+					if (agents[i].State != AgentState.Walking)
 						continue;
 
 					agents[i].Disp = new Vector3(0, 0, 0);
@@ -509,7 +510,7 @@ namespace SharpNav.Crowds
 
 					for (int j = 0; j < agents[i].NeighborCount; j++)
 					{
-						CrowdAgent nei = agents[agents[i].Neighbors[j].Idx];
+						Agent nei = agents[agents[i].Neighbors[j].Index];
 						int idx1 = GetAgentIndex(nei);
 
 						Vector3 diff = agents[i].Position - nei.Position;
@@ -548,7 +549,7 @@ namespace SharpNav.Crowds
 
 				for (int i = 0; i < numAgents; i++)
 				{
-					if (agents[i].State != CrowdAgentState.Walking)
+					if (agents[i].State != AgentState.Walking)
 						continue;
 
 					//move along navmesh
@@ -579,7 +580,7 @@ namespace SharpNav.Crowds
 						agentAnims[i].Active = false;
 
 						//prepare agent for walking
-						agents[i].State = CrowdAgentState.Walking;
+						agents[i].State = AgentState.Walking;
 
 						continue;
 					}
@@ -614,7 +615,7 @@ namespace SharpNav.Crowds
 		public void UpdateMoveRequest()
 		{
 			const int PATH_MAX_AGENTS = 8;
-			CrowdAgent[] queue = new CrowdAgent[PATH_MAX_AGENTS];
+			Agent[] queue = new Agent[PATH_MAX_AGENTS];
 			int numQueue = 0;
 			Status status;
 
@@ -623,7 +624,7 @@ namespace SharpNav.Crowds
 			{
 				if (!agents[i].IsActive)
 					continue;
-				if (agents[i].State == CrowdAgentState.Invalid)
+				if (agents[i].State == AgentState.Invalid)
 					continue;
 				if (agents[i].TargetState == TargetState.None || agents[i].TargetState == TargetState.Velocity)
 					continue;
@@ -709,7 +710,7 @@ namespace SharpNav.Crowds
 			for (int i = 0; i < numQueue; i++)
 			{
 				queue[i].TargetPathqRef = pathq.Request(queue[i].Corridor.GetLastPoly(), queue[i].TargetRef, queue[i].Corridor.Target, queue[i].TargetPosition);
-				if (queue[i].TargetPathqRef != PathQueue.PATHQ_INVALID)
+				if (queue[i].TargetPathqRef != PathQueue.Invalid)
 					queue[i].TargetState = TargetState.WaitingForPath;
 			}
 
@@ -731,7 +732,7 @@ namespace SharpNav.Crowds
 					if (status == Status.Failure)
 					{
 						//path find failed, retry if the target location is still valid
-						agents[i].TargetPathqRef = PathQueue.PATHQ_INVALID;
+						agents[i].TargetPathqRef = PathQueue.Invalid;
 						if (agents[i].TargetRef != 0)
 							agents[i].TargetState = TargetState.Requesting;
 						else
@@ -834,19 +835,19 @@ namespace SharpNav.Crowds
 		/// <param name="agents">The agents array</param>
 		/// <param name="numAgents">The number of agents</param>
 		/// <param name="dt">Time until next update</param>
-		public void UpdateTopologyOptimization(CrowdAgent[] agents, int numAgents, float dt)
+		public void UpdateTopologyOptimization(Agent[] agents, int numAgents, float dt)
 		{
 			if (numAgents == 0)
 				return;
 
 			const float OPT_TIME_THR = 0.5f; //seconds
 			const int OPT_MAX_AGENTS = 1;
-			CrowdAgent[] queue = new CrowdAgent[OPT_MAX_AGENTS];
+			Agent[] queue = new Agent[OPT_MAX_AGENTS];
 			int nqueue = 0;
 
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				if (agents[i].State != AgentState.Walking)
 					continue;
 				if (agents[i].TargetState == TargetState.None ||
 					agents[i].TargetState == TargetState.Velocity)
@@ -869,33 +870,36 @@ namespace SharpNav.Crowds
 		/// Make sure that each agent is taking a valid path
 		/// </summary>
 		/// <param name="agents">The agent array</param>
-		/// <param name="nagents">The number of agents</param>
+		/// <param name="agentCount">The number of agents</param>
 		/// <param name="dt">Time until next update</param>
-		public void CheckPathValidity(CrowdAgent[] agents, int nagents, float dt)
+		public void CheckPathValidity(Agent[] agents, int agentCount, float dt)
 		{
 			const int CHECK_LOOKAHEAD = 10;
 			const float TARGET_REPLAN_DELAY = 1.0f; //seconds
 
 			//Iterate through all the agents
-			for (int i = 0; i < nagents; i++)
+			for (int i = 0; i < agentCount; i++)
 			{
-				if (agents[i].State != CrowdAgentState.Walking)
+				Agent ag = agents[i];
+
+				if (ag.State != AgentState.Walking)
 					continue;
 
-				agents[i].TargetReplanTime += dt;
+				if (ag.TargetState == TargetState.None || ag.TargetState == TargetState.Velocity)
+					continue;
+
+				ag.TargetReplanTime += dt;
 
 				bool replan = false;
 
 				//first check that the current location is valid
-				int idx = GetAgentIndex(agents[i]);
-				Vector3 agentPos = new Vector3();
-				int agentRef = agents[i].Corridor.GetFirstPoly();
-				agentPos = agents[i].Position;
+				int agentRef = ag.Corridor.GetFirstPoly();
+				Vector3 agentPos = ag.Position;
 				if (!navQuery.IsValidPolyRef(agentRef))
 				{
 					//current location is not valid, try to reposition
 					Vector3 nearest = agentPos;
-					Vector3 pos = agents[i].Position;
+					Vector3 pos = ag.Position;
 					agentRef = 0;
 					navQuery.FindNearestPoly(ref pos, ref ext, out agentRef, out nearest);
 					agentPos = nearest;
@@ -903,76 +907,72 @@ namespace SharpNav.Crowds
 					if (agentRef == 0)
 					{
 						//could not find location in navmesh, set state to invalid
-						agents[i].Corridor.Reset(0, agentPos);
-						agents[i].IsPartial = false;
-						agents[i].Boundary.Reset();
-						agents[i].State = CrowdAgentState.Invalid;
+						ag.Corridor.Reset(0, agentPos);
+						ag.IsPartial = false;
+						ag.Boundary.Reset();
+						ag.State = AgentState.Invalid;
 						continue;
 					}
 
 					//make sure the first polygon is valid
-					agents[i].Corridor.FixPathStart(agentRef, agentPos);
-					agents[i].Boundary.Reset();
-					agents[i].Position = agentPos;
+					ag.Corridor.FixPathStart(agentRef, agentPos);
+					ag.Boundary.Reset();
+					ag.Position = agentPos;
 
 					replan = true;
 				}
 
-				if (agents[i].TargetState == TargetState.None
-					|| agents[i].TargetState == TargetState.Velocity)
-					continue;
-
 				//try to recover move request position
-				if (agents[i].TargetState != TargetState.None &&
-					agents[i].TargetState != TargetState.Failed)
+				if (ag.TargetState != TargetState.None &&
+					ag.TargetState != TargetState.Failed)
 				{
-					if (!navQuery.IsValidPolyRef(agents[i].TargetRef))
+					if (!navQuery.IsValidPolyRef(ag.TargetRef))
 					{
 						//current target is not valid, try to reposition
-						Vector3 nearest = agents[i].TargetPosition;
-						Vector3 tpos = agents[i].TargetPosition;
-						agents[i].TargetRef = 0;
-						navQuery.FindNearestPoly(ref tpos, ref ext, out agents[i].TargetRef, out nearest);
-						agents[i].TargetPosition = nearest;
+						Vector3 nearest = ag.TargetPosition;
+						Vector3 tpos = ag.TargetPosition;
+						ag.TargetRef = 0;
+						navQuery.FindNearestPoly(ref tpos, ref ext, out ag.TargetRef, out nearest);
+						ag.TargetPosition = nearest;
 						replan = true;
 					}
 
-					if (agents[i].TargetRef == 0)
+					if (ag.TargetRef == 0)
 					{
 						//failed to reposition target
-						agents[i].Corridor.Reset(agentRef, agentPos);
-						agents[i].IsPartial = false;
-						agents[i].TargetState = TargetState.None;
+						ag.Corridor.Reset(agentRef, agentPos);
+						ag.IsPartial = false;
+						ag.TargetState = TargetState.None;
 					}
 				}
 
 				//if nearby corridor is not valid, replan
-				if (!agents[i].Corridor.IsValid(CHECK_LOOKAHEAD, navQuery))
+				if (!ag.Corridor.IsValid(CHECK_LOOKAHEAD, navQuery))
 				{
 					replan = true;
 				}
 
 				//if the end of the path is near and it is not the request location, replan
-				if (agents[i].TargetState == TargetState.Valid)
+				if (ag.TargetState == TargetState.Valid)
 				{
-					if (agents[i].TargetReplanTime > TARGET_REPLAN_DELAY &&
-						agents[i].Corridor.PathCount < CHECK_LOOKAHEAD &&
-						agents[i].Corridor.GetLastPoly() != agents[i].TargetRef)
+					if (ag.TargetReplanTime > TARGET_REPLAN_DELAY &&
+						ag.Corridor.PathCount < CHECK_LOOKAHEAD &&
+						ag.Corridor.GetLastPoly() != ag.TargetRef)
 						replan = true;
 				}
 
 				//try to replan path to goal
 				if (replan)
 				{
-					if (agents[i].TargetState != TargetState.None)
+					if (ag.TargetState != TargetState.None)
 					{
-						agents[idx].RequestMoveTargetReplan(agents[i].TargetRef, agents[i].TargetPosition);
+						ag.RequestMoveTargetReplan(ag.TargetRef, ag.TargetPosition);
 					}
 				}
 			}
 		}
 
-		public bool OverOffmeshConnection(CrowdAgent ag, float radius)
+		public bool OverOffmeshConnection(Agent ag, float radius)
 		{
 			if (ag.CornerCount == 0)
 				return false;
@@ -994,7 +994,7 @@ namespace SharpNav.Crowds
 		/// </summary>
 		/// <param name="ag">The agent</param>
 		/// <param name="dir">The resulting steer direction</param>
-		public void CalcSmoothSteerDirection(CrowdAgent ag, ref Vector3 dir)
+		public void CalcSmoothSteerDirection(Agent ag, ref Vector3 dir)
 		{
 			if (ag.CornerCount == 0)
 			{
@@ -1029,7 +1029,7 @@ namespace SharpNav.Crowds
 		/// </summary>
 		/// <param name="ag">The agent</param>
 		/// <param name="dir">The resulting steer direction</param>
-		public void CalcStraightSteerDirection(CrowdAgent ag, ref Vector3 dir)
+		public void CalcStraightSteerDirection(Agent ag, ref Vector3 dir)
 		{
 			if (ag.CornerCount == 0)
 			{
@@ -1048,7 +1048,7 @@ namespace SharpNav.Crowds
 		/// <param name="ag">Thw crowd agent</param>
 		/// <param name="range">The maximum range</param>
 		/// <returns>Distance to goal</returns>
-		public float GetDistanceToGoal(CrowdAgent ag, float range)
+		public float GetDistanceToGoal(Agent ag, float range)
 		{
 			if (ag.CornerCount == 0)
 				return range;
@@ -1072,7 +1072,7 @@ namespace SharpNav.Crowds
 		/// <param name="agents">Array of all crowd agents</param>
 		/// <param name="grid">The ProximityGrid</param>
 		/// <returns>The number of neighbors</returns>
-		public int GetNeighbours(Vector3 pos, float height, float range, CrowdAgent skip, CrowdNeighbor[] result, int maxResult, CrowdAgent[] agents, ProximityGrid grid)
+		public int GetNeighbours(Vector3 pos, float height, float range, Agent skip, CrowdNeighbor[] result, int maxResult, Agent[] agents, ProximityGrid grid)
 		{
 			int n = 0;
 
@@ -1082,7 +1082,7 @@ namespace SharpNav.Crowds
 
 			for (int i = 0; i < nids; i++)
 			{
-				CrowdAgent ag = agents[ids[i]];
+				Agent ag = agents[ids[i]];
 
 				if (ag == skip)
 					continue;
@@ -1119,7 +1119,7 @@ namespace SharpNav.Crowds
 			{
 				neiPos = nneis;
 			}
-			else if (dist >= neis[nneis - 1].Dist)
+			else if (dist >= neis[nneis - 1].Distance)
 			{
 				if (nneis >= maxNeis)
 					return nneis;
@@ -1129,7 +1129,7 @@ namespace SharpNav.Crowds
 			{
 				int i;
 				for (i = 0; i < nneis; i++)
-					if (dist <= neis[i].Dist)
+					if (dist <= neis[i].Distance)
 						break;
 
 				int tgt = i + 1;
@@ -1145,8 +1145,8 @@ namespace SharpNav.Crowds
 			}
 
 			neis[neiPos] = new CrowdNeighbor();
-			neis[neiPos].Idx = idx;
-			neis[neiPos].Dist = dist;
+			neis[neiPos].Index = idx;
+			neis[neiPos].Distance = dist;
 
 			return Math.Min(nneis + 1, maxNeis);
 		}
@@ -1159,7 +1159,7 @@ namespace SharpNav.Crowds
 		/// <param name="numAgents">The number of CrowdAgents</param>
 		/// <param name="maxAgents">The maximum number of agents allowed</param>
 		/// <returns>An updated agent count</returns>
-		public int AddToPathQueue(CrowdAgent newag, CrowdAgent[] agents, int numAgents, int maxAgents)
+		public int AddToPathQueue(Agent newag, Agent[] agents, int numAgents, int maxAgents)
 		{
 			//insert neighbour based on greatest time
 			int slot = 0;
@@ -1205,7 +1205,7 @@ namespace SharpNav.Crowds
 		/// <param name="numAgents">The number of CrowdAgents</param>
 		/// <param name="maxAgents">The maximum number of agents allowed</param>
 		/// <returns>An updated agent count</returns>
-		public int AddToOptQueue(CrowdAgent newag, CrowdAgent[] agents, int numAgents, int maxAgents)
+		public int AddToOptQueue(Agent newag, Agent[] agents, int numAgents, int maxAgents)
 		{
 			//insert neighbor based on greatest time
 			int slot = 0;
@@ -1242,249 +1242,45 @@ namespace SharpNav.Crowds
 
 			return Math.Min(numAgents + 1, maxAgents);
 		}
+	}
 
-		/// <summary>
-		/// A crowd agent is a unit that moves across the navigation mesh
-		/// </summary>
-		public class CrowdAgent
-		{
-			/// <summary>
-			/// The maximum number of corners a crowd agent will look ahead in the path
-			/// </summary>
-			private const int AgentMaxCorners = 4;
+	/// <summary>
+	/// A neighboring crowd agent
+	/// </summary>
+	public struct CrowdNeighbor
+	{
+		public int Index;
+		public float Distance;
+	}
 
-			private bool active;
-			private CrowdAgentState state;
-			private bool partial;
-			private PathCorridor corridor;
-			private LocalBoundary boundary;
-			public float topologyOptTime;
-			private CrowdNeighbor[] Neis;	//size = CROWDAGENT_MAX_NEIGHBOURS
-			private int numNeis;
-			public float DesiredSpeed;
+	/// <summary>
+	/// Settings for a particular crowd agent
+	/// </summary>
+	public struct AgentParams
+	{
+		public float Radius;
+		public float Height;
+		public float MaxAcceleration;
+		public float MaxSpeed;
 
-			private Vector3 CurrentPos;
-			public Vector3 Disp;
-			public Vector3 DesiredVel;
-			public Vector3 NVel;
-			public Vector3 Vel;
+		public float CollisionQueryRange;
 
-			public CrowdAgentParams Parameters;
+		public float PathOptimizationRange;
 
-			public Vector3[] CornerVerts;	//size = CROWDAGENT_MAX_CORNERS
-			public int[] CornerFlags;		//size = CROWDAGENT_MAX_CORNERS
-			public int[] CornerPolys;		//size = CROWDAGENT_MAX_CORNERS
+		public float SeparationWeight;
 
-			private int NumCorners;
-
-			private TargetState targetState;
-			public int TargetRef;
-			private Vector3 TargetPos;
-			public int TargetPathqRef;
-			public bool TargetReplan;
-			public float TargetReplanTime;
-
-			public CrowdAgent(int maxPath)
-			{
-				active = false;
-				corridor = new PathCorridor(maxPath);
-				boundary = new LocalBoundary();
-				Neis = new CrowdNeighbor[32];
-				CornerVerts = new Vector3[AgentMaxCorners];
-				CornerFlags = new int[AgentMaxCorners];
-				CornerPolys = new int[AgentMaxCorners];
-			}
-
-			public bool IsActive { get { return active; } set { active = value; } }
-
-			public bool IsPartial { get { return partial; } set { partial = value; } }
-
-			public CrowdAgentState State { get { return state; } set { state = value; } }
-
-			public Vector3 Position { get { return CurrentPos; } set { CurrentPos = value; } }
-
-			public LocalBoundary Boundary { get { return boundary; } }
-
-			public PathCorridor Corridor { get { return corridor; } }
-
-			public CrowdNeighbor[] Neighbors { get { return Neis; } }
-
-			public int NeighborCount { get { return numNeis; } set { numNeis = value; } }
-
-			public TargetState TargetState { get { return targetState; } set { targetState = value; } }
-
-			public Vector3 TargetPosition { get { return TargetPos; } set { TargetPos = value; } }
-
-			public int CornerCount { get { return NumCorners; } set { NumCorners = value; } }
-
-			/// <summary>
-			/// Update the position after a certain time 'dt'
-			/// </summary>
-			/// <param name="dt">Time that passed</param>
-			public void Integrate(float dt)
-			{
-				//fake dyanmic constraint
-				float maxDelta = Parameters.MaxAcceleration * dt;
-				Vector3 dv = NVel - Vel;
-				float ds = dv.Length();
-				if (ds > maxDelta)
-					dv = dv * (maxDelta / ds);
-				Vel = Vel + dv;
-
-				//integrate
-				if (Vel.Length() > 0.0001f)
-					CurrentPos = CurrentPos + Vel * dt;
-				else
-					Vel = new Vector3(0, 0, 0);
-			}
-
-			public void Reset(int reference, Vector3 nearest)
-			{
-				this.corridor.Reset(reference, nearest);
-				this.boundary.Reset();
-				this.partial = false;
-
-				this.topologyOptTime = 0;
-				this.TargetReplanTime = 0;
-				this.numNeis = 0;
-
-				this.DesiredVel = new Vector3(0.0f, 0.0f, 0.0f);
-				this.NVel = new Vector3(0.0f, 0.0f, 0.0f);
-				this.Vel = new Vector3(0.0f, 0.0f, 0.0f);
-				this.CurrentPos = nearest;
-
-				this.DesiredSpeed = 0;
-
-				if (reference != 0)
-					this.state = CrowdAgentState.Walking;
-				else
-					this.state = CrowdAgentState.Invalid;
-
-				this.TargetState = TargetState.None;
-			}
-
-			/// <summary>
-			/// Change the move target
-			/// </summary>
-			/// <param name="reference">The polygon reference</param>
-			/// <param name="pos">The target's coordinates</param>
-			/// <returns>True if request met, false if not</returns>
-			public void RequestMoveTargetReplan(int reference, Vector3 pos)
-			{
-				//initialize request
-				this.TargetRef = reference;
-				this.TargetPos = pos;
-				this.TargetPathqRef = PathQueue.PATHQ_INVALID;
-				this.TargetReplan = true;
-				if (this.TargetRef != 0)
-					this.TargetState = TargetState.Requesting;
-				else
-					this.TargetState = TargetState.Failed;
-			}
-
-			/// <summary>
-			/// Request a new move target
-			/// </summary>
-			/// <param name="reference">The polygon reference</param>
-			/// <param name="pos">The target's coordinates</param>
-			/// <returns>True if request met, false if not</returns>
-			public bool RequestMoveTarget(int reference, Vector3 pos)
-			{
-				if (reference == 0)
-					return false;
-
-				//initialize request
-				this.TargetRef = reference;
-				this.TargetPos = pos;
-				this.TargetPathqRef = PathQueue.PATHQ_INVALID;
-				this.TargetReplan = false;
-				if (this.TargetRef != 0)
-					this.targetState = TargetState.Requesting;
-				else
-					this.targetState = TargetState.Failed;
-
-				return true;
-			}
-
-			/// <summary>
-			/// Request a new move velocity
-			/// </summary>
-			/// <param name="vel">The agent's velocity</param>
-			/// <returns>True if request met, false if not</returns>
-			public void RequestMoveVelocity(Vector3 vel)
-			{
-				//initialize request
-				this.TargetRef = 0;
-				this.TargetPos = vel;
-				this.TargetPathqRef = PathQueue.PATHQ_INVALID;
-				this.TargetReplan = false;
-				this.targetState = TargetState.Velocity;
-			}
-
-			/// <summary>
-			/// Reset the move target of an agent
-			/// </summary>
-			/// <returns>True if the agent exists, false if not</returns>
-			public void ResetMoveTarget()
-			{
-				//initialize request
-				this.TargetRef = 0;
-				this.TargetPos = new Vector3(0.0f, 0.0f, 0.0f);
-				this.TargetPathqRef = PathQueue.PATHQ_INVALID;
-				this.TargetReplan = false;
-				this.targetState = TargetState.None;
-			}
-
-			/// <summary>
-			/// Modify the agent parameters
-			/// </summary>
-			/// <param name="parameters">The new parameters</param>
-			public void UpdateAgentParameters(CrowdAgentParams parameters)
-			{
-				this.Parameters = parameters;
-			}
-		}
-
-		/// <summary>
-		/// A neighboring crowd agent
-		/// </summary>
-		public struct CrowdNeighbor
-		{
-			public int Idx;
-			public float Dist;
-		}
-
-		/// <summary>
-		/// Settings for a particular crowd agent
-		/// </summary>
-		public struct CrowdAgentParams
-		{
-			public float Radius;
-			public float Height;
-			public float MaxAcceleration;
-			public float MaxSpeed;
-
-			public float CollisionQueryRange;
-
-			public float PathOptimizationRange;
-
-			public float SeparationWeight;
-
-			public UpdateFlags UpdateFlags;
+		public UpdateFlags UpdateFlags;
 			
-			public byte ObstacleAvoidanceType;
+		public byte ObstacleAvoidanceType;
 
-			public byte QueryFilterType;
+		public byte QueryFilterType;
+	}
 
-
-		}
-
-		private struct CrowdAgentAnimation
-		{
-			public bool Active;
-			public Vector3 InitPos, StartPos, EndPos;
-			public int PolyRef;
-			public float T, TMax;
-		}
+	public struct AgentAnimation
+	{
+		public bool Active;
+		public Vector3 InitPos, StartPos, EndPos;
+		public int PolyRef;
+		public float T, TMax;
 	}
 }
