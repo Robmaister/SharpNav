@@ -1,8 +1,12 @@
 language: c
 
-install:
-  - sudo apt-get install mono-devel mono-gmcs nunit-console
+notifications:
+  slack:
+    secure: Evj0iL40Tipu47BZfCdbkZbW/8Y7NLRZRSjvLXhKH7Yc6DfYLWeF7+Y2h8E8Zdd2/bdP+LxlHTbqjam5IBONAAIwpN4TAXNqMmalXtXDfs3/Cu+pMKSN+ECymcX3bUa/cZyvjm8P4FfUWLDHKuk+I3C41DfXzTPRBg4z+qSg4kI=
 
+
+install:
+- sudo apt-get install mono-devel mono-gmcs nunit-console
 script:
-  - xbuild ./Build/TravisCI.proj
-  - nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused
+- xbuild ./Build/TravisCI.proj
+- nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused
