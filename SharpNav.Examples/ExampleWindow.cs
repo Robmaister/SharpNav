@@ -52,6 +52,8 @@ namespace SharpNav.Examples
 			Crowd
 		}
 
+		private bool interceptExceptions;
+
 		private Camera cam;
 		private float zoom = MathHelper.PiOver4;
 
@@ -296,41 +298,38 @@ namespace SharpNav.Examples
 				GL.Disable(EnableCap.Lighting);
 			}
 
-			if (hasGenerated)
+			switch (displayMode)
 			{
-				switch (displayMode)
-				{
-					case DisplayMode.Heightfield: 
-						DrawHeightfield();
-						break;
-					case DisplayMode.CompactHeightfield:
-						DrawCompactHeightfield();
-						break;
-					case DisplayMode.DistanceField:
-						DrawDistanceField();
-						break;
-					case DisplayMode.Regions:
-						DrawRegions();
-						break;
-					case DisplayMode.Contours:
-						DrawContours(false);
-						break;
-					case DisplayMode.SimplifiedContours:
-						DrawContours(true);
-						break;
-					case DisplayMode.PolyMesh:
-						DrawPolyMesh();
-						break;
-					case DisplayMode.PolyMeshDetail:
-						DrawPolyMeshDetail();
-						break;
-					case DisplayMode.Pathfinding:
-						DrawPathfinding();
-						break;
-					case DisplayMode.Crowd:
-						DrawCrowd();
-						break;
-				}
+				case DisplayMode.Heightfield: 
+					DrawHeightfield();
+					break;
+				case DisplayMode.CompactHeightfield:
+					DrawCompactHeightfield();
+					break;
+				case DisplayMode.DistanceField:
+					DrawDistanceField();
+					break;
+				case DisplayMode.Regions:
+					DrawRegions();
+					break;
+				case DisplayMode.Contours:
+					DrawContours(false);
+					break;
+				case DisplayMode.SimplifiedContours:
+					DrawContours(true);
+					break;
+				case DisplayMode.PolyMesh:
+					DrawPolyMesh();
+					break;
+				case DisplayMode.PolyMeshDetail:
+					DrawPolyMeshDetail();
+					break;
+				case DisplayMode.Pathfinding:
+					DrawPathfinding();
+					break;
+				case DisplayMode.Crowd:
+					DrawCrowd();
+					break;
 			}
 
 			DrawUI();
@@ -456,7 +455,10 @@ namespace SharpNav.Examples
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("Navmesh generation failed with exception:" + Environment.NewLine + e.ToString());
+				if (!interceptExceptions)
+					throw;
+				else
+					Console.WriteLine("Navmesh generation failed with exception:" + Environment.NewLine + e.ToString());
 			}
 			finally
 			{

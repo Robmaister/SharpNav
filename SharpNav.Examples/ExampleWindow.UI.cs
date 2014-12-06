@@ -40,6 +40,12 @@ namespace SharpNav.Examples
 			genTime.Text = "Generation Time: 0ms";
 			genTime.Dock = Pos.Left;
 
+			LabeledCheckBox catchCheckBox = new LabeledCheckBox(statusBar);
+			catchCheckBox.Text = "Intercept and log exceptions";
+			catchCheckBox.Dock = Pos.Right;
+			catchCheckBox.CheckChanged += (s, e) => interceptExceptions = catchCheckBox.IsChecked;
+			catchCheckBox.IsChecked = true;
+
 			Base genBase = new Base(dock);
 			dock.RightDock.TabControl.AddPage("NavMesh Generation", genBase);
 

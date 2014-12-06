@@ -81,7 +81,7 @@ namespace SharpNav
 
 			int maxhw = 0, maxhh = 0;
 
-			BBox3[] bounds = new BBox3[mesh.PolyCount];
+			BBox2i[] bounds = new BBox2i[mesh.PolyCount];
 			Vector3[] poly = new Vector3[mesh.NumVertsPerPoly];
 
 			var storedVertices = new List<Vector3>();
@@ -92,10 +92,10 @@ namespace SharpNav
 			{
 				var p = mesh.Polys[i];
 
-				float xmin = compactField.Width;
-				float xmax = 0;
-				float zmin = compactField.Length;
-				float zmax = 0;
+				int xmin = compactField.Width;
+				int xmax = 0;
+				int zmin = compactField.Length;
+				int zmax = 0;
 
 				for (int j = 0; j < mesh.NumVertsPerPoly; j++)
 				{
@@ -119,10 +119,10 @@ namespace SharpNav
 				if (xmin >= xmax || zmin >= zmax)
 					continue;
 
-				maxhw = (int)Math.Max(maxhw, xmax - xmin);
-				maxhh = (int)Math.Max(maxhh, zmax - zmin);
+				maxhw = Math.Max(maxhw, xmax - xmin);
+				maxhh = Math.Max(maxhh, zmax - zmin);
 
-				bounds[i] = new BBox3(xmin, 0, zmin, xmax, 0, zmax);
+				bounds[i] = new BBox2i(xmin, zmin, xmax, zmax);
 			}
 
 			HeightPatch hp = new HeightPatch(0, 0, maxhw, maxhh);
@@ -151,7 +151,8 @@ namespace SharpNav
 				}
 
 				//get height data from area of polygon
-				hp.Resize((int)bounds[i].Min.X, (int)bounds[i].Min.Z, (int)(bounds[i].Max.X - bounds[i].Min.X), (int)(bounds[i].Max.Z - bounds[i].Min.Z));
+				BBox2i bound = bounds[i];
+				hp.Resize(bound.Min.X, bound.Min.Y, bound.Max.X - bound.Min.X, bound.Max.Y - bound.Min.Y);
 				GetHeightData(compactField, p, npoly, mesh.Verts, mesh.BorderSize, hp);
 
 				List<Vector3> tempVerts = new List<Vector3>();
@@ -355,7 +356,7 @@ namespace SharpNav
 
 						if (span.Region == poly.RegionId)
 						{
-							hp[hx, hy] = span.Minimum;
+							hp[x, y] = span.Minimum;
 							empty = false;
 
 							bool border = false;

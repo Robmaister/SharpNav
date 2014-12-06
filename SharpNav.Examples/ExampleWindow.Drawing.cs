@@ -218,6 +218,9 @@ namespace SharpNav.Examples
 
 		private void DrawHeightfield()
 		{
+			if (heightfield == null)
+				return;
+
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
 
@@ -271,6 +274,9 @@ namespace SharpNav.Examples
 
 		private void DrawCompactHeightfield()
 		{
+			if (compactHeightfield == null)
+				return;
+
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
 
@@ -330,6 +336,9 @@ namespace SharpNav.Examples
 
 		private void DrawDistanceField()
 		{
+			if (compactHeightfield == null)
+				return;
+
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
 
@@ -387,6 +396,9 @@ namespace SharpNav.Examples
 
 		private void DrawRegions()
 		{
+			if (compactHeightfield == null)
+				return;
+
 			GL.EnableClientState(ArrayCap.VertexArray);
 			GL.EnableClientState(ArrayCap.NormalArray);
 
@@ -445,6 +457,9 @@ namespace SharpNav.Examples
 
 		private void DrawContours(bool simplified)
 		{
+			if (contourSet == null)
+				return;
+
 			GL.EnableClientState(ArrayCap.VertexArray);
 
 			int maxdist = compactHeightfield.MaxDistance;
@@ -504,6 +519,9 @@ namespace SharpNav.Examples
 
 		private void DrawPolyMesh()
 		{
+			if (polyMesh == null)
+				return;
+
 			GL.PushMatrix();
 
 			Matrix4 squareScale, squareTrans;
@@ -625,6 +643,9 @@ namespace SharpNav.Examples
 
 		private void DrawPolyMeshDetail()
 		{
+			if (polyMeshDetail == null)
+				return;
+
 			GL.PushMatrix();
 
 			Color4 color = Color4.DarkViolet;
