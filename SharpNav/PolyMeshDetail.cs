@@ -364,8 +364,8 @@ namespace SharpNav
 							{
 								if (span.IsConnected(dir))
 								{
-									int ax = x + dir.GetHorizontalOffset();
-									int ay = y + dir.GetVerticalOffset();
+									int ax = hx + dir.GetHorizontalOffset();
+									int ay = hy + dir.GetVerticalOffset();
 									int ai = compactField.Cells[ay * compactField.Width + ax].StartIndex + CompactSpan.GetConnection(ref span, dir);
 
 									if (compactField.Spans[ai].Region != poly.RegionId)
@@ -457,23 +457,24 @@ namespace SharpNav
 			//use poly vertices as seed points
 			for (int j = 0; j < polyCount; j++)
 			{
-				int cx = 0, cz = 0, ci = -1;
+				var csr = new CompactSpanReference(0, 0, -1);
 				int dmin = int.MaxValue;
+
+				var v = verts[poly.Vertices[j]];
 
 				for (int k = 0; k < 9; k++)
 				{
 					//get vertices and offset x and z coordinates depending on current drection
-					var v = verts[poly.Vertices[j]];
-					int ax = (int)v.X + VertexOffset[k * 2 + 0];
-					int ay = (int)v.Y;
-					int az = (int)v.Z + VertexOffset[k * 2 + 1];
+					int ax = v.X + VertexOffset[k * 2 + 0];
+					int ay = v.Y;
+					int az = v.Z + VertexOffset[k * 2 + 1];
 
 					//skip if out of bounds
 					if (ax < hp.X || ax >= hp.X + hp.Width || az < hp.Y || az >= hp.Y + hp.Length)
 						continue;
 
 					//get new cell
-					CompactCell c = compactField.Cells[(az + borderSize) * compactField.Width + ax + borderSize];
+					CompactCell c = compactField.Cells[(az + borderSize) * compactField.Width + (ax + borderSize)];
 					
 					//loop through all the spans
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
@@ -484,19 +485,16 @@ namespace SharpNav
 						int d = Math.Abs(ay - s.Minimum);
 						if (d < dmin)
 						{
-							cx = ax;
-							cz = az;
-							ci = i;
-
+							csr = new CompactSpanReference(ax, az, i);
 							dmin = d;
 						}
 					}
 				}
 
 				//only add if something new found
-				if (ci != -1)
+				if (csr.Index != -1)
 				{
-					stack.Add(new CompactSpanReference(cx, cz, ci));
+					stack.Add(csr);
 				}
 			}
 
@@ -505,8 +503,8 @@ namespace SharpNav
 			for (int j = 0; j < polyCount; j++)
 			{
 				var v = verts[poly.Vertices[j]];
-				pcx += (int)v.X;
-				pcz += (int)v.Z;
+				pcx += v.X;
+				pcz += v.Z;
 			}
 
 			pcx /= polyCount;
@@ -522,25 +520,20 @@ namespace SharpNav
 			//process the entire stack
 			while (stack.Count > 0)
 			{
-				//since we add cx, cy, ci to stack, cx is at bottom and ci is at top
-				//so the order we remove items is the opposite of the order we insert items
 				var cell = stack[stack.Count - 1];
 				stack.RemoveAt(stack.Count - 1);
-				int ci = cell.Index;
-				int cy = cell.Y;
-				int cx = cell.X;
 
 				//check if close to center of polygon
-				if (Math.Abs(cx - pcx) <= 1 && Math.Abs(cy - pcz) <= 1)
+				if (Math.Abs(cell.X - pcx) <= 1 && Math.Abs(cell.Y - pcz) <= 1)
 				{
 					//clear the stack and add a new group
 					stack.Clear();
 
-					stack.Add(new CompactSpanReference(cx, cy, ci));
+					stack.Add(cell);
 					break;
 				}
 
-				CompactSpan cs = compactField.Spans[ci];
+				CompactSpan cs = compactField[cell];
 
 				//check all four directions
 				for (var dir = Direction.West; dir <= Direction.South; dir++)
@@ -550,21 +543,21 @@ namespace SharpNav
 						continue;
 
 					//get neighbor
-					int ax = cx + dir.GetHorizontalOffset();
-					int ay = cy + dir.GetVerticalOffset();
+					int ax = cell.X + dir.GetHorizontalOffset();
+					int ay = cell.Y + dir.GetVerticalOffset();
 
 					//skip if out of bounds
 					if (ax < hp.X || ax >= (hp.X + hp.Width) || ay < hp.Y || ay >= (hp.Y + hp.Length))
 						continue;
 
-					if (hp[ax - hp.X + (ay - hp.Y) * hp.Width] != 0)
+					if (hp[(ay - hp.Y) * hp.Width + (ax - hp.X)] != 0)
 						continue;
 
 					//get the new index
-					int ai = compactField.Cells[(ax + borderSize) + (ay + borderSize) * compactField.Width].StartIndex + CompactSpan.GetConnection(ref cs, dir);
+					int ai = compactField.Cells[(ay + borderSize) * compactField.Width + (ax + borderSize)].StartIndex + CompactSpan.GetConnection(ref cs, dir);
 
 					//save data
-					int idx = ax - hp.X + (ay - hp.Y) * hp.Width;
+					int idx = (ay - hp.Y) * hp.Width + (ax - hp.X);
 					hp[idx] = 1;
 
 					//push to stack
@@ -581,7 +574,7 @@ namespace SharpNav
 				var c = stack[i];
 
 				//set new heightpatch data
-				int idx = c.X - hp.X + (c.Y - hp.Y) * hp.Width;
+				int idx = (c.Y - hp.Y) * hp.Width + (c.X - hp.X);
 				CompactSpan cs = compactField.Spans[c.Index];
 				hp[idx] = cs.Minimum;
 
