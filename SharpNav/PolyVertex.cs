@@ -6,12 +6,8 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using SharpNav;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace SharpNav
 {

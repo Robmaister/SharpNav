@@ -632,7 +632,7 @@ namespace SharpNav
 			/// <returns>True if intersect, false if not</returns>
 			internal static bool SegmentPoly2D(Vector3 p0, Vector3 p1, Vector3[] verts, int nverts, out float tmin, out float tmax, out int segMin, out int segMax)
 			{
-				float EPS = 0.00000001f;
+				const float Epsilon = 0.00000001f;
 
 				tmin = 0;
 				tmax = 1;
@@ -647,7 +647,7 @@ namespace SharpNav
 					Vector3 diff = p0 - verts[j];
 					float n = edge.Z * diff.X - edge.X * diff.Z;
 					float d = dir.Z * edge.X - dir.X * edge.Z;
-					if (Math.Abs(d) < EPS)
+					if (Math.Abs(d) < Epsilon)
 					{
 						//S is nearly parallel to this edge
 						if (n < 0)

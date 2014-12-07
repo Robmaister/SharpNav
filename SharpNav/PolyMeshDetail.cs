@@ -7,12 +7,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using SharpNav;
-using SharpNav.Collections.Generic;
+
 using SharpNav.Geometry;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

@@ -39,6 +39,8 @@ namespace SharpNav
 	{
 		#region Fields
 
+		private static string listSeparator = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ListSeparator;
+
 		/// <summary>
 		/// The X component of the Vector2.
 		/// </summary>
@@ -100,97 +102,7 @@ namespace SharpNav
 
 		#region Public Members
 
-		/// <summary>
-		/// Gets or sets the value at the index of the Vector.
-		/// </summary>
-		public float this[int index] {
-			get{
-				if(index == 0) return X;
-				else if(index == 1) return Y;
-				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
-			} set{
-				if(index == 0) X = value;
-				else if(index == 1) Y = value;
-				else throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
-			}
-		}
-
 		#region Instance
-
-		#region public void Add()
-
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(Vector2 right)
-		{
-			this.X += right.X;
-			this.Y += right.Y;
-		}
-
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(ref Vector2 right)
-		{
-			this.X += right.X;
-			this.Y += right.Y;
-		}
-
-		#endregion public void Add()
-
-		#region public void Sub()
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(Vector2 right)
-		{
-			this.X -= right.X;
-			this.Y -= right.Y;
-		}
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(ref Vector2 right)
-		{
-			this.X -= right.X;
-			this.Y -= right.Y;
-		}
-
-		#endregion public void Sub()
-
-		#region public void Mult()
-
-		/// <summary>Multiply this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Mult(float f)
-		{
-			this.X *= f;
-			this.Y *= f;
-		}
-
-		#endregion public void Mult()
-
-		#region public void Div()
-
-		/// <summary>Divide this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Divide() method instead.")]
-		public void Div(float f)
-		{
-			float mult = 1.0f / f;
-			this.X *= mult;
-			this.Y *= mult;
-		}
-
-		#endregion public void Div()
 
 		#region public float Length
 
@@ -261,6 +173,25 @@ namespace SharpNav
 		#endregion
 
 		/// <summary>
+		/// Gets or sets the value at the index of the Vector.
+		/// </summary>
+		public float this[int index]
+		{
+			get
+			{
+				if (index == 0) return X;
+				else if (index == 1) return Y;
+				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
+			}
+			set
+			{
+				if (index == 0) X = value;
+				else if (index == 1) Y = value;
+				else throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
+			}
+		}
+
+		/// <summary>
 		/// Returns a copy of the Vector2 scaled to unit length.
 		/// </summary>
 		/// <returns></returns>
@@ -283,42 +214,6 @@ namespace SharpNav
 		}
 
 		#endregion
-
-		#region public void Scale()
-
-		/// <summary>
-		/// Scales the current Vector2 by the given amounts.
-		/// </summary>
-		/// <param name="sx">The scale of the X component.</param>
-		/// <param name="sy">The scale of the Y component.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(float sx, float sy)
-		{
-			this.X = X * sx;
-			this.Y = Y * sy;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(Vector2 scale)
-		{
-			this.X *= scale.X;
-			this.Y *= scale.Y;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[CLSCompliant(false)]
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(ref Vector2 scale)
-		{
-			this.X *= scale.X;
-			this.Y *= scale.Y;
-		}
-
-		#endregion public void Scale()
 
 		#endregion
 
@@ -350,105 +245,6 @@ namespace SharpNav
 		/// Defines the size of the Vector2 struct in bytes.
 		/// </summary>
 		public static readonly int SizeInBytes = Marshal.SizeOf(new Vector2());
-
-		#endregion
-
-		#region Obsolete
-
-		#region Sub
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>Result of subtraction</returns>
-		[Obsolete("Use static Subtract() method instead.")]
-		public static Vector2 Sub(Vector2 a, Vector2 b)
-		{
-			a.X -= b.X;
-			a.Y -= b.Y;
-			return a;
-		}
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">Result of subtraction</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public static void Sub(ref Vector2 a, ref Vector2 b, out Vector2 result)
-		{
-			result.X = a.X - b.X;
-			result.Y = a.Y - b.Y;
-		}
-
-		#endregion
-
-		#region Mult
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the multiplication</returns>
-		[Obsolete("Use static Multiply() method instead.")]
-		public static Vector2 Mult(Vector2 a, float f)
-		{
-			a.X *= f;
-			a.Y *= f;
-			return a;
-		}
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the multiplication</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public static void Mult(ref Vector2 a, float f, out Vector2 result)
-		{
-			result.X = a.X * f;
-			result.Y = a.Y * f;
-		}
-
-		#endregion
-
-		#region Div
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the division</returns>
-		[Obsolete("Use static Divide() method instead.")]
-		public static Vector2 Div(Vector2 a, float f)
-		{
-			float mult = 1.0f / f;
-			a.X *= mult;
-			a.Y *= mult;
-			return a;
-		}
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the division</param>
-		[Obsolete("Use static Divide() method instead.")]
-		public static void Div(ref Vector2 a, float f, out Vector2 result)
-		{
-			float mult = 1.0f / f;
-			result.X = a.X * mult;
-			result.Y = a.Y * mult;
-		}
-
-		#endregion
 
 		#endregion
 
@@ -884,7 +680,18 @@ namespace SharpNav
 		/// <summary>
 		/// Gets or sets an OpenTK.Vector2 with the Y and X components of this instance.
 		/// </summary>
-		public Vector2 Yx { get { return new Vector2(Y, X); } set { Y = value.X; X = value.Y; } }
+		public Vector2 Yx
+		{
+			get
+			{
+				return new Vector2(Y, X);
+			}
+			set
+			{
+				Y = value.X;
+				X = value.Y;
+			}
+		}
 
 		#endregion
 
@@ -1009,14 +816,13 @@ namespace SharpNav
 
 		#region public override string ToString()
 
-		private static string listSeparator = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ListSeparator;
 		/// <summary>
 		/// Returns a System.String that represents the current Vector2.
 		/// </summary>
 		/// <returns></returns>
 		public override string ToString()
 		{
-			return String.Format("({0}{2} {1})", X, Y, listSeparator);
+			return string.Format("({0}{2} {1})", X, Y, listSeparator);
 		}
 
 		#endregion

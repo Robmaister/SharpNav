@@ -6,13 +6,11 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using SharpNav.Collections.Generic;
+
+using SharpNav.Collections;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

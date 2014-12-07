@@ -5,11 +5,7 @@
  */
 #endregion
 
-using System;
-using System.Linq;
-using SharpNav.Collections.Generic;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using SharpNav.Collections;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

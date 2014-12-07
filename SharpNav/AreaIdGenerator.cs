@@ -202,7 +202,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Takes the mesh query, runs it, and outputs the result as an <see cref="AreaId[]"/>.
+		/// Takes the mesh query, runs it, and outputs the result as an array of <see cref="AreaId"/>.
 		/// </summary>
 		/// <returns>The result of the query.</returns>
 		public AreaId[] ToArray()

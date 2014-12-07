@@ -26,8 +26,16 @@ namespace SharpNav.Crowds
 		InProgress
 	}
 
+	/// <summary>
+	/// A static class containing extension methods related to the <see cref="Status"/> enum.
+	/// </summary>
 	public static class StatusExtensions
 	{
+		/// <summary>
+		/// Converts a boolean value to a <see cref="Status"/>.
+		/// </summary>
+		/// <param name="variable">The boolean value.</param>
+		/// <returns>The equivalent status.</returns>
 		public static Status ToStatus(this bool variable)
 		{
 			return variable ? Status.Success : Status.Failure;

@@ -5,12 +5,6 @@
  */
 #endregion
 
-using System;
-using System.Linq;
-using SharpNav;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
 #elif OPENTK

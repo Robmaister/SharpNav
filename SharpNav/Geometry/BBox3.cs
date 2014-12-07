@@ -1,15 +1,17 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
 
 using System;
 using System.Collections.Generic;
-using SharpNav;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
+using SharpNav;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
