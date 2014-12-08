@@ -22,6 +22,10 @@ namespace SharpNav.Collections
 	/// </summary>
 	public class BVTree
 	{
+		private static readonly Node.CompareY yComparer = new Node.CompareY();
+		private static readonly Node.CompareX xComparer = new Node.CompareX();
+		private static readonly Node.CompareZ zComparer = new Node.CompareZ();
+
 		/// <summary>
 		/// Nodes in the tree
 		/// </summary>
@@ -165,13 +169,13 @@ namespace SharpNav.Collections
 				switch (axis)
 				{
 					case 0:
-						items.Sort(minIndex, numIndex, new CompareX());
+						items.Sort(minIndex, numIndex, xComparer);
 						break;
 					case 1:
-						items.Sort(minIndex, numIndex, new CompareY());
+						items.Sort(minIndex, numIndex, yComparer);
 						break;
 					case 2:
-						items.Sort(minIndex, numIndex, new CompareZ());
+						items.Sort(minIndex, numIndex, zComparer);
 						break;
 					default:
 						break;
@@ -203,74 +207,74 @@ namespace SharpNav.Collections
 			/// The index of this node in a <see cref="BVTree"/>.
 			/// </summary>
 			public int Index;
-		}
 
-		/// <summary>
-		/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the X axis.
-		/// </summary>
-		public class CompareX : IComparer<Node>
-		{
 			/// <summary>
-			/// Compares two nodes's bounds on the X axis.
+			/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the X axis.
 			/// </summary>
-			/// <param name="x">A node.</param>
-			/// <param name="y">Another node.</param>
-			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node x, Node y)
+			public class CompareX : IComparer<Node>
 			{
-				if (x.Bounds.Min.X < y.Bounds.Min.X)
-					return -1;
+				/// <summary>
+				/// Compares two nodes's bounds on the X axis.
+				/// </summary>
+				/// <param name="x">A node.</param>
+				/// <param name="y">Another node.</param>
+				/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
+				public int Compare(Node x, Node y)
+				{
+					if (x.Bounds.Min.X < y.Bounds.Min.X)
+						return -1;
 
-				if (x.Bounds.Min.X > y.Bounds.Min.X)
-					return 1;
+					if (x.Bounds.Min.X > y.Bounds.Min.X)
+						return 1;
 
-				return 0;
+					return 0;
+				}
 			}
-		}
 
-		/// <summary>
-		/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the Y axis.
-		/// </summary>
-		public class CompareY : IComparer<Node>
-		{
 			/// <summary>
-			/// Compares two nodes's bounds on the Y axis.
+			/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the Y axis.
 			/// </summary>
-			/// <param name="x">A node.</param>
-			/// <param name="y">Another node.</param>
-			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node x, Node y)
+			public class CompareY : IComparer<Node>
 			{
-				if (x.Bounds.Min.Y < y.Bounds.Min.Y)
-					return -1;
+				/// <summary>
+				/// Compares two nodes's bounds on the Y axis.
+				/// </summary>
+				/// <param name="x">A node.</param>
+				/// <param name="y">Another node.</param>
+				/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
+				public int Compare(Node x, Node y)
+				{
+					if (x.Bounds.Min.Y < y.Bounds.Min.Y)
+						return -1;
 
-				if (x.Bounds.Min.Y > y.Bounds.Min.Y)
-					return 1;
+					if (x.Bounds.Min.Y > y.Bounds.Min.Y)
+						return 1;
 
-				return 0;
+					return 0;
+				}
 			}
-		}
 
-		/// <summary>
-		/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the Z axis.
-		/// </summary>
-		public class CompareZ : IComparer<Node>
-		{
 			/// <summary>
-			/// Compares two nodes's bounds on the Z axis.
+			/// An <see cref="IComparer{T}"/> implementation that only compares two <see cref="Node"/>s on the Z axis.
 			/// </summary>
-			/// <param name="x">A node.</param>
-			/// <param name="y">Another node.</param>
-			/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
-			public int Compare(Node x, Node y)
+			public class CompareZ : IComparer<Node>
 			{
-				if (x.Bounds.Min.Z < y.Bounds.Min.Z)
-					return -1;
+				/// <summary>
+				/// Compares two nodes's bounds on the Z axis.
+				/// </summary>
+				/// <param name="x">A node.</param>
+				/// <param name="y">Another node.</param>
+				/// <returns>A negative value if a is less than b; 0 if they are equal; a positive value of a is greater than b.</returns>
+				public int Compare(Node x, Node y)
+				{
+					if (x.Bounds.Min.Z < y.Bounds.Min.Z)
+						return -1;
 
-				if (x.Bounds.Min.Z > y.Bounds.Min.Z)
-					return 1;
+					if (x.Bounds.Min.Z > y.Bounds.Min.Z)
+						return 1;
 
-				return 0;
+					return 0;
+				}
 			}
 		}
 	}

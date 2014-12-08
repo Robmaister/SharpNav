@@ -1,9 +1,5 @@
-﻿#region License
-/**
- * Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
- * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
- */
-#endregion
+﻿// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Runtime.InteropServices;
@@ -14,7 +10,7 @@ namespace SharpNav
 	/// A reference to a <see cref="CompactSpan"/> in a <see cref="CompactHeightfield"/>.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential)]
-	public struct CompactSpanReference
+	public struct CompactSpanReference : IEquatable<CompactSpanReference>
 	{
 		/// <summary>
 		/// A "null" reference is one with a negative index.
@@ -91,7 +87,7 @@ namespace SharpNav
 				return false;
 
 			//if the references are not null, 
-			if (left.x == right.x && left.y == right.y && left.index == right.index)
+			else if (left.x == right.x && left.y == right.y && left.index == right.index)
 				return true;
 
 			return false;
@@ -109,6 +105,16 @@ namespace SharpNav
 		public static bool operator !=(CompactSpanReference left, CompactSpanReference right)
 		{
 			return !(left == right);
+		}
+
+		/// <summary>
+		/// Compares this instance to another instance of <see cref="CompactSpanReference"/> for equality.
+		/// </summary>
+		/// <param name="other">Another instance of <see cref="CompactSpanReference"/>.</param>
+		/// <returns>A value indicating whether this instance and another instance are equal.</returns>
+		public bool Equals(CompactSpanReference other)
+		{
+			return this == other;
 		}
 
 		/// <summary>

@@ -142,19 +142,19 @@ namespace SharpNav
 				for (int i = 0; i < ntris; i++)
 				{
 					//make sure there are three distinct vertices. anything less can't be a polygon.
-					if (tris[i].Index0 != tris[i].Index1
-						&& tris[i].Index0 != tris[i].Index2
-						&& tris[i].Index1 != tris[i].Index2)
-					{
-						//each polygon has numVertsPerPoly
-						//index 0, 1, 2 store triangle vertices
-						//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-						Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, 0, 0);
-						p.Vertices[0] = indices[tris[i].Index0];
-						p.Vertices[1] = indices[tris[i].Index1];
-						p.Vertices[2] = indices[tris[i].Index2];
-						contPolys.Add(p);
-					}
+					if (tris[i].Index0 == tris[i].Index1
+						|| tris[i].Index0 == tris[i].Index2
+						|| tris[i].Index1 == tris[i].Index2)
+						continue;
+
+					//each polygon has numVertsPerPoly
+					//index 0, 1, 2 store triangle vertices
+					//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
+					Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, 0, 0);
+					p.Vertices[0] = indices[tris[i].Index0];
+					p.Vertices[1] = indices[tris[i].Index1];
+					p.Vertices[2] = indices[tris[i].Index2];
+					contPolys.Add(p);
 				}
 				
 				//no polygons generated, so skip

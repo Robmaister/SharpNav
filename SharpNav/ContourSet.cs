@@ -72,6 +72,7 @@ namespace SharpNav
 
 			byte[] flags = new byte[compactField.Spans.Length];
 
+			//TODO move to CompactHeightField
 			//Modify flags array by using the CompactHeightfield data
 			//mark boundaries
 			for (int y = 0; y < compactField.Length; y++)
@@ -95,7 +96,7 @@ namespace SharpNav
 						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
 							//obtain region id
-							RegionId r = 0;
+							RegionId r = RegionId.Null;
 							if (s.IsConnected(dir))
 							{
 								int dx = x + dir.GetHorizontalOffset();
@@ -399,35 +400,36 @@ namespace SharpNav
 		/// Initial generation of the contours
 		/// </summary>
 		/// <param name="compactField">The compact heightfield to reference.</param>
-		/// <param name="sr">A referecne to the span to start walking from.</param>
+		/// <param name="spanReference">A referecne to the span to start walking from.</param>
 		/// <param name="flags">An array of flags determinining </param>
 		/// <param name="points">The vertices of a contour.</param>
-		private void WalkContour(CompactHeightfield compactField, CompactSpanReference sr, byte[] flags, List<ContourVertex> points)
+		private void WalkContour(CompactHeightfield compactField, CompactSpanReference spanReference, byte[] flags, List<ContourVertex> points)
 		{
-			Direction dir = 0;
+			Direction dir = Direction.West;
 
 			//find the first direction that has a connection 
-			while (!IsConnected(ref flags[sr.Index], dir))
+			while (!IsConnected(ref flags[spanReference.Index], dir))
 				dir++;
 
 			Direction startDir = dir;
-			int starti = sr.Index;
+			int startIndex = spanReference.Index;
 
-			AreaId area = compactField.Areas[sr.Index];
+			AreaId area = compactField.Areas[startIndex];
 
+			//TODO make the max iterations value a variable
 			int iter = 0;
 			while (++iter < 40000)
 			{
 				// this direction is connected
-				if (IsConnected(ref flags[sr.Index], dir))
+				if (IsConnected(ref flags[spanReference.Index], dir))
 				{
 					// choose the edge corner
 					bool isBorderVertex;
 					bool isAreaBorder = false;
 
-					int px = sr.X;
-					int py = GetCornerHeight(compactField, sr, dir, out isBorderVertex);
-					int pz = sr.Y;
+					int px = spanReference.X;
+					int py = GetCornerHeight(compactField, spanReference, dir, out isBorderVertex);
+					int pz = spanReference.Y;
 
 					switch (dir)
 					{
@@ -444,11 +446,11 @@ namespace SharpNav
 					}
 
 					RegionId r = 0;
-					CompactSpan s = compactField[sr];
+					CompactSpan s = compactField[spanReference];
 					if (s.IsConnected(dir))
 					{
-						int dx = sr.X + dir.GetHorizontalOffset();
-						int dy = sr.Y + dir.GetVerticalOffset();
+						int dx = spanReference.X + dir.GetHorizontalOffset();
+						int dy = spanReference.Y + dir.GetVerticalOffset();
 						int di = compactField.Cells[dx + dy * compactField.Width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 						r = compactField.Spans[di].Region;
 						if (area != compactField.Areas[di])
@@ -465,17 +467,17 @@ namespace SharpNav
 					//save the point
 					points.Add(new ContourVertex(px, py, pz, r));
 
-					RemoveEdgeFlag(ref flags[sr.Index], dir);	// remove visited edges
+					RemoveEdgeFlag(ref flags[spanReference.Index], dir);	// remove visited edges
 					dir = dir.NextClockwise();			// rotate clockwise
 				}
 				else
 				{
 					//get a new cell(x, y) and span index(i)
 					int di = -1;
-					int dx = sr.X + dir.GetHorizontalOffset();
-					int dy = sr.Y + dir.GetVerticalOffset();
+					int dx = spanReference.X + dir.GetHorizontalOffset();
+					int dy = spanReference.Y + dir.GetVerticalOffset();
 					
-					CompactSpan s = compactField[sr];
+					CompactSpan s = compactField[spanReference];
 					if (s.IsConnected(dir))
 					{
 						CompactCell dc = compactField.Cells[dx + dy * compactField.Width];
@@ -489,11 +491,11 @@ namespace SharpNav
 						throw new InvalidOperationException("Something went wrong");
 					}
 
-					sr = new CompactSpanReference(dx, dy, di);
+					spanReference = new CompactSpanReference(dx, dy, di);
 					dir = dir.NextCounterClockwise(); // rotate counterclockwise
 				}
 
-				if (starti == sr.Index && startDir == dir)
+				if (startIndex == spanReference.Index && startDir == dir)
 					break;
 			}
 		}

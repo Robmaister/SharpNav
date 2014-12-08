@@ -34,10 +34,13 @@ namespace SharpNav
 		/// <param name="reg">The region ID of the contour.</param>
 		/// <param name="area">The area ID of the contour.</param>
 		/// <param name="borderSize">The size of the border.</param>
-		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, RegionId reg, AreaId area, int borderSize)
+		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, RegionId reg, AreaId area, int borderSize, bool storeRaw = false)
 		{
 			vertices = simplified.ToArray();
-			rawVertices = verts.ToArray();
+
+			if (storeRaw)
+				rawVertices = verts.ToArray();
+
 			regionId = reg;
 			this.area = area;
 
@@ -50,10 +53,13 @@ namespace SharpNav
 					vertices[j].Z -= borderSize;
 				}
 
-				for (int j = 0; j < rawVertices.Length; j++)
+				if (storeRaw)
 				{
-					rawVertices[j].X -= borderSize;
-					rawVertices[j].Z -= borderSize;
+					for (int j = 0; j < rawVertices.Length; j++)
+					{
+						rawVertices[j].X -= borderSize;
+						rawVertices[j].Z -= borderSize;
+					}
 				}
 			}
 		}
@@ -116,6 +122,8 @@ namespace SharpNav
 				return regionId;
 			}
 		}
+
+
 
 		/// <summary>
 		/// Gets the 2D area of the contour. A positive area means the contour is going forwards, a negative
