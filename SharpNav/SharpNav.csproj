@@ -126,6 +126,7 @@
     <Compile Include="Crowds\TargetState.cs" />
     <Compile Include="Crowds\UpdateFlags.cs" />
     <Compile Include="Direction.cs" />
+    <Compile Include="EdgeFlags.cs" />
     <Compile Include="Geometry\BBox2i.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Vector2i.cs" />

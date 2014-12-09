@@ -70,7 +70,7 @@ namespace SharpNav
 			int maxContours = Math.Max((int)compactField.MaxRegions, 8);
 			contours = new List<Contour>(maxContours);
 
-			byte[] flags = new byte[compactField.Spans.Length];
+			EdgeFlags[] flags = new EdgeFlags[compactField.Spans.Length];
 
 			//TODO move to CompactHeightField
 			//Modify flags array by using the CompactHeightfield data
@@ -109,13 +109,13 @@ namespace SharpNav
 							if (r == compactField.Spans[i].Region)
 							{
 								//res marks all the internal edges
-								AddEdgeFlag(ref flags[i], dir);
+								EdgeFlagsHelper.AddEdge(ref flags[i], dir);
 							}
 						}
 
 						//flags represents all the nonconnected edges, edges that are only internal
 						//the edges need to be between different regions
-						FlipEdgeFlags(ref flags[i]); 
+						EdgeFlagsHelper.FlipEdges(ref flags[i]); 
 					}
 				}
 			}
@@ -133,9 +133,9 @@ namespace SharpNav
 						//flags is either 0000 or 1111
 						//in other words, not connected at all 
 						//or has all connections, which means span is in the middle and thus not an edge.
-						if (flags[i] == 0 || flags[i] == 0xf)
+						if (flags[i] == EdgeFlags.None || flags[i] == EdgeFlags.All)
 						{
-							flags[i] = 0;
+							flags[i] = EdgeFlags.None;
 							continue;
 						}
 
@@ -346,70 +346,18 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Sets the bit for a direction to 1 in a specified byte.
-		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		/// <param name="dir">The direction to add.</param>
-		private static void AddEdgeFlag(ref byte flag, Direction dir)
-		{
-			//flag represented as 4 bits (left bit represents dir = 3, right bit represents dir = 0)
-			//default is 0000
-			//the |= operation sets each direction bit to 1 (so if dir = 0, 0000 -> 0001)
-			flag |= (byte)(1 << (int)dir);
-		}
-
-		/// <summary>
-		/// Flips all the bits used for flags in a byte.
-		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		private static void FlipEdgeFlags(ref byte flag)
-		{
-			//flips all the bits in res
-			//0000 (completely internal) -> 1111
-			//1111 (no internal edges) -> 0000
-			flag ^= 0xf;
-		}
-
-		/// <summary>
-		/// Determines whether the bit for a direction is set in a byte.
-		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		/// <param name="dir">The direction to check for.</param>
-		/// <returns>A value indicating whether the flag for the specified direction is set.</returns>
-		private static bool IsConnected(ref byte flag, Direction dir)
-		{
-			//four bits, each bit represents a direction (0 = non-connected, 1 = connected)
-			return (flag & (1 << (int)dir)) != 0;
-		}
-
-		/// <summary>
-		/// Sets the bit for a direction to 0 in a specified byte.
-		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		/// <param name="dir">The direction to remove.</param>
-		private static void RemoveEdgeFlag(ref byte flag, Direction dir)
-		{
-			//say flag = 0110
-			//dir = 2 (so 1 << dir = 0100)
-			//~dir = 1011
-			//flag &= ~dir
-			//flag = 0110 & 1011 = 0010
-			flag &= (byte)(~(1 << (int)dir)); // remove visited edges
-		}
-
-		/// <summary>
 		/// Initial generation of the contours
 		/// </summary>
 		/// <param name="compactField">The compact heightfield to reference.</param>
 		/// <param name="spanReference">A referecne to the span to start walking from.</param>
 		/// <param name="flags">An array of flags determinining </param>
 		/// <param name="points">The vertices of a contour.</param>
-		private void WalkContour(CompactHeightfield compactField, CompactSpanReference spanReference, byte[] flags, List<ContourVertex> points)
+		private void WalkContour(CompactHeightfield compactField, CompactSpanReference spanReference, EdgeFlags[] flags, List<ContourVertex> points)
 		{
 			Direction dir = Direction.West;
 
 			//find the first direction that has a connection 
-			while (!IsConnected(ref flags[spanReference.Index], dir))
+			while (!EdgeFlagsHelper.IsConnected(ref flags[spanReference.Index], dir))
 				dir++;
 
 			Direction startDir = dir;
@@ -422,7 +370,7 @@ namespace SharpNav
 			while (++iter < 40000)
 			{
 				// this direction is connected
-				if (IsConnected(ref flags[spanReference.Index], dir))
+				if (EdgeFlagsHelper.IsConnected(ref flags[spanReference.Index], dir))
 				{
 					// choose the edge corner
 					bool isBorderVertex;
@@ -468,7 +416,7 @@ namespace SharpNav
 					//save the point
 					points.Add(new ContourVertex(px, py, pz, r));
 
-					RemoveEdgeFlag(ref flags[spanReference.Index], dir);	// remove visited edges
+					EdgeFlagsHelper.RemoveEdge(ref flags[spanReference.Index], dir);	// remove visited edges
 					dir = dir.NextClockwise();			// rotate clockwise
 				}
 				else
