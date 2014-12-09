@@ -19,29 +19,30 @@ namespace SharpNav
 	{
 		//simplified vertices have much less edges
 		private ContourVertex[] vertices;
-
-		//raw vertices derived directly from CompactHeightfield
-		private ContourVertex[] rawVertices;
-
 		private RegionId regionId;
 		private AreaId area;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Contour"/> class.
 		/// </summary>
-		/// <param name="simplified">The simplified vertices of the contour.</param>
 		/// <param name="verts">The raw vertices of the contour.</param>
-		/// <param name="reg">The region ID of the contour.</param>
+		/// <param name="region">The region ID of the contour.</param>
 		/// <param name="area">The area ID of the contour.</param>
 		/// <param name="borderSize">The size of the border.</param>
-		public Contour(IEnumerable<ContourVertex> simplified, IEnumerable<ContourVertex> verts, RegionId reg, AreaId area, int borderSize, bool storeRaw = false)
+		/// <param name="maxError"></param>
+		/// <param name="maxEdgeLength"></param>
+		/// <param name="buildFlags"></param>
+		/// <param name="simplifyBuffer"></param>
+		public Contour(List<ContourVertex> verts, RegionId region, AreaId area, int borderSize, float maxError, int maxEdgeLength, ContourBuildFlags buildFlags, List<ContourVertex> simplifyBuffer = null)
 		{
-			vertices = simplified.ToArray();
+			if (simplifyBuffer == null)
+				simplifyBuffer = new List<ContourVertex>();
 
-			if (storeRaw)
-				rawVertices = verts.ToArray();
+			SimplifyContour(verts, maxError, maxEdgeLength, buildFlags, simplifyBuffer);
+			RemoveDegenerateSegments(simplifyBuffer);
 
-			regionId = reg;
+			this.vertices = simplifyBuffer.ToArray();
+			this.regionId = region;
 			this.area = area;
 
 			//remove offset
@@ -51,15 +52,6 @@ namespace SharpNav
 				{
 					vertices[j].X -= borderSize;
 					vertices[j].Z -= borderSize;
-				}
-
-				if (storeRaw)
-				{
-					for (int j = 0; j < rawVertices.Length; j++)
-					{
-						rawVertices[j].X -= borderSize;
-						rawVertices[j].Z -= borderSize;
-					}
 				}
 			}
 		}
@@ -76,17 +68,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the raw vertices of the contour.
-		/// </summary>
-		public ContourVertex[] RawVertices
-		{
-			get
-			{
-				return rawVertices;
-			}
-		}
-
-		/// <summary>
 		/// Gets a value indicating whether the contour is "null" (has less than 3 vertices).
 		/// </summary>
 		public bool IsNull
@@ -94,7 +75,7 @@ namespace SharpNav
 			get
 			{
 				//TODO operator overload == and != with null?
-				if (vertices.Length < 3)
+				if (vertices == null || vertices.Length < 3)
 					return true;
 
 				return false;
@@ -168,6 +149,9 @@ namespace SharpNav
 				newVerts.Add(contour.vertices[(ib + i) % lengthB]);
 
 			vertices = newVerts.ToArray();
+			
+			//delete the other contour
+			contour.vertices = null;
 		}
 
 		/// <summary>
@@ -212,6 +196,253 @@ namespace SharpNav
 					}
 				}
 			}
-		}		
+		}
+
+		/// <summary>
+		/// Simplify the contours by reducing the number of edges
+		/// </summary>
+		/// <param name="rawVerts">Initial vertices</param>
+		/// <param name="simplified">New and simplified vertices</param>
+		/// <param name="maxError">Maximum error allowed</param>
+		/// <param name="maxEdgeLen">The maximum edge length allowed</param>
+		/// <param name="buildFlags">Flags determines how to split the long edges</param>
+		private static void SimplifyContour(List<ContourVertex> rawVerts, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags, List<ContourVertex> simplified)
+		{
+			bool tesselateWallEdges = (buildFlags & ContourBuildFlags.TessellateWallEdges) == ContourBuildFlags.TessellateWallEdges;
+			bool tesselateAreaEdges = (buildFlags & ContourBuildFlags.TessellateAreaEdges) == ContourBuildFlags.TessellateAreaEdges;
+
+			//add initial points
+			bool hasConnections = false;
+			for (int i = 0; i < rawVerts.Count; i++)
+			{
+				if (Region.RemoveFlags(rawVerts[i].RegionId) != 0)
+				{
+					hasConnections = true;
+					break;
+				}
+			}
+
+			if (hasConnections)
+			{
+				//contour has some portals to other regions
+				//add new point to every location where region changes
+				for (int i = 0, end = rawVerts.Count; i < end; i++)
+				{
+					int ii = (i + 1) % end;
+					bool differentRegions = !Region.IsSameRegion(rawVerts[i].RegionId, rawVerts[ii].RegionId);
+					bool areaBorders = !Region.IsSameArea(rawVerts[i].RegionId, rawVerts[ii].RegionId);
+
+					if (differentRegions || areaBorders)
+					{
+						simplified.Add(new ContourVertex(rawVerts[i], i));
+					}
+				}
+			}
+
+			//add some points if thhere are no connections
+			if (simplified.Count == 0)
+			{
+				//find lower-left and upper-right vertices of contour
+				int lowerLeftX = rawVerts[0].X;
+				int lowerLeftY = rawVerts[0].Y;
+				int lowerLeftZ = rawVerts[0].Z;
+				RegionId lowerLeftI = 0;
+
+				int upperRightX = rawVerts[0].X;
+				int upperRightY = rawVerts[0].Y;
+				int upperRightZ = rawVerts[0].Z;
+				RegionId upperRightI = 0;
+
+				//iterate through points
+				for (int i = 0; i < rawVerts.Count; i++)
+				{
+					int x = rawVerts[i].X;
+					int y = rawVerts[i].Y;
+					int z = rawVerts[i].Z;
+
+					if (x < lowerLeftX || (x == lowerLeftX && z < lowerLeftZ))
+					{
+						lowerLeftX = x;
+						lowerLeftY = y;
+						lowerLeftZ = z;
+						lowerLeftI = (RegionId)i;
+					}
+
+					if (x > upperRightX || (x == upperRightX && z > upperRightZ))
+					{
+						upperRightX = x;
+						upperRightY = y;
+						upperRightZ = z;
+						upperRightI = (RegionId)i;
+					}
+				}
+
+				//save the points
+				simplified.Add(new ContourVertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
+				simplified.Add(new ContourVertex(upperRightX, upperRightY, upperRightZ, upperRightI));
+			}
+
+			//add points until all points are within error tolerance of simplified slope
+			int numPoints = rawVerts.Count;
+			for (int i = 0; i < simplified.Count; )
+			{
+				int ii = (i + 1) % simplified.Count;
+
+				//obtain (x, z) coordinates, along with region id
+				int ax = simplified[i].X;
+				int az = simplified[i].Z;
+				RegionId ai = simplified[i].RegionId;
+
+				int bx = simplified[ii].X;
+				int bz = simplified[ii].Z;
+				RegionId bi = simplified[ii].RegionId;
+
+				float maxDeviation = 0;
+				int maxi = -1;
+				int ci, countIncrement, endi;
+
+				//traverse segment in lexilogical order (try to go from smallest to largest coordinates?)
+				if (bx > ax || (bx == ax && bz > az))
+				{
+					countIncrement = 1;
+					ci = (int)(ai + countIncrement) % numPoints;
+					endi = (int)bi;
+				}
+				else
+				{
+					countIncrement = numPoints - 1;
+					ci = (int)(bi + countIncrement) % numPoints;
+					endi = (int)ai;
+				}
+
+				//tessellate only outer edges or edges between areas
+				if (Region.RemoveFlags(rawVerts[ci].RegionId) == 0 || Region.IsAreaBorder(rawVerts[ci].RegionId))
+				{
+					//find the maximum deviation
+					while (ci != endi)
+					{
+						float deviation = MathHelper.Distance.PointToSegment2DSquared(rawVerts[ci].X, rawVerts[ci].Z, ax, az, bx, bz);
+
+						if (deviation > maxDeviation)
+						{
+							maxDeviation = deviation;
+							maxi = ci;
+						}
+
+						ci = (ci + countIncrement) % numPoints;
+					}
+				}
+
+				//If max deviation is larger than accepted error, add new point
+				if (maxi != -1 && maxDeviation > (maxError * maxError))
+				{
+					simplified.Insert(i + 1, new ContourVertex(rawVerts[maxi], maxi));
+				}
+				else
+				{
+					i++;
+				}
+			}
+
+			//split too long edges
+			if (maxEdgeLen > 0 && (tesselateAreaEdges || tesselateWallEdges))
+			{
+				for (int i = 0; i < simplified.Count; )
+				{
+					int ii = (i + 1) % simplified.Count;
+
+					//get (x, z) coordinates along with region id
+					int ax = simplified[i].X;
+					int az = simplified[i].Z;
+					RegionId ai = simplified[i].RegionId;
+
+					int bx = simplified[ii].X;
+					int bz = simplified[ii].Z;
+					RegionId bi = simplified[ii].RegionId;
+
+					//find maximum deviation from segment
+					int maxi = -1;
+					int ci = (int)(ai + 1) % numPoints;
+
+					//tessellate only outer edges or edges between areas
+					bool tess = false;
+
+					//wall edges
+					if (tesselateWallEdges && Region.RemoveFlags(rawVerts[ci].RegionId) == 0)
+						tess = true;
+
+					//edges between areas
+					if (tesselateAreaEdges && Region.IsAreaBorder(rawVerts[ci].RegionId))
+						tess = true;
+
+					if (tess)
+					{
+						int dx = bx - ax;
+						int dz = bz - az;
+						if (dx * dx + dz * dz > maxEdgeLen * maxEdgeLen)
+						{
+							//round based on lexilogical direction (smallest to largest cooridinates, first by x.
+							//if x coordinates are equal, then compare z coordinates)
+							int n = bi < ai ? (bi + numPoints - ai) : (bi - ai);
+
+							if (n > 1)
+							{
+								if (bx > ax || (bx == ax && bz > az))
+									maxi = (int)(ai + n / 2) % numPoints;
+								else
+									maxi = (int)(ai + (n + 1) / 2) % numPoints;
+							}
+						}
+					}
+
+					//add new point
+					if (maxi != -1)
+					{
+						simplified.Insert(i + 1, new ContourVertex(rawVerts[maxi], maxi));
+					}
+					else
+					{
+						i++;
+					}
+				}
+			}
+
+			for (int i = 0; i < simplified.Count; i++)
+			{
+				ContourVertex sv = simplified[i];
+
+				//take edge vertex flag from current raw point and neighbor region from next raw point
+				int ai = (int)(sv.RegionId + 1) % numPoints;
+				RegionId bi = sv.RegionId;
+
+				//save new region id
+				sv.RegionId = (rawVerts[ai].RegionId & ((RegionId)Region.IdMask | RegionId.AreaBorder)) | (rawVerts[(int)bi].RegionId & RegionId.VertexBorder);
+
+				simplified[i] = sv;
+			}
+		}
+
+		/// <summary>
+		/// Removes degenerate segments from a simplified contour.
+		/// </summary>
+		/// <param name="simplified">The simplified contour.</param>
+		private static void RemoveDegenerateSegments(List<ContourVertex> simplified)
+		{
+			//remove adjacent vertices which are equal on the xz-plane
+			for (int i = 0; i < simplified.Count; i++)
+			{
+				int ni = i + 1;
+				if (ni >= simplified.Count)
+					ni = 0;
+
+				if (simplified[i].X == simplified[ni].X &&
+					simplified[i].Z == simplified[ni].Z)
+				{
+					//remove degenerate segment
+					simplified.RemoveAt(i);
+					i--;
+				}
+			}
+		}
 	}
 }

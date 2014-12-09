@@ -92,7 +92,6 @@ namespace SharpNav.Examples
 			displayModes.AddItem("Distance Field", "", DisplayMode.DistanceField);
 			displayModes.AddItem("Regions", "", DisplayMode.Regions);
 			displayModes.AddItem("Contours", "", DisplayMode.Contours);
-			displayModes.AddItem("Simplified Contours", "", DisplayMode.SimplifiedContours);
 			displayModes.AddItem("Polygon Mesh", "", DisplayMode.PolyMesh);
 			displayModes.AddItem("Polygon Mesh Detail", "", DisplayMode.PolyMeshDetail);
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);

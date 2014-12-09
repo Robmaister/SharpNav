@@ -455,7 +455,7 @@ namespace SharpNav.Examples
 			GL.DisableClientState(ArrayCap.NormalArray);
 		}
 
-		private void DrawContours(bool simplified)
+		private void DrawContours()
 		{
 			if (contourSet == null)
 				return;
@@ -490,23 +490,11 @@ namespace SharpNav.Examples
 				Color4 col = regionColors[(int)region];
 				GL.Color4(col);
 
-				if (simplified)
+				for (int i = 0; i < c.Vertices.Length; i++)
 				{
-					for (int i = 0; i < c.Vertices.Length; i++)
-					{
-						int ni = (i + 1) % c.Vertices.Length;
-						GL.Vertex3(c.Vertices[i].X, c.Vertices[i].Y, c.Vertices[i].Z);
-						GL.Vertex3(c.Vertices[ni].X, c.Vertices[ni].Y, c.Vertices[ni].Z);
-					}
-				}
-				else
-				{
-					for (int i = 0; i < c.RawVertices.Length; i++)
-					{
-						int ni = (i + 1) % c.RawVertices.Length;
-						GL.Vertex3(c.RawVertices[i].X, c.RawVertices[i].Y, c.RawVertices[i].Z);
-						GL.Vertex3(c.RawVertices[ni].X, c.RawVertices[ni].Y, c.RawVertices[ni].Z);
-					}
+					int ni = (i + 1) % c.Vertices.Length;
+					GL.Vertex3(c.Vertices[i].X, c.Vertices[i].Y, c.Vertices[i].Z);
+					GL.Vertex3(c.Vertices[ni].X, c.Vertices[ni].Y, c.Vertices[ni].Z);
 				}
 			}
 

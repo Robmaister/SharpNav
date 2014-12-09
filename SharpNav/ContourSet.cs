@@ -46,7 +46,7 @@ namespace SharpNav
 		/// <param name="maxError">The maximum amount of error allowed in simplification.</param>
 		/// <param name="maxEdgeLen">The maximum length of an edge.</param>
 		/// <param name="buildFlags">The settings for how contours should be built.</param>
-		public ContourSet(CompactHeightfield compactField, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
+		public ContourSet(CompactHeightfield compactField, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags, bool storeRawVertices = false)
 		{
 			//copy the CompactHeightfield data into ContourSet
 			this.bounds = compactField.Bounds;
@@ -148,15 +148,12 @@ namespace SharpNav
 						verts.Clear();
 						simplified.Clear();
 
-						//Mark points, which are basis of contous, intially with "verts"
-						//Then, simplify "verts" to get "simplified"
-						//Finally, clean up the "simplified" data
+						//Walk along a contour, then build it
 						WalkContour(compactField, spanRef, flags, verts);
-						SimplifyContour(verts, simplified, maxError, maxEdgeLen, buildFlags);
-						RemoveDegenerateSegments(simplified);
+						Contour contour = new Contour(verts, reg, compactField.Areas[i], borderSize, maxError, maxEdgeLen, buildFlags, simplified);
 
-						if (simplified.Count >= 3)
-							contours.Add(new Contour(simplified, verts, reg, compactField.Areas[i], borderSize));
+						if (!contour.IsNull)
+							contours.Add(contour);
 					}
 				}
 			}
@@ -187,7 +184,11 @@ namespace SharpNav
 
 					//Merge if found.
 					if (mergeIndex != -1)
+					{
 						contours[mergeIndex].MergeWith(cont);
+						contours.RemoveAt(i);
+						i--;
+					}
 				}
 			}
 		}
@@ -592,272 +593,6 @@ namespace SharpNav
 			}
 
 			return cornerHeight;
-		}
-
-		/// <summary>
-		/// Simplify the contours by reducing the number of edges
-		/// </summary>
-		/// <param name="points">Initial vertices</param>
-		/// <param name="simplified">New and simplified vertices</param>
-		/// <param name="maxError">Maximum error allowed</param>
-		/// <param name="maxEdgeLen">The maximum edge length allowed</param>
-		/// <param name="buildFlags">Flags determines how to split the long edges</param>
-		private void SimplifyContour(List<ContourVertex> points, List<ContourVertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
-		{
-			//add initial points
-			bool hasConnections = false;
-			for (int i = 0; i < points.Count; i++)
-			{
-				if (Region.RemoveFlags(points[i].RegionId) != 0)
-				{
-					hasConnections = true;
-					break;
-				}
-			}
-
-			if (hasConnections)
-			{
-				//contour has some portals to other regions
-				//add new point to every location where region changes
-				for (int i = 0, end = points.Count; i < end; i++)
-				{
-					int ii = (i + 1) % end;
-					bool differentRegions = !Region.IsSameRegion(points[i].RegionId, points[ii].RegionId);
-					bool areaBorders = !Region.IsSameArea(points[i].RegionId, points[ii].RegionId);
-					
-					if (differentRegions || areaBorders)
-					{
-						simplified.Add(new ContourVertex(points[i], i));
-					}
-				}
-			}
-
-			//add some points if thhere are no connections
-			if (simplified.Count == 0)
-			{
-				//find lower-left and upper-right vertices of contour
-				int lowerLeftX = points[0].X;
-				int lowerLeftY = points[0].Y;
-				int lowerLeftZ = points[0].Z;
-				RegionId lowerLeftI = 0;
-				
-				int upperRightX = points[0].X;
-				int upperRightY = points[0].Y;
-				int upperRightZ = points[0].Z;
-				RegionId upperRightI = 0;
-				
-				//iterate through points
-				for (int i = 0; i < points.Count; i++)
-				{
-					int x = points[i].X;
-					int y = points[i].Y;
-					int z = points[i].Z;
-					
-					if (x < lowerLeftX || (x == lowerLeftX && z < lowerLeftZ))
-					{
-						lowerLeftX = x;
-						lowerLeftY = y;
-						lowerLeftZ = z;
-						lowerLeftI = (RegionId)i;
-					}
-					
-					if (x > upperRightX || (x == upperRightX && z > upperRightZ))
-					{
-						upperRightX = x;
-						upperRightY = y;
-						upperRightZ = z;
-						upperRightI = (RegionId)i;
-					}
-				}
-				
-				//save the points
-				simplified.Add(new ContourVertex(lowerLeftX, lowerLeftY, lowerLeftZ, lowerLeftI));
-				simplified.Add(new ContourVertex(upperRightX, upperRightY, upperRightZ, upperRightI));
-			}
-
-			//add points until all points are within erorr tolerance of simplified slope
-			int numPoints = points.Count;
-			for (int i = 0; i < simplified.Count;)
-			{
-				int ii = (i + 1) % simplified.Count;
-
-				//obtain (x, z) coordinates, along with region id
-				int ax = simplified[i].X;
-				int az = simplified[i].Z;
-				RegionId ai = simplified[i].RegionId;
-
-				int bx = simplified[ii].X;
-				int bz = simplified[ii].Z;
-				RegionId bi = simplified[ii].RegionId;
-
-				float maxDeviation = 0;
-				int maxi = -1;
-				int ci, countIncrement, endi;
-
-				//traverse segment in lexilogical order (try to go from smallest to largest coordinates?)
-				if (bx > ax || (bx == ax && bz > az))
-				{
-					countIncrement = 1;
-					ci = (int)(ai + countIncrement) % numPoints;
-					endi = (int)bi;
-				}
-				else
-				{
-					countIncrement = numPoints - 1;
-					ci = (int)(bi + countIncrement) % numPoints;
-					endi = (int)ai;
-				}
-
-				//tessellate only outer edges or edges between areas
-				if (Region.RemoveFlags(points[ci].RegionId) == 0 || Region.IsAreaBorder(points[ci].RegionId))
-				{
-					//find the maximum deviation
-					while (ci != endi)
-					{
-						float deviation = MathHelper.Distance.PointToSegment2DSquared(points[ci].X, points[ci].Z, ax, az, bx, bz);
-						
-						if (deviation > maxDeviation)
-						{
-							maxDeviation = deviation;
-							maxi = ci;
-						}
-
-						ci = (ci + countIncrement) % numPoints;
-					}
-				}
-
-				//If max deviation is larger than accepted error, add new point
-				if (maxi != -1 && maxDeviation > (maxError * maxError))
-				{
-					//add extra space to list
-					simplified.Add(new ContourVertex(0, 0, 0, 0));
-
-					//make space for new point by shifting elements to the right
-					//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
-					for (int j = simplified.Count - 1; j > i; j--)
-					{
-						simplified[j] = simplified[j - 1];
-					}
-
-					//add point 
-					simplified[i + 1] = new ContourVertex(points[maxi], maxi);
-				}
-				else
-				{
-					i++;
-				}
-			}
-
-			//split too long edges
-			if (maxEdgeLen > 0 && (buildFlags & (ContourBuildFlags.TessellateAreaEdges | ContourBuildFlags.TessellateWallEdges)) != 0)
-			{
-				for (int i = 0; i < simplified.Count;)
-				{
-					int ii = (i + 1) % simplified.Count;
-
-					//get (x, z) coordinates along with region id
-					int ax = simplified[i].X;
-					int az = simplified[i].Z;
-					RegionId ai = simplified[i].RegionId;
-
-					int bx = simplified[ii].X;
-					int bz = simplified[ii].Z;
-					RegionId bi = simplified[ii].RegionId;
-
-					//find maximum deviation from segment
-					int maxi = -1;
-					int ci = (int)(ai + 1) % numPoints;
-
-					//tessellate only outer edges or edges between areas
-					bool tess = false;
-
-					//wall edges
-					if ((buildFlags & ContourBuildFlags.TessellateWallEdges) != 0 && Region.RemoveFlags(points[ci].RegionId) == 0)
-						tess = true;
-
-					//edges between areas
-					if ((buildFlags & ContourBuildFlags.TessellateAreaEdges) != 0 && Region.IsAreaBorder(points[ci].RegionId))
-						tess = true;
-
-					if (tess)
-					{
-						int dx = bx - ax;
-						int dz = bz - az;
-						if (dx * dx + dz * dz > maxEdgeLen * maxEdgeLen)
-						{
-							//round based on lexilogical direction (smallest to largest cooridinates, first by x.
-							//if x coordinates are equal, then compare z coordinates)
-							int n = bi < ai ? (bi + numPoints - ai) : (bi - ai);
-							
-							if (n > 1)
-							{
-								if (bx > ax || (bx == ax && bz > az))
-									maxi = (int)(ai + n / 2) % numPoints;
-								else
-									maxi = (int)(ai + (n + 1) / 2) % numPoints;
-							}
-						}
-					}
-
-					//add new point
-					if (maxi != -1)
-					{
-						//add extra space to list
-						simplified.Add(new ContourVertex(0, 0, 0, 0));
-
-						//make space for new point by shifting elements to the right
-						//ex: element at index 5 is now at index 6, since array[6] takes the value of array[6 - 1]
-						for (int j = simplified.Count - 1; j > i; j--)
-						{
-							simplified[j] = simplified[j - 1];
-						}
-
-						//add point
-						simplified[i + 1] = new ContourVertex(points[maxi], maxi);
-					}
-					else
-					{
-						i++;
-					}
-				}
-			}
-
-			for (int i = 0; i < simplified.Count; i++)
-			{
-				ContourVertex sv = simplified[i];
-
-				//take edge vertex flag from current raw point and neighbor region from next raw point
-				int ai = (int)(sv.RegionId + 1) % numPoints;
-				RegionId bi = sv.RegionId;
-
-				//save new region id
-				sv.RegionId = (points[ai].RegionId & ((RegionId)Region.IdMask | RegionId.AreaBorder)) | (points[(int)bi].RegionId & RegionId.VertexBorder);
-
-				simplified[i] = sv;
-			}
-		}
-
-		/// <summary>
-		/// Removes degenerate segments from a simplified contour.
-		/// </summary>
-		/// <param name="simplified">The simplified contour.</param>
-		private void RemoveDegenerateSegments(List<ContourVertex> simplified)
-		{
-			//remove adjacent vertices which are equal on the xz-plane
-			for (int i = 0; i < simplified.Count; i++)
-			{
-				int ni = i + 1;
-				if (ni >= simplified.Count)
-					ni = 0;
-
-				if (simplified[i].X == simplified[ni].X &&
-					simplified[i].Z == simplified[ni].Z)
-				{
-					//remove degenerate segment
-					simplified.RemoveAt(i);
-					i--;
-				}
-			}
 		}
 	}
 }

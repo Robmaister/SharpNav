@@ -45,7 +45,6 @@ namespace SharpNav.Examples
 			DistanceField,
 			Regions,
 			Contours,
-			SimplifiedContours,
 			PolyMesh,
 			PolyMeshDetail,
 			Pathfinding,
@@ -313,10 +312,7 @@ namespace SharpNav.Examples
 					DrawRegions();
 					break;
 				case DisplayMode.Contours:
-					DrawContours(false);
-					break;
-				case DisplayMode.SimplifiedContours:
-					DrawContours(true);
+					DrawContours();
 					break;
 				case DisplayMode.PolyMesh:
 					DrawPolyMesh();
