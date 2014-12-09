@@ -1,27 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+
+using System;
 
 namespace SharpNav
 {
+	/// <summary>
+	/// An enum similar to <see cref="Direction"/>, but with the ability to store multiple directions.
+	/// </summary>
 	[Flags]
 	public enum EdgeFlags : byte
 	{
+		/// <summary>No edges are selected.</summary>
 		None = 0x0,
+
+		/// <summary>The west edge is selected.</summary>
 		West = 0x1,
+
+		/// <summary>The north edge is selected.</summary>
 		North = 0x2,
+
+		/// <summary>The east edge is selected.</summary>
 		East = 0x4,
+
+		/// <summary>The south edge is selected.</summary>
 		South = 0x8,
+
+		/// <summary>All of the edges are selected.</summary>
 		All = West | North | East | South
 	}
 
+	/// <summary>
+	/// A static class with helper functions to modify instances of the <see cref="EdgeFlags"/> enum.
+	/// </summary>
 	public static class EdgeFlagsHelper
 	{
 		/// <summary>
-		/// Sets the bit for a direction to 1 in a specified byte.
+		/// Adds an edge in a specified direction to an instance of <see cref="EdgeFlags"/>.
 		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
+		/// <param name="edges">An existing set of edges.</param>
 		/// <param name="dir">The direction to add.</param>
 		public static void AddEdge(ref EdgeFlags edges, Direction dir)
 		{
@@ -29,33 +46,33 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Flips all the bits used for flags in a byte.
+		/// Flips the set of edges in an instance of <see cref="EdgeFlags"/>.
 		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		public static void FlipEdges(ref EdgeFlags flag)
+		/// <param name="edges">An existing set of edges.</param>
+		public static void FlipEdges(ref EdgeFlags edges)
 		{
-			flag ^= EdgeFlags.All;
+			edges ^= EdgeFlags.All;
 		}
 
 		/// <summary>
-		/// Determines whether the bit for a direction is set in a byte.
+		/// Determines whether an instance of <see cref="EdgeFlags"/> includes an edge in a specified direction.
 		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
-		/// <param name="dir">The direction to check for.</param>
-		/// <returns>A value indicating whether the flag for the specified direction is set.</returns>
-		public static bool IsConnected(ref EdgeFlags flag, Direction dir)
+		/// <param name="edges">A set of edges.</param>
+		/// <param name="dir">The direction to check for an edge.</param>
+		/// <returns>A value indicating whether the set of edges contains an edge in the specified direction.</returns>
+		public static bool IsConnected(ref EdgeFlags edges, Direction dir)
 		{
-			return (flag & (EdgeFlags)(1 << (int)dir)) != EdgeFlags.None;
+			return (edges & (EdgeFlags)(1 << (int)dir)) != EdgeFlags.None;
 		}
 
 		/// <summary>
-		/// Sets the bit for a direction to 0 in a specified byte.
+		/// Removes an edge from an instance of <see cref="EdgeFlags"/>.
 		/// </summary>
-		/// <param name="flag">The byte containing flags.</param>
+		/// <param name="edges">A set of edges.</param>
 		/// <param name="dir">The direction to remove.</param>
-		public static void RemoveEdge(ref EdgeFlags flag, Direction dir)
+		public static void RemoveEdge(ref EdgeFlags edges, Direction dir)
 		{
-			flag &= (EdgeFlags)(~(1 << (int)dir)); // remove visited edges
+			edges &= (EdgeFlags)(~(1 << (int)dir));
 		}
 	}
 }
