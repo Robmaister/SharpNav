@@ -408,7 +408,7 @@ namespace SharpNav
 			RegionId[] regionBuffer = new RegionId[spans.Length];
 			int[] distanceBuffer = new int[spans.Length];
 
-			RegionId regionId = (RegionId)1;
+			int regionIndex = 1;
 			int level = ((maxDistance + 1) / 2) * 2;
 			 
 			const int ExpandIters = 8;
@@ -419,14 +419,11 @@ namespace SharpNav
 				int borderWidth = Math.Min(width, borderSize);
 				int borderHeight = Math.Min(length, borderSize);
 
-				RegionId baseRegionId = Region.IdWithBorderFlag(regionId);
-
 				//fill regions
-				FillRectangleRegion(regions, baseRegionId + 0, 0, borderWidth, 0, length);
-				FillRectangleRegion(regions, baseRegionId + 1, width - borderWidth, width, 0, length);
-				FillRectangleRegion(regions, baseRegionId + 2, 0, width, 0, borderHeight);
-				FillRectangleRegion(regions, baseRegionId + 3, 0, width, length - borderHeight, length);
-				regionId += 4;
+				FillRectangleRegion(regions, new RegionId(regionIndex++, RegionFlags.Border), 0, borderWidth, 0, length);
+				FillRectangleRegion(regions, new RegionId(regionIndex++, RegionFlags.Border), width - borderWidth, width, 0, length);
+				FillRectangleRegion(regions, new RegionId(regionIndex++, RegionFlags.Border), 0, width, 0, borderHeight);
+				FillRectangleRegion(regions, new RegionId(regionIndex++, RegionFlags.Border), 0, width, length - borderHeight, length);
 
 				this.borderSize = borderSize;
 			}
@@ -450,8 +447,8 @@ namespace SharpNav
 				{
 					var spanRef = stacks[stackId][j];
 					if (spanRef.Index >= 0 && regions[spanRef.Index] == 0)
-						if (FloodRegion(regions, floodDistances, regionId, level, ref spanRef))
-							regionId++;
+						if (FloodRegion(regions, floodDistances, regionIndex, level, ref spanRef))
+							regionIndex++;
 				}
 			}
 
@@ -459,7 +456,7 @@ namespace SharpNav
 			ExpandRegions(regions, floodDistances, ExpandIters * 8, 0, null, regionBuffer, distanceBuffer);
 
 			//filter out small regions
-			this.maxRegions = FilterSmallRegions(regions, minRegionArea, mergeRegionArea, regionId);
+			this.maxRegions = FilterSmallRegions(regions, minRegionArea, mergeRegionArea, regionIndex);
 
 			//write the result out
 			for (int i = 0; i < spans.Length; i++)
@@ -492,14 +489,14 @@ namespace SharpNav
 		/// <param name="mergeRegionSize">The size of the regions after merging</param>
 		/// <param name="maxRegionId">determines the number of regions available</param>
 		/// <returns>The reduced number of regions.</returns>
-		private int FilterSmallRegions(RegionId[] regionIds, int minRegionArea, int mergeRegionSize, RegionId maxRegionId)
+		private int FilterSmallRegions(RegionId[] regionIds, int minRegionArea, int mergeRegionSize, int maxRegionId)
 		{
-			int numRegions = (int)maxRegionId + 1;
+			int numRegions = maxRegionId + 1;
 			Region[] regions = new Region[numRegions];
 
 			//construct regions
 			for (int i = 0; i < numRegions; i++)
-				regions[i] = new Region((RegionId)i);
+				regions[i] = new Region(i);
 
 			//find edge of a region and find connections around a contour
 			for (int y = 0; y < length; y++)
@@ -512,7 +509,7 @@ namespace SharpNav
 						CompactSpanReference spanRef = new CompactSpanReference(x, y, i);
 
 						//HACK since the border region flag makes r negative, I changed r == 0 to r <= 0. Figure out exactly what maxRegionId's purpose is and see if Region.IsBorderOrNull is all we need.
-						RegionId r = regionIds[i];
+						int r = (int)regionIds[i];
 						if (r <= 0 || (int)r >= numRegions)
 							continue;
 
@@ -556,7 +553,7 @@ namespace SharpNav
 			for (int i = 0; i < numRegions; i++)
 			{
 				Region reg = regions[i];
-				if (reg.IsBorderOrNull() || reg.SpanCount == 0 || reg.Visited)
+				if (reg.IsBorderOrNull || reg.SpanCount == 0 || reg.Visited)
 					continue;
 
 				//count the total size of all connected regions
@@ -567,7 +564,7 @@ namespace SharpNav
 				trace.Clear();
 
 				reg.Visited = true;
-				stack.Push((RegionId)i);
+				stack.Push(reg.Id);
 
 				while (stack.Count > 0)
 				{
@@ -581,14 +578,14 @@ namespace SharpNav
 
 					for (int j = 0; j < creg.Connections.Count; j++)
 					{
-						if (Region.IsBorder(creg.Connections[j]))
+						if (RegionId.HasFlags(creg.Connections[j], RegionFlags.Border))
 						{
 							connectsToBorder = true;
 							continue;
 						}
 
 						Region neiReg = regions[(int)creg.Connections[j]];
-						if (neiReg.Visited || neiReg.IsBorderOrNull())
+						if (neiReg.Visited || neiReg.IsBorderOrNull)
 							continue;
 
 						//visit
@@ -608,7 +605,7 @@ namespace SharpNav
 						int index = (int)trace[j];
 
 						regions[index].SpanCount = 0;
-						regions[index].Id = 0;
+						regions[index].Id = RegionId.Null;
 					}
 				}
 			}
@@ -621,7 +618,7 @@ namespace SharpNav
 				for (int i = 0; i < numRegions; i++)
 				{
 					Region reg = regions[i];
-					if (reg.IsBorderOrNull() || reg.SpanCount == 0)
+					if (reg.IsBorderOrNull || reg.SpanCount == 0)
 						continue;
 
 					//check to see if region should be merged
@@ -634,11 +631,11 @@ namespace SharpNav
 					RegionId mergeId = reg.Id;
 					for (int j = 0; j < reg.Connections.Count; j++)
 					{
-						if (Region.IsBorder(reg.Connections[j]))
+						if (RegionId.HasFlags(reg.Connections[j], RegionFlags.Border))
 							continue;
 
 						Region mreg = regions[(int)reg.Connections[j]];
-						if (mreg.IsBorderOrNull())
+						if (mreg.IsBorderOrNull)
 							continue;
 
 						if (mreg.SpanCount < smallest && reg.CanMergeWith(mreg) && mreg.CanMergeWith(reg))
@@ -660,7 +657,7 @@ namespace SharpNav
 							//fix regions pointing to current region
 							for (int j = 0; j < numRegions; j++)
 							{
-								if (regions[j].IsBorderOrNull())
+								if (regions[j].IsBorderOrNull)
 									continue;
 
 								//if another regions was already merged into current region
@@ -684,20 +681,20 @@ namespace SharpNav
 			{
 				regions[i].Remap = false;
 
-				if (regions[i].IsBorderOrNull())
+				if (regions[i].IsBorderOrNull)
 					continue;
 
 				regions[i].Remap = true;
 			}
 
-			RegionId regIdGen = 0;
+			int regIdGen = 0;
 			for (int i = 0; i < numRegions; i++)
 			{
 				if (!regions[i].Remap)
 					continue;
 
 				RegionId oldId = regions[i].Id;
-				RegionId newId = ++regIdGen;
+				RegionId newId = new RegionId(++regIdGen);
 				for (int j = i; j < numRegions; j++)
 				{
 					if (regions[j].Id == oldId)
@@ -711,11 +708,11 @@ namespace SharpNav
 			//Remap regions
 			for (int i = 0; i < spans.Length; i++)
 			{
-				if (!Region.IsBorder(regionIds[i]))
+				if (!RegionId.HasFlags(regionIds[i], RegionFlags.Border))
 					regionIds[i] = regions[(int)regionIds[i]].Id;
 			}
 
-			return (int)regIdGen;
+			return regIdGen;
 		}
 
 		/// <summary>
@@ -1042,7 +1039,7 @@ namespace SharpNav
 						//compare distance to previous best
 						RegionId ri = regions[di];
 						int dist = floodDistances[di];
-						if (!Region.IsBorderOrNull(ri))
+						if (!(ri.IsNull || RegionId.HasFlags(ri, RegionFlags.Border)))
 						{
 							//set region and distance if better
 							if (dist + 2 < minDist)
@@ -1093,11 +1090,11 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="regions">source region</param>
 		/// <param name="floodDistances">source distances</param>
-		/// <param name="region">region id</param>
+		/// <param name="regionIndex">region id</param>
 		/// <param name="level">current level</param>
 		/// <param name="start">A reference to the starting span.</param>
 		/// <returns>Always true.</returns>
-		private bool FloodRegion(RegionId[] regions, int[] floodDistances, RegionId region, int level, ref CompactSpanReference start)
+		private bool FloodRegion(RegionId[] regions, int[] floodDistances, int regionIndex, int level, ref CompactSpanReference start)
 		{
 			//TODO this method should always return true, make it not return a bool?
 			//flood fill mark region
@@ -1105,7 +1102,7 @@ namespace SharpNav
 			stack.Push(start);
 
 			AreaId area = areas[start.Index];
-			regions[start.Index] = region;
+			regions[start.Index] = new RegionId(regionIndex);
 			floodDistances[start.Index] = 0;
 
 			int lev = level >= 2 ? level - 2 : 0;
@@ -1117,7 +1114,7 @@ namespace SharpNav
 				CompactSpan cs = spans[cell.Index];
 
 				//check if any of the neighbors already have a valid reigon set
-				RegionId ar = 0;
+				RegionId ar = RegionId.Null;
 				for (var dir = Direction.West; dir <= Direction.South; dir++)
 				{
 					//8 connected
@@ -1132,10 +1129,10 @@ namespace SharpNav
 
 						RegionId nr = regions[di];
 
-						if (Region.IsBorder(nr)) //skip borders
+						if (RegionId.HasFlags(nr, RegionFlags.Border)) //skip borders
 							continue;
 
-						if (nr != 0 && nr != region)
+						if (nr != 0 && nr != regionIndex)
 						{
 							ar = nr;
 							break;
@@ -1153,7 +1150,7 @@ namespace SharpNav
 								continue;
 
 							RegionId nr2 = regions[di2];
-							if (nr2 != 0 && nr2 != region)
+							if (nr2 != 0 && nr2 != regionIndex)
 							{
 								ar = nr2;
 								break;
@@ -1164,7 +1161,7 @@ namespace SharpNav
 
 				if (ar != 0)
 				{
-					regions[cell.Index] = 0;
+					regions[cell.Index] = RegionId.Null;
 					continue;
 				}
 
@@ -1184,7 +1181,7 @@ namespace SharpNav
 
 						if (distances[di] >= lev && regions[di] == 0)
 						{
-							regions[di] = region;
+							regions[di] = new RegionId(regionIndex);
 							floodDistances[di] = 0;
 							stack.Push(new CompactSpanReference(dx, dy, di));
 						}
@@ -1206,7 +1203,7 @@ namespace SharpNav
 		private bool IsSolidEdge(RegionId[] regions, ref CompactSpanReference spanRef, Direction dir)
 		{
 			CompactSpan s = spans[spanRef.Index];
-			RegionId r = 0;
+			RegionId r = RegionId.Null;
 
 			if (s.IsConnected(dir))
 			{
@@ -1235,7 +1232,7 @@ namespace SharpNav
 			int starti = spanRef.Index;
 
 			CompactSpan ss = spans[starti];
-			RegionId curReg = 0;
+			RegionId curReg = RegionId.Null;
 
 			if (ss.IsConnected(dir))
 			{
@@ -1255,7 +1252,7 @@ namespace SharpNav
 				if (IsSolidEdge(regions, ref spanRef, dir))
 				{
 					//choose the edge corner
-					RegionId r = 0;
+					RegionId r = RegionId.Null;
 					if (s.IsConnected(dir))
 					{
 						int dx = spanRef.X + dir.GetHorizontalOffset();

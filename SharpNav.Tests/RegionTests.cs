@@ -19,11 +19,11 @@ namespace SharpNav.Tests
 		[Test]
 		public void Region_AvoidDuplicateFloors_Success()
 		{
-			var reg = new Region((RegionId)1);
+			var reg = new Region(1);
 
-			reg.AddUniqueFloorRegion((RegionId)10);
-			reg.AddUniqueFloorRegion((RegionId)10);
-			reg.AddUniqueFloorRegion((RegionId)20);
+			reg.AddUniqueFloorRegion(new RegionId(10));
+			reg.AddUniqueFloorRegion(new RegionId(10));
+			reg.AddUniqueFloorRegion(new RegionId(20));
 
 			Assert.AreEqual((int)reg.FloorRegions[0], 10);
 			Assert.AreEqual((int)reg.FloorRegions[1], 20);
@@ -33,11 +33,11 @@ namespace SharpNav.Tests
 		[Test]
 		public void Region_RemoveAdjacentConnections_Success()
 		{
-			var reg = new Region((RegionId)1);
+			var reg = new Region(1);
 
-			reg.Connections.Add((RegionId)10);
-			reg.Connections.Add((RegionId)20);
-			reg.Connections.Add((RegionId)20);
+			reg.Connections.Add(new RegionId(10));
+			reg.Connections.Add(new RegionId(20));
+			reg.Connections.Add(new RegionId(20));
 			reg.RemoveAdjacentNeighbours();
 
 			Assert.AreEqual((int)reg.Connections[1], 20);
@@ -46,11 +46,11 @@ namespace SharpNav.Tests
 		[Test]
 		public void Region_ConnectedBorder_Success()
 		{
-			var reg = new Region((RegionId)1);
+			var reg = new Region(1);
 
-			reg.Connections.Add((RegionId)10);
-			reg.Connections.Add((RegionId)20);
-			reg.Connections.Add((RegionId)30);
+			reg.Connections.Add(new RegionId(10));
+			reg.Connections.Add(new RegionId(20));
+			reg.Connections.Add(new RegionId(30));
 
 			Assert.AreEqual(reg.IsConnectedToBorder(), false);
 		}
@@ -58,17 +58,17 @@ namespace SharpNav.Tests
 		[Test]
 		public void Region_ReplaceNeighbor_Success()
 		{
-			var reg = new Region((RegionId)1);
+			var reg = new Region(1);
 
-			reg.Connections.Add((RegionId)10);
-			reg.Connections.Add((RegionId)20);
-			reg.Connections.Add((RegionId)30);
+			reg.Connections.Add(new RegionId(10));
+			reg.Connections.Add(new RegionId(20));
+			reg.Connections.Add(new RegionId(30));
 
-			reg.AddUniqueFloorRegion((RegionId)10);
-			reg.AddUniqueFloorRegion((RegionId)20);
-			reg.AddUniqueFloorRegion((RegionId)30);
+			reg.AddUniqueFloorRegion(new RegionId(10));
+			reg.AddUniqueFloorRegion(new RegionId(20));
+			reg.AddUniqueFloorRegion(new RegionId(30));
 
-			reg.ReplaceNeighbour((RegionId)10, 0);
+			reg.ReplaceNeighbour(new RegionId(10), RegionId.Null);
 
 			Assert.AreEqual((int)reg.Connections[0], 0);
 			Assert.AreEqual((int)reg.FloorRegions[0], 0);
@@ -77,12 +77,12 @@ namespace SharpNav.Tests
 		[Test]
 		public void Region_MergeWithOther_Success()
 		{
-			var reg1 = new Region((RegionId)1);
-			var reg2 = new Region((RegionId)2);
+			var reg1 = new Region(1);
+			var reg2 = new Region(2);
 
-			reg1.Connections.Add((RegionId)2);
-			reg1.AddUniqueFloorRegion((RegionId)1);
-			reg1.AddUniqueFloorRegion((RegionId)3);
+			reg1.Connections.Add(new RegionId(2));
+			reg1.AddUniqueFloorRegion(new RegionId(1));
+			reg1.AddUniqueFloorRegion(new RegionId(3));
 
 			Assert.True(reg1.CanMergeWith(reg2));
 			Assert.True(reg2.CanMergeWith(reg1));

@@ -17,25 +17,203 @@ namespace SharpNav
 	/// Flags that can be applied to a region.
 	/// </summary>
 	[Flags]
-	public enum RegionId : int
+	public enum RegionFlags
 	{
-		/// <summary>The null region.</summary>
-		Null = 0,
+		/// <summary>
+		/// The border flag
+		/// </summary>
+		Border = 0x20000000,
 
 		/// <summary>
 		/// The vertex border flag
 		/// </summary>
-		VertexBorder = 0x20000000,
+		VertexBorder = 0x40000000,
 
 		/// <summary>
 		/// The area border flag
 		/// </summary>
-		AreaBorder = 0x40000000,
+		AreaBorder = unchecked((int)0x80000000)
+	}
+
+	/// <summary>
+	/// A <see cref="RegionId"/> is an identifier with flags marking borders.
+	/// </summary>
+	[Serializable]
+	public struct RegionId : IEquatable<RegionId>, IEquatable<int>
+	{
+		/// <summary>
+		/// A null region is one with an ID of 0.
+		/// </summary>
+		public static readonly RegionId Null = new RegionId(0, 0);
 
 		/// <summary>
-		/// The border flag
+		/// A bitmask 
 		/// </summary>
-		Border = unchecked((int)0x80000000)
+		public const int MaskId = 0x1fffffff;
+
+		/// <summary>
+		/// The internal storage of a <see cref="RegionId"/>. The <see cref="RegionFlags"/> portion are the most
+		/// significant bits, the integer identifier are the least significant bits, marked by <see cref="MaskId"/>.
+		/// </summary>
+		private int bits;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="RegionId"/> struct without any flags.
+		/// </summary>
+		/// <param name="id">The identifier.</param>
+		public RegionId(int id)
+			: this(id, 0)
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref=""/>
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="flags"></param>
+		public RegionId(int id, RegionFlags flags)
+		{
+			int masked = id & MaskId;
+
+			if (masked != id)
+				throw new ArgumentOutOfRangeException("id", "The provided id is outside of the valid range. The 3 most significant bits must be 0. Maybe you wanted RegionId.FromRawBits()?");
+
+			if ((RegionFlags)((int)flags & ~MaskId) != flags)
+				throw new ArgumentException("flags", "The provide region flags are invalid.");
+
+			bits = masked | (int)flags;
+		}
+
+		public int Id
+		{
+			get
+			{
+				return bits & MaskId;
+			}
+		}
+
+		public RegionFlags Flags
+		{
+			get
+			{
+				return (RegionFlags)(bits & ~MaskId);
+			}
+		}
+
+		public bool IsNull
+		{
+			get
+			{
+				return (bits & MaskId) == 0;
+			}
+		}
+
+		public static RegionId FromRawBits(int bits)
+		{
+			RegionId id;
+			id.bits = bits;
+			return id;
+		}
+
+		public static RegionId WithFlags(RegionId region, RegionFlags flags)
+		{
+			if ((RegionFlags)((int)flags & ~MaskId) != flags)
+				throw new ArgumentException("flags", "The provide region flags are invalid.");
+
+			RegionFlags newFlags = region.Flags & flags;
+			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
+		}
+
+		public static RegionId WithoutFlags(RegionId region)
+		{
+			return new RegionId(region.Id);
+		}
+
+		public static RegionId WithoutFlags(RegionId region, RegionFlags flags)
+		{
+			if ((RegionFlags)((int)flags & ~MaskId) != flags)
+				throw new ArgumentException("flags", "The provide region flags are invalid.");
+
+			RegionFlags newFlags = region.Flags & ~flags;
+			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
+		}
+
+		public static bool HasFlags(RegionId region, RegionFlags flags)
+		{
+			return (region.Flags & flags) != 0;
+		}
+
+		public static bool operator ==(RegionId left, int right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(RegionId left, int right)
+		{
+			return !(left == right);
+		}
+
+		public static bool operator ==(RegionId left, RegionId right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(RegionId left, RegionId right)
+		{
+			return !(left == right);
+		}
+
+		public static explicit operator int(RegionId id)
+		{
+			return id.bits;
+		}
+
+		public bool Equals(RegionId other)
+		{
+			bool thisNull = this.IsNull;
+			bool otherNull = other.IsNull;
+
+			if (thisNull && otherNull)
+				return true;
+			else if (thisNull ^ otherNull)
+				return false;
+			else
+				return this.bits == other.bits;
+		}
+
+		public bool Equals(int other)
+		{
+			RegionId otherId;
+			otherId.bits = other;
+
+			return this.Equals(otherId);
+		}
+
+		public override bool Equals(object obj)
+		{
+			var regObj = obj as RegionId?;
+			var intObj = obj as int?;
+
+			if (regObj.HasValue)
+				return this.Equals(regObj.Value);
+			else if (intObj.HasValue)
+				return this.Equals(intObj.Value);
+			else
+				return false;
+		}
+
+		public override int GetHashCode()
+		{
+			if (IsNull)
+				return 0;
+
+			return bits.GetHashCode();
+		}
+
+		public override string ToString()
+		{
+			return "{ Id: " + Id + ", Flags: " + Flags + "}";
+		}
 	}
 
 	/// <summary>
@@ -57,10 +235,10 @@ namespace SharpNav
 		/// Initializes a new instance of the <see cref="Region" /> class.
 		/// </summary>
 		/// <param name="idNum">The id</param>
-		public Region(RegionId idNum)
+		public Region(int idNum)
 		{
 			spanCount = 0;
-			id = idNum;
+			id = new RegionId(idNum);
 			areaType = 0;
 			remap = false;
 			visited = false;
@@ -171,141 +349,20 @@ namespace SharpNav
 			}
 		}
 
-		/// <summary>
-		/// Add a border flag to the region 
-		/// </summary>
-		/// <param name="id">The region</param>
-		/// <returns>The region with a border flag</returns>
-		public static RegionId IdWithBorderFlag(RegionId id)
+		public bool IsBorder
 		{
-			return id | RegionId.Border;
+			get
+			{
+				return RegionId.HasFlags(id, RegionFlags.Border);
+			}
 		}
 
-		/// <summary>
-		/// Remove the flags from the region
-		/// </summary>
-		/// <param name="id">The region</param>
-		/// <returns>The new id without flags</returns>
-		public static RegionId RemoveFlags(RegionId id)
+		public bool IsBorderOrNull
 		{
-			return id & (RegionId)IdMask;
-		}
-
-		/// <summary>
-		/// Determines whether the region is a border
-		/// </summary>
-		/// <param name="id">The region</param>
-		/// <returns>True if it is a border, false if not</returns>
-		public static bool IsBorder(RegionId id)
-		{
-			return (id & RegionId.Border) == RegionId.Border;
-		}
-
-		/// <summary>
-		/// Determines whether the region is null
-		/// </summary>
-		/// <param name="id">The region</param>
-		/// <returns>True if it is null, false if not</returns>
-		public static bool IsNull(RegionId id)
-		{
-			return id == RegionId.Null;
-		}
-
-		/// <summary>
-		/// Determines whether the region is a border or null
-		/// </summary>
-		/// <param name="id">The region</param>
-		/// <returns>True if border or null, false if otherwise</returns>
-		public static bool IsBorderOrNull(RegionId id)
-		{
-			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
-		}
-
-		/// <summary>
-		/// Set the region as a border vertex
-		/// </summary>
-		/// <param name="region">The region</param>
-		public static void SetBorderVertex(ref RegionId region)
-		{
-			region |= RegionId.VertexBorder;
-		}
-
-		/// <summary>
-		/// Set the region as an area border
-		/// </summary>
-		/// <param name="region">The region</param>
-		public static void SetAreaBorder(ref RegionId region)
-		{
-			region |= RegionId.AreaBorder;
-		}
-
-		/// <summary>
-		/// Determines whether the region is a border vertex
-		/// </summary>
-		/// <param name="r">The region</param>
-		/// <returns>True if it is a border vertex, false if not</returns>
-		public static bool IsBorderVertex(RegionId r)
-		{
-			return (r & RegionId.VertexBorder) != 0;
-		}
-
-		/// <summary>
-		/// Determines whether the region is an area border
-		/// </summary>
-		/// <param name="r">The region</param>
-		/// <returns>True if an area border, false if not</returns>
-		public static bool IsAreaBorder(RegionId r)
-		{
-			return (r & RegionId.AreaBorder) != 0;
-		}
-
-		/// <summary>
-		/// Determine whether two regions have the same area border
-		/// </summary>
-		/// <param name="region1">The first region</param>
-		/// <param name="region2">The second region</param>
-		/// <returns>True if equal, false if not</returns>
-		public static bool IsSameArea(RegionId region1, RegionId region2)
-		{
-			return (region1 & RegionId.AreaBorder) == (region2 & RegionId.AreaBorder);
-		}
-
-		/// <summary>
-		/// Determines whether two regions have the same id
-		/// </summary>
-		/// <param name="region1">The first region</param>
-		/// <param name="region2">The second region</param>
-		/// <returns>True if equal, false if not</returns>
-		public static bool IsSameRegion(RegionId region1, RegionId region2)
-		{
-			return ((int)region1 & IdMask) == ((int)region2 & IdMask);
-		}
-
-		/// <summary>
-		/// Determines whether the region is a border
-		/// </summary>
-		/// <returns>True if border, false if not</returns>
-		public bool IsBorder()
-		{
-			return (id & RegionId.Border) == RegionId.Border;
-		}
-
-		/// <summary>
-		/// Determines whether the region is null
-		/// </summary>
-		/// <returns>True if null, false if not</returns>
-		public bool IsNull()
-		{
-			return id == RegionId.Null;
-		}
-
-		/// <summary>
-		/// Determines whether the region is a border or null
-		/// </summary>
-		/// <returns>True if border or null, false if otherwise</returns>
-		public bool IsBorderOrNull()
-		{
-			return id == RegionId.Null || (id & RegionId.Border) == RegionId.Border;
+			get
+			{
+				return id.IsNull || IsBorder;
+			}
 		}
 
 		/// <summary>

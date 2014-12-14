@@ -428,11 +428,11 @@ namespace SharpNav.Examples
 						GL.PushMatrix();
 						var span = compactHeightfield.Spans[k];
 
-						RegionId region = span.Region;
-						if (Region.IsBorder(region))
-							region = Region.RemoveFlags(region);
+						int region = span.Region.Id;
+						//if (Region.IsBorder(region))
+							//region = Region.RemoveFlags(region);
 
-						Color4 col = regionColors[(int)region];
+						Color4 col = regionColors[region];
 						GL.Color4(col);
 
 						var squarePosFinal = new OpenTK.Vector3(squarePos.X, squarePos.Y, squarePos.Z);
@@ -484,7 +484,7 @@ namespace SharpNav.Examples
 				RegionId region = c.RegionId;
 
 				//skip border regions
-				if (Region.IsBorder(region))
+				if (RegionId.HasFlags(region, RegionFlags.Border))
 					continue;
 
 				Color4 col = regionColors[(int)region];

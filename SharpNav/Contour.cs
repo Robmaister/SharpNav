@@ -215,7 +215,7 @@ namespace SharpNav
 			bool hasConnections = false;
 			for (int i = 0; i < rawVerts.Count; i++)
 			{
-				if (Region.RemoveFlags(rawVerts[i].RegionId) != 0)
+				if (rawVerts[i].RegionId.Id != 0)
 				{
 					hasConnections = true;
 					break;
@@ -229,8 +229,8 @@ namespace SharpNav
 				for (int i = 0, end = rawVerts.Count; i < end; i++)
 				{
 					int ii = (i + 1) % end;
-					bool differentRegions = !Region.IsSameRegion(rawVerts[i].RegionId, rawVerts[ii].RegionId);
-					bool areaBorders = !Region.IsSameArea(rawVerts[i].RegionId, rawVerts[ii].RegionId);
+					bool differentRegions = rawVerts[i].RegionId.Id != rawVerts[ii].RegionId.Id;
+					bool areaBorders = RegionId.HasFlags(rawVerts[i].RegionId, RegionFlags.AreaBorder) != RegionId.HasFlags(rawVerts[ii].RegionId, RegionFlags.AreaBorder);
 
 					if (differentRegions || areaBorders)
 					{
@@ -246,12 +246,12 @@ namespace SharpNav
 				int lowerLeftX = rawVerts[0].X;
 				int lowerLeftY = rawVerts[0].Y;
 				int lowerLeftZ = rawVerts[0].Z;
-				RegionId lowerLeftI = 0;
+				RegionId lowerLeftI = RegionId.Null;
 
 				int upperRightX = rawVerts[0].X;
 				int upperRightY = rawVerts[0].Y;
 				int upperRightZ = rawVerts[0].Z;
-				RegionId upperRightI = 0;
+				RegionId upperRightI = RegionId.Null;
 
 				//iterate through points
 				for (int i = 0; i < rawVerts.Count; i++)
@@ -265,7 +265,7 @@ namespace SharpNav
 						lowerLeftX = x;
 						lowerLeftY = y;
 						lowerLeftZ = z;
-						lowerLeftI = (RegionId)i;
+						lowerLeftI = new RegionId(i);
 					}
 
 					if (x > upperRightX || (x == upperRightX && z > upperRightZ))
@@ -273,7 +273,7 @@ namespace SharpNav
 						upperRightX = x;
 						upperRightY = y;
 						upperRightZ = z;
-						upperRightI = (RegionId)i;
+						upperRightI = new RegionId(i);
 					}
 				}
 
@@ -291,11 +291,11 @@ namespace SharpNav
 				//obtain (x, z) coordinates, along with region id
 				int ax = simplified[i].X;
 				int az = simplified[i].Z;
-				RegionId ai = simplified[i].RegionId;
+				int ai = (int)simplified[i].RegionId;
 
 				int bx = simplified[ii].X;
 				int bz = simplified[ii].Z;
-				RegionId bi = simplified[ii].RegionId;
+				int bi = (int)simplified[ii].RegionId;
 
 				float maxDeviation = 0;
 				int maxi = -1;
@@ -316,7 +316,7 @@ namespace SharpNav
 				}
 
 				//tessellate only outer edges or edges between areas
-				if (Region.RemoveFlags(rawVerts[ci].RegionId) == 0 || Region.IsAreaBorder(rawVerts[ci].RegionId))
+				if (rawVerts[ci].RegionId.Id == 0 || RegionId.HasFlags(rawVerts[ci].RegionId, RegionFlags.AreaBorder))
 				{
 					//find the maximum deviation
 					while (ci != endi)
@@ -354,11 +354,11 @@ namespace SharpNav
 					//get (x, z) coordinates along with region id
 					int ax = simplified[i].X;
 					int az = simplified[i].Z;
-					RegionId ai = simplified[i].RegionId;
+					int ai = (int)simplified[i].RegionId;
 
 					int bx = simplified[ii].X;
 					int bz = simplified[ii].Z;
-					RegionId bi = simplified[ii].RegionId;
+					int bi = (int)simplified[ii].RegionId;
 
 					//find maximum deviation from segment
 					int maxi = -1;
@@ -368,11 +368,11 @@ namespace SharpNav
 					bool tess = false;
 
 					//wall edges
-					if (tesselateWallEdges && Region.RemoveFlags(rawVerts[ci].RegionId) == 0)
+					if (tesselateWallEdges && rawVerts[ci].RegionId.Id == 0)
 						tess = true;
 
 					//edges between areas
-					if (tesselateAreaEdges && Region.IsAreaBorder(rawVerts[ci].RegionId))
+					if (tesselateAreaEdges && RegionId.HasFlags(rawVerts[ci].RegionId, RegionFlags.AreaBorder))
 						tess = true;
 
 					if (tess)
@@ -412,11 +412,11 @@ namespace SharpNav
 				ContourVertex sv = simplified[i];
 
 				//take edge vertex flag from current raw point and neighbor region from next raw point
-				int ai = (int)(sv.RegionId + 1) % numPoints;
+				int ai = ((int)sv.RegionId + 1) % numPoints;
 				RegionId bi = sv.RegionId;
 
 				//save new region id
-				sv.RegionId = (rawVerts[ai].RegionId & ((RegionId)Region.IdMask | RegionId.AreaBorder)) | (rawVerts[(int)bi].RegionId & RegionId.VertexBorder);
+				sv.RegionId = RegionId.FromRawBits(((int)rawVerts[ai].RegionId & (RegionId.MaskId | (int)RegionFlags.AreaBorder)) | ((int)rawVerts[(int)bi].RegionId & (int)RegionFlags.VertexBorder));
 
 				simplified[i] = sv;
 			}

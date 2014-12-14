@@ -17,9 +17,20 @@ namespace SharpNav
 		/// </summary>
 		public static readonly CompactSpanReference Null = new CompactSpanReference(0, 0, -1);
 
-		private int x;
-		private int y;
-		private int index;
+		/// <summary>
+		/// The X coordinate of the referenced span.
+		/// </summary>
+		public readonly int X;
+
+		/// <summary>
+		/// The Y coordinate of the referenced span.
+		/// </summary>
+		public readonly int Y;
+
+		/// <summary>
+		/// The index of the referenced span in the spans array.
+		/// </summary>
+		public readonly int Index;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CompactSpanReference"/> struct.
@@ -29,42 +40,9 @@ namespace SharpNav
 		/// <param name="i">The index of the span in the spans array.</param>
 		public CompactSpanReference(int x, int y, int i)
 		{
-			this.x = x;
-			this.y = y;
-			this.index = i;
-		}
-
-		/// <summary>
-		/// Gets the X coordinate of the referenced span.
-		/// </summary>
-		public int X
-		{
-			get
-			{
-				return x;
-			}
-		}
-
-		/// <summary>
-		/// Gets the Y coordinate of the referenced span.
-		/// </summary>
-		public int Y
-		{
-			get
-			{
-				return y;
-			}
-		}
-
-		/// <summary>
-		/// Gets the index of the referenced span in the spans array.
-		/// </summary>
-		public int Index
-		{
-			get
-			{
-				return index;
-			}
+			this.X = x;
+			this.Y = y;
+			this.Index = i;
 		}
 
 		/// <summary>
@@ -80,14 +58,14 @@ namespace SharpNav
 		{
 			//A negative index is considered null.
 			//these two cases quickly compare null references.
-			bool leftNull = left.index < 0, rightNull = right.index < 0;
+			bool leftNull = left.Index < 0, rightNull = right.Index < 0;
 			if (leftNull && rightNull)
 				return true;
 			else if (leftNull ^ rightNull)
 				return false;
 
 			//if the references are not null, 
-			else if (left.x == right.x && left.y == right.y && left.index == right.index)
+			else if (left.X == right.X && left.Y == right.Y && left.Index == right.Index)
 				return true;
 
 			return false;
@@ -138,9 +116,9 @@ namespace SharpNav
 		{
 			//TODO should "null" references all have the same hash?
 			int hash = 27;
-			hash = (13 * hash) + x.GetHashCode();
-			hash = (13 * hash) + y.GetHashCode();
-			hash = (13 * hash) + index.GetHashCode();
+			hash = (13 * hash) + X.GetHashCode();
+			hash = (13 * hash) + Y.GetHashCode();
+			hash = (13 * hash) + Index.GetHashCode();
 
 			return hash;
 		}

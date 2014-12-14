@@ -129,7 +129,7 @@ namespace SharpNav
 					//save the hash code for each vertex
 					indices[i] = AddVertex(vertDict, pv, verts);
 
-					if (Region.IsBorderVertex(cv.RegionId))
+					if (RegionId.HasFlags(cv.RegionId, RegionFlags.VertexBorder))
 					{
 						//the vertex should be removed
 						vertRemoveQueue.Enqueue(indices[i]);
@@ -150,7 +150,7 @@ namespace SharpNav
 					//each polygon has numVertsPerPoly
 					//index 0, 1, 2 store triangle vertices
 					//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-					Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, 0, 0);
+					Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, RegionId.Null, 0);
 					p.Vertices[0] = indices[tris[i].Index0];
 					p.Vertices[1] = indices[tris[i].Index1];
 					p.Vertices[2] = indices[tris[i].Index2];

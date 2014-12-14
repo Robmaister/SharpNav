@@ -84,7 +84,20 @@ namespace SharpNav
 			this.X = vert.X;
 			this.Y = vert.Y;
 			this.Z = vert.Z;
-			this.RegionId = (RegionId)index;
+			this.RegionId = new RegionId(index);
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ContourVertex"/> struct as a copy.
+		/// </summary>
+		/// <param name="vert">The original vertex.</param>
+		/// <param name="region">The region that the vertex belongs to.</param>
+		public ContourVertex(ContourVertex vert, RegionId region)
+		{
+			this.X = vert.X;
+			this.Y = vert.Y;
+			this.Z = vert.Z;
+			this.RegionId = region;
 		}
 
 		/// <summary>

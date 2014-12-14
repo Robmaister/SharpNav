@@ -86,7 +86,7 @@ namespace SharpNav
 						CompactSpan s = compactField.Spans[i];
 
 						//set the flag to 0 if the region is a border region or null.
-						if (Region.IsBorderOrNull(compactField.Spans[i].Region))
+						if (compactField.Spans[i].Region.IsNull || RegionId.HasFlags(compactField.Spans[i].Region, RegionFlags.Border))
 						{
 							flags[i] = 0;
 							continue;
@@ -141,7 +141,7 @@ namespace SharpNav
 
 						var spanRef = new CompactSpanReference(x, y, i);
 						RegionId reg = compactField[spanRef].Region;
-						if (Region.IsBorderOrNull(reg))
+						if (reg.IsNull || RegionId.HasFlags(reg, RegionFlags.Border))
 							continue;
 						
 						//reset each iteration
@@ -394,7 +394,7 @@ namespace SharpNav
 							break;
 					}
 
-					RegionId r = 0;
+					RegionId r = RegionId.Null;
 					CompactSpan s = compactField[spanReference];
 					if (s.IsConnected(dir))
 					{
@@ -408,10 +408,10 @@ namespace SharpNav
 					
 					// apply flags if neccessary
 					if (isBorderVertex)
-						Region.SetBorderVertex(ref r);
+						r = RegionId.WithFlags(r, RegionFlags.VertexBorder);
 
 					if (isAreaBorder)
-						Region.SetAreaBorder(ref r);
+						r = RegionId.WithFlags(r, RegionFlags.AreaBorder);
 					
 					//save the point
 					points.Add(new ContourVertex(px, py, pz, r));
@@ -465,10 +465,12 @@ namespace SharpNav
 			int cornerHeight = s.Minimum;
 			Direction dirp = dir.NextClockwise(); //new clockwise direction
 
-			uint[] regs = { 0, 0, 0, 0 };
+			RegionId[] regs = new RegionId[4];
+			AreaId[] areas = new AreaId[4];
 
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
-			regs[0] = (uint)((int)s.Region | ((byte)compactField.Areas[sr.Index] << 16));
+			regs[0] = s.Region;
+			areas[0] = compactField.Areas[sr.Index];
 
 			if (s.IsConnected(dir))
 			{
@@ -479,7 +481,8 @@ namespace SharpNav
 				CompactSpan ds = compactField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[1] = (uint)((int)compactField.Spans[di].Region | ((byte)compactField.Areas[di] << 16));
+				regs[1] = compactField.Spans[di].Region;
+				areas[1] = compactField.Areas[di];
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dirp))
@@ -490,7 +493,8 @@ namespace SharpNav
 					CompactSpan ds2 = compactField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)((int)compactField.Spans[di2].Region | ((byte)compactField.Areas[di2] << 16));
+					regs[2] = ds2.Region;
+					areas[2] = compactField.Areas[di2];
 				}
 			}
 
@@ -503,7 +507,8 @@ namespace SharpNav
 				CompactSpan ds = compactField.Spans[di];
 
 				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
-				regs[3] = (uint)((int)compactField.Spans[di].Region | ((byte)compactField.Areas[di] << 16));
+				regs[3] = ds.Region;
+				areas[3] = compactField.Areas[di];
 
 				//get neighbor of neighbor's span
 				if (ds.IsConnected(dir))
@@ -514,7 +519,8 @@ namespace SharpNav
 					CompactSpan ds2 = compactField.Spans[di2];
 
 					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
-					regs[2] = (uint)((int)compactField.Spans[di2].Region | ((byte)compactField.Areas[di2] << 16));
+					regs[2] = ds2.Region;
+					areas[2] = compactField.Areas[di2];
 				}
 			}
 
@@ -527,12 +533,15 @@ namespace SharpNav
 				int c = (j + 2) % 4;
 				int d = (j + 3) % 4;
 
+				RegionId ra = regs[a], rb = regs[b], rc = regs[c], rd = regs[d];
+				AreaId aa = areas[a], ab = areas[b], ac = areas[c], ad = areas[d];
+
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
-				bool twoSameExteriors = Region.IsBorder((RegionId)regs[a]) && Region.IsBorder((RegionId)regs[b]) && regs[a] == regs[b];
-				bool twoSameInteriors = !(Region.IsBorder((RegionId)regs[c]) || Region.IsBorder((RegionId)regs[d]));
-				bool intsSameArea = (regs[c] >> 16) == (regs[d] >> 16);
-				bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
+				bool twoSameExteriors = RegionId.HasFlags(ra, RegionFlags.Border) && RegionId.HasFlags(rb, RegionFlags.Border) && (ra == rb && aa == ab);
+				bool twoSameInteriors = !(RegionId.HasFlags(rc, RegionFlags.Border) || RegionId.HasFlags(rd, RegionFlags.Border));
+				bool intsSameArea = ac == ad;
+				bool noZeros = ra != 0 && rb != 0 && rc != 0 && rd != 0 && aa != 0 && ab != 0 && ac != 0 && ad != 0;
 				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)
 				{
 					isBorderVertex = true;
