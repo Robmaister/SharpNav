@@ -10,6 +10,7 @@ using System;
 using NUnit.Framework;
 
 using SharpNav;
+using SharpNav.Geometry;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

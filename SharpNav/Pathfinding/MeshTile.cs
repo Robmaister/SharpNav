@@ -6,6 +6,7 @@
 #endregion
 
 using SharpNav.Collections;
+using SharpNav.Geometry;
 
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;

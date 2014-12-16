@@ -28,7 +28,7 @@ using Key = OpenTK.Input.Key;
 //Prevents name collision under the Standalone configuration
 #if !OPENTK
 using Vector3 = OpenTK.Vector3;
-using SVector3 = SharpNav.Vector3;
+using SVector3 = SharpNav.Geometry.Vector3;
 #else
 using SVector3 = OpenTK.Vector3;
 #endif

@@ -16,6 +16,13 @@ using SharpNav.Geometry;
 
 using SharpNavEditor.IO;
 
+#if !OPENTK
+using Vector3 = OpenTK.Vector3;
+using SVector3 = SharpNav.Geometry.Vector3;
+#else
+using SVector3 = OpenTK.Vector3;
+#endif
+
 namespace SharpNavEditor
 {
 	public class Mesh
@@ -52,17 +59,17 @@ namespace SharpNavEditor
 					int indStart = i * 9;
 					Vector3 tmp = new Vector3(pos[ind[indStart]], pos[ind[indStart + 1]], pos[ind[indStart + 2]]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.A = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.A = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					indStart += 3;
 					tmp = new Vector3(pos[ind[indStart]], pos[ind[indStart + 1]], pos[ind[indStart + 2]]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.B = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.B = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					indStart += 3;
 					tmp = new Vector3(pos[ind[indStart]], pos[ind[indStart + 1]], pos[ind[indStart + 2]]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.C = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.C = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					yield return tri;
 				}
@@ -78,17 +85,17 @@ namespace SharpNavEditor
 					int posStart = i * 9;
 					Vector3 tmp = new Vector3(pos[posStart], pos[posStart + 1], pos[posStart + 2]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.A = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.A = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					posStart += 3;
 					tmp = new Vector3(pos[posStart], pos[posStart + 1], pos[posStart + 2]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.B = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.B = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					posStart += 3;
 					tmp = new Vector3(pos[posStart], pos[posStart + 1], pos[posStart + 2]);
 					tmp = Vector3.Transform(tmp, m);
-					tri.C = new SharpNav.Vector3(tmp.X, tmp.Y, tmp.Z);
+					tri.C = new SVector3(tmp.X, tmp.Y, tmp.Z);
 
 					yield return tri;
 				}

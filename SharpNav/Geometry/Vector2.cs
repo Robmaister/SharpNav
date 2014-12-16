@@ -27,7 +27,7 @@ SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 
-namespace SharpNav
+namespace SharpNav.Geometry
 {
 	/// <summary>Represents a 2D vector using two single-precision floating-point numbers.</summary>
 	/// <remarks>

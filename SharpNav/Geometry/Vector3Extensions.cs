@@ -18,7 +18,7 @@ using SharpDX;
 using UnityEngine;
 #endif
 
-namespace SharpNav
+namespace SharpNav.Geometry
 {
 	/// <summary>
 	/// A class that provides extension methods to fix discrepancies between Vector3 implementations.

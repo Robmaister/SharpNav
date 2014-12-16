@@ -129,7 +129,7 @@
     <Compile Include="EdgeFlags.cs" />
     <Compile Include="Geometry\BBox2i.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
-    <Compile Include="Vector2i.cs" />
+    <Compile Include="Geometry\Vector2i.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="Crowds\LocalBoundary.cs" />
@@ -164,11 +164,11 @@
     <Compile Include="Span.cs" />
     <Compile Include="SpanReference.cs" />
     <Compile Include="TiledNavMesh.cs" />
-    <Compile Include="Vector2.cs" />
-    <Compile Include="Vector3.cs">
+    <Compile Include="Geometry\Vector2.cs" />
+    <Compile Include="Geometry\Vector3.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
-    <Compile Include="Vector3Extensions.cs" />
+    <Compile Include="Geometry\Vector3Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SharpNav.snk" />

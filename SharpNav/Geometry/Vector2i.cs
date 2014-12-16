@@ -7,7 +7,7 @@
 
 using System;
 
-namespace SharpNav
+namespace SharpNav.Geometry
 {
 	/// <summary>
 	/// A 2d vector represented by integers.

@@ -5,6 +5,8 @@
  */
 #endregion
 
+using SharpNav.Geometry;
+
 #if MONOGAME || XNA
 using Microsoft.Xna.Framework;
 #elif OPENTK

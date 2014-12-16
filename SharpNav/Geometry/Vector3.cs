@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SharpNav
+namespace SharpNav.Geometry
 {
 	/// <summary>
 	/// Represents a 3D vector using three single-precision floating-point numbers.
