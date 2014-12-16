@@ -28,7 +28,7 @@ namespace SharpNav
 		/// <summary>
 		/// The span area id
 		/// </summary>
-		public AreaId Area;
+		public Area Area;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Span"/> struct.
@@ -39,7 +39,7 @@ namespace SharpNav
 		{
 			Minimum = min;
 			Maximum = max;
-			Area = AreaId.Null;
+			Area = Area.Null;
 		}
 
 		/// <summary>
@@ -48,7 +48,7 @@ namespace SharpNav
 		/// <param name="min">The lowest value in the span.</param>
 		/// <param name="max">The highest value in the span.</param>
 		/// <param name="area">The area flags for the span.</param>
-		public Span(int min, int max, AreaId area)
+		public Span(int min, int max, Area area)
 		{
 			Minimum = min;
 			Maximum = max;

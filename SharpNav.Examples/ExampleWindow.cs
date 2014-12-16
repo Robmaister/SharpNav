@@ -379,10 +379,10 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				AreaId[] areas = AreaIdGenerator.From(tris, AreaId.Walkable)
-					.MarkAboveHeight(areaSettings.MaxLevelHeight, AreaId.Null)
-					.MarkBelowHeight(areaSettings.MinLevelHeight, AreaId.Null)
-					.MarkBelowSlope(areaSettings.MaxTriSlope, AreaId.Null)
+				Area[] areas = AreaGenerator.From(tris, Area.Default)
+					.MarkAboveHeight(areaSettings.MaxLevelHeight, Area.Null)
+					.MarkBelowHeight(areaSettings.MinLevelHeight, Area.Null)
+					.MarkBelowSlope(areaSettings.MaxTriSlope, Area.Null)
 					.ToArray();
 				heightfield.RasterizeTrianglesWithAreas(level.Positions, areas);
 				//heightfield.RasterizeTriangles(level.Positions);
@@ -466,14 +466,14 @@ namespace SharpNav.Examples
 				try
 				{
 					GeneratePathfinding();
+
+					//Pathfinding with multiple units
+					GenerateCrowd();
 				}
 				catch (Exception e)
 				{
 					Console.WriteLine("Pathfinding generation failed with exception" + Environment.NewLine + e.ToString());
 				}
-
-				//Pathfinding with multiple units
-				GenerateCrowd();
 
 				Label l = (Label)statusBar.FindChildByName("GenTime");
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";

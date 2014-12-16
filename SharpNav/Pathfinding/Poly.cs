@@ -47,7 +47,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the AreaId
 		/// </summary>
-		public AreaId Area { get; set; }
+		public Area Area { get; set; }
 
 		/// <summary>
 		/// Gets or sets the polygon type (ground or offmesh)

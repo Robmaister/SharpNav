@@ -363,7 +363,7 @@ namespace SharpNav
 			Direction startDir = dir;
 			int startIndex = spanReference.Index;
 
-			AreaId area = compactField.Areas[startIndex];
+			Area area = compactField.Areas[startIndex];
 
 			//TODO make the max iterations value a variable
 			int iter = 0;
@@ -466,7 +466,7 @@ namespace SharpNav
 			Direction dirp = dir.NextClockwise(); //new clockwise direction
 
 			RegionId[] regs = new RegionId[4];
-			AreaId[] areas = new AreaId[4];
+			Area[] areas = new Area[4];
 
 			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
 			regs[0] = s.Region;
@@ -534,7 +534,7 @@ namespace SharpNav
 				int d = (j + 3) % 4;
 
 				RegionId ra = regs[a], rb = regs[b], rc = regs[c], rd = regs[d];
-				AreaId aa = areas[a], ab = areas[b], ac = areas[c], ad = areas[d];
+				Area aa = areas[a], ab = areas[b], ac = areas[c], ad = areas[d];
 
 				//the vertex is a border vertex if:
 				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds

@@ -20,7 +20,7 @@ namespace SharpNav
 		//simplified vertices have much less edges
 		private ContourVertex[] vertices;
 		private RegionId regionId;
-		private AreaId area;
+		private Area area;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Contour"/> class.
@@ -33,7 +33,7 @@ namespace SharpNav
 		/// <param name="maxEdgeLength"></param>
 		/// <param name="buildFlags"></param>
 		/// <param name="simplifyBuffer"></param>
-		public Contour(List<ContourVertex> verts, RegionId region, AreaId area, int borderSize, float maxError, int maxEdgeLength, ContourBuildFlags buildFlags, List<ContourVertex> simplifyBuffer = null)
+		public Contour(List<ContourVertex> verts, RegionId region, Area area, int borderSize, float maxError, int maxEdgeLength, ContourBuildFlags buildFlags, List<ContourVertex> simplifyBuffer = null)
 		{
 			if (simplifyBuffer == null)
 				simplifyBuffer = new List<ContourVertex>();
@@ -85,7 +85,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the area ID of the contour.
 		/// </summary>
-		public AreaId Area
+		public Area Area
 		{
 			get
 			{

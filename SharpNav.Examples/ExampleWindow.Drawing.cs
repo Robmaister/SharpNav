@@ -528,7 +528,7 @@ namespace SharpNav.Examples
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
-				if (polyMesh.Polys[i].Area != AreaId.Walkable)
+				if (!polyMesh.Polys[i].Area.IsWalkable)
 					continue;
 
 				for (int j = 2; j < polyMesh.NumVertsPerPoly; j++)

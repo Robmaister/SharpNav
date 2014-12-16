@@ -52,7 +52,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the number of spans that don't have their area flags set to <see cref="AreaId.Null"/>.
+		/// Gets the number of spans that are in walkable <see cref="Area"/>s.
 		/// </summary>
 		public int WalkableSpanCount
 		{
@@ -60,7 +60,7 @@ namespace SharpNav
 			{
 				int count = 0;
 				for (int i = 0; i < spans.Count; i++)
-					if (spans[i].Area != AreaId.Null)
+					if (spans[i].Area.IsWalkable)
 						count++;
 
 				return count;
@@ -154,10 +154,10 @@ namespace SharpNav
 
 					if (cur.Maximum == span.Maximum)
 					{
-						//In the case that both spans end at the same voxel, the area gets merged.
-						//The new span's area has priority if both spans are walkable, so the only
-						//case where the area gets set is when the new area is null but the old isn't.
-						if (span.Area == AreaId.Null && cur.Area != AreaId.Null)
+						//In the case that both spans end at the same voxel, the area gets merged. The new span's area
+						//has priority if both spans are walkable, so the only case where the area gets set is when
+						//the new area isn't walkable and the old one is.
+						if (!span.Area.IsWalkable && cur.Area.IsWalkable)
 							span.Area = cur.Area;
 					}
 					else if (cur.Maximum > span.Maximum)

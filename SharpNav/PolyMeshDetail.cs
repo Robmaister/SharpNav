@@ -224,6 +224,9 @@ namespace SharpNav
 		{
 			get
 			{
+				if (meshes == null)
+					return 0;
+
 				return meshes.Length;
 			}
 		}
@@ -235,6 +238,9 @@ namespace SharpNav
 		{
 			get
 			{
+				if (verts == null)
+					return 0;
+
 				return verts.Length;
 			}
 		}
@@ -246,6 +252,9 @@ namespace SharpNav
 		{
 			get
 			{
+				if (tris == null)
+					return 0;
+
 				return tris.Length;
 			}
 		}

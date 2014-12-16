@@ -104,7 +104,7 @@
     <Reference Include="UnityEngine" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AreaId.cs" />
+    <Compile Include="Area.cs" />
     <Compile Include="AreaIdGenerator.cs" />
     <Compile Include="Cell.cs" />
     <Compile Include="Collections\Generic\BufferedQueue.cs" />

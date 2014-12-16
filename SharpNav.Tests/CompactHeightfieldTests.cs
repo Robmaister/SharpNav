@@ -33,8 +33,8 @@ namespace SharpNav.Tests
 		public void ConvertSpans_OneCell()
 		{
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
-			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
+			hf[0].AddSpan(new Span(10, 20, Area.Default));
+			hf[0].AddSpan(new Span(25, 30, Area.Default));
 			
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 			
@@ -51,11 +51,11 @@ namespace SharpNav.Tests
 		public void ConvertSpans_TwoCells()
 		{
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
-			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
-			hf[1].AddSpan(new Span(5, 15, AreaId.Walkable));
-			hf[1].AddSpan(new Span(25, 30, AreaId.Walkable));
-			hf[1].AddSpan(new Span(40, 55, AreaId.Walkable));
+			hf[0].AddSpan(new Span(10, 20, Area.Default));
+			hf[0].AddSpan(new Span(25, 30, Area.Default));
+			hf[1].AddSpan(new Span(5, 15, Area.Default));
+			hf[1].AddSpan(new Span(25, 30, Area.Default));
+			hf[1].AddSpan(new Span(40, 55, Area.Default));
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 
 			Assert.AreEqual(chf.Cells.Length, 4);
@@ -70,10 +70,10 @@ namespace SharpNav.Tests
 		public void SetConnection_TwoCells()
 		{
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			hf[0].AddSpan(new Span(10, 20, AreaId.Walkable));
-			hf[0].AddSpan(new Span(25, 30, AreaId.Walkable));
-			hf[1].AddSpan(new Span(10, 21, AreaId.Walkable));
-			hf[1].AddSpan(new Span(25, 30, AreaId.Walkable));
+			hf[0].AddSpan(new Span(10, 20, Area.Default));
+			hf[0].AddSpan(new Span(25, 30, Area.Default));
+			hf[1].AddSpan(new Span(10, 21, Area.Default));
+			hf[1].AddSpan(new Span(25, 30, Area.Default));
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 
 			Assert.IsTrue(chf.Spans[0].IsConnected(Direction.East));
@@ -94,8 +94,8 @@ namespace SharpNav.Tests
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f/3.0f), 0.02f);
 			for (int i = 0; i < 9; i++)
 			{
-				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
-				hf[i].AddSpan(new Span(25, 30, AreaId.Walkable));
+				hf[i].AddSpan(new Span(10, 20, Area.Default));
+				hf[i].AddSpan(new Span(25, 30, Area.Default));
 			}
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 
@@ -129,8 +129,8 @@ namespace SharpNav.Tests
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.2f, 0.02f);
 			for (int i = 0; i < 25; i++)
 			{
-				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
-				hf[i].AddSpan(new Span(25, 30, AreaId.Walkable));
+				hf[i].AddSpan(new Span(10, 20, Area.Default));
+				hf[i].AddSpan(new Span(25, 30, Area.Default));
 			}
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 
@@ -166,8 +166,8 @@ namespace SharpNav.Tests
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f / 3.0f), 0.02f);
 			for (int i = 0; i < 9; i++)
 			{
-				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
-				hf[i].AddSpan(new Span(25, 30, AreaId.Walkable));
+				hf[i].AddSpan(new Span(10, 20, Area.Default));
+				hf[i].AddSpan(new Span(25, 30, Area.Default));
 			}
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 

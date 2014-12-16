@@ -150,7 +150,7 @@ namespace SharpNav
 					//each polygon has numVertsPerPoly
 					//index 0, 1, 2 store triangle vertices
 					//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-					Polygon p = new Polygon(numVertsPerPoly, AreaId.Null, RegionId.Null, 0);
+					Polygon p = new Polygon(numVertsPerPoly, Area.Null, RegionId.Null, 0);
 					p.Vertices[0] = indices[tris[i].Index0];
 					p.Vertices[1] = indices[tris[i].Index1];
 					p.Vertices[2] = indices[tris[i].Index2];
@@ -1026,7 +1026,7 @@ namespace SharpNav
 			List<Edge> edges = new List<Edge>(numRemovedVerts * numVertsPerPoly);
 			List<int> hole = new List<int>(numRemovedVerts * numVertsPerPoly);
 			List<RegionId> regions = new List<RegionId>(numRemovedVerts * numVertsPerPoly);
-			List<AreaId> areas = new List<AreaId>(numRemovedVerts * numVertsPerPoly);
+			List<Area> areas = new List<Area>(numRemovedVerts * numVertsPerPoly);
 
 			//Iterate through all the polygons
 			for (int i = 0; i < polys.Count; i++)
@@ -1240,7 +1240,7 @@ namespace SharpNav
 			public int Vert0;
 			public int Vert1;
 			public RegionId Region;
-			public AreaId Area;
+			public Area Area;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="Edge"/> struct.
@@ -1249,7 +1249,7 @@ namespace SharpNav
 			/// <param name="vert1">Vertex B</param>
 			/// <param name="region">Region id</param>
 			/// <param name="area">Area id</param>
-			public Edge(int vert0, int vert1, RegionId region, AreaId area)
+			public Edge(int vert0, int vert1, RegionId region, Area area)
 			{
 				Vert0 = vert0;
 				Vert1 = vert1;
@@ -1265,7 +1265,7 @@ namespace SharpNav
 		{
 			private int[] vertices; //"numVertsPerPoly" elements
 			private int[] neighborEdges; //"numVertsPerPoly" elements
-			private AreaId area;
+			private Area area;
 			private RegionId regionId;
 			private int flags;
 
@@ -1276,7 +1276,7 @@ namespace SharpNav
 			/// <param name="area">The AreaId</param>
 			/// <param name="regionId">The RegionId</param>
 			/// <param name="flags">Polygon flags</param>
-			public Polygon(int numVertsPerPoly, AreaId area, RegionId regionId, int flags)
+			public Polygon(int numVertsPerPoly, Area area, RegionId regionId, int flags)
 			{
 				vertices = new int[numVertsPerPoly];
 				neighborEdges = new int[numVertsPerPoly];
@@ -1318,7 +1318,7 @@ namespace SharpNav
 			/// <summary>
 			/// Gets or sets the area id
 			/// </summary>
-			public AreaId Area
+			public Area Area
 			{
 				get
 				{

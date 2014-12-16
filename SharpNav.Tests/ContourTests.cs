@@ -34,8 +34,8 @@ namespace SharpNav.Tests
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f / 5.0f), 0.02f);
 			for (int i = 0; i < 5 * 5; i++)
 			{
-				hf[i].AddSpan(new Span(10, 20, AreaId.Walkable));
-				hf[i].AddSpan(new Span(25, 30, AreaId.Walkable));
+				hf[i].AddSpan(new Span(10, 20, Area.Default));
+				hf[i].AddSpan(new Span(25, 30, Area.Default));
 			}
 			CompactHeightfield chf = new CompactHeightfield(hf, 2, 1);
 

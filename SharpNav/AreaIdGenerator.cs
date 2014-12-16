@@ -25,27 +25,27 @@ using UnityEngine;
 namespace SharpNav
 {
 	/// <summary>
-	/// A class that filters geometry and applies an <see cref="AreaId"/> to it.
+	/// A class that filters geometry and applies an <see cref="Area"/> to it.
 	/// </summary>
-	public class AreaIdGenerator
+	public class AreaGenerator
 	{
 		private IEnumerable<Triangle3> tris;
 		private int triCount;
-		private List<Tuple<Func<Triangle3, bool>, AreaId>> conditions;
-		private AreaId defaultArea;
+		private List<Tuple<Func<Triangle3, bool>, Area>> conditions;
+		private Area defaultArea;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SharpNav.AreaIdGenerator"/> class.
+		/// Initializes a new instance of the <see cref="SharpNav.AreaGenerator"/> class.
 		/// </summary>
 		/// <param name="verts">collection of Triangles.</param>
 		/// <param name="triCount">The number of triangles to enumerate..</param>
 		/// <param name="defaultArea">Default area.</param>
-		private AreaIdGenerator(IEnumerable<Triangle3> verts, int triCount, AreaId defaultArea)
+		private AreaGenerator(IEnumerable<Triangle3> verts, int triCount, Area defaultArea)
 		{
 			this.tris = verts;
 			this.triCount = triCount;
 			this.defaultArea = defaultArea;
-			conditions = new List<Tuple<Func<Triangle3, bool>, AreaId>>();
+			conditions = new List<Tuple<Func<Triangle3, bool>, Area>>();
 		}
 
 		/// <summary>
@@ -54,9 +54,9 @@ namespace SharpNav
 		/// <param name="tris">Collection of Triangles.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, AreaId area)
+		public static AreaGenerator From(IEnumerable<Triangle3> tris, Area area)
 		{
-			return new AreaIdGenerator(tris, tris.Count(), area);
+			return new AreaGenerator(tris, tris.Count(), area);
 		}
 
 		/// <summary>
@@ -66,9 +66,9 @@ namespace SharpNav
 		/// <param name="triCount">The number of triangles to enumerate.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(IEnumerable<Triangle3> tris, int triCount, AreaId area)
+		public static AreaGenerator From(IEnumerable<Triangle3> tris, int triCount, Area area)
 		{
-			return new AreaIdGenerator(tris, triCount, area);
+			return new AreaGenerator(tris, triCount, area);
 		}
 
 		/// <summary>
@@ -77,9 +77,9 @@ namespace SharpNav
 		/// <param name="tris">An array of triangles.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Triangle3[] tris, AreaId area)
+		public static AreaGenerator From(Triangle3[] tris, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
+			return new AreaGenerator(TriangleEnumerable.FromTriangle(tris, 0, tris.Length), tris.Length, area);
 		}
 
 		/// <summary>
@@ -90,9 +90,9 @@ namespace SharpNav
 		/// <param name="triCount">Tri count.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Triangle3[] tris, int triOffset, int triCount, AreaId area)
+		public static AreaGenerator From(Triangle3[] tris, int triOffset, int triCount, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
+			return new AreaGenerator(TriangleEnumerable.FromTriangle(tris, triOffset, triCount), triCount, area);
 		}
 
 		/// <summary>
@@ -101,9 +101,9 @@ namespace SharpNav
 		/// <param name="verts">An array of Vectors3.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Vector3[] verts, AreaId area)
+		public static AreaGenerator From(Vector3[] verts, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
+			return new AreaGenerator(TriangleEnumerable.FromVector3(verts, 0, 1, verts.Length / 3), verts.Length / 3, area);
 		}
 
 		/// <summary>
@@ -115,9 +115,9 @@ namespace SharpNav
 		/// <param name="triCount">The number of triangles to enumerate..</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, AreaId area)
+		public static AreaGenerator From(Vector3[] verts, int vertOffset, int vertStride, int triCount, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
+			return new AreaGenerator(TriangleEnumerable.FromVector3(verts, vertOffset, vertStride, triCount), triCount, area);
 		}
 
 		/// <summary>
@@ -126,9 +126,9 @@ namespace SharpNav
 		/// <param name="verts">An array of vertices.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(float[] verts, AreaId area)
+		public static AreaGenerator From(float[] verts, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
+			return new AreaGenerator(TriangleEnumerable.FromFloat(verts, 0, 3, verts.Length / 9), verts.Length / 9, area);
 		}
 
 		/// <summary>
@@ -140,9 +140,9 @@ namespace SharpNav
 		/// <param name="triCount">The number of triangles to enumerate.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, AreaId area)
+		public static AreaGenerator From(float[] verts, int floatOffset, int floatStride, int triCount, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
+			return new AreaGenerator(TriangleEnumerable.FromFloat(verts, floatOffset, floatStride, triCount), triCount, area);
 		}
 
 		/// <summary>
@@ -152,9 +152,9 @@ namespace SharpNav
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Vector3[] verts, int[] inds, AreaId area)
+		public static AreaGenerator From(Vector3[] verts, int[] inds, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
+			return new AreaGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, 0, 1, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
 		/// <summary>
@@ -168,9 +168,9 @@ namespace SharpNav
 		/// <param name="triCount">The number of triangles to enumerate.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, AreaId area)
+		public static AreaGenerator From(Vector3[] verts, int[] inds, int vertOffset, int vertStride, int indexOffset, int triCount, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
+			return new AreaGenerator(TriangleEnumerable.FromIndexedVector3(verts, inds, vertOffset, vertStride, indexOffset, triCount), triCount, area);
 		}
 
 		/// <summary>
@@ -180,9 +180,9 @@ namespace SharpNav
 		/// <param name="inds">An array of indices.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(float[] verts, int[] inds, AreaId area)
+		public static AreaGenerator From(float[] verts, int[] inds, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
+			return new AreaGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, 0, 3, 0, inds.Length / 3), inds.Length / 3, area);
 		}
 
 		/// <summary>
@@ -196,18 +196,18 @@ namespace SharpNav
 		/// <param name="triCount">The number of triangles to enumerate.</param>
 		/// <param name="area">Area of Triangle.</param>
 		/// <returns>A new AreaIdGenerator.</returns>
-		public static AreaIdGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, AreaId area)
+		public static AreaGenerator From(float[] verts, int[] inds, int floatOffset, int floatStride, int indexOffset, int triCount, Area area)
 		{
-			return new AreaIdGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
+			return new AreaGenerator(TriangleEnumerable.FromIndexedFloat(verts, inds, floatOffset, floatStride, indexOffset, triCount), triCount, area);
 		}
 
 		/// <summary>
-		/// Takes the mesh query, runs it, and outputs the result as an array of <see cref="AreaId"/>.
+		/// Takes the mesh query, runs it, and outputs the result as an array of <see cref="Area"/>.
 		/// </summary>
 		/// <returns>The result of the query.</returns>
-		public AreaId[] ToArray()
+		public Area[] ToArray()
 		{
-			AreaId[] areas = new AreaId[triCount];
+			Area[] areas = new Area[triCount];
 
 			int i = 0;
 			foreach (var tri in tris)
@@ -230,9 +230,9 @@ namespace SharpNav
 		/// <param name="angle">The minimum angle in radians.</param>
 		/// <param name="area">The area ID to set for triangles above the slope.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkAboveSlope(float angle, AreaId area)
+		public AreaGenerator MarkAboveSlope(float angle, Area area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, Area>(
 				tri =>
 				{
 					Vector3 n = tri.Normal;
@@ -251,9 +251,9 @@ namespace SharpNav
 		/// <param name="angle">The maximum angle.</param>
 		/// <param name="area">The area ID to set for triangles below the slope.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkBelowSlope(float angle, AreaId area)
+		public AreaGenerator MarkBelowSlope(float angle, Area area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, Area>(
 				tri =>
 				{
 					Vector3 n = tri.Normal;
@@ -273,9 +273,9 @@ namespace SharpNav
 		/// <param name="range">The maximum allowed difference between the angle and a triangle's angle.</param>
 		/// <param name="area">The area ID to set for triangles around the slope.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkAtSlope(float angle, float range, AreaId area)
+		public AreaGenerator MarkAtSlope(float angle, float range, Area area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, Area>(
 				tri =>
 				{
 					Vector3 n = tri.Normal;
@@ -294,9 +294,9 @@ namespace SharpNav
 		/// <param name="y">The height threshold of a triangle.</param>
 		/// <param name="area">The area ID to set for triangles below the threshold.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkBelowHeight(float y, AreaId area)
+		public AreaGenerator MarkBelowHeight(float y, Area area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, Area>(
 				tri =>
 				{
 					if (tri.A.Y <= y || tri.B.Y <= y || tri.C.Y <= y)
@@ -316,7 +316,7 @@ namespace SharpNav
 		/// <param name="radius">The maximum allowed difference between the height and a triangle's height.</param>
 		/// <param name="area">The area ID to set for triangles around the height.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkAtHeight(float y, float radius, AreaId area)
+		public AreaGenerator MarkAtHeight(float y, float radius, Area area)
 		{
 			throw new NotImplementedException();
 		}
@@ -327,9 +327,9 @@ namespace SharpNav
 		/// <param name="y">The height threshold of a triangle.</param>
 		/// <param name="area">The area ID to set for triangles above the threshold.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkAboveHeight(float y, AreaId area)
+		public AreaGenerator MarkAboveHeight(float y, Area area)
 		{
-			conditions.Add(Tuple.Create<Func<Triangle3, bool>, AreaId>(
+			conditions.Add(Tuple.Create<Func<Triangle3, bool>, Area>(
 				tri =>
 				{
 					if (tri.A.Y >= y || tri.B.Y >= y || tri.C.Y >= y)
@@ -348,7 +348,7 @@ namespace SharpNav
 		/// <param name="func">The condition to be tested on each triangle.</param>
 		/// <param name="area">The area ID to set for triangles that match the condition.</param>
 		/// <returns>The same instance.</returns>
-		public AreaIdGenerator MarkCustomFilter(Func<Triangle3, bool> func, AreaId area)
+		public AreaGenerator MarkCustomFilter(Func<Triangle3, bool> func, Area area)
 		{
 			conditions.Add(Tuple.Create(func, area));
 

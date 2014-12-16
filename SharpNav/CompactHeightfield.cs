@@ -24,7 +24,7 @@ namespace SharpNav
 
 		private CompactCell[] cells;
 		private CompactSpan[] spans;
-		private AreaId[] areas;
+		private Area[] areas;
 
 		//distance field
 		private int[] distances;
@@ -62,7 +62,7 @@ namespace SharpNav
 			int spanCount = field.SpanCount;
 			cells = new CompactCell[width * length];
 			spans = new CompactSpan[spanCount];
-			areas = new AreaId[spanCount];
+			areas = new Area[spanCount];
 
 			//iterate over the Heightfield's cells
 			int spanIndex = 0;
@@ -80,7 +80,7 @@ namespace SharpNav
 				for (int j = 0; j < lastInd; j++)
 				{
 					var s = fs[j];
-					if (s.Area != AreaId.Null)
+					if (s.Area.IsWalkable)
 					{
 						CompactSpan.FromMinMax(s.Maximum, fs[j + 1].Minimum, out spans[spanIndex]);
 						areas[spanIndex] = s.Area;
@@ -91,7 +91,7 @@ namespace SharpNav
 
 				//the last closed span that has an "infinite" height
 				var lastS = fs[lastInd];
-				if (lastS.Area != AreaId.Null)
+				if (lastS.Area.IsWalkable)
 				{
 					spans[spanIndex] = new CompactSpan(fs[lastInd].Maximum, int.MaxValue);
 					areas[spanIndex] = lastS.Area;
@@ -280,7 +280,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the area flags.
 		/// </summary>
-		public AreaId[] Areas
+		public Area[] Areas
 		{
 			get
 			{
@@ -378,7 +378,7 @@ namespace SharpNav
 			//erode close-to-null areas to null areas.
 			for (int i = 0; i < spans.Length; i++)
 				if (dists[i] < radius)
-					areas[i] = AreaId.Null;
+					areas[i] = Area.Null;
 
 			//marking areas as null changes the distance field, so recalculate it.
 			if (distances != null)
@@ -734,7 +734,7 @@ namespace SharpNav
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						CompactSpan s = spans[i];
-						AreaId area = areas[i];
+						Area area = areas[i];
 
 						bool isBoundary = false;
 						if (s.ConnectionCount != 4)
@@ -979,7 +979,7 @@ namespace SharpNav
 						{
 							//a cell is being expanded to if it's distance is greater than the current level,
 							//but no region has been asigned yet. It must also not be in a null area.
-							if (this.distances[i] >= level && regions[i] == 0 && areas[i] != AreaId.Null)
+							if (this.distances[i] >= level && regions[i] == 0 && areas[i].IsWalkable)
 								stack.Add(new CompactSpanReference(x, y, i));
 						}
 					}
@@ -1019,7 +1019,7 @@ namespace SharpNav
 					}
 
 					RegionId r = regions[i];
-					AreaId area = areas[i];
+					Area area = areas[i];
 					CompactSpan s = spans[i];
 
 					//search direct neighbors for the one with the smallest distance value
@@ -1101,7 +1101,7 @@ namespace SharpNav
 			Stack<CompactSpanReference> stack = new Stack<CompactSpanReference>();
 			stack.Push(start);
 
-			AreaId area = areas[start.Index];
+			Area area = areas[start.Index];
 			regions[start.Index] = new RegionId(regionIndex);
 			floodDistances[start.Index] = 0;
 
@@ -1330,7 +1330,7 @@ namespace SharpNav
 					CompactCell c = cells[x + y * width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
-						if (areas[i] != AreaId.Null)
+						if (areas[i].IsWalkable)
 							regions[i] = newRegionId;
 					}
 				}
@@ -1358,7 +1358,7 @@ namespace SharpNav
 					CompactCell c = cells[y * width + x];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
-						if (areas[i] == AreaId.Null || regions[i] != RegionId.Null)
+						if (!areas[i].IsWalkable || !regions[i].IsNull)
 							continue;
 
 						int level = distances[i] >> logLevelsPerStack;

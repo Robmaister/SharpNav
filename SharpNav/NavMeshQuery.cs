@@ -60,7 +60,7 @@ namespace SharpNav
 		/// <returns>Cost</returns>
 		public float GetCost(Vector3 pa, Vector3 pb, Poly curPoly)
 		{
-			return (pa - pb).Length() * areaCost[(int)curPoly.Area];
+			return (pa - pb).Length() * areaCost[(int)curPoly.Area.Id];
 		}
 
 		public TiledNavMesh Nav

@@ -94,8 +94,8 @@ namespace SharpNav.Tests
 		public void Filter_LowHangingWalkable_Success()
 		{
 			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			var span = new Span(10, 15, AreaId.Walkable);
-			var span2 = new Span(16, 20, AreaId.Null);
+			var span = new Span(10, 15, Area.Default);
+			var span2 = new Span(16, 20, Area.Null);
 
 			hf[0].AddSpan(span);
 			hf[0].AddSpan(span2);
@@ -109,8 +109,8 @@ namespace SharpNav.Tests
 		public void Filter_LowHangingWalkable_Fail()
 		{
 			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			var span = new Span(1, 2, AreaId.Walkable);
-			var span2 = new Span(10, 20, AreaId.Null);
+			var span = new Span(1, 2, Area.Default);
+			var span2 = new Span(10, 20, Area.Null);
 
 			hf[2].AddSpan(span);
 			hf[2].AddSpan(span2);
@@ -124,8 +124,8 @@ namespace SharpNav.Tests
 		public void Filter_WalkableLowHeight_Success()
 		{
 			var hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
-			var span = new Span(10, 20, AreaId.Walkable);
-			var span2 = new Span(25, 30, AreaId.Walkable);
+			var span = new Span(10, 20, Area.Default);
+			var span2 = new Span(25, 30, Area.Default);
 
 			hf[0].AddSpan(span);
 			hf[0].AddSpan(span2);
@@ -135,8 +135,8 @@ namespace SharpNav.Tests
 			hf.FilterWalkableLowHeightSpans(15);
 
 			//so one span is unwalkable and the other is fine
-			Assert.AreEqual(hf[0].Spans[0].Area, AreaId.Null);
-			Assert.AreEqual(hf[0].Spans[1].Area, AreaId.Walkable);
+			Assert.AreEqual(hf[0].Spans[0].Area, Area.Null);
+			Assert.AreEqual(hf[0].Spans[1].Area, Area.Default);
 		}
 	}
 }

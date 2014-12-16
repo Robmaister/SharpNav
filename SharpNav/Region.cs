@@ -225,7 +225,7 @@ namespace SharpNav
 
 		private int spanCount;
 		private RegionId id;
-		private AreaId areaType;
+		private Area areaType;
 		private bool remap;
 		private bool visited;
 		private List<RegionId> connections;
@@ -282,7 +282,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets or sets the AreaType of this region
 		/// </summary>
-		public AreaId AreaType
+		public Area AreaType
 		{
 			get
 			{
