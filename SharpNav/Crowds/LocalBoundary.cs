@@ -190,7 +190,7 @@ namespace SharpNav.Crowds
 				{
 					//skip too distant segments
 					float tseg;
-					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref pos, ref segs[k].Start, ref segs[k].End, out tseg);
+					float distSqr = Distance.PointToSegment2DSquared(ref pos, ref segs[k].Start, ref segs[k].End, out tseg);
 					if (distSqr > collisionQueryRange * collisionQueryRange)
 						continue;
 					AddSegment(distSqr, segs[k]);

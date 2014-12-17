@@ -105,7 +105,7 @@ namespace SharpNav
 			for (int i = 0; i < numPolyVerts; i++)
 				verts[i] = tile.Verts[poly.Verts[i]];
 
-			bool inside = MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT);
+			bool inside = Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT);
 			if (inside)
 			{
 				//Point is inside the polygon
@@ -159,7 +159,7 @@ namespace SharpNav
 						v[k] = tile.DetailVerts[pd.VertexIndex + (t[k] - poly.VertCount)];
 				}
 
-				if (MathHelper.Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
+				if (Distance.PointToTriangle(pos, v[0], v[1], v[2], out h))
 					return true;
 			}
 

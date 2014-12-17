@@ -128,6 +128,9 @@
     <Compile Include="Direction.cs" />
     <Compile Include="EdgeFlags.cs" />
     <Compile Include="Geometry\BBox2i.cs" />
+    <Compile Include="Geometry\Containment.cs" />
+    <Compile Include="Geometry\Distance.cs" />
+    <Compile Include="Geometry\Intersection.cs" />
     <Compile Include="Geometry\TriangleEnumerable.cs" />
     <Compile Include="Geometry\Vector2i.cs" />
     <Compile Include="Heightfield.Rasterization.cs" />

@@ -147,7 +147,7 @@ namespace SharpNav.Crowds
 				//precalculate if the agent is close to the segment
 				float r = 0.01f;
 				float t;
-				segments[i].Touch = MathHelper.Distance.PointToSegment2DSquared(ref position, ref segments[i].P, 
+				segments[i].Touch = Distance.PointToSegment2DSquared(ref position, ref segments[i].P, 
 					ref segments[i].Q, out t) < (r * r);
 			}
 		}

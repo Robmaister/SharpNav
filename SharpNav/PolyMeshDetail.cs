@@ -334,8 +334,8 @@ namespace SharpNav
 				Vector3 pt2 = vb;
 
 				//the vertices pt1 (va) and pt2 (vb) are extremely close to the polygon edge
-				if (MathHelper.Distance.PointToSegment2DSquared(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr 
-					&& MathHelper.Distance.PointToSegment2DSquared(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
+				if (Distance.PointToSegment2DSquared(ref pt1, ref vpoly[j], ref vpoly[i]) < thrSqr 
+					&& Distance.PointToSegment2DSquared(ref pt2, ref vpoly[j], ref vpoly[i]) < thrSqr)
 					return 1;
 			}
 
@@ -687,7 +687,7 @@ namespace SharpNav
 						int maxi = -1;
 						for (int m = a + 1; m < b; m++)
 						{
-							float dev = MathHelper.Distance.PointToSegmentSquared(ref edge[m], ref va, ref vb);
+							float dev = Distance.PointToSegmentSquared(ref edge[m], ref va, ref vb);
 							if (dev > maxd)
 							{
 								maxd = dev;
@@ -777,7 +777,7 @@ namespace SharpNav
 						Vector3 pt = new Vector3(x * sampleDist, (bounds.Max.Y + bounds.Min.Y) * 0.5f, z * sampleDist);
 
 						//make sure samples aren't too close to edge
-						if (MathHelper.Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist * 0.5f)
+						if (Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist * 0.5f)
 							continue;
 
 						SamplingData sd = new SamplingData(x, GetHeight(pt, ics, compactField.CellHeight, hp), z, false);
@@ -1172,7 +1172,7 @@ namespace SharpNav
 					continue;
 
 				Vector3 ps0 = pts[s0], pt0 = pts[t0];
-				if (MathHelper.Intersection.SegmentSegment2D(ref ps0, ref pt0, ref ps1, ref pt1))
+				if (Intersection.SegmentSegment2D(ref ps0, ref pt0, ref ps1, ref pt1))
 					return true;
 			}
 
@@ -1235,7 +1235,7 @@ namespace SharpNav
 				int va = tris[i].VertexHash0;
 				int vb = tris[i].VertexHash1;
 				int vc = tris[i].VertexHash2;
-				float d = MathHelper.Distance.PointToTriangle(p, verts[va], verts[vb], verts[vc]);
+				float d = Distance.PointToTriangle(p, verts[va], verts[vb], verts[vc]);
 				if (d < dmin)
 					dmin = d;
 			}

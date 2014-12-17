@@ -330,7 +330,7 @@ namespace SharpNav
 
 					//if circle isn't touching next polygon, skip it
 					float tseg;
-					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
+					float distSqr = Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
 						continue;
 
@@ -641,7 +641,7 @@ namespace SharpNav
 						if (i == 0)
 						{
 							float t;
-							if (MathHelper.Distance.PointToSegment2DSquared(ref portalApex, ref left, ref right, out t) < 0.001 * 0.001)
+							if (Distance.PointToSegment2DSquared(ref portalApex, ref left, ref right, out t) < 0.001 * 0.001)
 								continue;
 						}
 					}
@@ -840,7 +840,7 @@ namespace SharpNav
 					verts[i] = curTile.Verts[curPoly.Verts[i]];
 
 				//if target is inside poly, stop search
-				if (MathHelper.IsPointInPoly(endPos, verts, nverts))
+				if (Containment.PointInPoly(endPos, verts, nverts))
 				{
 					bestNode = curNode;
 					bestPos = endPos;
@@ -884,7 +884,7 @@ namespace SharpNav
 					{
 						//wall edge, calculate distance
 						float tseg = 0;
-						float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref endPos, ref verts[j], ref verts[i], out tseg);
+						float distSqr = Distance.PointToSegment2DSquared(ref endPos, ref verts[j], ref verts[i], out tseg);
 						if (distSqr < bestDist)
 						{
 							//update nearest distance
@@ -907,7 +907,7 @@ namespace SharpNav
 								continue;
 
 							//skip the link if too far from search constraint
-							float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref searchPos, ref verts[j], ref verts[i]);
+							float distSqr = Distance.PointToSegment2DSquared(ref searchPos, ref verts[j], ref verts[i]);
 							if (distSqr > searchRadSqr)
 								continue;
 
@@ -1330,7 +1330,7 @@ namespace SharpNav
 
 				float tmin, tmax;
 				int segMin, segMax;
-				if (!MathHelper.Intersection.SegmentPoly2D(startPos, endPos, verts, nv, out tmin, out tmax, out segMin, out segMax))
+				if (!Intersection.SegmentPoly2D(startPos, endPos, verts, nv, out tmin, out tmax, out segMin, out segMax))
 				{
 					//could not hit the polygon, keep the old t and report hit
 					pathCount = n;
@@ -1564,7 +1564,7 @@ namespace SharpNav
 
 					//if the circle is not touching the next polygon, skip it
 					float tseg;
-					float distSqr = MathHelper.Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
+					float distSqr = Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
 						continue;
 
@@ -1607,7 +1607,7 @@ namespace SharpNav
 						for (int k = 0; k < npb; k++)
 							pb[k] = pastTile.Verts[pastPoly.Verts[k]];
 
-						if (MathHelper.Intersection.PolyPoly2D(pa, npa, pb, npb))
+						if (Intersection.PolyPoly2D(pa, npa, pb, npb))
 						{
 							overlap = true;
 							break;
@@ -2003,7 +2003,7 @@ namespace SharpNav
 				verts[i] = tile.Verts[poly.Verts[i]];
 
 			closest = pos;
-			if (!MathHelper.Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT))
+			if (!Distance.PointToPolygonEdgeSquared(pos, verts, numPolyVerts, edgeDistance, edgeT))
 			{
 				//Point is outside the polygon
 				//Clamp to nearest edge
@@ -2048,7 +2048,7 @@ namespace SharpNav
 					vc = tile.DetailVerts[pd.VertexIndex + (t.VertexHash2 - poly.VertCount)];
 
 				float h;
-				if (MathHelper.Distance.PointToTriangle(pos, va, vb, vc, out h))
+				if (Distance.PointToTriangle(pos, va, vb, vc, out h))
 				{
 					closest.Y = h;
 					break;
@@ -2173,7 +2173,7 @@ namespace SharpNav
 
 				//append intersection
 				float s, t;
-				if (MathHelper.Intersection.SegmentSegment2D(ref startPos, ref endPos, ref left, ref right, out s, out t))
+				if (Intersection.SegmentSegment2D(ref startPos, ref endPos, ref left, ref right, out s, out t))
 				{
 					Vector3 pt = Vector3.Lerp(left, right, t);
 

@@ -5,10 +5,9 @@
  */
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+
+using SharpNav.Geometry;
 
 namespace SharpNav
 {
@@ -321,7 +320,7 @@ namespace SharpNav
 					//find the maximum deviation
 					while (ci != endi)
 					{
-						float deviation = MathHelper.Distance.PointToSegment2DSquared(rawVerts[ci].X, rawVerts[ci].Z, ax, az, bx, bz);
+						float deviation = Distance.PointToSegment2DSquared(rawVerts[ci].X, rawVerts[ci].Z, ax, az, bx, bz);
 
 						if (deviation > maxDeviation)
 						{

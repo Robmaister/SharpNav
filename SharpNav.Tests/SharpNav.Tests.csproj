@@ -120,6 +120,9 @@
     <Compile Include="CompactHeightfieldTests.cs" />
     <Compile Include="CompactSpanTests.cs" />
     <Compile Include="ContourTests.cs" />
+    <Compile Include="Geometry\ContainmentTests.cs" />
+    <Compile Include="Geometry\DistanceTests.cs" />
+    <Compile Include="Geometry\IntersectionTests.cs" />
     <Compile Include="Libraries\JsonTest.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
