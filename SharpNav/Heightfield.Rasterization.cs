@@ -809,6 +809,9 @@ namespace SharpNav
 		/// <param name="area">The area flags for the triangle.</param>
 		public void RasterizeTriangle(ref Vector3 a, ref Vector3 b, ref Vector3 c, Area area)
 		{
+			//distances buffer for ClipPolygonToBounds
+			float[] distances = new float[12];
+
 			float invCellSize = 1f / cellSize;
 			float invCellHeight = 1f / cellHeight;
 			float boundHeight = bounds.Max.Y - bounds.Min.Y;
@@ -841,10 +844,10 @@ namespace SharpNav
 				//clip the triangle to the row
 				int nvrow = 3;
 				float cz = bounds.Min.Z + z * cellSize;
-				nvrow = MathHelper.ClipPolygonToPlane(inVerts, outVerts, nvrow, 0, 1, -cz);
+				nvrow = MathHelper.ClipPolygonToPlane(inVerts, outVerts, distances, nvrow, 0, 1, -cz);
 				if (nvrow < 3)
 					continue;
-				nvrow = MathHelper.ClipPolygonToPlane(outVerts, inRowVerts, nvrow, 0, -1, cz + cellSize);
+				nvrow = MathHelper.ClipPolygonToPlane(outVerts, inRowVerts, distances, nvrow, 0, -1, cz + cellSize);
 				if (nvrow < 3)
 					continue;
 
@@ -869,10 +872,10 @@ namespace SharpNav
 					//clip the triangle to the column
 					int nv = nvrow;
 					float cx = bounds.Min.X + x * cellSize;
-					nv = MathHelper.ClipPolygonToPlane(inRowVerts, outVerts, nv, 1, 0, -cx);
+					nv = MathHelper.ClipPolygonToPlane(inRowVerts, outVerts, distances, nv, 1, 0, -cx);
 					if (nv < 3)
 						continue;
-					nv = MathHelper.ClipPolygonToPlane(outVerts, inVerts, nv, -1, 0, cx + cellSize);
+					nv = MathHelper.ClipPolygonToPlane(outVerts, inVerts, distances, nv, -1, 0, cx + cellSize);
 					if (nv < 3)
 						continue;
 

@@ -27,12 +27,6 @@ namespace SharpNav
 	internal static class MathHelper
 	{
 		/// <summary>
-		/// A static buffer of floats used in <see cref="ClipPolygonToPlane"/>. Created here to prevent extra heap
-		/// allocation every time the method is called.
-		/// </summary>
-		private static float[] distances = new float[12];
-
-		/// <summary>
 		/// Clamps an integer value to be within a specified range.
 		/// </summary>
 		/// <param name="val">The value to clamp.</param>
@@ -234,6 +228,23 @@ namespace SharpNav
 		/// <param name="planeD">The clip plane's D component.</param>
 		/// <returns>The number of vertices stored in outVertices.</returns>
 		internal static int ClipPolygonToPlane(Vector3[] inVertices, Vector3[] outVertices, int numVerts, float planeX, float planeZ, float planeD)
+		{
+			float[] distances = new float[12];
+			return ClipPolygonToPlane(inVertices, outVertices, distances, numVerts, planeX, planeZ, planeD);
+		}
+
+		/// <summary>
+		/// Clips a polygon to a plane using the Sutherland-Hodgman algorithm.
+		/// </summary>
+		/// <param name="inVertices">The input array of vertices.</param>
+		/// <param name="outVertices">The output array of vertices.</param>
+		/// <param name="distances">A buffer that stores intermediate data</param>
+		/// <param name="numVerts">The number of vertices to read from the arrays.</param>
+		/// <param name="planeX">The clip plane's X component.</param>
+		/// <param name="planeZ">The clip plane's Z component.</param>
+		/// <param name="planeD">The clip plane's D component.</param>
+		/// <returns>The number of vertices stored in outVertices.</returns>
+		internal static int ClipPolygonToPlane(Vector3[] inVertices, Vector3[] outVertices, float[] distances, int numVerts, float planeX, float planeZ, float planeD)
 		{
 			for (int i = 0; i < numVerts; i++)
 				distances[i] = planeX * inVertices[i].X + planeZ * inVertices[i].Z + planeD;
