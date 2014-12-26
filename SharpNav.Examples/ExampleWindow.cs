@@ -427,7 +427,7 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Colors\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				contourSet = new ContourSet(compactHeightfield, settings);
+				contourSet = compactHeightfield.BuildContourSet(settings);
 
 				Console.WriteLine("ContourSet");
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");

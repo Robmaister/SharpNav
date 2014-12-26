@@ -1373,5 +1373,361 @@ namespace SharpNav
 				}
 			}
 		}
+
+		public ContourSet BuildContourSet(NavMeshGenerationSettings settings)
+		{
+			return BuildContourSet(settings.MaxEdgeError, settings.MaxEdgeLength, settings.ContourFlags);
+		}
+
+		public ContourSet BuildContourSet(float maxError, int maxEdgeLength, ContourBuildFlags buildFlags)
+		{
+			BBox3 contourSetBounds = bounds;
+			if (borderSize > 0)
+			{
+				//remove offset
+				float pad = borderSize * cellSize;
+				contourSetBounds.Min.X += pad;
+				contourSetBounds.Min.Z += pad;
+				contourSetBounds.Max.X -= pad;
+				contourSetBounds.Max.Z -= pad;
+			}
+
+			int contourSetWidth = width - borderSize * 2;
+			int contourSetHeight = height - borderSize * 2;
+
+			int maxContours = Math.Max(maxRegions, 8);
+			var contours = new List<Contour>(maxContours);
+
+			EdgeFlags[] flags = new EdgeFlags[spans.Length];
+
+			//Modify flags array by using the CompactHeightfield data
+			//mark boundaries
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					//loop through all the spans in the cell
+					CompactCell c = cells[x + y * width];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						CompactSpan s = spans[i];
+
+						//set the flag to 0 if the region is a border region or null.
+						if (s.Region.IsNull || RegionId.HasFlags(s.Region, RegionFlags.Border))
+						{
+							flags[i] = 0;
+							continue;
+						}
+
+						//go through all the neighboring cells
+						for (var dir = Direction.West; dir <= Direction.South; dir++)
+						{
+							//obtain region id
+							RegionId r = RegionId.Null;
+							if (s.IsConnected(dir))
+							{
+								int dx = x + dir.GetHorizontalOffset();
+								int dy = y + dir.GetVerticalOffset();
+								int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+								r = spans[di].Region;
+							}
+
+							//region ids are equal
+							if (r == s.Region)
+							{
+								//res marks all the internal edges
+								EdgeFlagsHelper.AddEdge(ref flags[i], dir);
+							}
+						}
+
+						//flags represents all the nonconnected edges, edges that are only internal
+						//the edges need to be between different regions
+						EdgeFlagsHelper.FlipEdges(ref flags[i]);
+					}
+				}
+			}
+
+			var verts = new List<ContourVertex>();
+			var simplified = new List<ContourVertex>();
+
+			for (int y = 0; y < length; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					CompactCell c = cells[x + y * width];
+					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
+					{
+						//flags is either 0000 or 1111
+						//in other words, not connected at all 
+						//or has all connections, which means span is in the middle and thus not an edge.
+						if (flags[i] == EdgeFlags.None || flags[i] == EdgeFlags.All)
+						{
+							flags[i] = EdgeFlags.None;
+							continue;
+						}
+
+						var spanRef = new CompactSpanReference(x, y, i);
+						RegionId reg = this[spanRef].Region;
+						if (reg.IsNull || RegionId.HasFlags(reg, RegionFlags.Border))
+							continue;
+
+						//reset each iteration
+						verts.Clear();
+						simplified.Clear();
+
+						//Walk along a contour, then build it
+						WalkContour(spanRef, flags, verts);
+						Contour.Simplify(verts, simplified, maxError, maxEdgeLength, buildFlags);
+						Contour.RemoveDegenerateSegments(simplified);
+						Contour contour = new Contour(simplified, reg, areas[i], borderSize);
+
+						if (!contour.IsNull)
+							contours.Add(contour);
+					}
+				}
+			}
+
+			//Check and merge bad contours
+			for (int i = 0; i < contours.Count; i++)
+			{
+				Contour cont = contours[i];
+
+				//Check if contour is backwards
+				if (cont.Area2D < 0)
+				{
+					//Find another contour to merge with
+					int mergeIndex = -1;
+					for (int j = 0; j < contours.Count; j++)
+					{
+						if (i == j)
+							continue;
+
+						//Must have at least one vertex, the same region ID, and be going forwards.
+						Contour contj = contours[j];
+						if (contj.Vertices.Length != 0 && contj.RegionId == cont.RegionId && contj.Area2D > 0)
+						{
+							mergeIndex = j;
+							break;
+						}
+					}
+
+					//Merge if found.
+					if (mergeIndex != -1)
+					{
+						contours[mergeIndex].MergeWith(cont);
+						contours.RemoveAt(i);
+						i--;
+					}
+				}
+			}
+
+			return new ContourSet(contours, contourSetBounds, contourSetWidth, contourSetHeight);
+		}
+
+		/// <summary>
+		/// Initial generation of the contours
+		/// </summary>
+		/// <param name="spanReference">A referecne to the span to start walking from.</param>
+		/// <param name="flags">An array of flags determinining </param>
+		/// <param name="points">The vertices of a contour.</param>
+		private void WalkContour(CompactSpanReference spanReference, EdgeFlags[] flags, List<ContourVertex> points)
+		{
+			Direction dir = Direction.West;
+
+			//find the first direction that has a connection 
+			while (!EdgeFlagsHelper.IsConnected(ref flags[spanReference.Index], dir))
+				dir++;
+
+			Direction startDir = dir;
+			int startIndex = spanReference.Index;
+
+			Area area = areas[startIndex];
+
+			//TODO make the max iterations value a variable
+			int iter = 0;
+			while (++iter < 40000)
+			{
+				// this direction is connected
+				if (EdgeFlagsHelper.IsConnected(ref flags[spanReference.Index], dir))
+				{
+					// choose the edge corner
+					bool isBorderVertex;
+					bool isAreaBorder = false;
+
+					int px = spanReference.X;
+					int py = GetCornerHeight(spanReference, dir, out isBorderVertex);
+					int pz = spanReference.Y;
+
+					switch (dir)
+					{
+						case Direction.West:
+							pz++;
+							break;
+						case Direction.North:
+							px++;
+							pz++;
+							break;
+						case Direction.East:
+							px++;
+							break;
+					}
+
+					RegionId r = RegionId.Null;
+					CompactSpan s = this[spanReference];
+					if (s.IsConnected(dir))
+					{
+						int dx = spanReference.X + dir.GetHorizontalOffset();
+						int dy = spanReference.Y + dir.GetVerticalOffset();
+						int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+						r = spans[di].Region;
+						if (area != areas[di])
+							isAreaBorder = true;
+					}
+
+					// apply flags if neccessary
+					if (isBorderVertex)
+						r = RegionId.WithFlags(r, RegionFlags.VertexBorder);
+
+					if (isAreaBorder)
+						r = RegionId.WithFlags(r, RegionFlags.AreaBorder);
+
+					//save the point
+					points.Add(new ContourVertex(px, py, pz, r));
+
+					EdgeFlagsHelper.RemoveEdge(ref flags[spanReference.Index], dir);	// remove visited edges
+					dir = dir.NextClockwise();			// rotate clockwise
+				}
+				else
+				{
+					//get a new cell(x, y) and span index(i)
+					int di = -1;
+					int dx = spanReference.X + dir.GetHorizontalOffset();
+					int dy = spanReference.Y + dir.GetVerticalOffset();
+
+					CompactSpan s = this[spanReference];
+					if (s.IsConnected(dir))
+					{
+						CompactCell dc = cells[dx + dy * width];
+						di = dc.StartIndex + CompactSpan.GetConnection(ref s, dir);
+					}
+
+					if (di == -1)
+					{
+						// shouldn't happen
+						// TODO if this shouldn't happen, this check shouldn't be necessary.
+						throw new InvalidOperationException("Something went wrong");
+					}
+
+					spanReference = new CompactSpanReference(dx, dy, di);
+					dir = dir.NextCounterClockwise(); // rotate counterclockwise
+				}
+
+				if (startIndex == spanReference.Index && startDir == dir)
+					break;
+			}
+		}
+
+		/// <summary>
+		/// Helper method for WalkContour function
+		/// </summary>
+		/// <param name="compactField">The compact heightfield to reference.</param>
+		/// <param name="sr">The span to get the corner height for.</param>
+		/// <param name="dir">The direction to get the corner height from.</param>
+		/// <param name="isBorderVertex">Determine whether the vertex is a border or not.</param>
+		/// <returns>The corner height.</returns>
+		private int GetCornerHeight(CompactSpanReference sr, Direction dir, out bool isBorderVertex)
+		{
+			isBorderVertex = false;
+
+			CompactSpan s = this[sr];
+			int cornerHeight = s.Minimum;
+			Direction dirp = dir.NextClockwise(); //new clockwise direction
+
+			RegionId[] cornerRegs = new RegionId[4];
+			Area[] cornerAreas = new Area[4];
+
+			//combine region and area codes in order to prevent border vertices, which are in between two areas, to be removed 
+			cornerRegs[0] = s.Region;
+			cornerAreas[0] = areas[sr.Index];
+
+			if (s.IsConnected(dir))
+			{
+				//get neighbor span
+				int dx = sr.X + dir.GetHorizontalOffset();
+				int dy = sr.Y + dir.GetVerticalOffset();
+				int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+				CompactSpan ds = spans[di];
+
+				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
+				cornerRegs[1] = spans[di].Region;
+				cornerAreas[1] = areas[di];
+
+				//get neighbor of neighbor's span
+				if (ds.IsConnected(dirp))
+				{
+					int dx2 = dx + dirp.GetHorizontalOffset();
+					int dy2 = dy + dirp.GetVerticalOffset();
+					int di2 = cells[dx2 + dy2 * width].StartIndex + CompactSpan.GetConnection(ref ds, dirp);
+					CompactSpan ds2 = spans[di2];
+
+					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
+					cornerRegs[2] = ds2.Region;
+					cornerAreas[2] = areas[di2];
+				}
+			}
+
+			//get neighbor span
+			if (s.IsConnected(dirp))
+			{
+				int dx = sr.X + dirp.GetHorizontalOffset();
+				int dy = sr.Y + dirp.GetVerticalOffset();
+				int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dirp);
+				CompactSpan ds = spans[di];
+
+				cornerHeight = Math.Max(cornerHeight, ds.Minimum);
+				cornerRegs[3] = ds.Region;
+				cornerAreas[3] = areas[di];
+
+				//get neighbor of neighbor's span
+				if (ds.IsConnected(dir))
+				{
+					int dx2 = dx + dir.GetHorizontalOffset();
+					int dy2 = dy + dir.GetVerticalOffset();
+					int di2 = cells[dx2 + dy2 * width].StartIndex + CompactSpan.GetConnection(ref ds, dir);
+					CompactSpan ds2 = spans[di2];
+
+					cornerHeight = Math.Max(cornerHeight, ds2.Minimum);
+					cornerRegs[2] = ds2.Region;
+					cornerAreas[2] = areas[di2];
+				}
+			}
+
+			//check if vertex is special edge vertex
+			//if so, these vertices will be removed later
+			for (int j = 0; j < 4; j++)
+			{
+				int a = j;
+				int b = (j + 1) % 4;
+				int c = (j + 2) % 4;
+				int d = (j + 3) % 4;
+
+				RegionId ra = cornerRegs[a], rb = cornerRegs[b], rc = cornerRegs[c], rd = cornerRegs[d];
+				Area aa = cornerAreas[a], ab = cornerAreas[b], ac = cornerAreas[c], ad = cornerAreas[d];
+
+				//the vertex is a border vertex if:
+				//two same exterior cells in a row followed by two interior cells and none of the regions are out of bounds
+				bool twoSameExteriors = RegionId.HasFlags(ra, RegionFlags.Border) && RegionId.HasFlags(rb, RegionFlags.Border) && (ra == rb && aa == ab);
+				bool twoSameInteriors = !(RegionId.HasFlags(rc, RegionFlags.Border) || RegionId.HasFlags(rd, RegionFlags.Border));
+				bool intsSameArea = ac == ad;
+				bool noZeros = ra != 0 && rb != 0 && rc != 0 && rd != 0 && aa != 0 && ab != 0 && ac != 0 && ad != 0;
+				if (twoSameExteriors && twoSameInteriors && intsSameArea && noZeros)
+				{
+					isBorderVertex = true;
+					break;
+				}
+			}
+
+			return cornerHeight;
+		}
 	}
 }

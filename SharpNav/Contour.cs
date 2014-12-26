@@ -28,19 +28,9 @@ namespace SharpNav
 		/// <param name="region">The region ID of the contour.</param>
 		/// <param name="area">The area ID of the contour.</param>
 		/// <param name="borderSize">The size of the border.</param>
-		/// <param name="maxError"></param>
-		/// <param name="maxEdgeLength"></param>
-		/// <param name="buildFlags"></param>
-		/// <param name="simplifyBuffer"></param>
-		public Contour(List<ContourVertex> verts, RegionId region, Area area, int borderSize, float maxError, int maxEdgeLength, ContourBuildFlags buildFlags, List<ContourVertex> simplifyBuffer = null)
+		public Contour(List<ContourVertex> verts, RegionId region, Area area, int borderSize)
 		{
-			if (simplifyBuffer == null)
-				simplifyBuffer = new List<ContourVertex>();
-
-			SimplifyContour(verts, maxError, maxEdgeLength, buildFlags, simplifyBuffer);
-			RemoveDegenerateSegments(simplifyBuffer);
-
-			this.vertices = simplifyBuffer.ToArray();
+			this.vertices = verts.ToArray();
 			this.regionId = region;
 			this.area = area;
 
@@ -205,7 +195,7 @@ namespace SharpNav
 		/// <param name="maxError">Maximum error allowed</param>
 		/// <param name="maxEdgeLen">The maximum edge length allowed</param>
 		/// <param name="buildFlags">Flags determines how to split the long edges</param>
-		private static void SimplifyContour(List<ContourVertex> rawVerts, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags, List<ContourVertex> simplified)
+		public static void Simplify(List<ContourVertex> rawVerts, List<ContourVertex> simplified, float maxError, int maxEdgeLen, ContourBuildFlags buildFlags)
 		{
 			bool tesselateWallEdges = (buildFlags & ContourBuildFlags.TessellateWallEdges) == ContourBuildFlags.TessellateWallEdges;
 			bool tesselateAreaEdges = (buildFlags & ContourBuildFlags.TessellateAreaEdges) == ContourBuildFlags.TessellateAreaEdges;
@@ -425,7 +415,7 @@ namespace SharpNav
 		/// Removes degenerate segments from a simplified contour.
 		/// </summary>
 		/// <param name="simplified">The simplified contour.</param>
-		private static void RemoveDegenerateSegments(List<ContourVertex> simplified)
+		public static void RemoveDegenerateSegments(List<ContourVertex> simplified)
 		{
 			//remove adjacent vertices which are equal on the xz-plane
 			for (int i = 0; i < simplified.Count; i++)

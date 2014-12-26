@@ -192,8 +192,8 @@ namespace SharpNav
 				|| IsCollinear(ref c, ref d, ref b))
 				return false;
 
-			return (IsLeft(ref a, ref b, ref c) ^ IsLeft(ref a, ref b, ref d))
-				&& (IsLeft(ref c, ref d, ref a) ^ IsLeft(ref c, ref d, ref b));
+			return (!IsLeft(ref a, ref b, ref c) ^ !IsLeft(ref a, ref b, ref d))
+				&& (!IsLeft(ref c, ref d, ref a) ^ !IsLeft(ref c, ref d, ref b));
 		}
 
 		/// <summary>

@@ -43,13 +43,14 @@ namespace SharpNav
 		private float cellHeight;
 		private int borderSize;
 
+		//HACK borderSize is 2 here. Fix with borderSize.
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMesh"/> class.
 		/// </summary>
 		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
 		/// <param name="settings">The settings to build with.</param>
 		public PolyMesh(ContourSet contSet, NavMeshGenerationSettings settings)
-			: this(contSet, settings.VertsPerPoly)
+			: this(contSet, settings.CellSize, settings.CellHeight, 2, settings.VertsPerPoly)
 		{
 		}
 
@@ -58,13 +59,13 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
 		/// <param name="numVertsPerPoly">The maximum number of vertices per polygon.</param>
-		public PolyMesh(ContourSet contSet, int numVertsPerPoly)
+		public PolyMesh(ContourSet contSet, float cellSize, float cellHeight, int borderSize, int numVertsPerPoly)
 		{
 			//copy contour data
 			this.bounds = contSet.Bounds;
-			this.cellSize = contSet.CellSize;
-			this.cellHeight = contSet.CellHeight;
-			this.borderSize = contSet.BorderSize;
+			this.cellSize = cellSize;
+			this.cellHeight = cellHeight;
+			this.borderSize = borderSize;
 
 			//get maximum limits
 			//TODO move to ContourSet?
@@ -141,19 +142,21 @@ namespace SharpNav
 				//iterate through all the triangles
 				for (int i = 0; i < ntris; i++)
 				{
+					Triangle ti = tris[i];
+
 					//make sure there are three distinct vertices. anything less can't be a polygon.
-					if (tris[i].Index0 == tris[i].Index1
-						|| tris[i].Index0 == tris[i].Index2
-						|| tris[i].Index1 == tris[i].Index2)
+					if (ti.Index0 == ti.Index1
+						|| ti.Index0 == ti.Index2
+						|| ti.Index1 == ti.Index2)
 						continue;
 
 					//each polygon has numVertsPerPoly
 					//index 0, 1, 2 store triangle vertices
 					//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
 					Polygon p = new Polygon(numVertsPerPoly, Area.Null, RegionId.Null, 0);
-					p.Vertices[0] = indices[tris[i].Index0];
-					p.Vertices[1] = indices[tris[i].Index1];
-					p.Vertices[2] = indices[tris[i].Index2];
+					p.Vertices[0] = RemoveDiagonalFlag(indices[ti.Index0]);
+					p.Vertices[1] = RemoveDiagonalFlag(indices[ti.Index1]);
+					p.Vertices[2] = RemoveDiagonalFlag(indices[ti.Index2]);
 					contPolys.Add(p);
 				}
 				
@@ -398,9 +401,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="index">The index</param>
 		/// <returns><c>true</c> if it is a diagonal flag on the specified index; otherwise, <c>false</c>.</returns>
-		public static bool IsDiagonalFlagOn(int index)
+		public static bool HasDiagonalFlag(int index)
 		{
-			return (index & DiagonalFlag) == DiagonalFlag;
+			return (index & DiagonalFlag) != 0;
 		}
 
 		/// <summary>
@@ -577,7 +580,7 @@ namespace SharpNav
 				{
 					int i1 = Next(i, n);
 					
-					if (IsDiagonalFlagOn(indices[i1]))
+					if (HasDiagonalFlag(indices[i1]))
 					{
 						int p0 = RemoveDiagonalFlag(indices[i]);
 						int p2 = RemoveDiagonalFlag(indices[Next(i1, n)]);

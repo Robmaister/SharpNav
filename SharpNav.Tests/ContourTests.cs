@@ -30,6 +30,7 @@ namespace SharpNav.Tests
 		[Test]
 		public void ContourConstructor()
 		{
+			//TODO directly build contours now that ContourSet allows it.
 			//Build a 5x5 heightfield
 			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), (float)(1.0f / 5.0f), 0.02f);
 			for (int i = 0; i < 5 * 5; i++)
@@ -42,7 +43,7 @@ namespace SharpNav.Tests
 			chf.BuildDistanceField();
 			chf.BuildRegions(1, 1, 1);
 
-			ContourSet contourSet = new ContourSet(chf, 1.0f, 10, 0);
+			ContourSet contourSet = chf.BuildContourSet(1, 5, ContourBuildFlags.None);
 
 			Assert.AreEqual(contourSet.Count, 2);
 		}

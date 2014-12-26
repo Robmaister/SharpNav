@@ -48,7 +48,7 @@ namespace SharpNav
 			chf.BuildDistanceField();
 			chf.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
 
-			var cont = new ContourSet(chf, settings);
+			var cont = chf.BuildContourSet(settings);
 
 			var polyMesh = new PolyMesh(cont, settings);
 

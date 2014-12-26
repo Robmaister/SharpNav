@@ -470,7 +470,7 @@ namespace SharpNav.Examples
 
 			Matrix4 squareScale, squareTrans;
 
-			Matrix4.CreateTranslation(heightfield.Bounds.Min.X + cellSize.X, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + cellSize.Z, out squareTrans);
+			Matrix4.CreateTranslation(heightfield.Bounds.Min.X + cellSize.X * compactHeightfield.BorderSize, heightfield.Bounds.Min.Y, heightfield.Bounds.Min.Z + cellSize.Z * compactHeightfield.BorderSize, out squareTrans);
 			GL.MultMatrix(ref squareTrans);
 
 			Matrix4.CreateScale(cellSize.X, cellSize.Y, cellSize.Z, out squareScale);
@@ -514,7 +514,7 @@ namespace SharpNav.Examples
 
 			Matrix4 squareScale, squareTrans;
 
-			Matrix4.CreateTranslation(polyMesh.Bounds.Min.X + polyMesh.CellSize * 0.5f, polyMesh.Bounds.Min.Y, polyMesh.Bounds.Min.Z + polyMesh.CellSize * 0.5f, out squareTrans);
+			Matrix4.CreateTranslation(polyMesh.Bounds.Min.X, polyMesh.Bounds.Min.Y, polyMesh.Bounds.Min.Z, out squareTrans);
 			GL.MultMatrix(ref squareTrans);
 
 			Matrix4.CreateScale(polyMesh.CellSize, polyMesh.CellHeight, polyMesh.CellSize, out squareScale);
@@ -541,13 +541,13 @@ namespace SharpNav.Examples
 					int vertIndex2 = polyMesh.Polys[i].Vertices[j];
 					
 					var v = polyMesh.Verts[vertIndex0];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 
 					v = polyMesh.Verts[vertIndex1];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 
 					v = polyMesh.Verts[vertIndex2];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
 
@@ -576,10 +576,10 @@ namespace SharpNav.Examples
 					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];
 					
 					var v = polyMesh.Verts[vertIndex0];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 
 					v = polyMesh.Verts[vertIndex1];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
 
@@ -604,10 +604,10 @@ namespace SharpNav.Examples
 					int vertIndex1 = polyMesh.Polys[i].Vertices[nj];
 					
 					var v = polyMesh.Verts[vertIndex0];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 
 					v = polyMesh.Verts[vertIndex1];
-					GL.Vertex3(v.X, v.Y + 1, v.Z);
+					GL.Vertex3(v.X, v.Y, v.Z);
 				}
 			}
 
@@ -619,7 +619,7 @@ namespace SharpNav.Examples
 			for (int i = 0; i < polyMesh.VertCount; i++)
 			{
 				var v = polyMesh.Verts[i];
-				GL.Vertex3(v.X, v.Y + 1, v.Z);
+				GL.Vertex3(v.X, v.Y, v.Z);
 			}
 
 			GL.End();
