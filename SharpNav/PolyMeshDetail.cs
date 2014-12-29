@@ -354,7 +354,7 @@ namespace SharpNav
 				for (int x = 0; x < hp.Width; x++)
 				{
 					int hx = hp.X + x + borderSize;
-					var cells = compactField.Cells[hy * hp.Width + hx];
+					var cells = compactField.Cells[hy * compactField.Width + hx];
 					for (int i = cells.StartIndex, end = cells.StartIndex + cells.Count; i < end; i++)
 					{
 						var span = compactField.Spans[i];
@@ -410,7 +410,7 @@ namespace SharpNav
 							stack[i] = stack[i + RetractSize];
 					}
 
-					int targetSize = stack.Count - RetractSize;
+					int targetSize = stack.Count % RetractSize;
 					while (stack.Count > targetSize)
 						stack.RemoveAt(stack.Count - 1);
 				}
@@ -438,7 +438,7 @@ namespace SharpNav
 					int ai = compactField.Cells[ay * compactField.Width + ax].StartIndex + CompactSpan.GetConnection(ref cs, dir);
 					CompactSpan ds = compactField.Spans[ai];
 
-					hp[hy * hp.Width + hx] = ds.Minimum;
+					hp[hx, hy] = ds.Minimum;
 
 					stack.Add(new CompactSpanReference(ax, ay, ai));
 				}
@@ -587,6 +587,31 @@ namespace SharpNav
 			}
 		}
 
+		private static float PolyMinExtent(Vector3[] verts)
+		{
+			float minDist = float.MaxValue;
+			for (int i = 0; i < verts.Length; i++)
+			{
+				int ni = (i + 1) % verts.Length;
+				Vector3 p0 = verts[i];
+				Vector3 p1 = verts[ni];
+
+				float maxEdgeDist = 0;
+				for (int j = 0; j < verts.Length; j++)
+				{
+					if (j == i || j == ni)
+						continue;
+
+					float d = Distance.PointToSegment2DSquared(ref verts[j], ref p0, ref p1);
+					maxEdgeDist = Math.Max(maxEdgeDist, d);
+				}
+
+				minDist = Math.Min(minDist, maxEdgeDist);
+			}
+
+			return (float)Math.Sqrt(minDist);
+		}
+
 		/// <summary>
 		/// Generate the PolyMeshDetail using the PolyMesh and HeightPatch
 		/// </summary>
@@ -615,10 +640,12 @@ namespace SharpNav
 			float cs = compactField.CellSize;
 			float ics = 1.0f / cs;
 
+			float minExtent = PolyMinExtent(polyMeshVerts);
+
 			//tessellate outlines
 			if (sampleDist > 0)
 			{
-				for (int i = 0, j = numMeshVerts - 1; i < numMeshVerts; j = i++)
+				for (int i = 0, j = verts.Count - 1; i < verts.Count; j = i++)
 				{
 					Vector3 vi = polyMeshVerts[i];
 					Vector3 vj = polyMeshVerts[j];
@@ -736,8 +763,15 @@ namespace SharpNav
 			//tesselate base mesh
 			edges.Clear();
 			tris.Clear();
-			
-			DelaunayHull(verts, hull, tris, edges);
+
+			if (minExtent < sampleDist * 2)
+			{
+				TriangulateHull(verts, hull, tris);
+				return;
+			}
+
+			TriangulateHull(verts, hull, tris);
+			//DelaunayHull(verts, hull, tris, edges);
 
 			if (tris.Count == 0)
 			{
@@ -798,15 +832,15 @@ namespace SharpNav
 
 					for (int i = 0; i < samples.Count; i++)
 					{
-						if (samples[i].IsSampled)
+						SamplingData sd = samples[i];
+						if (sd.IsSampled)
 							continue;
 
-						Vector3 pt = new Vector3();
-
 						//jitter sample location to remove effects of bad triangulation
-						pt.X = samples[i].X * sampleDist + GetJitterX(i) * compactField.CellSize * 0.1f;
-						pt.Y = samples[i].Y * compactField.CellHeight;
-						pt.Z = samples[i].Z * sampleDist + GetJitterY(i) * compactField.CellSize * 0.1f;
+						Vector3 pt;
+						pt.X = sd.X * sampleDist + GetJitterX(i) * compactField.CellSize * 0.1f;
+						pt.Y = sd.Y * compactField.CellHeight;
+						pt.Z = sd.Z * sampleDist + GetJitterY(i) * compactField.CellSize * 0.1f;
 						float d = DistanceToTriMesh(pt, verts, tris);
 
 						if (d < 0)
@@ -823,9 +857,9 @@ namespace SharpNav
 					if (bestDistance <= sampleMaxError || bestIndex == -1)
 						break;
 
-					SamplingData sd = samples[bestIndex];
-					sd.IsSampled = true;
-					samples[bestIndex] = sd;
+					SamplingData bsd = samples[bestIndex];
+					bsd.IsSampled = true;
+					samples[bestIndex] = bsd;
 
 					verts.Add(bestPt);
 
@@ -899,6 +933,95 @@ namespace SharpNav
 			}
 
 			return h;
+		}
+
+		/// <summary>
+		/// Gets the previous vertex index
+		/// </summary>
+		/// <param name="i">The current index</param>
+		/// <param name="n">The max number of vertices</param>
+		/// <returns>The previous index</returns>
+		private static int Prev(int i, int n)
+		{
+			return i - 1 >= 0 ? i - 1 : n - 1;
+		}
+
+		/// <summary>
+		/// Gets the next vertex index
+		/// </summary>
+		/// <param name="i">The current index</param>
+		/// <param name="n">The max number of vertices</param>
+		/// <returns>The next index</returns>
+		private static int Next(int i, int n)
+		{
+			return i + 1 < n ? i + 1 : 0;
+		}
+
+		private void TriangulateHull(List<Vector3> pts, List<int> hull, List<TriangleData> tris)
+		{
+			int start = 0, left = 1, right = hull.Count - 1;
+
+			float dmin = 0;
+			for (int i = 0; i < hull.Count; i++)
+			{
+				int pi = Prev(i, hull.Count);
+				int ni = Next(i, hull.Count);
+				Vector3 pv = pts[hull[pi]];
+				Vector3 cv = pts[hull[i]];
+				Vector3 nv = pts[hull[ni]];
+				float d = 0;
+				float dtmp;
+				Vector3Extensions.Distance2D(ref pv, ref cv, out dtmp);
+				d += dtmp;
+				Vector3Extensions.Distance2D(ref cv, ref nv, out dtmp);
+				d += dtmp;
+				Vector3Extensions.Distance2D(ref nv, ref pv, out dtmp);
+				d += dtmp;
+
+				if (d < dmin)
+				{
+					start = i;
+					left = ni;
+					right = pi;
+					dmin = d;
+				}
+			}
+
+			tris.Add(new TriangleData(hull[start], hull[left], hull[right], 0));
+
+			while (Next(left, hull.Count) != right)
+			{
+				int nleft = Next(left, hull.Count);
+				int nright = Prev(right, hull.Count);
+
+				Vector3 cvleft = pts[hull[left]];
+				Vector3 nvleft = pts[hull[nleft]];
+				Vector3 cvright = pts[hull[right]];
+				Vector3 nvright = pts[hull[nright]];
+
+				float dleft = 0, dright = 0;
+				float dtmp;
+				Vector3Extensions.Distance2D(ref cvleft, ref nvleft, out dtmp);
+				dleft += dtmp;
+				Vector3Extensions.Distance2D(ref nvleft, ref cvright, out dtmp);
+				dleft += dtmp;
+
+				Vector3Extensions.Distance2D(ref cvright, ref nvright, out dtmp);
+				dright += dtmp;
+				Vector3Extensions.Distance2D(ref cvleft, ref nvright, out dtmp);
+				dright += dtmp;
+
+				if (dleft < dright)
+				{
+					tris.Add(new TriangleData(hull[left], hull[nleft], hull[right], 0));
+					left = nleft;
+				}
+				else
+				{
+					tris.Add(new TriangleData(hull[left], hull[nright], hull[right], 0));
+					right = nright;
+				}
+			}
 		}
 
 		/// <summary>

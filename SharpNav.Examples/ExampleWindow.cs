@@ -413,7 +413,7 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Distance Field\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				compactHeightfield.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
+				compactHeightfield.BuildRegions(0, settings.MinRegionSize, settings.MergedRegionSize);
 
 				Console.WriteLine(" + Regions\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;

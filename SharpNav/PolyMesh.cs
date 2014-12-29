@@ -50,7 +50,7 @@ namespace SharpNav
 		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
 		/// <param name="settings">The settings to build with.</param>
 		public PolyMesh(ContourSet contSet, NavMeshGenerationSettings settings)
-			: this(contSet, settings.CellSize, settings.CellHeight, 2, settings.VertsPerPoly)
+			: this(contSet, settings.CellSize, settings.CellHeight, 0, settings.VertsPerPoly)
 		{
 		}
 
