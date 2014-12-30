@@ -130,6 +130,26 @@ namespace SharpNav.Geometry
 			return dx * dx + dz * dz;
 		}
 
+		internal static float PointToPolygonSquared(Vector3 point, Vector3[] verts, int vertCount)
+		{
+			float dmin = float.MaxValue;
+			bool c = false;
+
+			for (int i = 0, j = vertCount - 1; i < vertCount; j = i++)
+			{
+				Vector3 vi = verts[i];
+				Vector3 vj = verts[j];
+
+				if (((vi.Z > point.Z) != (vj.Z > point.Z)) && (point.X < (vj.X - vi.X) * (point.Z - vi.Z) / (vj.Z - vi.Z) + vi.X))
+					c = !c;
+
+				dmin = Math.Min(dmin, Distance.PointToSegment2DSquared(ref point, ref vj, ref vi));
+			}
+
+			return c ? -dmin : dmin;
+		}
+
+		//TOOD where did these come from?
 		/// <summary>
 		/// Finds the squared distance between a point and the nearest edge of a polygon.
 		/// </summary>

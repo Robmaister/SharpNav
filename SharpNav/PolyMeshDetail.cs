@@ -647,8 +647,8 @@ namespace SharpNav
 			{
 				for (int i = 0, j = verts.Count - 1; i < verts.Count; j = i++)
 				{
-					Vector3 vi = polyMeshVerts[i];
-					Vector3 vj = polyMeshVerts[j];
+					Vector3 vi = verts[i];
+					Vector3 vj = verts[j];
 					bool swapped = false;
 
 					//make sure order is correct, otherwise swap data
@@ -771,16 +771,10 @@ namespace SharpNav
 			}
 
 			TriangulateHull(verts, hull, tris);
-			//DelaunayHull(verts, hull, tris, edges);
 
 			if (tris.Count == 0)
 			{
 				Console.WriteLine("Can't triangulate polygon, adding default data.");
-
-				//add default data
-				for (int i = 2; i < verts.Count; i++)
-					tris.Add(new TriangleData(0, i - 1, i, 0));
-
 				return;
 			}
 
@@ -811,7 +805,7 @@ namespace SharpNav
 						Vector3 pt = new Vector3(x * sampleDist, (bounds.Max.Y + bounds.Min.Y) * 0.5f, z * sampleDist);
 
 						//make sure samples aren't too close to edge
-						if (Distance.PointToPolygonEdgeSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist * 0.5f)
+						if (Distance.PointToPolygonSquared(pt, polyMeshVerts, numMeshVerts) > -sampleDist * 0.5f)
 							continue;
 
 						SamplingData sd = new SamplingData(x, GetHeight(pt, ics, compactField.CellHeight, hp), z, false);
@@ -826,7 +820,7 @@ namespace SharpNav
 						break;
 
 					//find sample with most error
-					Vector3 bestPt = new Vector3();
+					Vector3 bestPt = Vector3.Zero;
 					float bestDistance = 0;
 					int bestIndex = -1;
 
@@ -873,8 +867,10 @@ namespace SharpNav
 			int ntris = tris.Count;
 			if (ntris > MAX_TRIS)
 			{
-				tris.RemoveRange(MAX_TRIS + 1, tris.Count - MAX_TRIS);
-				Console.WriteLine("WARNING: shrinking number of triangles.");
+				//TODO we're using lists... let the user have super detailed meshes?
+				//Perhaps just a warning saying there's a lot of tris?
+				//tris.RemoveRange(MAX_TRIS + 1, tris.Count - MAX_TRIS);
+				//Console.WriteLine("WARNING: shrinking number of triangles.");
 			}
 		}
 
@@ -1039,7 +1035,7 @@ namespace SharpNav
 			for (int i = 0, j = hull.Count - 1; i < hull.Count; j = i++)
 				AddEdge(edges, hull[j], hull[i], (int)EdgeValues.Hull, (int)EdgeValues.Undefined);
 
-			for (int i = edges.Count - 1; i >= 0; i--)
+			for (int i = 0; i < edges.Count; i++)
 			{
 				if (edges[i].LeftFace == (int)EdgeValues.Undefined)
 					CompleteFacet(pts, edges, ref nfaces, i);
@@ -1047,6 +1043,17 @@ namespace SharpNav
 				if (edges[i].RightFace == (int)EdgeValues.Undefined)
 					CompleteFacet(pts, edges, ref nfaces, i);
 			}
+
+			/*int currentEdge = 0;
+			while (currentEdge < edges.Count)
+			{
+				if (edges[currentEdge].LeftFace == (int)EdgeValues.Undefined)
+					CompleteFacet(pts, edges, ref nfaces, currentEdge);
+				if (edges[currentEdge].RightFace == (int)EdgeValues.Undefined)
+					CompleteFacet(pts, edges, ref nfaces, currentEdge);
+
+				currentEdge++;
+			}*/
 
 			//create triangles
 			tris.Clear();
@@ -1205,7 +1212,7 @@ namespace SharpNav
 				edges[curEdge] = e;
 
 				curEdge = AddEdge(edges, pt, s, nfaces, (int)EdgeValues.Undefined);
-				if (curEdge < edges.Count - 1)
+				if (curEdge != (int)EdgeValues.Undefined)
 				{
 					e = edges[curEdge];
 					EdgeInfo.UpdateLeftFace(ref e, pt, s, nfaces);
@@ -1213,7 +1220,7 @@ namespace SharpNav
 				}
 
 				curEdge = AddEdge(edges, t, pt, nfaces, (int)EdgeValues.Undefined);
-				if (curEdge < edges.Count - 1)
+				if (curEdge != (int)EdgeValues.Undefined)
 				{
 					e = edges[curEdge];
 					EdgeInfo.UpdateLeftFace(ref e, t, pt, nfaces);
@@ -1245,7 +1252,7 @@ namespace SharpNav
 			int e = FindEdge(edges, s, t);
 			if (e == -1)
 			{
-				EdgeInfo edge = new EdgeInfo(s, t, leftFace, rightFace);
+				EdgeInfo edge = new EdgeInfo(s, t, rightFace, leftFace);
 				edges.Add(edge);
 
 				return edges.Count - 1;
@@ -1355,10 +1362,10 @@ namespace SharpNav
 
 			for (int i = 0; i < tris.Count; i++)
 			{
-				int va = tris[i].VertexHash0;
-				int vb = tris[i].VertexHash1;
-				int vc = tris[i].VertexHash2;
-				float d = Distance.PointToTriangle(p, verts[va], verts[vb], verts[vc]);
+				Vector3 va = verts[tris[i].VertexHash0];
+				Vector3 vb = verts[tris[i].VertexHash1];
+				Vector3 vc = verts[tris[i].VertexHash2];
+				float d = Distance.PointToTriangle(p, va, vb, vc);
 				if (d < dmin)
 					dmin = d;
 			}
@@ -1516,8 +1523,8 @@ namespace SharpNav
 		{
 			public int EndPt0;
 			public int EndPt1;
-			public int LeftFace;
 			public int RightFace;
+			public int LeftFace;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="EdgeInfo"/> struct.
@@ -1526,12 +1533,12 @@ namespace SharpNav
 			/// <param name="endPt1">Point B</param>
 			/// <param name="leftFace">The face to the left of the edge</param>
 			/// <param name="rightFace">The face to the right of the edge</param>
-			public EdgeInfo(int endPt0, int endPt1, int leftFace, int rightFace)
+			public EdgeInfo(int endPt0, int endPt1, int rightFace, int leftFace)
 			{
 				this.EndPt0 = endPt0;
 				this.EndPt1 = endPt1;
-				this.LeftFace = leftFace;
 				this.RightFace = rightFace;
+				this.LeftFace = leftFace;
 			}
 
 			/// <summary>
