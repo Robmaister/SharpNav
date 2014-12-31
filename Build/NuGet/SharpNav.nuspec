@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SharpNav</id>
+    <version>1.0.0-alpha.1</version>
+    <authors>Robert Rouhani</authors>
+    <owners>Robert Rouhani</owners>
+    <iconUrl>https://raw.githubusercontent.com/Robmaister/SharpNav/master/Graphics/Logo/NuGet.png</iconUrl>
+    <licenseUrl>https://github.com/Robmaister/SharpNav/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Robmaister/SharpNav</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A fully-managed navigation mesh library.</description>
+    <releaseNotes>Major changes to the public API, fixed bug with Delaunay hull generation in PolyMeshDetail. Expect a lot of significant API changes leading up to the 1.0.0 release. This alpha version and future ones will be primarily API changes.</releaseNotes>
+    <copyright>Copyright (c) 2013-2014 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
+    <tags>Navigation Pathfinding NavMesh Nav Mesh Crowd Agent AI Recast</tags>
+  </metadata>
+  <files>
+    <file src="..\Binaries\SharpNav\Standalone\SharpNav.dll" target="lib\net40" />
+  </files>
+</package>
