@@ -114,6 +114,9 @@ namespace SharpNav.Examples
 			Mouse.ButtonUp += OnMouseButtonUp;
 			Mouse.Move += OnMouseMove;
 			Mouse.WheelChanged += OnMouseWheel;
+
+			this.Title = "SharpNav Example";
+			this.Icon = SharpNav.Examples.Properties.Resources.Icon;
 		}
 
 		protected override void OnLoad(EventArgs e)
