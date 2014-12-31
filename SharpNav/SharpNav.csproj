@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <!-- Properties for all configurations -->
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -22,6 +24,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\Binaries\SharpNav\Debug\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
@@ -32,6 +35,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\Binaries\SharpNav\Standalone\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
@@ -39,6 +43,7 @@
     <DefineConstants>TRACE;OPENTK</DefineConstants>
     <Optimize>true</Optimize>
     <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.OpenTK.snk</AssemblyOriginatorKeyFile>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\Binaries\SharpNav\OpenTK\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
@@ -48,6 +53,7 @@
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.SharpDX.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\Binaries\SharpNav\SharpDX\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
@@ -55,51 +61,40 @@
     <DefineConstants>TRACE;MONOGAME</DefineConstants>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
+    <SignAssembly>false</SignAssembly>
     <DocumentationFile>..\Binaries\SharpNav\MonoGame\SharpNav.XML</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
-    <OutputPath>..\Binaries\SharpNav\XNA\</OutputPath>
-    <DefineConstants>TRACE;MONOGAME</DefineConstants>
-    <Optimize>true</Optimize>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Binaries\SharpNav\XNA\SharpNav.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
-    <OutputPath>..\Binaries\SharpNav\Unity3D\</OutputPath>
-    <DefineConstants>TRACE;UNITY3D</DefineConstants>
-    <Optimize>true</Optimize>
-    <WarningLevel>4</WarningLevel>
-    <ReferencePath>$(ProgramFiles)\Unity\Editor\Data\Managed</ReferencePath>
-    <DocumentationFile>..\Binaries\SharpNav\Unity3D\SharpNav.XML</DocumentationFile>
-  </PropertyGroup>
+
+  <!-- Common items -->
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\Dependencies\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Configuration specific items -->
+  <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
-    <Reference Include="MonoGame.Framework" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
-    <Reference Include="OpenTK">
-      <HintPath>..\Dependencies\OpenTK.dll</HintPath>
+    <Reference Include="MonoGame.Framework">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
-    <Reference Include="SharpDX">
-      <HintPath>..\Dependencies\SharpDX.dll</HintPath>
+    <Reference Include="SharpDX, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'XNA'">
-    <Reference Include="Microsoft.Xna.Framework" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(Configuration)' == 'Unity3D'">
-    <Reference Include="UnityEngine" />
-  </ItemGroup>
+
+  <!-- C# items -->
   <ItemGroup>
     <Compile Include="Area.cs" />
     <Compile Include="AreaIdGenerator.cs" />
@@ -170,11 +165,23 @@
     </Compile>
     <Compile Include="Geometry\Vector3Extensions.cs" />
   </ItemGroup>
+
+  <!-- Other items -->
   <ItemGroup>
-    <None Include="SharpNav.snk" />
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+
+  <!-- NuGet and Build Targets -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpDX.2.6.3\build\SharpDX.targets'))" />
+    <Error Condition="!Exists('..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets'))" />
+  </Target>
+  <Import Project="..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets" Condition="Exists('..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets') And '$(Configuration)' == 'MonoGame'" />
+  <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets') And '$(Configuration)' == 'SharpDX'" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

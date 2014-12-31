@@ -43,34 +43,6 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\Binaries\Examples\OpenTK\Examples.XML</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
-    <OutputPath>..\Binaries\Examples\SharpDX\</OutputPath>
-    <Prefer32Bit>true</Prefer32Bit>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <DocumentationFile>..\Binaries\Examples\SharpDX\Examples.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
-    <OutputPath>..\Binaries\Examples\MonoGame\</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <DocumentationFile>..\Binaries\Examples\MonoGame\Examples.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'XNA|AnyCPU'">
-    <OutputPath>..\Binaries\Examples\XNA\</OutputPath>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <DocumentationFile>..\Binaries\Examples\XNA\Examples.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Unity3D|AnyCPU'">
-    <OutputPath>..\Binaries\Examples\Unity3D\</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <Optimize>false</Optimize>
-    <DocumentationFile>..\Binaries\Examples\Unity3D\Examples.XML</DocumentationFile>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gwen">
       <HintPath>..\Dependencies\Gwen.dll</HintPath>

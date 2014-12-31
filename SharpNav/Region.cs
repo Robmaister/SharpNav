@@ -67,7 +67,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref=""/>
+		/// Initializes a new instance of the <see cref="RegionId"/> struct.
 		/// </summary>
 		/// <param name="id"></param>
 		/// <param name="flags"></param>

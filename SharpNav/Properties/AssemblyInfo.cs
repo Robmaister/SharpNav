@@ -23,8 +23,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 
 [assembly: CLSCompliant(true)]
-[assembly: InternalsVisibleTo("SharpNavTests, PublicKey=00240000048000009400000006020000002400005253413100040000010001007db4cb90a9a4ef6908e5293fffcba3c76e490fd182595f7fd6fa32801b29ed416181383f2da9dac4271ae5f3c89a66ece56668415dcc274d775b1efbe4e013e840221fb12cfd99ffaf405ad124e5d301ba55610ee4fcf25687faf3434574b397773e720fb6573eb2e935e585926e365a1d8ac2fd864cf0b9b11932d2abb4e9af")]
 
+#if MONOGAME
+[assembly: InternalsVisibleTo("SharpNav.Tests")]
+#else
+[assembly: InternalsVisibleTo("SharpNav.Tests, PublicKey=00240000048000009400000006020000002400005253413100040000010001007db4cb90a9a4ef6908e5293fffcba3c76e490fd182595f7fd6fa32801b29ed416181383f2da9dac4271ae5f3c89a66ece56668415dcc274d775b1efbe4e013e840221fb12cfd99ffaf405ad124e5d301ba55610ee4fcf25687faf3434574b397773e720fb6573eb2e935e585926e365a1d8ac2fd864cf0b9b11932d2abb4e9af")]
+#endif
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
@@ -72,21 +76,11 @@ using System.Runtime.InteropServices;
 // installed to the GAC without worrying about them interfering with one another.
 
 #if MONOGAME
-[assembly: AssemblyKeyFile("SharpNav.MonoGame.snk")]
 [assembly: AssemblyInformationalVersion("1.0.0-alpha.1+monogame")]
 #elif OPENTK
-[assembly: AssemblyKeyFile("SharpNav.OpenTK.snk")]
 [assembly: AssemblyInformationalVersion("1.0.0-alpha.1+opentk")]
 #elif SHARPDX
-[assembly: AssemblyKeyFile("SharpNav.SharpDX.snk")]
 [assembly: AssemblyInformationalVersion("1.0.0-alpha.1+sharpdx")]
-#elif XNA
-[assembly: AssemblyKeyFile("SharpNav.XNA.snk")]
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+xna")]
-#elif UNITY3D
-[assembly: AssemblyKeyFile("SharpNav.Unity3D.snk")]
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+unity3d")]
 #else
-[assembly: AssemblyKeyFile("SharpNav.snk")]
 [assembly: AssemblyInformationalVersion("1.0.0-alpha.1")]
 #endif
