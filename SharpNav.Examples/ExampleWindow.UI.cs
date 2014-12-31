@@ -111,7 +111,8 @@ namespace SharpNav.Examples
 			rsSettings.Dock = Pos.Top;
 			rsSettings.Height = 90;
 
-			BBox3 bounds = TriangleEnumerable.FromFloat(level.Positions, 0, 0, level.Positions.Length / 9).GetBoundingBox();
+			var levelTris = level.GetTriangles();
+			BBox3 bounds = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length).GetBoundingBox();
 
 			Base maxTriSlope = CreateSliderOption(rsSettings, "Max Tri Slope:", 0.0001f, 3.14f, 3.14f, "N2", leftMax, rightMax, v => areaSettings.MaxTriSlope = v);
 			Base minLevelHeight = CreateSliderOption(rsSettings, "Min Height:", bounds.Min.Y, bounds.Max.Y, bounds.Min.Y, "N0", leftMax, rightMax, v => areaSettings.MinLevelHeight = v);

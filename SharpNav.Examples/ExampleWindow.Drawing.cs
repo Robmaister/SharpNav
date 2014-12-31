@@ -32,7 +32,7 @@ namespace SharpNav.Examples
 		private int levelNumVerts;
 		private bool levelHasNorm;
 
-		private SharpNavEditor.IO.ObjData level;
+		private ObjModel level;
 
 		private static readonly byte[] squareInds =
 		{
@@ -116,23 +116,30 @@ namespace SharpNav.Examples
 
 		private void LoadLevel()
 		{
-			level = (SharpNavEditor.IO.ObjData)(new SharpNavEditor.IO.ObjLoader().LoadModel("nav_test.obj"));
-			levelNumVerts = level.Positions.Length / 3;
-			levelHasNorm = level.Normals != null;
+			level = new ObjModel("nav_test.obj");
+			var levelTris = level.GetTriangles();
+			var levelNorms = level.GetNormals();
+			levelNumVerts = levelTris.Length * 3 * 3;
+			levelHasNorm = levelNorms != null && levelNorms.Length > 0;
 
-			var bounds = TriangleEnumerable.FromFloat(level.Positions, 0, 0, levelNumVerts / 3).GetBoundingBox().Center;
-			cam.Position = new Vector3(bounds.X, bounds.Y, bounds.Z);
+			var bounds = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length).GetBoundingBox();
+			cam.Position = new Vector3(bounds.Max.X, bounds.Max.Y, bounds.Max.Z) * 1.5f;
+			cam.RotateHeadingTo(-25);
+			cam.RotatePitchTo(315);
+
+			//TODO fix camera, it breaks with lookat...
+			//cam.LookAt(new Vector3(bounds.Center.X, bounds.Center.Y, bounds.Center.Z));
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(level.Positions.Length * 4), level.Positions, BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(levelNumVerts * 4), levelTris, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
 			if (levelHasNorm)
 			{
 				levelNormVbo = GL.GenBuffer();
 				GL.BindBuffer(BufferTarget.ArrayBuffer, levelNormVbo);
-				GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(level.Normals.Length * 4), level.Normals, BufferUsageHint.StaticDraw);
+				GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(levelNorms.Length * 3 * 4), levelNorms, BufferUsageHint.StaticDraw);
 				GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			}
 		}

@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Tests", "SharpNav.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNav.Examples", "SharpNav.Examples\SharpNav.Examples.csproj", "{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpNavEditor", "SharpNavEditor\SharpNavEditor.csproj", "{F4FCEFAD-0589-45CB-977A-270657084377}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -155,46 +153,6 @@ Global
 		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.ActiveCfg = XNA|Any CPU
 		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Mixed Platforms.Build.0 = XNA|Any CPU
 		{BB34F8C4-CE09-44C1-9883-77B4EFBE371F}.XNA|Win32.ActiveCfg = XNA|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.MonoGame|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.MonoGame|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.MonoGame|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.MonoGame|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.MonoGame|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.OpenTK|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.OpenTK|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.OpenTK|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.OpenTK|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.OpenTK|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Release|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.SharpDX|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.SharpDX|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.SharpDX|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.SharpDX|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.SharpDX|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Standalone|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Standalone|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Standalone|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Standalone|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Standalone|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Unity3D|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Unity3D|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Unity3D|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Unity3D|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.Unity3D|Win32.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Any CPU.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Any CPU.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4FCEFAD-0589-45CB-977A-270657084377}.XNA|Win32.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

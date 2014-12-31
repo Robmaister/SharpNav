@@ -344,7 +344,7 @@ namespace SharpNav.Examples
 			GL.MatrixMode(MatrixMode.Projection);
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
-			GL.LoadIdentity();
+			cam.LoadView();
 
 			gwenProjection = Matrix4.CreateOrthographicOffCenter(0, Width, Height, 0, 0, 1);
 			gwenCanvas.SetSize(Width, Height);
@@ -370,8 +370,9 @@ namespace SharpNav.Examples
 			try
 			{
 				//level.SetBoundingBoxOffset(new SVector3(settings.CellSize * 0.5f, settings.CellHeight * 0.5f, settings.CellSize * 0.5f));
-				var tris = TriangleEnumerable.FromFloat(level.Positions, 0, 0, level.Positions.Length / 9);
-				BBox3 bounds = tris.GetBoundingBox();
+				var levelTris = level.GetTriangles();
+				var triEnumerable = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length);
+				BBox3 bounds = triEnumerable.GetBoundingBox();
 
 				heightfield = new Heightfield(bounds, settings);
 
@@ -379,12 +380,12 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				Area[] areas = AreaGenerator.From(tris, Area.Default)
+				Area[] areas = AreaGenerator.From(triEnumerable, Area.Default)
 					.MarkAboveHeight(areaSettings.MaxLevelHeight, Area.Null)
 					.MarkBelowHeight(areaSettings.MinLevelHeight, Area.Null)
 					.MarkBelowSlope(areaSettings.MaxTriSlope, Area.Null)
 					.ToArray();
-				heightfield.RasterizeTrianglesWithAreas(level.Positions, areas);
+				heightfield.RasterizeTrianglesWithAreas(levelTris, areas);
 				//heightfield.RasterizeTriangles(level.Positions);
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
@@ -479,7 +480,7 @@ namespace SharpNav.Examples
 				l.Text = "Generation Time: " + sw.ElapsedMilliseconds + "ms";
 
 				Console.WriteLine("Navmesh generated successfully in " + sw.ElapsedMilliseconds + "ms.");
-				Console.WriteLine("Rasterized " + level.Positions.Length / 9 + " triangles.");
+				Console.WriteLine("Rasterized " + level.GetTriangles().Length + " triangles.");
 				Console.WriteLine("Generated " + contourSet.Count + " regions.");
 				Console.WriteLine("PolyMesh contains " + polyMesh.VertCount + " vertices in " + polyMesh.PolyCount + " polys.");
 				Console.WriteLine("PolyMeshDetail contains " + polyMeshDetail.VertCount + " vertices and " + polyMeshDetail.TrisCount + " tris in " + polyMeshDetail.MeshCount + " meshes.");

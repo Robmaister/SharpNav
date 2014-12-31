@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -33,15 +33,60 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("603f4e3f-26ed-4338-b400-0a1a2fe0cf10")]
 
-// Version information for an assembly consists of the following four values:
+// I'm attempting to follow Semantic Versioning with the built-in C# Version class as a fallback
+// or alternative to NuGet's semver support. This means I need to do some special things with this
+// version number to make sure that comparing these versions match the same order that the semver
+// versions do.
+// 
+// Major and Minor are the same as semver. C#'s "Build" number is semver's "Patch" number. The
+// "Revision" number is special. It's based on pre-releases and follow these rules:
+// 
+// * Alpha versions start at 0 and increment once per released version.
+// * Beta versions start at 100 and increment once per released version.
+// * The final release of any version will have a revision number of 200.
+// 
+// This way, a consumer can programmatically determine whether a release of SharpNav is an alpha or
+// beta pre-release, or the final released version. comparability between SemVer and C#'s Version
+// class is also maintained.
 //
-//      Major Version
-//      Minor Version 
-//      Build Number
-//      Revision
+//  SemVer Version |   C# Version
+// ----------------|----------------
+//     0.9.0       |   0.9.0.200
+//  1.0.0-alpha.1  |    1.0.0.0
+//  1.0.0-alpha.2  |    1.0.0.1
+//   1.0.0-beta.1  |   1.0.0.100
+//   1.0.0-beta.2  |   1.0.0.101
+//     1.0.0       |   1.0.0.200
+//     1.1.0       |   1.1.0.200
+//   1.2.0-beta.1  |   1.2.0.100
+//     1.2.0       |   1.2.0.200
+//     2.0.1       |   2.0.1.200
 //
-// You can specify all the values or you can default the Build and Revision Numbers 
-// by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.9.0.0")]
-[assembly: AssemblyFileVersion("0.9.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+
+// There are two ways of differentiating versions of SharpNav.dll that are built with engine integrations.
+// The first is metadata included with the SemVer version (e.g. 1.0.0-alpha.2+monogame). The second is that
+// each version is signed with a separate strong name key. This also introduces the benefit of giving each
+// version of SharpNav a different strong name. Multiple integrated versions of SharpNav can now be
+// installed to the GAC without worrying about them interfering with one another.
+
+#if MONOGAME
+[assembly: AssemblyKeyFile("SharpNav.MonoGame.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+monogame")]
+#elif OPENTK
+[assembly: AssemblyKeyFile("SharpNav.OpenTK.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+opentk")]
+#elif SHARPDX
+[assembly: AssemblyKeyFile("SharpNav.SharpDX.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+sharpdx")]
+#elif XNA
+[assembly: AssemblyKeyFile("SharpNav.XNA.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+xna")]
+#elif UNITY3D
+[assembly: AssemblyKeyFile("SharpNav.Unity3D.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+unity3d")]
+#else
+[assembly: AssemblyKeyFile("SharpNav.snk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.1")]
+#endif

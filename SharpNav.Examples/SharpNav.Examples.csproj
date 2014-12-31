@@ -105,10 +105,6 @@
     <None Include="example_ply.ply" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SharpNavEditor\SharpNavEditor.csproj">
-      <Project>{F4FCEFAD-0589-45CB-977A-270657084377}</Project>
-      <Name>SharpNavEditor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
       <Project>{0E3C6E73-CCE6-4148-B847-36487FFEA225}</Project>
       <Name>SharpNav</Name>
