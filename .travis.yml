@@ -5,8 +5,6 @@ notifications:
     secure: Evj0iL40Tipu47BZfCdbkZbW/8Y7NLRZRSjvLXhKH7Yc6DfYLWeF7+Y2h8E8Zdd2/bdP+LxlHTbqjam5IBONAAIwpN4TAXNqMmalXtXDfs3/Cu+pMKSN+ECymcX3bUa/cZyvjm8P4FfUWLDHKuk+I3C41DfXzTPRBg4z+qSg4kI=
 
 env:
-  global:
-   - EnableNuGetPackageRestore=true
   matrix:
    - XBUILD_TARGET=Standalone
    - XBUILD_TARGET=OpenTK
@@ -19,6 +17,7 @@ before_script:
  - echo "deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
  - sudo apt-get update -qq
  - sudo apt-get install mono-devel nunit-console
+ - nuget restore SharpNav.sln
 script:
  - mozroots --import --sync
  - xbuild ./Build/TravisCI.proj /t:$XBUILD_TARGET
