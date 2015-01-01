@@ -23,4 +23,4 @@ install:
  - nuget restore SharpNav.sln
 script:
  - xbuild ./Build/TravisCI.proj /t:$XBUILD_TARGET
- - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNavTests.dll -exclude BrokenButUnused
+ - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNav.Tests.dll -exclude BrokenButUnused
