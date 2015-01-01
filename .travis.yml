@@ -4,9 +4,13 @@ notifications:
   slack:
     secure: Evj0iL40Tipu47BZfCdbkZbW/8Y7NLRZRSjvLXhKH7Yc6DfYLWeF7+Y2h8E8Zdd2/bdP+LxlHTbqjam5IBONAAIwpN4TAXNqMmalXtXDfs3/Cu+pMKSN+ECymcX3bUa/cZyvjm8P4FfUWLDHKuk+I3C41DfXzTPRBg4z+qSg4kI=
 
+env:
+  global:
+   - EnableNuGetPackageRestore=true
 
 install:
-- sudo apt-get install mono-devel mono-gmcs nunit-console
+ - sudo apt-get install mono-devel mono-gmcs nunit-console
 script:
-- xbuild ./Build/TravisCI.proj
-- nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused
+ - mozroots --import --sync
+ - xbuild ./Build/TravisCI.proj
+ - nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused
