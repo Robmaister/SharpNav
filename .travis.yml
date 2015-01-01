@@ -7,10 +7,15 @@ notifications:
 env:
   global:
    - EnableNuGetPackageRestore=true
+  matrix:
+   - XBUILD_TARGET=Standalone
+   - XBUILD_TARGET=OpenTK
+   - XBUILD_TARGET=SharpDX
+   - XBUILD_TARGET=MonoGame
 
 install:
  - sudo apt-get install mono-devel mono-gmcs nunit-console
 script:
  - mozroots --import --sync
- - xbuild ./Build/TravisCI.proj
- - nunit-console ./Binaries/Tests/Standalone/SharpNavTests.dll -exclude BrokenButUnused
+ - xbuild ./Build/TravisCI.proj /t:$XBUILD_TARGET
+ - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNavTests.dll -exclude BrokenButUnused
