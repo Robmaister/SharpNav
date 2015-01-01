@@ -104,7 +104,6 @@
     <Compile Include="Geometry\ContainmentTests.cs" />
     <Compile Include="Geometry\DistanceTests.cs" />
     <Compile Include="Geometry\IntersectionTests.cs" />
-    <Compile Include="Libraries\JsonTest.cs" />
     <Compile Include="MathHelperTests.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
@@ -120,9 +119,6 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="SharpNav.Tests.snk" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="JSONTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
