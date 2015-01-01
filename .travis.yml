@@ -22,5 +22,5 @@ install:
  - sudo apt-get install nunit-console
  - nuget restore SharpNav.sln
 script:
- - xbuild ./SharpNav.sln /t:$XBUILD_TARGET
+ - xbuild ./Build/TravisCI.proj /t:$XBUILD_TARGET
  - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNavTests.dll -exclude BrokenButUnused
