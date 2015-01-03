@@ -6,13 +6,6 @@
 		<Projects Include="../SharpNav.Tests/SharpNav.Tests.csproj" />
 	</ItemGroup>
 	
-	<!-- <Target Name="CI">
-		<CallTarget Targets="Standalone" />
-		<CallTarget Targets="OpenTK" />
-		<CallTarget Targets="MonoGame" />
-		<CallTarget Targets="SharpDX" />
-	</Target> -->
-	
 	<Target Name="Standalone">
 		<MSBuild Projects="@(Projects)" Properties="Configuration=Standalone;Platform=AnyCPU" />
 	</Target>
