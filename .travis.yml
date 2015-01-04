@@ -6,6 +6,8 @@ notifications:
     secure: Evj0iL40Tipu47BZfCdbkZbW/8Y7NLRZRSjvLXhKH7Yc6DfYLWeF7+Y2h8E8Zdd2/bdP+LxlHTbqjam5IBONAAIwpN4TAXNqMmalXtXDfs3/Cu+pMKSN+ECymcX3bUa/cZyvjm8P4FfUWLDHKuk+I3C41DfXzTPRBg4z+qSg4kI=
 
 env:
+  global:
+   - XBUILD_COLORS=errors=brightred,warnings=yellow
   matrix:
    - XBUILD_TARGET=Standalone
    - XBUILD_TARGET=OpenTK
@@ -16,5 +18,5 @@ install:
  - sudo apt-get install nunit-console
  - travis_retry nuget restore SharpNav.sln
 script:
- - xbuild ./Build/TravisCI.proj /t:$XBUILD_TARGET
+ - xbuild /t:$XBUILD_TARGET /verbosity:minimal ./Build/TravisCI.proj
  - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNav.Tests.dll -exclude BrokenButUnused
