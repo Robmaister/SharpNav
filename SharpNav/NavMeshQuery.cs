@@ -1,6 +1,6 @@
 ﻿﻿#region License
 /**
- * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -12,14 +12,12 @@ using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
-#if MONOGAME || XNA
+#if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
-#elif UNITY3D
-using UnityEngine;
 #endif
 
 namespace SharpNav
@@ -71,17 +69,11 @@ namespace SharpNav
 			}
 		}
 
-		/// <summary>
-		/// Find a random point on a polygon. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
-		/// </summary>
-		/// <param name="tile">The current mesh tile</param>
-		/// <param name="poly">The current polygon</param>
-		/// <param name="polyRef">Polygon reference</param>
-		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise</returns>
-		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
+		public Vector3 FindRandomPointOnPoly(Random rand, MeshTile tile, Poly poly, int polyRef)
 		{
-			return FindRandomPointOnPoly(tile, poly, polyRef, new System.Random(), out randomPt);
+			Vector3 result;
+			this.FindRandomPointOnPoly(rand, tile, poly, polyRef, out result);
+			return result;
 		}
 
 		/// <summary>
@@ -92,7 +84,7 @@ namespace SharpNav
 		/// <param name="polyRef">Polygon reference</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise</returns>
-		public bool FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, System.Random rand, out Vector3 randomPt)
+		public void FindRandomPointOnPoly(Random rand, MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
 		{
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
@@ -104,23 +96,19 @@ namespace SharpNav
 
 			PathfinderCommon.RandomPointInConvexPoly(verts, poly.VertCount, areas, s, t, out randomPt);
 
+			//TODO bad state again.
 			float h = 0.0f;
 			if (!GetPolyHeight(polyRef, randomPt, ref h))
-				return false;
+				throw new InvalidOperationException("Outside bounds?");
 
 			randomPt.Y = h;
-			return true;
 		}
 
-		/// <summary>
-		/// Find a random point. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
-		/// </summary>
-		/// <param name="randomRef">Resulting polygon reference containing random point</param>
-		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPoint(out int randomRef, out Vector3 randomPt)
+		public NavPoint FindRandomPoint(Random rand)
 		{
-			return FindRandomPoint(new System.Random(), out randomRef, out randomPt);
+			NavPoint result;
+			this.FindRandomPoint(rand, out result);
+			return result;
 		}
 
 		/// <summary>
@@ -129,13 +117,11 @@ namespace SharpNav
 		/// <param name="randomRef">Resulting polygon reference containing random point</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPoint(System.Random rand, out int randomRef, out Vector3 randomPt)
+		public void FindRandomPoint(Random rand, out NavPoint ptRef)
 		{
-			randomRef = 0;
-			randomPt = Vector3.Zero;
-
+			//TODO we're object-oriented, can prevent this state from ever happening.
 			if (nav == null)
-				return false;
+				throw new InvalidOperationException("TODO prevent this state from ever occuring");
 
 			//randomly pick one tile
 			//assume all tiles cover roughly the same area
@@ -157,8 +143,9 @@ namespace SharpNav
 					tile = t;
 			}
 
+			//TODO why?
 			if (tile == null)
-				return false;
+				throw new InvalidOperationException("No tiles?");
 
 			//randomly pick one polygon weighted by polygon area
 			Poly poly = null;
@@ -195,25 +182,22 @@ namespace SharpNav
 				}
 			}
 
+			//TODO why?
 			if (poly == null)
-				return false;
+				throw new InvalidOperationException("No polys?");
 
-			randomRef = polyRef;
-			return FindRandomPointOnPoly(tile, poly, polyRef, rand, out randomPt);
+			//randomRef = polyRef;
+			Vector3 randomPt;
+			FindRandomPointOnPoly(rand, tile, poly, polyRef, out randomPt);
+
+			ptRef = new NavPoint(polyRef, randomPt);
 		}
 
-		/// <summary>
-		/// Find a random point that is a certain distance away from another point. Use the overload with a <c>Random</c> parameter if calling multiple times in a row.
-		/// </summary>
-		/// <param name="startRef">Starting point's polygon reference</param>
-		/// <param name="centerPos">Starting point</param>
-		/// <param name="radius">Circle's radius</param>
-		/// <param name="randomRef">Resulting polygon reference of random point</param>
-		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, out int randomRef, out Vector3 randomPt)
+		public NavPoint FindRandomPointAroundCircle(Random rand, int startRef, Vector3 centerPos, float radius)
 		{
-			return FindRandomPointAroundCircle(startRef, centerPos, radius, new System.Random(), out randomRef, out randomPt);
+			NavPoint result;
+			this.FindRandomPointAroundCircle(rand, startRef, centerPos, radius, out result);
+			return result;
 		}
 
 		/// <summary>
@@ -225,23 +209,18 @@ namespace SharpNav
 		/// <param name="randomRef">Resulting polygon reference of random point</param>
 		/// <param name="randomPt">Resulting random point</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool FindRandomPointAroundCircle(int startRef, Vector3 centerPos, float radius, System.Random rand, out int randomRef, out Vector3 randomPt)
+		public void FindRandomPointAroundCircle(Random rand, int startRef, Vector3 centerPos, float radius, out NavPoint ptRef)
 		{
-			randomRef = 0;
-			randomPt = Vector3.Zero;
-
-			if (nav == null)
-				return false;
-
-			if (nodePool == null)
-				return false;
-
-			if (openList == null)
-				return false;
+			//TODO fix state
+			if (nav == null || nodePool == null || openList == null)
+				throw new InvalidOperationException("Something null");
 
 			//validate input
-			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
-				return false;
+			if (startRef == 0)
+				throw new ArgumentOutOfRangeException("startRef", "Null poly reference");
+
+			if (!nav.IsValidPolyRef(startRef))
+				throw new ArgumentException("startRef", "Poly reference is not valid for this navmesh");
 
 			MeshTile startTile;
 			Poly startPoly;
@@ -368,11 +347,14 @@ namespace SharpNav
 				}
 			}
 
+			//TODO invalid state.
 			if (randomPoly == null)
-				return false;
+				throw new InvalidOperationException("Poly null?");
 
-			randomRef = randomPolyRef;
-			return FindRandomPointOnPoly(randomTile, randomPoly, randomPolyRef, rand, out randomPt);
+			Vector3 randomPt;
+			FindRandomPointOnPoly(rand, randomTile, randomPoly, randomPolyRef, out randomPt);
+
+			ptRef = new NavPoint(randomPolyRef, randomPt);
 		}
 
 		/// <summary>
@@ -387,10 +369,15 @@ namespace SharpNav
 		/// <param name="endPos">Ending point</param>
 		/// <param name="path">The path of polygon references</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
-		public bool FindPath(int startRef, int endRef, ref Vector3 startPos, ref Vector3 endPos, List<int> path)
+		public bool FindPath(ref NavPoint startPt, ref NavPoint endPt, List<int> path)
 		{
 			//reset path of polygons
 			path.Clear();
+
+			int startRef = startPt.Polygon;
+			Vector3 startPos = startPt.Position;
+			int endRef = endPt.Polygon;
+			Vector3 endPos = endPt.Position;
 
 			if (startRef == 0 || endRef == 0)
 				return false;
@@ -2235,6 +2222,13 @@ namespace SharpNav
 			return false;
 		}
 
+		public NavPoint FindNearestPoly(Vector3 center, Vector3 extents)
+		{
+			NavPoint result;
+			this.FindNearestPoly(ref center, ref extents, out result);
+			return result;
+		}
+
 		/// <summary>
 		/// Find the nearest poly within a certain range.
 		/// </summary>
@@ -2243,15 +2237,15 @@ namespace SharpNav
 		/// <param name="nearestRef">Nearest reference.</param>
 		/// <param name="neareastPt">Neareast point.</param>
 		/// <returns>True, if the nearest poly was found, False, if otherwise.</returns>
-		public bool FindNearestPoly(ref Vector3 center, ref Vector3 extents, out int nearestRef, out Vector3 nearestPt)
+		public void FindNearestPoly(ref Vector3 center, ref Vector3 extents, out NavPoint nearestPt)
 		{
-			nearestRef = 0;
-			nearestPt = Vector3.Zero;
+			nearestPt = NavPoint.Null;
+			//TODO error state?
 
 			// Get nearby polygons from proximity grid.
 			List<int> polys = new List<int>(128);
-			if (!QueryPolygons(ref center, ref extents, polys)) 
-				return false;
+			if (!QueryPolygons(ref center, ref extents, polys))
+				throw new InvalidOperationException("no nearby polys?");
 
 			float nearestDistanceSqr = float.MaxValue;
 			for (int i = 0; i < polys.Count; i++) 
@@ -2280,13 +2274,10 @@ namespace SharpNav
 
 				if (d < nearestDistanceSqr)
 				{
-					nearestPt = closestPtPoly;
 					nearestDistanceSqr = d;
-					nearestRef = reference;
+					nearestPt = new NavPoint(reference, closestPtPoly);
 				}
 			}
-		
-			return true;
 		}
 
 		/// <summary>

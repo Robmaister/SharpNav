@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -31,6 +31,7 @@ using Vector3 = OpenTK.Vector3;
 using SVector3 = SharpNav.Geometry.Vector3;
 #else
 using SVector3 = OpenTK.Vector3;
+using SharpNav.Pathfinding;
 #endif
 
 namespace SharpNav.Examples
@@ -71,8 +72,8 @@ namespace SharpNav.Examples
 		private NavMeshQuery navMeshQuery;
 
 		//Smooth path for a single unit
-		private SVector3 startPos;
-		private SVector3 endPos;
+		private NavPoint startPt;
+		private NavPoint endPt;
 		private List<int> path;
 		private List<SVector3> smoothPath;
 
@@ -492,6 +493,8 @@ namespace SharpNav.Examples
 
 		private void GeneratePathfinding()
 		{
+			Random rand = new Random();
+
 			buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
 
 			tiledNavMesh = new TiledNavMesh(buildData);
@@ -501,26 +504,24 @@ namespace SharpNav.Examples
 			/*int startRef;
 			navMeshQuery.FindRandomPoint(out startRef, out startPos);*/
 
-			int startRef;
 			SVector3 c = new SVector3(10, 0, 0);
 			SVector3 e = new SVector3(5, 5, 5);
-			navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
+			navMeshQuery.FindNearestPoly(ref c, ref e, out startPt);
 
-			int endRef;
-			navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out endRef, out endPos);
+			navMeshQuery.FindRandomPointAroundCircle(rand, startPt.Polygon, startPt.Position, 1000, out endPt);
 
 			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
 			path = new List<int>(MAX_POLYS);
-			navMeshQuery.FindPath(startRef, endRef, ref startPos, ref endPos, path);
+			navMeshQuery.FindPath(ref startPt, ref endPt, path);
 
 			//find a smooth path over the mesh surface
 			int npolys = path.Count;
 			int[] polys = path.ToArray();
 			SVector3 iterPos = new SVector3();
 			SVector3 targetPos = new SVector3();
-			navMeshQuery.ClosestPointOnPoly(startRef, startPos, ref iterPos);
-			navMeshQuery.ClosestPointOnPoly(polys[npolys - 1], endPos, ref targetPos);
+			navMeshQuery.ClosestPointOnPoly(startPt.Polygon, startPt.Position, ref iterPos);
+			navMeshQuery.ClosestPointOnPoly(polys[npolys - 1], endPt.Position, ref targetPos);
 
 			smoothPath = new List<SVector3>(2048);
 			smoothPath.Add(iterPos);
@@ -689,6 +690,7 @@ namespace SharpNav.Examples
 
 		private void GenerateCrowd()
 		{
+			Random rand = new Random();
 			crowd = new Crowd(MAX_AGENTS, 0.6f, ref tiledNavMesh);
 	
 			SVector3 c = new SVector3(10, 0, 0);
@@ -707,32 +709,29 @@ namespace SharpNav.Examples
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				//Get the polygon that the starting point is in
-				int startRef;
-				SVector3 startPos;
-				navMeshQuery.FindNearestPoly(ref c, ref e, out startRef, out startPos);
+				NavPoint startPt;
+				navMeshQuery.FindNearestPoly(ref c, ref e, out startPt);
 
 				//Pick a new random point that is within a certain radius of the current point
-				int newRef;
-				SVector3 newPos;
-				navMeshQuery.FindRandomPointAroundCircle(startRef, startPos, 1000, out newRef, out newPos);
+				NavPoint newPt;
+				navMeshQuery.FindRandomPointAroundCircle(rand, startPt.Polygon, startPt.Position, 1000, out newPt);
 
-				c = newPos;
+				c = newPt.Position;
 
 				//Save this random point as the starting position
 				trails[i].Trail = new SVector3[AGENT_MAX_TRAIL];
-				trails[i].Trail[0] = newPos;
+				trails[i].Trail[0] = newPt.Position;
 				trails[i].HTrail = 0;
 
 				//add this agent to the crowd
-				int idx = crowd.AddAgent(newPos, ap);
+				int idx = crowd.AddAgent(newPt.Position, ap);
 
 				//Give this agent a target point
-				int targetRef;
-				SVector3 targetPos;
-				navMeshQuery.FindRandomPointAroundCircle(newRef, newPos, 1000, out targetRef, out targetPos);
+				NavPoint targetPt;
+				navMeshQuery.FindRandomPointAroundCircle(rand, newPt.Polygon, newPt.Position, 1000, out targetPt);
 
-				crowd.GetAgent(idx).RequestMoveTarget(targetRef, targetPos);
-				trails[i].Trail[AGENT_MAX_TRAIL - 1] = targetPos;
+				crowd.GetAgent(idx).RequestMoveTarget(targetPt.Polygon, targetPt.Position);
+				trails[i].Trail[AGENT_MAX_TRAIL - 1] = targetPt.Position;
 			}
 		}
 

@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -11,14 +11,13 @@ using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
-#if MONOGAME || XNA
+#if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
+using SharpNav.Pathfinding;
 #elif SHARPDX
 using SharpDX;
-#elif UNITY3D
-using UnityEngine;
 #endif
 
 namespace SharpNav.Crowds
@@ -179,17 +178,15 @@ namespace SharpNav.Crowds
 			agents[idx].UpdateAgentParameters(parameters);
 
 			//find nearest position on the navmesh and place the agent there
-			Vector3 nearest;
-			int reference = 0;
-			nearest = pos;
-			bool status = navQuery.FindNearestPoly(ref pos, ref ext, out reference, out nearest);
-			if (status == false)
+			NavPoint nearest;
+			navQuery.FindNearestPoly(ref pos, ref ext, out nearest);
+			/*if (status == false)
 			{
 				nearest = pos;
 				reference = 0;
-			}
+			}*/
 
-			agents[idx].Reset(reference, nearest);
+			agents[idx].Reset(nearest.Polygon, nearest.Position);
 			agents[idx].IsActive = true;
 
 			return idx;
@@ -901,8 +898,11 @@ namespace SharpNav.Crowds
 					Vector3 nearest = agentPos;
 					Vector3 pos = ag.Position;
 					agentRef = 0;
-					navQuery.FindNearestPoly(ref pos, ref ext, out agentRef, out nearest);
-					agentPos = nearest;
+					NavPoint nearestPt;
+					navQuery.FindNearestPoly(ref pos, ref ext, out nearestPt);
+					nearest = nearestPt.Position;
+					agentRef = nearestPt.Polygon;
+					agentPos = nearestPt.Position;
 
 					if (agentRef == 0)
 					{
@@ -932,7 +932,10 @@ namespace SharpNav.Crowds
 						Vector3 nearest = ag.TargetPosition;
 						Vector3 tpos = ag.TargetPosition;
 						ag.TargetRef = 0;
-						navQuery.FindNearestPoly(ref tpos, ref ext, out ag.TargetRef, out nearest);
+						NavPoint nearestPt;
+						navQuery.FindNearestPoly(ref tpos, ref ext, out nearestPt);
+						ag.TargetRef = nearestPt.Polygon;
+						nearest = nearestPt.Position;
 						ag.TargetPosition = nearest;
 						replan = true;
 					}

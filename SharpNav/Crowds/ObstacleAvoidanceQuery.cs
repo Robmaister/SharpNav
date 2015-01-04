@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -11,14 +11,12 @@ using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
-#if MONOGAME || XNA
+#if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
-#elif UNITY3D
-using UnityEngine;
 #endif
 
 namespace SharpNav.Crowds

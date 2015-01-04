@@ -1,6 +1,6 @@
 ﻿#region License
 /**
- * Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+ * Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
  * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
  */
 #endregion
@@ -12,14 +12,12 @@ using SharpNav.Collections;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
-#if MONOGAME || XNA
+#if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
 #elif SHARPDX
 using SharpDX;
-#elif UNITY3D
-using UnityEngine;
 #endif
 
 namespace SharpNav
@@ -39,23 +37,6 @@ namespace SharpNav
 			public float TileHeight;
 			public int MaxTiles;
 			public int MaxPolys;
-
-			/// <summary>
-			/// Gets a serialized JSON object
-			/// </summary>
-			/*public JObject JSONObject
-			{
-				get
-				{
-					return new JObject(
-						new JProperty("Origin", Origin.JSONObject),
-						new JProperty("TileWidth", TileWidth),
-						new JProperty("TileHeight", TileHeight),
-						new JProperty("MaxTiles", MaxTiles),
-						new JProperty("MaxPolys", MaxPolys)
-					);
-				}
-			}*/
 		}
 
 		private TiledNavMeshParams parameters;
