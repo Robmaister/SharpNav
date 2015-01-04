@@ -20,8 +20,9 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 
 using SharpNav;
-using SharpNav.Geometry;
 using SharpNav.Crowds;
+using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 using Key = OpenTK.Input.Key;
 
@@ -31,7 +32,6 @@ using Vector3 = OpenTK.Vector3;
 using SVector3 = SharpNav.Geometry.Vector3;
 #else
 using SVector3 = OpenTK.Vector3;
-using SharpNav.Pathfinding;
 #endif
 
 namespace SharpNav.Examples

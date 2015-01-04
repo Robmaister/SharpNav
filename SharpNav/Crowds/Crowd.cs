@@ -10,12 +10,12 @@ using System.Collections.Generic;
 
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
 using OpenTK;
-using SharpNav.Pathfinding;
 #elif SHARPDX
 using SharpDX;
 #endif
