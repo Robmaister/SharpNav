@@ -1,9 +1,5 @@
-﻿#region License
-/**
- * Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
- * Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
- */
-#endregion
+// Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Collections.Generic;
