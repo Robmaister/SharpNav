@@ -4,11 +4,11 @@
 using System;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav.Geometry
@@ -158,6 +158,7 @@ namespace SharpNav.Geometry
 		}
 
 		//TOOD where did these come from?
+
 		/// <summary>
 		/// Finds the squared distance between a point and the nearest edge of a polygon.
 		/// </summary>

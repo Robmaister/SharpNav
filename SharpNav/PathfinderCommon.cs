@@ -7,11 +7,11 @@ using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav
@@ -228,7 +228,6 @@ namespace SharpNav
 
 			pt = a * pointA + b * pointB + c * pointC;
 		}
-
 
 		/// <summary>
 		/// Contains information about a navigation mesh

@@ -9,11 +9,14 @@ using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector2 = OpenTK.Vector2;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector2 = SharpDX.Vector2;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav

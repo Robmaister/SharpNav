@@ -89,8 +89,6 @@ namespace SharpNav
 			}
 		}
 
-
-
 		/// <summary>
 		/// Gets the 2D area of the contour. A positive area means the contour is going forwards, a negative
 		/// area maens it is going backwards.
@@ -269,7 +267,7 @@ namespace SharpNav
 
 			//add points until all points are within error tolerance of simplified slope
 			int numPoints = rawVerts.Count;
-			for (int i = 0; i < simplified.Count; )
+			for (int i = 0; i < simplified.Count;)
 			{
 				int ii = (i + 1) % simplified.Count;
 
@@ -332,7 +330,7 @@ namespace SharpNav
 			//split too long edges
 			if (maxEdgeLen > 0 && (tesselateAreaEdges || tesselateWallEdges))
 			{
-				for (int i = 0; i < simplified.Count; )
+				for (int i = 0; i < simplified.Count;)
 				{
 					int ii = (i + 1) % simplified.Count;
 

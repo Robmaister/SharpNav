@@ -9,11 +9,11 @@ using SharpNav.Geometry;
 using SharpNav.Pathfinding;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav
@@ -318,6 +318,7 @@ namespace SharpNav
 				{
 					Link link = bestTile.Links[i];
 					int neighbourRef = link.Reference;
+
 					//skip invalid neighbours and do not follor back to parent
 					if (neighbourRef == 0 || neighbourRef == parentRef)
 						continue;
@@ -1207,9 +1208,8 @@ namespace SharpNav
 				{
 					path[n++] = node.Id;
 					if (n >= maxPath)
-					{
 						break;
-					}
+
 					node = nodePool.GetNodeAtIdx(node.ParentIdx);
 				}
 				while (node != null);
@@ -1323,7 +1323,6 @@ namespace SharpNav
 			while (curRef != 0)
 			{
 				//cast ray against current polygon
-
 				MeshTile tile;
 				Poly poly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out tile, out poly);
@@ -1549,6 +1548,7 @@ namespace SharpNav
 					Node neighbourNode = tinyNodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
 						continue;
+
 					//skip visited
 					if ((neighbourNode.Flags & NodeFlags.Closed) != 0)
 						continue;
@@ -1600,6 +1600,7 @@ namespace SharpNav
 								break;
 							}
 						}
+
 						if (connected)
 							continue;
 
@@ -1619,6 +1620,7 @@ namespace SharpNav
 							break;
 						}
 					}
+
 					if (overlap)
 						continue;
 
@@ -1775,6 +1777,7 @@ namespace SharpNav
 		{
 			if (nints + 1 > maxInts)
 				return;
+
 			//find insertion point
 			int idx = 0;
 			while (idx < nints)
@@ -1783,12 +1786,14 @@ namespace SharpNav
 					break;
 				idx++;
 			}
+
 			//move current results
 			if (nints - idx > 0)
 			{
 				for (int i = 0; i < nints - idx; i++)
 					ints[idx + 1 + i] = ints[idx + i];
 			}
+
 			//store
 			ints[idx].Reference = reference;
 			ints[idx].TMin = tmin;
@@ -2023,6 +2028,7 @@ namespace SharpNav
 						minIndex = i;
 					}
 				}
+
 				Vector3 va = verts[minIndex];
 				Vector3 vb = verts[(minIndex + 1) % numPolyVerts];
 				closest = Vector3.Lerp(va, vb, edgeT[minIndex]);
@@ -2321,7 +2327,7 @@ namespace SharpNav
 
 			MeshTile[] neis = new MeshTile[32];
 			
-			BBox3 bounds = new BBox3 (bmin, bmax);
+			BBox3 bounds = new BBox3(bmin, bmax);
 			int n = 0;
 			for (int y = miny; y <= maxy; y++)
 			{

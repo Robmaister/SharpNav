@@ -9,11 +9,11 @@ using SharpNav;
 using SharpNav.Geometry;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav.Collections
@@ -23,9 +23,9 @@ namespace SharpNav.Collections
 	/// </summary>
 	public class BVTree
 	{
-		private static readonly Node.CompareY yComparer = new Node.CompareY();
-		private static readonly Node.CompareX xComparer = new Node.CompareX();
-		private static readonly Node.CompareZ zComparer = new Node.CompareZ();
+		private static readonly Node.CompareX XComparer = new Node.CompareX();
+		private static readonly Node.CompareY YComparer = new Node.CompareY();
+		private static readonly Node.CompareZ ZComparer = new Node.CompareZ();
 
 		/// <summary>
 		/// Nodes in the tree
@@ -170,13 +170,13 @@ namespace SharpNav.Collections
 				switch (axis)
 				{
 					case 0:
-						items.Sort(minIndex, numIndex, xComparer);
+						items.Sort(minIndex, numIndex, XComparer);
 						break;
 					case 1:
-						items.Sort(minIndex, numIndex, yComparer);
+						items.Sort(minIndex, numIndex, YComparer);
 						break;
 					case 2:
-						items.Sort(minIndex, numIndex, zComparer);
+						items.Sort(minIndex, numIndex, ZComparer);
 						break;
 					default:
 						break;

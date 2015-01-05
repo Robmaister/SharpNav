@@ -4,11 +4,11 @@
 using System;
 
 #if MONOGAME
-using Microsoft.Xna.Framework;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using OpenTK;
+using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using SharpDX;
+using Vector3 = SharpDX.Vector3;
 #endif
 
 namespace SharpNav.Geometry
@@ -106,6 +106,7 @@ namespace SharpNav.Geometry
 					return false;
 				}
 			}
+
 			for (int i = 0, j = npolyb - 1; i < npolyb; j = i++)
 			{
 				Vector3 va = polyb[j];
@@ -120,6 +121,7 @@ namespace SharpNav.Geometry
 					return false;
 				}
 			}
+
 			return true;
 		}
 
@@ -160,6 +162,7 @@ namespace SharpNav.Geometry
 					else
 						continue;
 				}
+
 				float t = n / d;
 				if (d < 0)
 				{
