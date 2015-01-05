@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME
 using Microsoft.Xna.Framework;
@@ -170,7 +171,7 @@ namespace SharpNav.Crowds
 
 			//first query non-overlapping polygons
 			int[] tempArray = new int[polys.Length];
-			navquery.FindLocalNeighbourhood(reference, pos, collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
+			navquery.FindLocalNeighbourhood(new NavPoint(reference, pos), collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
 
 			//secondly, store all polygon edges
 			this.segCount = 0;

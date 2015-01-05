@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -108,7 +108,7 @@ namespace SharpNav
 		/// <summary>
 		/// Compares this instance with another object for equality.
 		/// </summary>
-		/// <param name="other">An object.</param>
+		/// <param name="obj">An object.</param>
 		/// <returns>A value indicating whether this instance and the specified object are equal.</returns>
 		public override bool Equals(object obj)
 		{

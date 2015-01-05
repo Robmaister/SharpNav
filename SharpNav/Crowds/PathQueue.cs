@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME
 using Microsoft.Xna.Framework;
@@ -89,7 +90,7 @@ namespace SharpNav.Crowds
 				//handle query start
 				if (q.status == 0)
 				{
-					q.status = navquery.InitSlicedFindPath((int)q.StartRef, (int)q.EndRef, q.StartPos, q.EndPos).ToStatus();
+					q.status = navquery.InitSlicedFindPath(new NavPoint(q.StartRef, q.StartPos), new NavPoint(q.EndRef, q.EndPos)).ToStatus();
 				}
 
 				//handle query in progress

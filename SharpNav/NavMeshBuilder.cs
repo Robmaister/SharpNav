@@ -34,26 +34,6 @@ namespace SharpNav
 		private OffMeshConnection[] offMeshConnections;
 
 		/// <summary>
-		/// Gets a serializable JSON object
-		/// </summary>
-		/*public JObject JSONObject
-		{
-			get
-			{
-				return new JObject(
-					new JProperty("header", header.JSONObject),
-					new JProperty("navVerts", from v in navVerts select v.JSONObject),
-					new JProperty("navPolys", from p in navPolys select p.JSONObject),
-					new JProperty("navDMeshes", from m in navDMeshes select m.JSONObject),
-					new JProperty("navDVerts", from v in navDVerts select v.JSONObject),
-					new JProperty("navDTris", from t in navDTris select t.JSONObject),
-					//new JProperty("navBvTree", navBvTree.JSONObject),
-					new JProperty("offMeshConnections", from o in offMeshConnections select o.JSONObject)
-				);
-			}
-		}*/
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="NavMeshBuilder" /> class.
 		/// Add all the PolyMesh and PolyMeshDetail attributes to the Navigation Mesh.
 		/// Then, add Off-Mesh connection support.

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -33,7 +33,7 @@ namespace SharpNav
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CompactHeightfield"/> class.
 		/// </summary>
-		/// <param name="field">A <see cref="HeightField"/> to build from.</param>
+		/// <param name="field">A <see cref="Heightfield"/> to build from.</param>
 		/// <param name="settings">The settings to build with.</param>
 		public CompactHeightfield(Heightfield field, NavMeshGenerationSettings settings)
 			: this(field, settings.VoxelAgentHeight, settings.VoxelMaxClimb)
@@ -947,8 +947,8 @@ namespace SharpNav
 		/// <param name="maxIterations">The maximum number of allowed iterations before breaking.</param>
 		/// <param name="level">The current water level.</param>
 		/// <param name="stack">A stack of span references that are being expanded.</param>
-		/// <param name="regionBuffer">A buffer to store region IDs. Must be at least the same size as <see cref="regions"/>.</param>
-		/// <param name="distanceBuffer">A buffer to store flood distances. Must be at least the same size as <see cref="floodDistances"/>.</param>
+		/// <param name="regionBuffer">A buffer to store region IDs. Must be at least the same size as <c>regions</c>.</param>
+		/// <param name="distanceBuffer">A buffer to store flood distances. Must be at least the same size as <c>floodDistances</c>.</param>
 		private void ExpandRegions(RegionId[] regions, int[] floodDistances, int maxIterations, int level, List<CompactSpanReference> stack = null, RegionId[] regionBuffer = null, int[] distanceBuffer = null)
 		{
 			//generate buffers if they're not passed in or if they're too small.
@@ -1370,11 +1370,23 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Builds a set of <see cref="Contour"/>s around the generated regions. Must be called after regions are generated.
+		/// </summary>
+		/// <param name="settings">Settings for building the <see cref="ContourSet"/>.</param>
+		/// <returns>A <see cref="ContourSet"/> containing one contour per region.</returns>
 		public ContourSet BuildContourSet(NavMeshGenerationSettings settings)
 		{
 			return BuildContourSet(settings.MaxEdgeError, settings.MaxEdgeLength, settings.ContourFlags);
 		}
 
+		/// <summary>
+		/// Builds a set of <see cref="Contour"/>s around the generated regions. Must be called after regions are generated.
+		/// </summary>
+		/// <param name="maxError">The maximum allowed deviation in a simplified contour from a raw one.</param>
+		/// <param name="maxEdgeLength">The maximum edge length.</param>
+		/// <param name="buildFlags">Flags that change settings for the build process.</param>
+		/// <returns>A <see cref="ContourSet"/> containing one contour per region.</returns>
 		public ContourSet BuildContourSet(float maxError, int maxEdgeLength, ContourBuildFlags buildFlags)
 		{
 			BBox3 contourSetBounds = bounds;
@@ -1626,7 +1638,6 @@ namespace SharpNav
 		/// <summary>
 		/// Helper method for WalkContour function
 		/// </summary>
-		/// <param name="compactField">The compact heightfield to reference.</param>
 		/// <param name="sr">The span to get the corner height for.</param>
 		/// <param name="dir">The direction to get the corner height from.</param>
 		/// <param name="isBorderVertex">Determine whether the vertex is a border or not.</param>

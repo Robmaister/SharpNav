@@ -1317,29 +1317,5 @@ namespace SharpNav
 			string data = File.ReadAllText(filename); 
 			return (TiledNavMesh) JsonConvert.DeserializeObject<TiledNavMesh>(data);
 		}*/
-
-		/// <summary>
-		/// Gets a serialized JSON object
-		/// </summary>
-		/*public JObject JSONObject
-		{
-			get
-			{
-				return new JObject(
-					new JProperty("general", new JObject(
-						new JProperty("maxTiles", maxTiles),
-						new JProperty("tileWidth", tileWidth),
-						new JProperty("tileHeight", tileHeight),
-						new JProperty("saltBits", saltBits),
-						new JProperty("tileBits", tileBits),
-						new JProperty("polyBits", polyBits),
-						new JProperty("tileLookupTableSize", tileLookupTableSize),
-						new JProperty("tileLookupTableMask", tileLookupTableMask)
-					)), 
-					new JProperty("parameters", parameters.JSONObject),
-					new JProperty("origin", origin.JSONObject)
-				);
-			}
-		}*/
 	}
 }

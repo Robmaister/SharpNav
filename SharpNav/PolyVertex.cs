@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -27,21 +27,6 @@ namespace SharpNav
 		/// The Z coordinate.
 		/// </summary>
 		public int Z;
-
-		/// <summary>
-		/// Serialized JSON object
-		/// </summary>
-		/*public JObject JSONObject
-		{
-			get
-			{
-				return new JObject(
-					new JProperty("X", X),
-					new JProperty("Y", Y),
-					new JProperty("Z", Z)
-				);
-			}
-		}*/
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyVertex"/> struct.

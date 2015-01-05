@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
 
+using SharpNav.Pathfinding;
+
 #if MONOGAME
 using Microsoft.Xna.Framework;
 #elif OPENTK
@@ -120,7 +122,7 @@ namespace SharpNav.Crowds
 			int[] visited = new int[MaxVisited];
 			List<int> listVisited = new List<int>(MaxVisited);
 			int numVisited = 0;
-			bool status = navquery.MoveAlongSurface(path[0], pos, npos, ref result, listVisited);
+			bool status = navquery.MoveAlongSurface(new NavPoint(path[0], pos), npos, ref result, listVisited);
 			visited = listVisited.ToArray();
 
 			if (status == true)
@@ -192,7 +194,7 @@ namespace SharpNav.Crowds
 			int[] res = new int[MaxRes];
 			int numRes = 0;
 			int tempInt = 0;
-			navquery.InitSlicedFindPath(path[0], path[pathCount - 1], pos, target);
+			navquery.InitSlicedFindPath(new NavPoint(path[0], pos), new NavPoint(path[pathCount - 1], target));
 			navquery.UpdateSlicedFindPath(MaxIter, ref tempInt);
 			bool status = navquery.FinalizedSlicedPathPartial(path, pathCount, res, ref numRes, MaxRes);
 
@@ -232,7 +234,7 @@ namespace SharpNav.Crowds
 			float t = 0;
 			Vector3 norm = new Vector3();
 			int nres = 0;
-			navquery.Raycast(path[0], pos, goal, ref t, ref norm, res, ref nres, MaxRes);
+			navquery.Raycast(new NavPoint(path[0], pos), goal, ref t, ref norm, res, ref nres, MaxRes);
 			if (nres > 1 && t > 0.99f)
 			{
 				pathCount = MergeCorridorStartShortcut(path, pathCount, maxPath, res, nres);
@@ -378,7 +380,7 @@ namespace SharpNav.Crowds
 			refs[0] = prevRef;
 			refs[1] = polyRef;
 
-			TiledNavMesh nav = navquery.Nav;
+			TiledNavMesh nav = navquery.NavMesh;
 
 			if (nav.GetOffMeshConnectionPolyEndPoints(refs[0], refs[1], ref startPos, ref endPos) == true)
 			{

@@ -1,11 +1,9 @@
-// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace SharpNav
 {
@@ -24,20 +22,6 @@ namespace SharpNav
 		/// The upper bound of the bounding box.
 		/// </summary>
 		public PolyVertex Max;
-
-		/// <summary>
-		/// Gets a serialized JSON object
-		/// </summary>
-		/*public JObject JSONObject
-		{
-			get
-			{
-				return new JObject(
-					new JProperty("Min", Min.JSONObject),
-					new JProperty("Max", Max.JSONObject)
-				);
-			}
-		}*/
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyBounds"/> struct.

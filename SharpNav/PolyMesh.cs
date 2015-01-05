@@ -37,7 +37,7 @@ namespace SharpNav
 		private float cellHeight;
 		private int borderSize;
 
-		//HACK borderSize is 2 here. Fix with borderSize.
+		//HACK borderSize is 0 here. Fix with borderSize.
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PolyMesh"/> class.
 		/// </summary>
@@ -52,6 +52,9 @@ namespace SharpNav
 		/// Initializes a new instance of the <see cref="PolyMesh"/> class by creating polygons from contours.
 		/// </summary>
 		/// <param name="contSet">The <see cref="ContourSet"/> to generate polygons from.</param>
+		/// <param name="cellSize">The size of one voxel/cell.</param>
+		/// <param name="cellHeight">The height of one voxel/cell.</param>
+		/// <param name="borderSize">The size of the border around the mesh.</param>
 		/// <param name="numVertsPerPoly">The maximum number of vertices per polygon.</param>
 		public PolyMesh(ContourSet contSet, float cellSize, float cellHeight, int borderSize, int numVertsPerPoly)
 		{

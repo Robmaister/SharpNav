@@ -11,14 +11,17 @@ using SharpDX;
 
 namespace SharpNav.Geometry
 {
-	internal class Containment
+	/// <summary>
+	/// Contains helper methods to check for containment of points or shapes.
+	/// </summary>
+	internal static class Containment
 	{
 		/// <summary>
 		/// Determines whether a point is inside a polygon.
 		/// </summary>
 		/// <param name="pt">A point.</param>
 		/// <param name="verts">A set of vertices that define a polygon.</param>
-		/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+		/// <param name="nverts">The number of vertices to use from <c>verts</c>.</param>
 		/// <returns>A value indicating whether the point is contained within the polygon.</returns>
 		internal static bool PointInPoly(Vector3 pt, Vector3[] verts, int nverts)
 		{

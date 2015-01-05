@@ -31,8 +31,25 @@ namespace SharpNav
 		private NodePool nodePool;
 		private PriorityQueue<Node> openList;
 		private QueryData query;
+		private Random rand;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NavMeshQuery"/> class.
+		/// </summary>
+		/// <param name="nav">The navigation mesh to query.</param>
+		/// <param name="maxNodes">The maximum number of nodes that can be queued in a query.</param>
 		public NavMeshQuery(TiledNavMesh nav, int maxNodes)
+			: this(nav, maxNodes, new Random())
+		{
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="NavMeshQuery"/> class.
+		/// </summary>
+		/// <param name="nav">The navigation mesh to query.</param>
+		/// <param name="maxNodes">The maximum number of nodes that can be queued in a query.</param>
+		/// <param name="rand">A random number generator for use in methods like <see cref="NavMeshQuery.FindRandomPoint()"/></param>
+		public NavMeshQuery(TiledNavMesh nav, int maxNodes, Random rand)
 		{
 			this.nav = nav;
 
@@ -43,6 +60,8 @@ namespace SharpNav
 			nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
 			tinyNodePool = new NodePool(64, 32);
 			openList = new PriorityQueue<Node>(maxNodes);
+
+			this.rand = rand;
 		}
 
 		/// <summary>
@@ -57,7 +76,7 @@ namespace SharpNav
 			return (pa - pb).Length() * areaCost[(int)curPoly.Area.Id];
 		}
 
-		public TiledNavMesh Nav
+		public TiledNavMesh NavMesh
 		{
 			get
 			{
@@ -65,22 +84,28 @@ namespace SharpNav
 			}
 		}
 
-		public Vector3 FindRandomPointOnPoly(Random rand, MeshTile tile, Poly poly, int polyRef)
+		/// <summary>
+		/// Finds a random point on a polygon.
+		/// </summary>
+		/// <param name="tile">The current mesh tile</param>
+		/// <param name="poly">The current polygon</param>
+		/// <param name="polyRef">Polygon reference</param>
+		/// <returns>Resulting random point</returns>
+		public Vector3 FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef)
 		{
 			Vector3 result;
-			this.FindRandomPointOnPoly(rand, tile, poly, polyRef, out result);
+			this.FindRandomPointOnPoly(tile, poly, polyRef, out result);
 			return result;
 		}
 
 		/// <summary>
-		/// Find a random point on a polygon.
+		/// Finds a random point on a polygon.
 		/// </summary>
 		/// <param name="tile">The current mesh tile</param>
 		/// <param name="poly">The current polygon</param>
 		/// <param name="polyRef">Polygon reference</param>
 		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise</returns>
-		public void FindRandomPointOnPoly(Random rand, MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
+		public void FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
 		{
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
@@ -100,20 +125,22 @@ namespace SharpNav
 			randomPt.Y = h;
 		}
 
-		public NavPoint FindRandomPoint(Random rand)
+		/// <summary>
+		/// Finds a random point somewhere in the navigation mesh.
+		/// </summary>
+		/// <returns>Resulting random point.</returns>
+		public NavPoint FindRandomPoint()
 		{
 			NavPoint result;
-			this.FindRandomPoint(rand, out result);
+			this.FindRandomPoint(out result);
 			return result;
 		}
 
 		/// <summary>
-		/// Find a random point.
+		/// Finds a random point somewhere in the navigation mesh.
 		/// </summary>
-		/// <param name="randomRef">Resulting polygon reference containing random point</param>
-		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise.</returns>
-		public void FindRandomPoint(Random rand, out NavPoint ptRef)
+		/// <param name="randomPoint">Resulting random point.</param>
+		public void FindRandomPoint(out NavPoint randomPoint)
 		{
 			//TODO we're object-oriented, can prevent this state from ever happening.
 			if (nav == null)
@@ -184,53 +211,56 @@ namespace SharpNav
 
 			//randomRef = polyRef;
 			Vector3 randomPt;
-			FindRandomPointOnPoly(rand, tile, poly, polyRef, out randomPt);
+			FindRandomPointOnPoly(tile, poly, polyRef, out randomPt);
 
-			ptRef = new NavPoint(polyRef, randomPt);
+			randomPoint = new NavPoint(polyRef, randomPt);
 		}
 
-		public NavPoint FindRandomPointAroundCircle(Random rand, int startRef, Vector3 centerPos, float radius)
+		/// <summary>
+		/// Finds a random point in a NavMesh within a specified circle.
+		/// </summary>
+		/// <param name="center">The center point.</param>
+		/// <param name="radius">The maximum distance away from the center that the random point can be.</param>
+		/// <returns>A random point within the specified circle.</returns>
+		public NavPoint FindRandomPointAroundCircle(NavPoint center, float radius)
 		{
 			NavPoint result;
-			this.FindRandomPointAroundCircle(rand, startRef, centerPos, radius, out result);
+			this.FindRandomPointAroundCircle(center, radius, out result);
 			return result;
 		}
 
 		/// <summary>
-		/// Find a random point that is a certain distance away from another point.
+		/// Finds a random point in a NavMesh within a specified circle.
 		/// </summary>
-		/// <param name="startRef">Starting point's polygon reference</param>
-		/// <param name="centerPos">Starting point</param>
-		/// <param name="radius">Circle's radius</param>
-		/// <param name="randomRef">Resulting polygon reference of random point</param>
-		/// <param name="randomPt">Resulting random point</param>
-		/// <returns>True, if point found. False, if otherwise.</returns>
-		public void FindRandomPointAroundCircle(Random rand, int startRef, Vector3 centerPos, float radius, out NavPoint ptRef)
+		/// <param name="center">The center point.</param>
+		/// <param name="radius">The maximum distance away from the center that the random point can be.</param>
+		/// <param name="randomPoint">A random point within the specified circle.</param>
+		public void FindRandomPointAroundCircle(NavPoint center, float radius, out NavPoint randomPoint)
 		{
 			//TODO fix state
 			if (nav == null || nodePool == null || openList == null)
 				throw new InvalidOperationException("Something null");
 
 			//validate input
-			if (startRef == 0)
+			if (center.Polygon == 0)
 				throw new ArgumentOutOfRangeException("startRef", "Null poly reference");
 
-			if (!nav.IsValidPolyRef(startRef))
+			if (!nav.IsValidPolyRef(center.Polygon))
 				throw new ArgumentException("startRef", "Poly reference is not valid for this navmesh");
 
 			MeshTile startTile;
 			Poly startPoly;
-			nav.TryGetTileAndPolyByRefUnsafe(startRef, out startTile, out startPoly);
+			nav.TryGetTileAndPolyByRefUnsafe(center.Polygon, out startTile, out startPoly);
 
 			nodePool.Clear();
 			openList.Clear();
 
-			Node startNode = nodePool.GetNode(startRef);
-			startNode.Pos = centerPos;
+			Node startNode = nodePool.GetNode(center.Polygon);
+			startNode.Pos = center.Position;
 			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
-			startNode.Id = startRef;
+			startNode.Id = center.Polygon;
 			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
@@ -305,7 +335,7 @@ namespace SharpNav
 
 					//if circle isn't touching next polygon, skip it
 					float tseg;
-					float distSqr = Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
+					float distSqr = Distance.PointToSegment2DSquared(ref center.Position, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
 						continue;
 
@@ -348,9 +378,9 @@ namespace SharpNav
 				throw new InvalidOperationException("Poly null?");
 
 			Vector3 randomPt;
-			FindRandomPointOnPoly(rand, randomTile, randomPoly, randomPolyRef, out randomPt);
+			FindRandomPointOnPoly(randomTile, randomPoly, randomPolyRef, out randomPt);
 
-			ptRef = new NavPoint(randomPolyRef, randomPt);
+			randomPoint = new NavPoint(randomPolyRef, randomPt);
 		}
 
 		/// <summary>
@@ -359,10 +389,8 @@ namespace SharpNav
 		/// -If the path array is too small, it will be filled as far as possible 
 		/// -start and end positions are used to calculate traversal costs
 		/// </summary>
-		/// <param name="startRef">Starting point's polygon reference</param>
-		/// <param name="endRef">Ending point's polygon reference</param>
-		/// <param name="startPos">Starting point</param>
-		/// <param name="endPos">Ending point</param>
+		/// <param name="startPt">The start point.</param>
+		/// <param name="endPt">The end point.</param>
 		/// <param name="path">The path of polygon references</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
 		public bool FindPath(ref NavPoint startPt, ref NavPoint endPt, List<int> path)
@@ -761,13 +789,12 @@ namespace SharpNav
 		/// This method is optimized for small delta movement and a small number of polygons.
 		/// If movement distance is too large, the result will form an incomplete path.
 		/// </summary>
-		/// <param name="startRef">Starting polygon reference</param>
-		/// <param name="startPos">Start position</param>
+		/// <param name="startPoint">The start point.</param>
 		/// <param name="endPos">End position</param>
 		/// <param name="resultPos">Intermediate point</param>
 		/// <param name="visited">Visited polygon references</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool MoveAlongSurface(int startRef, Vector3 startPos, Vector3 endPos, ref Vector3 resultPos, List<int> visited)
+		public bool MoveAlongSurface(NavPoint startPoint, Vector3 endPos, ref Vector3 resultPos, List<int> visited)
 		{
 			if (nav == null)
 				return false;
@@ -777,9 +804,9 @@ namespace SharpNav
 			visited.Clear();
 
 			//validate input
-			if (startRef == 0)
+			if (startPoint.Polygon == 0)
 				return false;
-			if (!nav.IsValidPolyRef(startRef))
+			if (!nav.IsValidPolyRef(startPoint.Polygon))
 				return false;
 
 			int MAX_STACK = 48;
@@ -787,21 +814,21 @@ namespace SharpNav
 
 			tinyNodePool.Clear();
 
-			Node startNode = tinyNodePool.GetNode(startRef);
+			Node startNode = tinyNodePool.GetNode(startPoint.Polygon);
 			startNode.ParentIdx = 0;
 			startNode.cost = 0;
 			startNode.total = 0;
-			startNode.Id = startRef;
+			startNode.Id = startPoint.Polygon;
 			startNode.Flags = NodeFlags.Closed;
 			nodeQueue.Enqueue(startNode);
 
-			Vector3 bestPos = startPos;
+			Vector3 bestPos = startPoint.Position;
 			float bestDist = float.MaxValue;
 			Node bestNode = null;
 
 			//search constraints
-			Vector3 searchPos = Vector3.Lerp(startPos, endPos, 0.5f);
-			float searchRad = (startPos - endPos).Length() / 2.0f + 0.001f;
+			Vector3 searchPos = Vector3.Lerp(startPoint.Position, endPos, 0.5f);
+			float searchRad = (startPoint.Position - endPos).Length() / 2.0f + 0.001f;
 			float searchRadSqr = searchRad * searchRad;
 
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
@@ -932,29 +959,27 @@ namespace SharpNav
 		/// <summary>
 		/// Initialize a sliced path, which is used mostly for crowd pathfinding.
 		/// </summary>
-		/// <param name="startRef">Start polygon reference</param>
-		/// <param name="endRef">End polygon reference</param>
-		/// <param name="startPos">Start position's coordinates</param>
-		/// <param name="endPos">End position's coordinates</param>
-		/// <returns>True if path initialized, false if no</returns>
-		public bool InitSlicedFindPath(int startRef, int endRef, Vector3 startPos, Vector3 endPos)
+		/// <param name="startPoint">The start point.</param>
+		/// <param name="endPoint">The end point.</param>
+		/// <returns>True if path initialized, false otherwise</returns>
+		public bool InitSlicedFindPath(NavPoint startPoint, NavPoint endPoint)
 		{
 			//init path state
 			query = new QueryData();
 			query.Status = false;
-			query.StartRef = startRef;
-			query.EndRef = endRef;
-			query.StartPos = startPos;
-			query.EndPos = endPos;
+			query.StartRef = startPoint.Polygon;
+			query.EndRef = endPoint.Polygon;
+			query.StartPos = startPoint.Position;
+			query.EndPos = endPoint.Position;
 
 			if (query.StartRef == 0 || query.EndRef == 0)
 				return false;
 
 			//validate input
-			if (!nav.IsValidPolyRef(startRef) || !nav.IsValidPolyRef(endRef))
+			if (!nav.IsValidPolyRef(startPoint.Polygon) || !nav.IsValidPolyRef(endPoint.Polygon))
 				return false;
 
-			if (startRef == endRef)
+			if (startPoint.Polygon == endPoint.Polygon)
 			{
 				query.Status = true;
 				return true;
@@ -963,12 +988,12 @@ namespace SharpNav
 			nodePool.Clear();
 			openList.Clear();
 
-			Node startNode = nodePool.GetNode(startRef);
-			startNode.Pos = startPos;
+			Node startNode = nodePool.GetNode(startPoint.Polygon);
+			startNode.Pos = startPoint.Position;
 			startNode.ParentIdx = 0;
 			startNode.cost = 0;
-			startNode.total = (endPos - startPos).Length() * H_SCALE;
-			startNode.Id = startRef;
+			startNode.total = (endPoint.Position - startPoint.Position).Length() * H_SCALE;
+			startNode.Id = startPoint.Polygon;
 			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
@@ -1280,16 +1305,16 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool Raycast(int startRef, Vector3 startPos, Vector3 endPos, ref float t, ref Vector3 hitNormal, int[] path, ref int pathCount, int maxPath)
+		public bool Raycast(NavPoint startPoint, Vector3 endPos, ref float t, ref Vector3 hitNormal, int[] path, ref int pathCount, int maxPath)
 		{
 			t = 0;
 			pathCount = 0;
 
 			//validate input
-			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
+			if (startPoint.Polygon == 0 || !nav.IsValidPolyRef(startPoint.Polygon))
 				return false;
 
-			int curRef = startRef;
+			int curRef = startPoint.Polygon;
 			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
 			int n = 0;
 
@@ -1313,7 +1338,7 @@ namespace SharpNav
 
 				float tmin, tmax;
 				int segMin, segMax;
-				if (!Intersection.SegmentPoly2D(startPos, endPos, verts, nv, out tmin, out tmax, out segMin, out segMax))
+				if (!Intersection.SegmentPoly2D(startPoint.Position, endPos, verts, nv, out tmin, out tmax, out segMin, out segMax))
 				{
 					//could not hit the polygon, keep the old t and report hit
 					pathCount = n;
@@ -1394,7 +1419,7 @@ namespace SharpNav
 						}
 
 						//find z intersection
-						float z = startPos.Z + (endPos.Z - startPos.Z) * tmax;
+						float z = startPoint.Position.Z + (endPos.Z - startPoint.Position.Z) * tmax;
 						if (z >= lmin && z <= lmax)
 						{
 							nextRef = link.Reference;
@@ -1416,7 +1441,7 @@ namespace SharpNav
 						}
 
 						//find x intersection
-						float x = startPos.X + (endPos.X - startPos.X) * tmax;
+						float x = startPoint.Position.X + (endPos.X - startPoint.Position.X) * tmax;
 						if (x >= lmin && x <= lmax)
 						{
 							nextRef = link.Reference;
@@ -1457,21 +1482,19 @@ namespace SharpNav
 		/// <summary>
 		/// Store polygons that are within a certain range from the current polygon
 		/// </summary>
-		/// <param name="startRef">Starting polygon reference</param>
-		/// <param name="centerPos">Starting position</param>
+		/// <param name="centerPoint">Starting position</param>
 		/// <param name="radius">Range to search within</param>
 		/// <param name="resultRef">All the polygons within range</param>
 		/// <param name="resultParent">Polygon's parents</param>
 		/// <param name="resultCount">Number of polygons stored</param>
 		/// <param name="maxResult">Maximum number of polygons allowed</param>
 		/// <returns>True, unless input is invalid</returns>
-		public bool FindLocalNeighbourhood(int startRef, Vector3 centerPos, float radius, 
-			int[] resultRef, int[] resultParent, ref int resultCount, int maxResult)
+		public bool FindLocalNeighbourhood(NavPoint centerPoint, float radius, int[] resultRef, int[] resultParent, ref int resultCount, int maxResult)
 		{
 			resultCount = 0;
 
 			//validate input
-			if (startRef == 0 || !nav.IsValidPolyRef(startRef))
+			if (centerPoint.Polygon == 0 || !nav.IsValidPolyRef(centerPoint.Polygon))
 				return false;
 
 			int MAX_STACK = 48;
@@ -1480,9 +1503,9 @@ namespace SharpNav
 
 			tinyNodePool.Clear();
 
-			Node startNode = tinyNodePool.GetNode(startRef);
+			Node startNode = tinyNodePool.GetNode(centerPoint.Polygon);
 			startNode.ParentIdx = 0;
-			startNode.Id = startRef;
+			startNode.Id = centerPoint.Polygon;
 			startNode.Flags = NodeFlags.Closed;
 			stack[nstack++] = startNode;
 
@@ -1547,7 +1570,7 @@ namespace SharpNav
 
 					//if the circle is not touching the next polygon, skip it
 					float tseg;
-					float distSqr = Distance.PointToSegment2DSquared(ref centerPos, ref va, ref vb, out tseg);
+					float distSqr = Distance.PointToSegment2DSquared(ref centerPoint.Position, ref va, ref vb, out tseg);
 					if (distSqr > radiusSqr)
 						continue;
 
@@ -2218,6 +2241,12 @@ namespace SharpNav
 			return false;
 		}
 
+		/// <summary>
+		/// Find the nearest poly within a certain range.
+		/// </summary>
+		/// <param name="center">Center.</param>
+		/// <param name="extents">Extents.</param>
+		/// <returns>The neareast point.</returns>
 		public NavPoint FindNearestPoly(Vector3 center, Vector3 extents)
 		{
 			NavPoint result;
@@ -2230,9 +2259,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="center">Center.</param>
 		/// <param name="extents">Extents.</param>
-		/// <param name="nearestRef">Nearest reference.</param>
-		/// <param name="neareastPt">Neareast point.</param>
-		/// <returns>True, if the nearest poly was found, False, if otherwise.</returns>
+		/// <param name="nearestPt">The neareast point.</param>
 		public void FindNearestPoly(ref Vector3 center, ref Vector3 extents, out NavPoint nearestPt)
 		{
 			nearestPt = NavPoint.Null;

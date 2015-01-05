@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 namespace SharpNav.Pathfinding
@@ -37,23 +37,5 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the maximum Vector3 of the bounding box
 		/// </summary>
 		public int BMax { get; set; }
-
-		/// <summary>
-		/// Serialized JSON object
-		/// </summary>
-		/*public JObject JSONObject
-		{
-			get
-			{
-				return new JObject(
-					new JProperty("Reference", Reference),
-					new JProperty("Next", Next),
-					new JProperty("Edge", Edge),
-					new JProperty("Side", Side),
-					new JProperty("BMin", BMin),
-					new JProperty("BMax", BMax)
-				);
-			}
-		}*/
 	}
 }

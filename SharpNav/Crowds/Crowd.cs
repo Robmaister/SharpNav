@@ -634,7 +634,7 @@ namespace SharpNav.Crowds
 
 					//quick search towards the goal
 					const int MAX_ITER = 20;
-					navQuery.InitSlicedFindPath(path[0], agents[i].TargetRef, agents[i].Position, agents[i].TargetPosition);
+					navQuery.InitSlicedFindPath(new NavPoint(path[0], agents[i].Position), new NavPoint(agents[i].TargetRef, agents[i].TargetPosition));
 					int tempInt = 0;
 					navQuery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
 					status = Status.Failure;

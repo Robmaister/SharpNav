@@ -36,7 +36,7 @@ namespace SharpNav.Collections
 		/// Initializes a new instance of the <see cref="BVTree"/> class.
 		/// </summary>
 		/// <param name="verts">A set of vertices.</param>
-		/// <param name="polys">A set of polygons composed of the vertices in <see cref="verts"/>.</param>
+		/// <param name="polys">A set of polygons composed of the vertices in <c>verts</c>.</param>
 		/// <param name="nvp">The maximum number of vertices per polygon.</param>
 		/// <param name="cellSize">The size of a cell.</param>
 		/// <param name="cellHeight">The height of a cell.</param>

@@ -163,7 +163,7 @@ namespace SharpNav.Geometry
 		/// </summary>
 		/// <param name="pt">A point.</param>
 		/// <param name="verts">A set of vertices that define a polygon.</param>
-		/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+		/// <param name="nverts">The number of vertices to use from <c>verts</c>.</param>
 		/// <returns>The squared distance between a point and the nearest edge of a polygon.</returns>
 		internal static float PointToPolygonEdgeSquared(Vector3 pt, Vector3[] verts, int nverts)
 		{
@@ -179,7 +179,7 @@ namespace SharpNav.Geometry
 		/// </summary>
 		/// <param name="pt">A point.</param>
 		/// <param name="verts">A set of vertices that define a polygon.</param>
-		/// <param name="nverts">The number of vertices to use from <see cref="verts"/>.</param>
+		/// <param name="nverts">The number of vertices to use from <c>verts</c>.</param>
 		/// <param name="edgeDist">A buffer for edge distances to be stored in.</param>
 		/// <param name="edgeT">A buffer for parametrization ratios to be stored in.</param>
 		/// <returns>A value indicating whether the point is contained in the polygon.</returns>
