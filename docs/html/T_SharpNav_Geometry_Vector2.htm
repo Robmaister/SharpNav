@@ -1,0 +1,807 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+    <head>
+    	<title>Vector2 Structure (SharpNav.Geometry)</title>
+    <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
+    <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
+    <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
+    <script src="../js/mootools.js" language="javascript"></script>
+    <script src="../js/mootools-more.js" language="javascript"></script>
+    <script src="../syntaxhighlighter/js/shCore.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCpp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushFSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushJScript.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushVb.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushPlain.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushXml.js" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['smart-tabs'] = false;
+        SyntaxHighlighter.all();
+    </script>
+    <script src="../js/sharpdoc.js" language="javascript"></script>            
+    <meta name="Microsoft.Help.Id" content="T:SharpNav.Geometry.Vector2" />
+    <meta name="Microsoft.Help.SelfBranded" content="true" />
+    <meta name="Microsoft.Help.Locale" content="en-us" />
+    <meta name="Microsoft.Help.F1" content="SharpNav.Geometry.Vector2" />
+    <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
+    <meta name="Microsoft.Help.Category" content="DevLang:VB" />
+    <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
+    <meta name="Microsoft.Help.Category" content="DevLang:FSharp" />
+        <meta name="Microsoft.Help.TocParent" content="N:SharpNav.Geometry" />
+        <meta name="Microsoft.Help.TocOrder" content="-1" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+    </head>
+	<body>
+        <script type="text/javascript" language="javascript">
+            if(window == window.top)
+                location.href = "index.htm?page=T_SharpNav_Geometry_Vector2";
+            document.addEvent('domready', function () {
+                InstallCodeTabs();
+            });
+    </script>
+    <div class="sharpdoc">
+        <div class="content">
+            
+
+
+
+
+
+
+
+
+<div class="content-title">
+	<h1 id="#top" class="content-title">Vector2 Structure (SharpNav.Geometry)</h1>
+</div>
+<div style="clear: both;"></div>
+        
+<div class="summary">Represents a 2D vector using two single-precision floating-point numbers.</div>
+
+<br/>
+<div class="origin">
+<strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Geometry');" href="N_SharpNav_Geometry.htm" >SharpNav.Geometry</a><br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+      
+
+</div>
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Syntax_slider = new Fx.Slide('section_Syntax_content');
+            $('section_Syntax_toggle').addEvent('click', function (event) {
+                $('section_Syntax_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Syntax_slider.open]);
+                event.stop();
+                section_Syntax_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Syntax" class="section">
+        <div class="title"><a id="section_Syntax_toggle" href="#" class="title"><div id="section_Syntax_icon" class="toggle_icon out"></div><span class="title">Syntax</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Syntax_content" class="block">
+            <div class="grouptab">
+	    <ul class="tabs"> 
+            <li class="code selected tab">C#</li> 
+    	    <li class="code tab">VB</li> 
+    	    <li class="code tab">C++</li> 
+    	    <li class="code tab">F#</li> 
+	    </ul>            
+        <div class="tabcontent selected">     
+        <pre class='brush: csharp;'>[DefaultMemberAttribute(&quot;Item&quot;)]
+[StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = -1, Size = -1)]
+[SerializableAttribute]
+public struct Vector2 : IEquatable&lt;Vector2&gt;</pre>
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for VB is not yet implemented.</p>
+
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for C++ is not yet implemented</p>
+
+        </div>
+        <div class="tabcontent">     
+        <pre class='brush: fsharp;'>[&lt;DefaultMemberAttribute(&quot;Item&quot;)&gt;]
+[&lt;StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = -1, Size = -1)&gt;]
+[&lt;SerializableAttribute&gt;]
+type public Vector2 =
+	struct
+		interface IEquatable&lt;Vector2&gt;
+	end
+</pre>
+        </div>
+    </div>
+        <p>The Vector2 type exposes the following members.</p>
+
+        </div>
+    </div>    
+
+<div class="members">
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Constructors_slider = new Fx.Slide('section_Constructors_content');
+            $('section_Constructors_toggle').addEvent('click', function (event) {
+                $('section_Constructors_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Constructors_slider.open]);
+                event.stop();
+                section_Constructors_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Constructors" class="section">
+        <div class="title"><a id="section_Constructors_toggle" href="#" class="title"><div id="section_Constructors_icon" class="toggle_icon out"></div><span class="title">Constructors</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Constructors_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2__ctor');" href="M_SharpNav_Geometry_Vector2__ctor.htm" >Vector2(float)</a></td>
+    <td class="desc-col">Constructs a new instance.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2__ctor_3');" href="M_SharpNav_Geometry_Vector2__ctor_3.htm" >Vector2(float, float)</a></td>
+    <td class="desc-col">Constructs a new Vector2.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2__ctor_2');" href="M_SharpNav_Geometry_Vector2__ctor_2.htm" >Vector2(Vector2)</a></td>
+    <td class="desc-col">Constructs a new Vector2 from the given Vector2.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2__ctor_1');" href="M_SharpNav_Geometry_Vector2__ctor_1.htm" >Vector2(Vector3)</a></td>
+    <td class="desc-col">Constructs a new Vector2 from the given Vector3.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Fields_slider = new Fx.Slide('section_Fields_content');
+            $('section_Fields_toggle').addEvent('click', function (event) {
+                $('section_Fields_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Fields_slider.open]);
+                event.stop();
+                section_Fields_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Fields" class="section">
+        <div class="title"><a id="section_Fields_toggle" href="#" class="title"><div id="section_Fields_icon" class="toggle_icon out"></div><span class="title">Fields</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Fields_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_One');" href="F_SharpNav_Geometry_Vector2_One.htm" >One</a></td>
+    <td class="desc-col">Defines an instance with all components set to 1.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_SizeInBytes');" href="F_SharpNav_Geometry_Vector2_SizeInBytes.htm" >SizeInBytes</a></td>
+    <td class="desc-col">Defines the size of the Vector2 struct in bytes.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_UnitX');" href="F_SharpNav_Geometry_Vector2_UnitX.htm" >UnitX</a></td>
+    <td class="desc-col">Defines a unit-length Vector2 that points towards the X-axis.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_UnitY');" href="F_SharpNav_Geometry_Vector2_UnitY.htm" >UnitY</a></td>
+    <td class="desc-col">Defines a unit-length Vector2 that points towards the Y-axis.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_X');" href="F_SharpNav_Geometry_Vector2_X.htm" >X</a></td>
+    <td class="desc-col">The X component of the Vector2.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_Y');" href="F_SharpNav_Geometry_Vector2_Y.htm" >Y</a></td>
+    <td class="desc-col">The Y component of the Vector2.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Geometry_Vector2_Zero');" href="F_SharpNav_Geometry_Vector2_Zero.htm" >Zero</a></td>
+    <td class="desc-col">Defines a zero-length Vector2.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Properties_slider = new Fx.Slide('section_Properties_content');
+            $('section_Properties_toggle').addEvent('click', function (event) {
+                $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
+                event.stop();
+                section_Properties_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Properties" class="section">
+        <div class="title"><a id="section_Properties_toggle" href="#" class="title"><div id="section_Properties_icon" class="toggle_icon out"></div><span class="title">Properties</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Properties_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_Item');" href="P_SharpNav_Geometry_Vector2_Item.htm" >Item</a></td>
+    <td class="desc-col">Gets or sets the value at the index of the Vector.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_Length');" href="P_SharpNav_Geometry_Vector2_Length.htm" >Length</a></td>
+    <td class="desc-col">Gets the length (magnitude) of the vector.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_LengthSquared');" href="P_SharpNav_Geometry_Vector2_LengthSquared.htm" >LengthSquared</a></td>
+    <td class="desc-col">Gets the square of the vector length (magnitude).&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_PerpendicularLeft');" href="P_SharpNav_Geometry_Vector2_PerpendicularLeft.htm" >PerpendicularLeft</a></td>
+    <td class="desc-col">Gets the perpendicular vector on the left side of this vector.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_PerpendicularRight');" href="P_SharpNav_Geometry_Vector2_PerpendicularRight.htm" >PerpendicularRight</a></td>
+    <td class="desc-col">Gets the perpendicular vector on the right side of this vector.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Geometry_Vector2_Yx');" href="P_SharpNav_Geometry_Vector2_Yx.htm" >Yx</a></td>
+    <td class="desc-col">Gets or sets an OpenTK.Vector2 with the Y and X components of this instance.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Methods_slider = new Fx.Slide('section_Methods_content');
+            $('section_Methods_toggle').addEvent('click', function (event) {
+                $('section_Methods_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Methods_slider.open]);
+                event.stop();
+                section_Methods_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Methods" class="section">
+        <div class="title"><a id="section_Methods_toggle" href="#" class="title"><div id="section_Methods_icon" class="toggle_icon out"></div><span class="title">Methods</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Methods_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Add');" href="M_SharpNav_Geometry_Vector2_Add.htm" >Add(Vector2, Vector2)</a></td>
+    <td class="desc-col">Adds two vectors.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Add_1');" href="M_SharpNav_Geometry_Vector2_Add_1.htm" >Add(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Adds two vectors.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_BaryCentric');" href="M_SharpNav_Geometry_Vector2_BaryCentric.htm" >BaryCentric(Vector2, Vector2, Vector2, float, float, out Vector2)</a></td>
+    <td class="desc-col">Interpolate 3 Vectors using Barycentric coordinates&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_BaryCentric_1');" href="M_SharpNav_Geometry_Vector2_BaryCentric_1.htm" >BaryCentric(Vector2, Vector2, Vector2, float, float)</a></td>
+    <td class="desc-col">Interpolate 3 Vectors using Barycentric coordinates&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Clamp');" href="M_SharpNav_Geometry_Vector2_Clamp.htm" >Clamp(Vector2, Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Clamp a vector to the given minimum and maximum vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Clamp_1');" href="M_SharpNav_Geometry_Vector2_Clamp_1.htm" >Clamp(Vector2, Vector2, Vector2)</a></td>
+    <td class="desc-col">Clamp a vector to the given minimum and maximum vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_ComponentMax');" href="M_SharpNav_Geometry_Vector2_ComponentMax.htm" >ComponentMax(Vector2, Vector2)</a></td>
+    <td class="desc-col">Calculate the component-wise maximum of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_ComponentMax_1');" href="M_SharpNav_Geometry_Vector2_ComponentMax_1.htm" >ComponentMax(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Calculate the component-wise maximum of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_ComponentMin');" href="M_SharpNav_Geometry_Vector2_ComponentMin.htm" >ComponentMin(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Calculate the component-wise minimum of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_ComponentMin_1');" href="M_SharpNav_Geometry_Vector2_ComponentMin_1.htm" >ComponentMin(Vector2, Vector2)</a></td>
+    <td class="desc-col">Calculate the component-wise minimum of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Divide');" href="M_SharpNav_Geometry_Vector2_Divide.htm" >Divide(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Divide a vector by the components of a vector (scale).&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Divide_1');" href="M_SharpNav_Geometry_Vector2_Divide_1.htm" >Divide(Vector2, Vector2)</a></td>
+    <td class="desc-col">Divides a vector by the components of a vector (scale).&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Divide_2');" href="M_SharpNav_Geometry_Vector2_Divide_2.htm" >Divide(Vector2, float)</a></td>
+    <td class="desc-col">Divides a vector by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Divide_3');" href="M_SharpNav_Geometry_Vector2_Divide_3.htm" >Divide(Vector2, float, out Vector2)</a></td>
+    <td class="desc-col">Divides a vector by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Dot');" href="M_SharpNav_Geometry_Vector2_Dot.htm" >Dot(Vector2, Vector2, out Single)</a></td>
+    <td class="desc-col">Calculate the dot (scalar) product of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Dot_1');" href="M_SharpNav_Geometry_Vector2_Dot_1.htm" >Dot(Vector2, Vector2)</a></td>
+    <td class="desc-col">Calculate the dot (scalar) product of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Equals');" href="M_SharpNav_Geometry_Vector2_Equals.htm" >Equals(object)</a></td>
+    <td class="desc-col">Indicates whether this instance and a specified object are equal.&nbsp;(Overrides <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/2dts52z7"  target='_blank'>ValueType.Equals()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Equals_1');" href="M_SharpNav_Geometry_Vector2_Equals_1.htm" >Equals(Vector2)</a></td>
+    <td class="desc-col">Indicates whether the current vector is equal to another vector.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/ms131190"  target='_blank'>IEquatable&lt;T&gt;.Equals()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_GetHashCode');" href="M_SharpNav_Geometry_Vector2_GetHashCode.htm" >GetHashCode</a></td>
+    <td class="desc-col">Returns the hashcode for this instance.&nbsp;(Overrides <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/y3509fc2"  target='_blank'>ValueType.GetHashCode()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Lerp');" href="M_SharpNav_Geometry_Vector2_Lerp.htm" >Lerp(Vector2, Vector2, float)</a></td>
+    <td class="desc-col">Returns a new Vector that is the linear blend of the 2 given Vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Lerp_1');" href="M_SharpNav_Geometry_Vector2_Lerp_1.htm" >Lerp(Vector2, Vector2, float, out Vector2)</a></td>
+    <td class="desc-col">Returns a new Vector that is the linear blend of the 2 given Vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Max');" href="M_SharpNav_Geometry_Vector2_Max.htm" >Max</a></td>
+    <td class="desc-col">Returns the Vector3 with the minimum magnitude&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Min');" href="M_SharpNav_Geometry_Vector2_Min.htm" >Min</a></td>
+    <td class="desc-col">Returns the Vector3 with the minimum magnitude&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Multiply');" href="M_SharpNav_Geometry_Vector2_Multiply.htm" >Multiply(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Multiplies a vector by the components of a vector (scale).&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Multiply_1');" href="M_SharpNav_Geometry_Vector2_Multiply_1.htm" >Multiply(Vector2, Vector2)</a></td>
+    <td class="desc-col">Multiplies a vector by the components a vector (scale).&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Multiply_2');" href="M_SharpNav_Geometry_Vector2_Multiply_2.htm" >Multiply(Vector2, float, out Vector2)</a></td>
+    <td class="desc-col">Multiplies a vector by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Multiply_3');" href="M_SharpNav_Geometry_Vector2_Multiply_3.htm" >Multiply(Vector2, float)</a></td>
+    <td class="desc-col">Multiplies a vector by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Normalize');" href="M_SharpNav_Geometry_Vector2_Normalize.htm" >Normalize()</a></td>
+    <td class="desc-col">Scales the Vector2 to unit length.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Normalize_1');" href="M_SharpNav_Geometry_Vector2_Normalize_1.htm" >Normalize(Vector2, out Vector2)</a></td>
+    <td class="desc-col">Scale a vector to unit length&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Normalize_2');" href="M_SharpNav_Geometry_Vector2_Normalize_2.htm" >Normalize(Vector2)</a></td>
+    <td class="desc-col">Scale a vector to unit length&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Normalized');" href="M_SharpNav_Geometry_Vector2_Normalized.htm" >Normalized</a></td>
+    <td class="desc-col">Returns a copy of the Vector2 scaled to unit length.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_PerpDot');" href="M_SharpNav_Geometry_Vector2_PerpDot.htm" >PerpDot(Vector2, Vector2, out Single)</a></td>
+    <td class="desc-col">Calculate the perpendicular dot (scalar) product of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_PerpDot_1');" href="M_SharpNav_Geometry_Vector2_PerpDot_1.htm" >PerpDot(Vector2, Vector2)</a></td>
+    <td class="desc-col">Calculate the perpendicular dot (scalar) product of two vectors&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Subtract');" href="M_SharpNav_Geometry_Vector2_Subtract.htm" >Subtract(Vector2, Vector2, out Vector2)</a></td>
+    <td class="desc-col">Subtract one Vector from another&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_Subtract_1');" href="M_SharpNav_Geometry_Vector2_Subtract_1.htm" >Subtract(Vector2, Vector2)</a></td>
+    <td class="desc-col">Subtract one Vector from another&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_ToString');" href="M_SharpNav_Geometry_Vector2_ToString.htm" >ToString</a></td>
+    <td class="desc-col">Returns a System.String that represents the current Vector2.&nbsp;(Overrides <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/wb77sz3h"  target='_blank'>ValueType.ToString()</a>.)</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Operators_slider = new Fx.Slide('section_Operators_content');
+            $('section_Operators_toggle').addEvent('click', function (event) {
+                $('section_Operators_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Operators_slider.open]);
+                event.stop();
+                section_Operators_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Operators" class="section">
+        <div class="title"><a id="section_Operators_toggle" href="#" class="title"><div id="section_Operators_icon" class="toggle_icon out"></div><span class="title">Operators</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Operators_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Addition');" href="M_SharpNav_Geometry_Vector2_op_Addition.htm" >Addition</a></td>
+    <td class="desc-col">Adds the specified instances.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Subtraction');" href="M_SharpNav_Geometry_Vector2_op_Subtraction.htm" >Subtraction</a></td>
+    <td class="desc-col">Subtracts the specified instances.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_UnaryNegation');" href="M_SharpNav_Geometry_Vector2_op_UnaryNegation.htm" >UnaryNegation</a></td>
+    <td class="desc-col">Negates the specified instance.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Multiply_2');" href="M_SharpNav_Geometry_Vector2_op_Multiply_2.htm" >Multiply(Vector2, float)</a></td>
+    <td class="desc-col">Multiplies the specified instance by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Multiply_1');" href="M_SharpNav_Geometry_Vector2_op_Multiply_1.htm" >Multiply(float, Vector2)</a></td>
+    <td class="desc-col">Multiplies the specified instance by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Multiply');" href="M_SharpNav_Geometry_Vector2_op_Multiply.htm" >Multiply(Vector2, Vector2)</a></td>
+    <td class="desc-col">Component-wise multiplication between the specified instance by a scale vector.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Division');" href="M_SharpNav_Geometry_Vector2_op_Division.htm" >Division</a></td>
+    <td class="desc-col">Divides the specified instance by a scalar.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Equality');" href="M_SharpNav_Geometry_Vector2_op_Equality.htm" >Equality</a></td>
+    <td class="desc-col">Compares the specified instances for equality.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Geometry_Vector2_op_Inequality');" href="M_SharpNav_Geometry_Vector2_op_Inequality.htm" >Inequality</a></td>
+    <td class="desc-col">Compares the specified instances for inequality.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Remarks_slider = new Fx.Slide('section_Remarks_content');
+            $('section_Remarks_toggle').addEvent('click', function (event) {
+                $('section_Remarks_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Remarks_slider.open]);
+                event.stop();
+                section_Remarks_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Remarks" class="section">
+        <div class="title"><a id="section_Remarks_toggle" href="#" class="title"><div id="section_Remarks_icon" class="toggle_icon out"></div><span class="title">Remarks</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Remarks_content" class="block">
+        The Vector2 structure is suitable for interoperation with unmanaged code requiring two consecutive floats.
+        </div>
+    </div>    
+
+
+
+
+
+	
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_VersionandPlatformInformation_slider = new Fx.Slide('section_VersionandPlatformInformation_content');
+            $('section_VersionandPlatformInformation_toggle').addEvent('click', function (event) {
+                $('section_VersionandPlatformInformation_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_VersionandPlatformInformation_slider.open]);
+                event.stop();
+                section_VersionandPlatformInformation_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_VersionandPlatformInformation" class="section">
+        <div class="title"><a id="section_VersionandPlatformInformation_toggle" href="#" class="title"><div id="section_VersionandPlatformInformation_icon" class="toggle_icon out"></div><span class="title">Version and Platform Information</span></a><div class="hr"><hr/></div></div>
+        <div id="section_VersionandPlatformInformation_content" class="block">
+        Supported in:<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<div class="icon default" title="default"></div>&nbsp;default<br/>
+
+        </div>
+    </div>    
+
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_SeeAlso_slider = new Fx.Slide('section_SeeAlso_content');
+            $('section_SeeAlso_toggle').addEvent('click', function (event) {
+                $('section_SeeAlso_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_SeeAlso_slider.open]);
+                event.stop();
+                section_SeeAlso_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_SeeAlso" class="section">
+        <div class="title"><a id="section_SeeAlso_toggle" href="#" class="title"><div id="section_SeeAlso_icon" class="toggle_icon out"></div><span class="title">See Also</span></a><div class="hr"><hr/></div></div>
+        <div id="section_SeeAlso_content" class="block">
+        <h4 class='sdoc-subheading'>Reference</h4>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Geometry');" href="N_SharpNav_Geometry.htm" >SharpNav.Geometry Namespace (SharpNav)</a></div>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('api');" href="api.htm" >Class Library Reference</a></div>
+
+        </div>
+    </div>    
+
+</div>
+
+
+        </div>
+    </div>
+
+
+    
+    <br />
+    <br />
+    <br />
+
+	</body>
+</html>                                                                                

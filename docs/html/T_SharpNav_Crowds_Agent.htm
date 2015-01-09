@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+    <head>
+    	<title>Agent Class (SharpNav.Crowds)</title>
+    <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
+    <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
+    <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
+    <script src="../js/mootools.js" language="javascript"></script>
+    <script src="../js/mootools-more.js" language="javascript"></script>
+    <script src="../syntaxhighlighter/js/shCore.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCpp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushFSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushJScript.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushVb.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushPlain.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushXml.js" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['smart-tabs'] = false;
+        SyntaxHighlighter.all();
+    </script>
+    <script src="../js/sharpdoc.js" language="javascript"></script>            
+    <meta name="Microsoft.Help.Id" content="T:SharpNav.Crowds.Agent" />
+    <meta name="Microsoft.Help.SelfBranded" content="true" />
+    <meta name="Microsoft.Help.Locale" content="en-us" />
+    <meta name="Microsoft.Help.F1" content="SharpNav.Crowds.Agent" />
+    <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
+    <meta name="Microsoft.Help.Category" content="DevLang:VB" />
+    <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
+    <meta name="Microsoft.Help.Category" content="DevLang:FSharp" />
+        <meta name="Microsoft.Help.TocParent" content="N:SharpNav.Crowds" />
+        <meta name="Microsoft.Help.TocOrder" content="-1" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+    </head>
+	<body>
+        <script type="text/javascript" language="javascript">
+            if(window == window.top)
+                location.href = "index.htm?page=T_SharpNav_Crowds_Agent";
+            document.addEvent('domready', function () {
+                InstallCodeTabs();
+            });
+    </script>
+    <div class="sharpdoc">
+        <div class="content">
+            
+
+
+
+
+
+
+
+
+<div class="content-title">
+	<h1 id="#top" class="content-title">Agent Class (SharpNav.Crowds)</h1>
+</div>
+<div style="clear: both;"></div>
+        
+<div class="summary">A crowd agent is a unit that moves across the navigation mesh</div>
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_partial_inheritance_slider = new Fx.Slide('section_partial_inheritance_content');
+            $('section_partial_inheritance_toggle').addEvent('click', function (event) {
+                $('section_partial_inheritance_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_partial_inheritance_slider.open]);
+                event.stop();
+                section_partial_inheritance_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_partial_inheritance" class="section">
+        <div class="title"><a id="section_partial_inheritance_toggle" href="#" class="title"><div id="section_partial_inheritance_icon" class="toggle_icon out"></div><span class="title">Inheritance Hierarchy</span></a><div class="hr"><hr/></div></div>
+        <div id="section_partial_inheritance_content" class="block">
+        <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/e5kfa45b"  target='_blank'>System.Object</a><br />&nbsp;&nbsp;&nbsp;<strong>SharpNav.Crowds.Agent</strong><br/>
+        </div>
+    </div>    
+<br/>
+<div class="origin">
+<strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds</a><br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+      
+
+</div>
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Syntax_slider = new Fx.Slide('section_Syntax_content');
+            $('section_Syntax_toggle').addEvent('click', function (event) {
+                $('section_Syntax_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Syntax_slider.open]);
+                event.stop();
+                section_Syntax_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Syntax" class="section">
+        <div class="title"><a id="section_Syntax_toggle" href="#" class="title"><div id="section_Syntax_icon" class="toggle_icon out"></div><span class="title">Syntax</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Syntax_content" class="block">
+            <div class="grouptab">
+	    <ul class="tabs"> 
+            <li class="code selected tab">C#</li> 
+    	    <li class="code tab">VB</li> 
+    	    <li class="code tab">C++</li> 
+    	    <li class="code tab">F#</li> 
+	    </ul>            
+        <div class="tabcontent selected">     
+        <pre class='brush: csharp;'>public class Agent</pre>
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for VB is not yet implemented.</p>
+
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for C++ is not yet implemented</p>
+
+        </div>
+        <div class="tabcontent">     
+        <pre class='brush: fsharp;'>type public Agent = class end</pre>
+        </div>
+    </div>
+        <p>The Agent type exposes the following members.</p>
+
+        </div>
+    </div>    
+
+<div class="members">
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Constructors_slider = new Fx.Slide('section_Constructors_content');
+            $('section_Constructors_toggle').addEvent('click', function (event) {
+                $('section_Constructors_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Constructors_slider.open]);
+                event.stop();
+                section_Constructors_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Constructors" class="section">
+        <div class="title"><a id="section_Constructors_toggle" href="#" class="title"><div id="section_Constructors_icon" class="toggle_icon out"></div><span class="title">Constructors</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Constructors_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent__ctor');" href="M_SharpNav_Crowds_Agent__ctor.htm" >Agent</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Fields_slider = new Fx.Slide('section_Fields_content');
+            $('section_Fields_toggle').addEvent('click', function (event) {
+                $('section_Fields_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Fields_slider.open]);
+                event.stop();
+                section_Fields_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Fields" class="section">
+        <div class="title"><a id="section_Fields_toggle" href="#" class="title"><div id="section_Fields_icon" class="toggle_icon out"></div><span class="title">Fields</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Fields_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_CornerFlags');" href="F_SharpNav_Crowds_Agent_CornerFlags.htm" >CornerFlags</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_CornerPolys');" href="F_SharpNav_Crowds_Agent_CornerPolys.htm" >CornerPolys</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_CornerVerts');" href="F_SharpNav_Crowds_Agent_CornerVerts.htm" >CornerVerts</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_DesiredSpeed');" href="F_SharpNav_Crowds_Agent_DesiredSpeed.htm" >DesiredSpeed</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_DesiredVel');" href="F_SharpNav_Crowds_Agent_DesiredVel.htm" >DesiredVel</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_Disp');" href="F_SharpNav_Crowds_Agent_Disp.htm" >Disp</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_NVel');" href="F_SharpNav_Crowds_Agent_NVel.htm" >NVel</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_Parameters');" href="F_SharpNav_Crowds_Agent_Parameters.htm" >Parameters</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_TargetPathqRef');" href="F_SharpNav_Crowds_Agent_TargetPathqRef.htm" >TargetPathqRef</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_TargetRef');" href="F_SharpNav_Crowds_Agent_TargetRef.htm" >TargetRef</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_TargetReplan');" href="F_SharpNav_Crowds_Agent_TargetReplan.htm" >TargetReplan</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_TargetReplanTime');" href="F_SharpNav_Crowds_Agent_TargetReplanTime.htm" >TargetReplanTime</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_Vel');" href="F_SharpNav_Crowds_Agent_Vel.htm" >Vel</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_topologyOptTime');" href="F_SharpNav_Crowds_Agent_topologyOptTime.htm" >topologyOptTime</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Properties_slider = new Fx.Slide('section_Properties_content');
+            $('section_Properties_toggle').addEvent('click', function (event) {
+                $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
+                event.stop();
+                section_Properties_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Properties" class="section">
+        <div class="title"><a id="section_Properties_toggle" href="#" class="title"><div id="section_Properties_icon" class="toggle_icon out"></div><span class="title">Properties</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Properties_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_Boundary');" href="P_SharpNav_Crowds_Agent_Boundary.htm" >Boundary</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_CornerCount');" href="P_SharpNav_Crowds_Agent_CornerCount.htm" >CornerCount</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_Corridor');" href="P_SharpNav_Crowds_Agent_Corridor.htm" >Corridor</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_IsActive');" href="P_SharpNav_Crowds_Agent_IsActive.htm" >IsActive</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_IsPartial');" href="P_SharpNav_Crowds_Agent_IsPartial.htm" >IsPartial</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_NeighborCount');" href="P_SharpNav_Crowds_Agent_NeighborCount.htm" >NeighborCount</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_Neighbors');" href="P_SharpNav_Crowds_Agent_Neighbors.htm" >Neighbors</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_Position');" href="P_SharpNav_Crowds_Agent_Position.htm" >Position</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_State');" href="P_SharpNav_Crowds_Agent_State.htm" >State</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_TargetPosition');" href="P_SharpNav_Crowds_Agent_TargetPosition.htm" >TargetPosition</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_Agent_TargetState');" href="P_SharpNav_Crowds_Agent_TargetState.htm" >TargetState</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Methods_slider = new Fx.Slide('section_Methods_content');
+            $('section_Methods_toggle').addEvent('click', function (event) {
+                $('section_Methods_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Methods_slider.open]);
+                event.stop();
+                section_Methods_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Methods" class="section">
+        <div class="title"><a id="section_Methods_toggle" href="#" class="title"><div id="section_Methods_icon" class="toggle_icon out"></div><span class="title">Methods</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Methods_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_Integrate');" href="M_SharpNav_Crowds_Agent_Integrate.htm" >Integrate</a></td>
+    <td class="desc-col">Update the position after a certain time 'dt'&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_RequestMoveTarget');" href="M_SharpNav_Crowds_Agent_RequestMoveTarget.htm" >RequestMoveTarget</a></td>
+    <td class="desc-col">Request a new move target&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_RequestMoveTargetReplan');" href="M_SharpNav_Crowds_Agent_RequestMoveTargetReplan.htm" >RequestMoveTargetReplan</a></td>
+    <td class="desc-col">Change the move target&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_RequestMoveVelocity');" href="M_SharpNav_Crowds_Agent_RequestMoveVelocity.htm" >RequestMoveVelocity</a></td>
+    <td class="desc-col">Request a new move velocity&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_Reset');" href="M_SharpNav_Crowds_Agent_Reset.htm" >Reset</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_ResetMoveTarget');" href="M_SharpNav_Crowds_Agent_ResetMoveTarget.htm" >ResetMoveTarget</a></td>
+    <td class="desc-col">Reset the move target of an agent&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_UpdateAgentParameters');" href="M_SharpNav_Crowds_Agent_UpdateAgentParameters.htm" >UpdateAgentParameters</a></td>
+    <td class="desc-col">Modify the agent parameters&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+
+
+
+
+
+	
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_VersionandPlatformInformation_slider = new Fx.Slide('section_VersionandPlatformInformation_content');
+            $('section_VersionandPlatformInformation_toggle').addEvent('click', function (event) {
+                $('section_VersionandPlatformInformation_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_VersionandPlatformInformation_slider.open]);
+                event.stop();
+                section_VersionandPlatformInformation_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_VersionandPlatformInformation" class="section">
+        <div class="title"><a id="section_VersionandPlatformInformation_toggle" href="#" class="title"><div id="section_VersionandPlatformInformation_icon" class="toggle_icon out"></div><span class="title">Version and Platform Information</span></a><div class="hr"><hr/></div></div>
+        <div id="section_VersionandPlatformInformation_content" class="block">
+        Supported in:<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<div class="icon default" title="default"></div>&nbsp;default<br/>
+
+        </div>
+    </div>    
+
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_SeeAlso_slider = new Fx.Slide('section_SeeAlso_content');
+            $('section_SeeAlso_toggle').addEvent('click', function (event) {
+                $('section_SeeAlso_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_SeeAlso_slider.open]);
+                event.stop();
+                section_SeeAlso_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_SeeAlso" class="section">
+        <div class="title"><a id="section_SeeAlso_toggle" href="#" class="title"><div id="section_SeeAlso_icon" class="toggle_icon out"></div><span class="title">See Also</span></a><div class="hr"><hr/></div></div>
+        <div id="section_SeeAlso_content" class="block">
+        <h4 class='sdoc-subheading'>Reference</h4>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds Namespace (SharpNav)</a></div>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('api');" href="api.htm" >Class Library Reference</a></div>
+
+        </div>
+    </div>    
+
+</div>
+
+
+        </div>
+    </div>
+
+
+    
+    <br />
+    <br />
+    <br />
+
+	</body>
+</html>                                                                                

@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+    <head>
+    	<title>NavMeshQuery Class (SharpNav)</title>
+    <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
+    <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
+    <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
+    <script src="../js/mootools.js" language="javascript"></script>
+    <script src="../js/mootools-more.js" language="javascript"></script>
+    <script src="../syntaxhighlighter/js/shCore.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCpp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushFSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushJScript.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushVb.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushPlain.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushXml.js" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['smart-tabs'] = false;
+        SyntaxHighlighter.all();
+    </script>
+    <script src="../js/sharpdoc.js" language="javascript"></script>            
+    <meta name="Microsoft.Help.Id" content="T:SharpNav.NavMeshQuery" />
+    <meta name="Microsoft.Help.SelfBranded" content="true" />
+    <meta name="Microsoft.Help.Locale" content="en-us" />
+    <meta name="Microsoft.Help.F1" content="SharpNav.NavMeshQuery" />
+    <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
+    <meta name="Microsoft.Help.Category" content="DevLang:VB" />
+    <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
+    <meta name="Microsoft.Help.Category" content="DevLang:FSharp" />
+        <meta name="Microsoft.Help.TocParent" content="N:SharpNav" />
+        <meta name="Microsoft.Help.TocOrder" content="-1" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+    </head>
+	<body>
+        <script type="text/javascript" language="javascript">
+            if(window == window.top)
+                location.href = "index.htm?page=T_SharpNav_NavMeshQuery";
+            document.addEvent('domready', function () {
+                InstallCodeTabs();
+            });
+    </script>
+    <div class="sharpdoc">
+        <div class="content">
+            
+
+
+
+
+
+
+
+
+<div class="content-title">
+	<h1 id="#top" class="content-title">NavMeshQuery Class (SharpNav)</h1>
+</div>
+<div style="clear: both;"></div>
+        
+<div class="summary">Do pathfinding calculations on the TiledNavMesh</div>
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_partial_inheritance_slider = new Fx.Slide('section_partial_inheritance_content');
+            $('section_partial_inheritance_toggle').addEvent('click', function (event) {
+                $('section_partial_inheritance_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_partial_inheritance_slider.open]);
+                event.stop();
+                section_partial_inheritance_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_partial_inheritance" class="section">
+        <div class="title"><a id="section_partial_inheritance_toggle" href="#" class="title"><div id="section_partial_inheritance_icon" class="toggle_icon out"></div><span class="title">Inheritance Hierarchy</span></a><div class="hr"><hr/></div></div>
+        <div id="section_partial_inheritance_content" class="block">
+        <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/e5kfa45b"  target='_blank'>System.Object</a><br />&nbsp;&nbsp;&nbsp;<strong>SharpNav.NavMeshQuery</strong><br/>
+        </div>
+    </div>    
+<br/>
+<div class="origin">
+<strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+      
+
+</div>
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Syntax_slider = new Fx.Slide('section_Syntax_content');
+            $('section_Syntax_toggle').addEvent('click', function (event) {
+                $('section_Syntax_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Syntax_slider.open]);
+                event.stop();
+                section_Syntax_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Syntax" class="section">
+        <div class="title"><a id="section_Syntax_toggle" href="#" class="title"><div id="section_Syntax_icon" class="toggle_icon out"></div><span class="title">Syntax</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Syntax_content" class="block">
+            <div class="grouptab">
+	    <ul class="tabs"> 
+            <li class="code selected tab">C#</li> 
+    	    <li class="code tab">VB</li> 
+    	    <li class="code tab">C++</li> 
+    	    <li class="code tab">F#</li> 
+	    </ul>            
+        <div class="tabcontent selected">     
+        <pre class='brush: csharp;'>public class NavMeshQuery</pre>
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for VB is not yet implemented.</p>
+
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for C++ is not yet implemented</p>
+
+        </div>
+        <div class="tabcontent">     
+        <pre class='brush: fsharp;'>type public NavMeshQuery = class end</pre>
+        </div>
+    </div>
+        <p>The NavMeshQuery type exposes the following members.</p>
+
+        </div>
+    </div>    
+
+<div class="members">
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Constructors_slider = new Fx.Slide('section_Constructors_content');
+            $('section_Constructors_toggle').addEvent('click', function (event) {
+                $('section_Constructors_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Constructors_slider.open]);
+                event.stop();
+                section_Constructors_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Constructors" class="section">
+        <div class="title"><a id="section_Constructors_toggle" href="#" class="title"><div id="section_Constructors_icon" class="toggle_icon out"></div><span class="title">Constructors</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Constructors_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery__ctor_1');" href="M_SharpNav_NavMeshQuery__ctor_1.htm" >NavMeshQuery(TiledNavMesh, int)</a></td>
+    <td class="desc-col">Initializes a new instance of the <strong>NavMeshQuery</strong> class.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery__ctor');" href="M_SharpNav_NavMeshQuery__ctor.htm" >NavMeshQuery(TiledNavMesh, int, Random)</a></td>
+    <td class="desc-col">Initializes a new instance of the <strong>NavMeshQuery</strong> class.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Properties_slider = new Fx.Slide('section_Properties_content');
+            $('section_Properties_toggle').addEvent('click', function (event) {
+                $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
+                event.stop();
+                section_Properties_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Properties" class="section">
+        <div class="title"><a id="section_Properties_toggle" href="#" class="title"><div id="section_Properties_icon" class="toggle_icon out"></div><span class="title">Properties</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Properties_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_NavMeshQuery_NavMesh');" href="P_SharpNav_NavMeshQuery_NavMesh.htm" >NavMesh</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Methods_slider = new Fx.Slide('section_Methods_content');
+            $('section_Methods_toggle').addEvent('click', function (event) {
+                $('section_Methods_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Methods_slider.open]);
+                event.stop();
+                section_Methods_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Methods" class="section">
+        <div class="title"><a id="section_Methods_toggle" href="#" class="title"><div id="section_Methods_icon" class="toggle_icon out"></div><span class="title">Methods</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Methods_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_AppendPortals');" href="M_SharpNav_NavMeshQuery_AppendPortals.htm" >AppendPortals</a></td>
+    <td class="desc-col">Update the vertices on the straight path&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_AppendVertex');" href="M_SharpNav_NavMeshQuery_AppendVertex.htm" >AppendVertex</a></td>
+    <td class="desc-col">Add a vertex to the straight path.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_ClosestPointOnPoly');" href="M_SharpNav_NavMeshQuery_ClosestPointOnPoly.htm" >ClosestPointOnPoly(int, Vector3, out Vector3, out Boolean)</a></td>
+    <td class="desc-col">Given a point on the polygon, find the closest point&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_ClosestPointOnPoly_1');" href="M_SharpNav_NavMeshQuery_ClosestPointOnPoly_1.htm" >ClosestPointOnPoly(int, Vector3, Vector3)</a></td>
+    <td class="desc-col">Given a point on the polygon, find the closest point&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_ClosestPointOnPolyBoundary');" href="M_SharpNav_NavMeshQuery_ClosestPointOnPolyBoundary.htm" >ClosestPointOnPolyBoundary</a></td>
+    <td class="desc-col">Given a point on a polygon, find the closest point which lies on the polygon boundary.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FinalizeSlicedFindPath');" href="M_SharpNav_NavMeshQuery_FinalizeSlicedFindPath.htm" >FinalizeSlicedFindPath</a></td>
+    <td class="desc-col">Save the sliced path&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FinalizedSlicedPathPartial');" href="M_SharpNav_NavMeshQuery_FinalizedSlicedPathPartial.htm" >FinalizedSlicedPathPartial</a></td>
+    <td class="desc-col">Save a partial path&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindLocalNeighbourhood');" href="M_SharpNav_NavMeshQuery_FindLocalNeighbourhood.htm" >FindLocalNeighbourhood</a></td>
+    <td class="desc-col">Store polygons that are within a certain range from the current polygon&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindNearestPoly');" href="M_SharpNav_NavMeshQuery_FindNearestPoly.htm" >FindNearestPoly(Vector3, Vector3, out NavPoint)</a></td>
+    <td class="desc-col">Find the nearest poly within a certain range.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindNearestPoly_1');" href="M_SharpNav_NavMeshQuery_FindNearestPoly_1.htm" >FindNearestPoly(Vector3, Vector3)</a></td>
+    <td class="desc-col">Find the nearest poly within a certain range.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindPath');" href="M_SharpNav_NavMeshQuery_FindPath.htm" >FindPath</a></td>
+    <td class="desc-col">Find a path from the start polygon to the end polygon.
+            -If the end polygon can't be reached, the last polygon will be nearest the end polygon
+            -If the path array is too small, it will be filled as far as possible 
+            -start and end positions are used to calculate traversal costs&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPoint');" href="M_SharpNav_NavMeshQuery_FindRandomPoint.htm" >FindRandomPoint(out NavPoint)</a></td>
+    <td class="desc-col">Finds a random point somewhere in the navigation mesh.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPoint_1');" href="M_SharpNav_NavMeshQuery_FindRandomPoint_1.htm" >FindRandomPoint()</a></td>
+    <td class="desc-col">Finds a random point somewhere in the navigation mesh.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPointAroundCircle');" href="M_SharpNav_NavMeshQuery_FindRandomPointAroundCircle.htm" >FindRandomPointAroundCircle(NavPoint, float, out NavPoint)</a></td>
+    <td class="desc-col">Finds a random point in a NavMesh within a specified circle.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPointAroundCircle_1');" href="M_SharpNav_NavMeshQuery_FindRandomPointAroundCircle_1.htm" >FindRandomPointAroundCircle(NavPoint, float)</a></td>
+    <td class="desc-col">Finds a random point in a NavMesh within a specified circle.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPointOnPoly');" href="M_SharpNav_NavMeshQuery_FindRandomPointOnPoly.htm" >FindRandomPointOnPoly(MeshTile, Poly, int)</a></td>
+    <td class="desc-col">Finds a random point on a polygon.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindRandomPointOnPoly_1');" href="M_SharpNav_NavMeshQuery_FindRandomPointOnPoly_1.htm" >FindRandomPointOnPoly(MeshTile, Poly, int, out Vector3)</a></td>
+    <td class="desc-col">Finds a random point on a polygon.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_FindStraightPath');" href="M_SharpNav_NavMeshQuery_FindStraightPath.htm" >FindStraightPath</a></td>
+    <td class="desc-col">Add vertices and portals to a regular path computed from the method FindPath().&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetCost');" href="M_SharpNav_NavMeshQuery_GetCost.htm" >GetCost</a></td>
+    <td class="desc-col">The cost between two points may vary depending on the type of polygon.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetEdgeMidPoint');" href="M_SharpNav_NavMeshQuery_GetEdgeMidPoint.htm" >GetEdgeMidPoint</a></td>
+    <td class="desc-col">Get edge midpoint between two prolygons&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetPolyHeight');" href="M_SharpNav_NavMeshQuery_GetPolyHeight.htm" >GetPolyHeight</a></td>
+    <td class="desc-col">Return false if the provided position is outside the xz-bounds.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetPolyWallSegments');" href="M_SharpNav_NavMeshQuery_GetPolyWallSegments.htm" >GetPolyWallSegments</a></td>
+    <td class="desc-col">Collect all the edges from a polygon.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetPortalPoints');" href="M_SharpNav_NavMeshQuery_GetPortalPoints.htm" >GetPortalPoints(int, int, Vector3, Vector3, PolygonType, PolygonType)</a></td>
+    <td class="desc-col">Find points on the left and right side.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_GetPortalPoints_1');" href="M_SharpNav_NavMeshQuery_GetPortalPoints_1.htm" >GetPortalPoints(int, Poly, MeshTile, int, Poly, MeshTile, Vector3, Vector3)</a></td>
+    <td class="desc-col">Find points on the left and right side.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_InitSlicedFindPath');" href="M_SharpNav_NavMeshQuery_InitSlicedFindPath.htm" >InitSlicedFindPath</a></td>
+    <td class="desc-col">Initialize a sliced path, which is used mostly for crowd pathfinding.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_InsertInterval');" href="M_SharpNav_NavMeshQuery_InsertInterval.htm" >InsertInterval</a></td>
+    <td class="desc-col">Insert a segment into the array&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_IsInClosedList');" href="M_SharpNav_NavMeshQuery_IsInClosedList.htm" >IsInClosedList</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_IsInOpenList');" href="M_SharpNav_NavMeshQuery_IsInOpenList.htm" >IsInOpenList</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_IsValidPolyRef');" href="M_SharpNav_NavMeshQuery_IsValidPolyRef.htm" >IsValidPolyRef</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_MoveAlongSurface');" href="M_SharpNav_NavMeshQuery_MoveAlongSurface.htm" >MoveAlongSurface</a></td>
+    <td class="desc-col">This method is optimized for small delta movement and a small number of polygons.
+            If movement distance is too large, the result will form an incomplete path.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_QueryPolygons');" href="M_SharpNav_NavMeshQuery_QueryPolygons.htm" >QueryPolygons</a></td>
+    <td class="desc-col">Finds nearby polygons within a certain range.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_Raycast');" href="M_SharpNav_NavMeshQuery_Raycast.htm" >Raycast</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_RemoveNodeFlagClosed');" href="M_SharpNav_NavMeshQuery_RemoveNodeFlagClosed.htm" >RemoveNodeFlagClosed</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_SetNodeFlagClosed');" href="M_SharpNav_NavMeshQuery_SetNodeFlagClosed.htm" >SetNodeFlagClosed</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_SetNodeFlagOpen');" href="M_SharpNav_NavMeshQuery_SetNodeFlagOpen.htm" >SetNodeFlagOpen</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshQuery_UpdateSlicedFindPath');" href="M_SharpNav_NavMeshQuery_UpdateSlicedFindPath.htm" >UpdateSlicedFindPath</a></td>
+    <td class="desc-col">Update the sliced path as agents move across the path.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+
+
+
+
+
+	
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_VersionandPlatformInformation_slider = new Fx.Slide('section_VersionandPlatformInformation_content');
+            $('section_VersionandPlatformInformation_toggle').addEvent('click', function (event) {
+                $('section_VersionandPlatformInformation_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_VersionandPlatformInformation_slider.open]);
+                event.stop();
+                section_VersionandPlatformInformation_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_VersionandPlatformInformation" class="section">
+        <div class="title"><a id="section_VersionandPlatformInformation_toggle" href="#" class="title"><div id="section_VersionandPlatformInformation_icon" class="toggle_icon out"></div><span class="title">Version and Platform Information</span></a><div class="hr"><hr/></div></div>
+        <div id="section_VersionandPlatformInformation_content" class="block">
+        Supported in:<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<div class="icon default" title="default"></div>&nbsp;default<br/>
+
+        </div>
+    </div>    
+
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_SeeAlso_slider = new Fx.Slide('section_SeeAlso_content');
+            $('section_SeeAlso_toggle').addEvent('click', function (event) {
+                $('section_SeeAlso_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_SeeAlso_slider.open]);
+                event.stop();
+                section_SeeAlso_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_SeeAlso" class="section">
+        <div class="title"><a id="section_SeeAlso_toggle" href="#" class="title"><div id="section_SeeAlso_icon" class="toggle_icon out"></div><span class="title">See Also</span></a><div class="hr"><hr/></div></div>
+        <div id="section_SeeAlso_content" class="block">
+        <h4 class='sdoc-subheading'>Reference</h4>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav Namespace (SharpNav)</a></div>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('api');" href="api.htm" >Class Library Reference</a></div>
+
+        </div>
+    </div>    
+
+</div>
+
+
+        </div>
+    </div>
+
+
+    
+    <br />
+    <br />
+    <br />
+
+	</body>
+</html>                                                                                

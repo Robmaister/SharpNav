@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
+    <head>
+    	<title>PriorityQueue&lt;T&gt; Class (SharpNav.Collections.Generic)</title>
+    <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
+    <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
+    <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
+    <script src="../js/mootools.js" language="javascript"></script>
+    <script src="../js/mootools-more.js" language="javascript"></script>
+    <script src="../syntaxhighlighter/js/shCore.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCpp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushCSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushFSharp.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushJScript.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushVb.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushPlain.js" type="text/javascript"></script>
+    <script src="../syntaxhighlighter/js/shBrushXml.js" type="text/javascript"></script>
+    <script type="text/javascript" language="javascript">
+        SyntaxHighlighter.defaults['gutter'] = false;
+        SyntaxHighlighter.defaults['smart-tabs'] = false;
+        SyntaxHighlighter.all();
+    </script>
+    <script src="../js/sharpdoc.js" language="javascript"></script>            
+    <meta name="Microsoft.Help.Id" content="T:SharpNav.Collections.Generic.PriorityQueue`1" />
+    <meta name="Microsoft.Help.SelfBranded" content="true" />
+    <meta name="Microsoft.Help.Locale" content="en-us" />
+    <meta name="Microsoft.Help.F1" content="SharpNav.Collections.Generic.PriorityQueue&amp;lt;T&amp;gt;" />
+    <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
+    <meta name="Microsoft.Help.Category" content="DevLang:VB" />
+    <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
+    <meta name="Microsoft.Help.Category" content="DevLang:FSharp" />
+        <meta name="Microsoft.Help.TocParent" content="N:SharpNav.Collections.Generic" />
+        <meta name="Microsoft.Help.TocOrder" content="-1" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+    </head>
+	<body>
+        <script type="text/javascript" language="javascript">
+            if(window == window.top)
+                location.href = "index.htm?page=T_SharpNav_Collections_Generic_PriorityQueue_1";
+            document.addEvent('domready', function () {
+                InstallCodeTabs();
+            });
+    </script>
+    <div class="sharpdoc">
+        <div class="content">
+            
+
+
+
+
+
+
+
+
+<div class="content-title">
+	<h1 id="#top" class="content-title">PriorityQueue&lt;T&gt; Class (SharpNav.Collections.Generic)</h1>
+</div>
+<div style="clear: both;"></div>
+        
+<div class="summary">Use a priority queue (heap) to determine which node is more important.</div>
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_partial_inheritance_slider = new Fx.Slide('section_partial_inheritance_content');
+            $('section_partial_inheritance_toggle').addEvent('click', function (event) {
+                $('section_partial_inheritance_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_partial_inheritance_slider.open]);
+                event.stop();
+                section_partial_inheritance_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_partial_inheritance" class="section">
+        <div class="title"><a id="section_partial_inheritance_toggle" href="#" class="title"><div id="section_partial_inheritance_icon" class="toggle_icon out"></div><span class="title">Inheritance Hierarchy</span></a><div class="hr"><hr/></div></div>
+        <div id="section_partial_inheritance_content" class="block">
+        <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/e5kfa45b"  target='_blank'>System.Object</a><br />&nbsp;&nbsp;&nbsp;<strong>SharpNav.Collections.Generic.PriorityQueue&lt;T&gt;</strong><br/>
+        </div>
+    </div>    
+<br/>
+<div class="origin">
+<strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Collections_Generic');" href="N_SharpNav_Collections_Generic.htm" >SharpNav.Collections.Generic</a><br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+      
+
+</div>
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Syntax_slider = new Fx.Slide('section_Syntax_content');
+            $('section_Syntax_toggle').addEvent('click', function (event) {
+                $('section_Syntax_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Syntax_slider.open]);
+                event.stop();
+                section_Syntax_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Syntax" class="section">
+        <div class="title"><a id="section_Syntax_toggle" href="#" class="title"><div id="section_Syntax_icon" class="toggle_icon out"></div><span class="title">Syntax</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Syntax_content" class="block">
+            <div class="grouptab">
+	    <ul class="tabs"> 
+            <li class="code selected tab">C#</li> 
+    	    <li class="code tab">VB</li> 
+    	    <li class="code tab">C++</li> 
+    	    <li class="code tab">F#</li> 
+	    </ul>            
+        <div class="tabcontent selected">     
+        <pre class='brush: csharp;'>public class PriorityQueue&lt;T&gt; : ICollection&lt;T&gt;, IEnumerable&lt;T&gt;, IEnumerable where T : IValueWithCost</pre>
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for VB is not yet implemented.</p>
+
+        </div>
+        <div class="tabcontent">     
+            <p>Syntax for C++ is not yet implemented</p>
+
+        </div>
+        <div class="tabcontent">     
+        <pre class='brush: fsharp;'>type public PriorityQueue&lt;&apos;T when &apos;T : IValueWithCost&gt; =
+	class
+		interface ICollection&lt;T&gt;
+		interface IEnumerable&lt;T&gt;
+		interface IEnumerable
+	end
+</pre>
+        </div>
+    </div>
+        <p>The PriorityQueue&lt;T&gt; type exposes the following members.</p>
+
+        </div>
+    </div>    
+
+<div class="members">
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Constructors_slider = new Fx.Slide('section_Constructors_content');
+            $('section_Constructors_toggle').addEvent('click', function (event) {
+                $('section_Constructors_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Constructors_slider.open]);
+                event.stop();
+                section_Constructors_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Constructors" class="section">
+        <div class="title"><a id="section_Constructors_toggle" href="#" class="title"><div id="section_Constructors_icon" class="toggle_icon out"></div><span class="title">Constructors</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Constructors_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1__ctor');" href="M_SharpNav_Collections_Generic_PriorityQueue_1__ctor.htm" >PriorityQueue&lt;T&gt;</a></td>
+    <td class="desc-col">Initializes a new instance of the <strong>PriorityQueue&lt;T&gt;</strong> class with a given capacity of size n.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Properties_slider = new Fx.Slide('section_Properties_content');
+            $('section_Properties_toggle').addEvent('click', function (event) {
+                $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
+                event.stop();
+                section_Properties_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Properties" class="section">
+        <div class="title"><a id="section_Properties_toggle" href="#" class="title"><div id="section_Properties_icon" class="toggle_icon out"></div><span class="title">Properties</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Properties_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Collections_Generic_PriorityQueue_1_Count');" href="P_SharpNav_Collections_Generic_PriorityQueue_1_Count.htm" >Count</a></td>
+    <td class="desc-col">Gets the number of elements in the priority queue.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/5s3kzhec"  target='_blank'>Count()</a>.)</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Methods_slider = new Fx.Slide('section_Methods_content');
+            $('section_Methods_toggle').addEvent('click', function (event) {
+                $('section_Methods_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Methods_slider.open]);
+                event.stop();
+                section_Methods_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Methods" class="section">
+        <div class="title"><a id="section_Methods_toggle" href="#" class="title"><div id="section_Methods_icon" class="toggle_icon out"></div><span class="title">Methods</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Methods_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Clear');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Clear.htm" >Clear</a></td>
+    <td class="desc-col">Remove all the elements from the priority queue.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/5axy4fbh"  target='_blank'>ICollection&lt;T&gt;.Clear()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Contains');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Contains.htm" >Contains</a></td>
+    <td class="desc-col">Returns whether the given item exists in the heap.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/k5cf1d56"  target='_blank'>ICollection&lt;T&gt;.Contains()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_CopyTo');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_CopyTo.htm" >CopyTo</a></td>
+    <td class="desc-col">Copies the contents of the <strong>PriorityQueue&lt;T&gt;</strong> to an array.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/0efx51xw"  target='_blank'>ICollection&lt;T&gt;.CopyTo()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Empty');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Empty.htm" >Empty</a></td>
+    <td class="desc-col">Determines whether the priority queue is empty&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_GetEnumerator');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_GetEnumerator.htm" >GetEnumerator</a></td>
+    <td class="desc-col">Gets the <a target="_blank" href="" >iorityQueu</a>'s enumerator.&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/s793z9y2"  target='_blank'>IEnumerable&lt;T&gt;.GetEnumerator()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Modify');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Modify.htm" >Modify</a></td>
+    <td class="desc-col">Change the value of the node, which may involve some swapping of elements to maintain heap order.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Pop');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Pop.htm" >Pop</a></td>
+    <td class="desc-col">Remove the node at the top of the heap. Then, move the bottommost node to the top and trickle down
+            until the nodes are in order.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Push');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Push.htm" >Push</a></td>
+    <td class="desc-col">Add the node at the bottom of the heap and move it up until the nodes ae in order.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Collections_Generic_PriorityQueue_1_Top');" href="M_SharpNav_Collections_Generic_PriorityQueue_1_Top.htm" >Top</a></td>
+    <td class="desc-col">Return the node at the top of the heap.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+
+
+
+
+
+	
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_VersionandPlatformInformation_slider = new Fx.Slide('section_VersionandPlatformInformation_content');
+            $('section_VersionandPlatformInformation_toggle').addEvent('click', function (event) {
+                $('section_VersionandPlatformInformation_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_VersionandPlatformInformation_slider.open]);
+                event.stop();
+                section_VersionandPlatformInformation_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_VersionandPlatformInformation" class="section">
+        <div class="title"><a id="section_VersionandPlatformInformation_toggle" href="#" class="title"><div id="section_VersionandPlatformInformation_icon" class="toggle_icon out"></div><span class="title">Version and Platform Information</span></a><div class="hr"><hr/></div></div>
+        <div id="section_VersionandPlatformInformation_content" class="block">
+        Supported in:<br/><br/>&nbsp;&nbsp;&nbsp;&nbsp;<div class="icon default" title="default"></div>&nbsp;default<br/>
+
+        </div>
+    </div>    
+
+
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_SeeAlso_slider = new Fx.Slide('section_SeeAlso_content');
+            $('section_SeeAlso_toggle').addEvent('click', function (event) {
+                $('section_SeeAlso_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_SeeAlso_slider.open]);
+                event.stop();
+                section_SeeAlso_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_SeeAlso" class="section">
+        <div class="title"><a id="section_SeeAlso_toggle" href="#" class="title"><div id="section_SeeAlso_icon" class="toggle_icon out"></div><span class="title">See Also</span></a><div class="hr"><hr/></div></div>
+        <div id="section_SeeAlso_content" class="block">
+        <h4 class='sdoc-subheading'>Reference</h4>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Collections_Generic');" href="N_SharpNav_Collections_Generic.htm" >SharpNav.Collections.Generic Namespace (SharpNav)</a></div>
+<div class='seeAlsoStyle'>
+<a target="mainFrame" onclick="hightLightTopic('api');" href="api.htm" >Class Library Reference</a></div>
+
+        </div>
+    </div>    
+
+</div>
+
+
+        </div>
+    </div>
+
+
+    
+    <br />
+    <br />
+    <br />
+
+	</body>
+</html>                                                                                
