@@ -129,7 +129,7 @@ namespace SharpNav.Examples
 			chfSettings.Dock = Pos.Top;
 			chfSettings.Height = 38;
 
-			Base erodeRadius = CreateSliderOption(chfSettings, "Erode Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => settings.AgentWidth = v);
+			Base erodeRadius = CreateSliderOption(chfSettings, "Erode Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => settings.AgentRadius = v);
 
 			GroupBox regionSettings = new GroupBox(genBase);
 			regionSettings.Text = "Region";

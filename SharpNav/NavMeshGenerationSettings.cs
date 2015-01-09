@@ -31,7 +31,7 @@ namespace SharpNav
 				settings.CellHeight = 0.2f;
 				settings.MaxClimb = 0.9f;
 				settings.AgentHeight = 2.0f;
-				settings.AgentWidth = 0.6f;
+				settings.AgentRadius = 0.6f;
 				settings.MinRegionSize = 8;
 				settings.MergedRegionSize = 20;
 				settings.MaxEdgeLength = 12;
@@ -67,9 +67,9 @@ namespace SharpNav
 		public float AgentHeight { get; set; }
 
 		/// <summary>
-		/// Gets or sets the width (radius) of the agents traversing the <see cref="NavMesh"/>.
+		/// Gets or sets the radius of the agents traversing the <see cref="NavMesh"/>.
 		/// </summary>
-		public float AgentWidth { get; set; }
+		public float AgentRadius { get; set; }
 
 		/// <summary>
 		/// Gets or sets the minimum number of spans that can form a region. Any less than this, and they will be
@@ -140,13 +140,13 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Gets the width (radius) of the agents traversing the <see cref="NavMesh"/> in voxel (cell) units.
+		/// Gets the radius of the agents traversing the <see cref="NavMesh"/> in voxel (cell) units.
 		/// </summary>
-		public int VoxelAgentWidth
+		public int VoxelAgentRadius
 		{
 			get
 			{
-				return (int)(AgentWidth / CellHeight);
+				return (int)(AgentRadius / CellHeight);
 			}
 		}
 	}

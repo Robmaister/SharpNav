@@ -192,7 +192,7 @@ namespace SharpNav
 			header.DetailTriCount = detailTriCount;
 			header.OffMeshBase = polyMesh.PolyCount;
 			header.WalkableHeight = settings.AgentHeight;
-			header.WalkableRadius = settings.AgentWidth;
+			header.WalkableRadius = settings.AgentRadius;
 			header.WalkableClimb = settings.MaxClimb;
 			header.OffMeshConCount = storedOffMeshConCount;
 			header.BvNodeCount = settings.BuildBoundingVolumeTree ? polyMesh.PolyCount * 2 : 0;

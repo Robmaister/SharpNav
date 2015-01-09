@@ -40,7 +40,7 @@ namespace SharpNav
 			hf.FilterWalkableLowHeightSpans(settings.VoxelAgentHeight);
 
 			var chf = new CompactHeightfield(hf, settings);
-			chf.Erode(settings.VoxelAgentWidth);
+			chf.Erode(settings.VoxelAgentRadius);
 			chf.BuildDistanceField();
 			chf.BuildRegions(2, settings.MinRegionSize, settings.MergedRegionSize);
 

@@ -404,7 +404,7 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 				 
-				compactHeightfield.Erode(settings.VoxelAgentWidth);
+				compactHeightfield.Erode(settings.VoxelAgentRadius);
 
 				Console.WriteLine(" + Erosion\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
