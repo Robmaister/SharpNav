@@ -16,7 +16,7 @@ env:
 
 install:
  - sudo apt-get install nunit-console
- - travis_retry nuget restore SharpNav.sln
+ - travis_retry nuget restore Source/SharpNav.sln
 script:
  - xbuild /t:$XBUILD_TARGET /verbosity:minimal ./Build/TravisCI.proj
  - nunit-console ./Binaries/Tests/$XBUILD_TARGET/SharpNav.Tests.dll -exclude BrokenButUnused
