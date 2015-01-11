@@ -47,13 +47,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mono.Options\Options.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Verbosity.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
     <None Include="SharpNav.CLI.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SharpNav\SharpNav.csproj">
+      <Project>{0e3c6e73-cce6-4148-b847-36487ffea225}</Project>
+      <Name>SharpNav</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
