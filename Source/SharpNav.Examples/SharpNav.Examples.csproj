@@ -10,7 +10,7 @@
     <RootNamespace>SharpNav.Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <ApplicationIcon>..\Graphics\Logo\Logo.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\Graphics\Logo\Logo.ico</ApplicationIcon>
     <FileAlignment>512</FileAlignment>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -32,31 +32,31 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Binaries\Examples\Debug\</OutputPath>
+    <OutputPath>..\..\Binaries\Examples\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>..\Binaries\Examples\Debug\Examples.XML</DocumentationFile>
+    <DocumentationFile>..\..\Binaries\Examples\Debug\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Binaries\Examples\Standalone\</OutputPath>
+    <OutputPath>..\..\Binaries\Examples\Standalone\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>..\Binaries\Examples\Standalone\Examples.XML</DocumentationFile>
+    <DocumentationFile>..\..\Binaries\Examples\Standalone\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
-    <OutputPath>..\Binaries\Examples\OpenTK\</OutputPath>
+    <OutputPath>..\..\Binaries\Examples\OpenTK\</OutputPath>
     <DefineConstants>OPENTK</DefineConstants>
     <Prefer32Bit>false</Prefer32Bit>
     <Optimize>true</Optimize>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Binaries\Examples\OpenTK\Examples.XML</DocumentationFile>
+    <DocumentationFile>..\..\Binaries\Examples\OpenTK\Examples.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>SharpNav.Examples.Program</StartupObject>
@@ -66,7 +66,7 @@
       <HintPath>..\Dependencies\Gwen.dll</HintPath>
     </Reference>
     <Reference Include="Gwen.Renderer.OpenTK">
-      <HintPath>..\Dependencies\Gwen.Renderer.OpenTK.dll</HintPath>
+      <HintPath>..\..\Dependencies\Gwen.Renderer.OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
@@ -98,7 +98,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="example_ply.ply" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SharpNav\SharpNav.csproj">
@@ -109,9 +111,6 @@
   <ItemGroup>
     <Content Include="GwenSkin.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Graphics\Logo\Logo.ico">
-      <Link>Logo.ico</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>

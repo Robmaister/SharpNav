@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Binaries\Tests\Debug\</OutputPath>
+    <OutputPath>..\..\Binaries\Tests\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,7 +28,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\Binaries\Tests\Standalone\</OutputPath>
+    <OutputPath>..\..\Binaries\Tests\Standalone\</OutputPath>
     <DefineConstants>TRACE;STANDALONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,7 +37,7 @@
     </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
-    <OutputPath>..\Binaries\Tests\OpenTK\</OutputPath>
+    <OutputPath>..\..\Binaries\Tests\OpenTK\</OutputPath>
     <DefineConstants>OPENTK</DefineConstants>
     <Optimize>true</Optimize>
     <SignAssembly>true</SignAssembly>
@@ -46,7 +46,7 @@
     </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
-    <OutputPath>..\Binaries\Tests\SharpDX\</OutputPath>
+    <OutputPath>..\..\Binaries\Tests\SharpDX\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>SHARPDX</DefineConstants>
     <WarningLevel>4</WarningLevel>
@@ -55,7 +55,7 @@
     </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
-    <OutputPath>..\Binaries\Tests\MonoGame\</OutputPath>
+    <OutputPath>..\..\Binaries\Tests\MonoGame\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>MONOGAME</DefineConstants>
     <WarningLevel>4</WarningLevel>

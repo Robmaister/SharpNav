@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!-- Properties for all configurations -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0E3C6E73-CCE6-4148-B847-36487FFEA225}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SharpNav</RootNamespace>
+    <AssemblyName>SharpNav</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\Binaries\SharpNav\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;STANDALONE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
+    <DocumentationFile>..\..\Binaries\SharpNav\Debug\SharpNav.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\Binaries\SharpNav\Standalone\</OutputPath>
+    <DefineConstants>TRACE;STANDALONE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
+    <DocumentationFile>..\..\Binaries\SharpNav\Standalone\SharpNav.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
+    <OutputPath>..\..\Binaries\SharpNav\OpenTK\</OutputPath>
+    <DefineConstants>TRACE;OPENTK</DefineConstants>
+    <Optimize>true</Optimize>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.OpenTK.snk</AssemblyOriginatorKeyFile>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\..\Binaries\SharpNav\OpenTK\SharpNav.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
+    <OutputPath>..\..\Binaries\SharpNav\SharpDX\</OutputPath>
+    <DefineConstants>TRACE;SHARPDX</DefineConstants>
+    <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>SharpNav.SharpDX.snk</AssemblyOriginatorKeyFile>
+    <DocumentationFile>..\..\Binaries\SharpNav\SharpDX\SharpNav.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
+    <OutputPath>..\..\Binaries\SharpNav\MonoGame\</OutputPath>
+    <DefineConstants>TRACE;MONOGAME</DefineConstants>
+    <Optimize>true</Optimize>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>false</SignAssembly>
+    <DocumentationFile>..\..\Binaries\SharpNav\MonoGame\SharpNav.XML</DocumentationFile>
+  </PropertyGroup>
+  <!-- Common items -->
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <!-- Configuration specific items -->
+  <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.1.1.1589.5942\lib\NET40\OpenTK.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
+    <Reference Include="MonoGame.Framework">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
+    <Reference Include="SharpDX, Version=2.6.3.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SharpDXPackageBinDir)\SharpDX.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <!-- C# items -->
+  <ItemGroup>
+    <Compile Include="Area.cs" />
+    <Compile Include="AreaIdGenerator.cs" />
+    <Compile Include="Cell.cs" />
+    <Compile Include="Collections\Generic\BufferedQueue.cs" />
+    <Compile Include="Collections\Generic\BufferedStack.cs" />
+    <Compile Include="Collections\BVTree.cs" />
+    <Compile Include="Collections\Generic\IValueWithCost.cs" />
+    <Compile Include="Collections\Generic\PriorityQueue.cs" />
+    <Compile Include="CompactCell.cs" />
+    <Compile Include="CompactSpan.cs" />
+    <Compile Include="CompactSpanReference.cs" />
+    <Compile Include="Contour.cs" />
+    <Compile Include="ContourBuildFlags.cs" />
+    <Compile Include="ContourSet.cs" />
+    <Compile Include="ContourVertex.cs" />
+    <Compile Include="Crowds\Agent.cs" />
+    <Compile Include="Crowds\Crowd.cs" />
+    <Compile Include="Crowds\CrowdAgentState.cs" />
+    <Compile Include="Crowds\Status.cs" />
+    <Compile Include="Crowds\TargetState.cs" />
+    <Compile Include="Crowds\UpdateFlags.cs" />
+    <Compile Include="Direction.cs" />
+    <Compile Include="EdgeFlags.cs" />
+    <Compile Include="Geometry\BBox2i.cs" />
+    <Compile Include="Geometry\Containment.cs" />
+    <Compile Include="Geometry\Distance.cs" />
+    <Compile Include="Geometry\Intersection.cs" />
+    <Compile Include="Geometry\TriangleEnumerable.cs" />
+    <Compile Include="Geometry\Vector2i.cs" />
+    <Compile Include="Heightfield.Rasterization.cs" />
+    <Compile Include="HeightPatch.cs" />
+    <Compile Include="Crowds\LocalBoundary.cs" />
+    <Compile Include="NavMesh.cs" />
+    <Compile Include="NavMeshGenerationSettings.cs" />
+    <Compile Include="Crowds\ObstacleAvoidanceQuery.cs" />
+    <Compile Include="Crowds\PathCorridor.cs" />
+    <Compile Include="Pathfinding\Link.cs" />
+    <Compile Include="Pathfinding\MeshTile.cs" />
+    <Compile Include="Pathfinding\OffMeshConnection.cs" />
+    <Compile Include="Pathfinding\NavPoint.cs" />
+    <Compile Include="Pathfinding\Poly.cs" />
+    <Compile Include="Crowds\PathQueue.cs" />
+    <Compile Include="PolyBounds.cs" />
+    <Compile Include="PolyMesh.cs" />
+    <Compile Include="NavMeshBuilder.cs" />
+    <Compile Include="PolyMeshDetail.cs" />
+    <Compile Include="NavMeshQuery.cs" />
+    <Compile Include="Node.cs" />
+    <Compile Include="NodePool.cs" />
+    <Compile Include="NodeFlags.cs" />
+    <Compile Include="PathfinderCommon.cs" />
+    <Compile Include="Pathfinding\PolygonType.cs" />
+    <Compile Include="PolyVertex.cs" />
+    <Compile Include="Crowds\ProximityGrid.cs" />
+    <Compile Include="Region.cs" />
+    <Compile Include="Geometry\BBox3.cs" />
+    <Compile Include="Geometry\Triangle3.cs" />
+    <Compile Include="Heightfield.cs" />
+    <Compile Include="MathHelper.cs" />
+    <Compile Include="CompactHeightfield.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Span.cs" />
+    <Compile Include="SpanReference.cs" />
+    <Compile Include="TiledNavMesh.cs" />
+    <Compile Include="Geometry\Vector2.cs" />
+    <Compile Include="Geometry\Vector3.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Geometry\Vector3Extensions.cs" />
+  </ItemGroup>
+  <!-- Other items -->
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <!-- NuGet and Build Targets -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpDX.2.6.3\build\SharpDX.targets'))" />
+    <Error Condition="!Exists('..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets'))" />
+  </Target>
+  <Import Project="..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets" Condition="Exists('..\packages\MonoGame.Binaries.3.2.0\build\net40\MonoGame.Binaries.targets') And '$(Configuration)' == 'MonoGame'" />
+  <Import Project="..\packages\SharpDX.2.6.3\build\SharpDX.targets" Condition="Exists('..\packages\SharpDX.2.6.3\build\SharpDX.targets') And '$(Configuration)' == 'SharpDX'" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,7 +1,7 @@
 SharpNav Documentation
 ======================
 
-If you came here looking for docs, you should go to http://docs.sharpnav.com
+If you came here looking for docs, you should go to http://sharpnav.com/docs
 for the compiled web documentation. This directory contains markdown versions
 of the pages included in the compiled docs as well as a configuration for
 [SharpDoc][1], the tool used to generate the documentation.
