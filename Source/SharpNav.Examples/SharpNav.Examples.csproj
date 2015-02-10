@@ -63,7 +63,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Gwen">
-      <HintPath>..\Dependencies\Gwen.dll</HintPath>
+      <HintPath>..\..\Dependencies\Gwen.dll</HintPath>
     </Reference>
     <Reference Include="Gwen.Renderer.OpenTK">
       <HintPath>..\..\Dependencies\Gwen.Renderer.OpenTK.dll</HintPath>
