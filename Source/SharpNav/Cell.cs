@@ -131,46 +131,49 @@ namespace SharpNav
 			MathHelper.Clamp(ref span.Minimum, 0, height);
 			MathHelper.Clamp(ref span.Maximum, 0, height);
 
-			for (int i = 0; i < spans.Count; i++)
+			lock (spans)
 			{
-				//Check whether the current span is below, or overlapping existing spans.
-				//If the span is completely above the current span the loop will continue.
-				Span cur = spans[i];
-				if (cur.Minimum > span.Maximum)
+				for (int i = 0; i < spans.Count; i++)
 				{
-					//The new span is below the current one and is not intersecting.
-					spans.Insert(i, span);
-					return;
-				}
-				else if (cur.Maximum >= span.Minimum)
-				{
-					//The new span is colliding with the current one, merge them together.
-					if (cur.Minimum < span.Minimum)
-						span.Minimum = cur.Minimum;
-
-					if (cur.Maximum == span.Maximum)
+					//Check whether the current span is below, or overlapping existing spans.
+					//If the span is completely above the current span the loop will continue.
+					Span cur = spans[i];
+					if (cur.Minimum > span.Maximum)
 					{
-						//In the case that both spans end at the same voxel, the area gets merged. The new span's area
-						//has priority if both spans are walkable, so the only case where the area gets set is when
-						//the new area isn't walkable and the old one is.
-						if (!span.Area.IsWalkable && cur.Area.IsWalkable)
+						//The new span is below the current one and is not intersecting.
+						spans.Insert(i, span);
+						return;
+					}
+					else if (cur.Maximum >= span.Minimum)
+					{
+						//The new span is colliding with the current one, merge them together.
+						if (cur.Minimum < span.Minimum)
+							span.Minimum = cur.Minimum;
+
+						if (cur.Maximum == span.Maximum)
+						{
+							//In the case that both spans end at the same voxel, the area gets merged. The new span's area
+							//has priority if both spans are walkable, so the only case where the area gets set is when
+							//the new area isn't walkable and the old one is.
+							if (!span.Area.IsWalkable && cur.Area.IsWalkable)
+								span.Area = cur.Area;
+						}
+						else if (cur.Maximum > span.Maximum)
+						{
+							span.Maximum = cur.Maximum;
 							span.Area = cur.Area;
-					}
-					else if (cur.Maximum > span.Maximum)
-					{
-						span.Maximum = cur.Maximum;
-						span.Area = cur.Area;
-					}
+						}
 
-					//Remove the current span and adjust i.
-					//We do this to avoid duplicating the current span.
-					spans.RemoveAt(i);
-					i--;
+						//Remove the current span and adjust i.
+						//We do this to avoid duplicating the current span.
+						spans.RemoveAt(i);
+						i--;
+					}
 				}
-			}
 
-			//If the span is not inserted, it is the highest span and will be added to the end.
-			spans.Add(span);
+				//If the span is not inserted, it is the highest span and will be added to the end.
+				spans.Add(span);
+			}
 		}
 	}
 }

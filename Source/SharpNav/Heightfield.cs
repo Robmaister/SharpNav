@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using SharpNav.Geometry;
 
@@ -313,7 +314,7 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// A ledge is unwalkable because the differenc between the maximum height of two spans 
+		/// A ledge is unwalkable because the difference between the maximum height of two spans
 		/// is too large of a drop (i.e. greater than walkableClimb).
 		/// </summary>
 		/// <param name="walkableHeight">The maximum walkable height to filter.</param>
@@ -321,8 +322,10 @@ namespace SharpNav
 		public void FilterLedgeSpans(int walkableHeight, int walkableClimb)
 		{
 			//Mark border spans.
-			for (int y = 0; y < length; y++)
+			Parallel.For(0, length, y =>
 			{
+			//for (int y = 0; y < length; y++)
+			//{
 				for (int x = 0; x < width; x++)
 				{
 					Cell c = cells[x + y * width];
@@ -375,7 +378,7 @@ namespace SharpNav
 								Span currentNeighborSpan = neighborSpans[j];
 
 								neighborBottom = currentNeighborSpan.Maximum;
-								neighborTop = j == neighborSpans.Count - 1 ? int.MaxValue : neighborSpans[j + 1].Minimum;
+								neighborTop = (j == neighborSpans.Count - 1) ? int.MaxValue : neighborSpans[j + 1].Minimum;
 
 								// Skip neightbour if the gap between the spans is too small.
 								if (Math.Min(top, neighborTop) - Math.Max(bottom, neighborBottom) > walkableHeight)
@@ -406,7 +409,8 @@ namespace SharpNav
 						spans[i] = currentSpan;
 					}
 				}
-			}
+			//}
+			});
 		}
 	}
 }

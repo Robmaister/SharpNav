@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using SharpNav.Geometry;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Threading;
 
 #if MONOGAME
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -20,6 +23,8 @@ namespace SharpNav
 	/// </content>
 	public partial class Heightfield
 	{
+		private ConcurrentQueue<Tuple<int, int, Span>> spanQueue;
+
 		/// <summary>
 		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
 		/// </summary>
@@ -482,12 +487,10 @@ namespace SharpNav
 		/// <param name="area">The area flags for all of the triangles.</param>
 		public void RasterizeTriangles(IEnumerable<Triangle3> tris, Area area)
 		{
-			Triangle3 t = new Triangle3();
-			foreach (Triangle3 tri in tris)
+			Parallel.ForEach(tris, t =>
 			{
-				t = tri;
 				RasterizeTriangle(ref t, area);
-			}
+			});
 		}
 
 		/// <summary>
@@ -543,8 +546,38 @@ namespace SharpNav
 			if (triEnd > tris.Length)
 				throw new ArgumentOutOfRangeException("triCount", "The specified offset and count end outside the bounds of the provided array.");
 
-			for (int i = triOffset; i < triEnd; i++)
-				RasterizeTriangle(ref tris[i].A, ref tris[i].B, ref tris[i].C, area);
+			int numBatches = 8;
+			int threads = (triCount / numBatches) + 1;
+
+			spanQueue = new ConcurrentQueue<Tuple<int, int, Span>>();
+			bool allProcessed;
+
+			/*var task = Task.Factory.StartNew(() =>
+			{
+				while (true)
+				{
+					if (spanQueue.IsEmpty)
+						Thread.Sleep(1);
+
+					Tuple<int, int, Span> spanEntry;
+					while (spanQueue.TryDequeue(out spanEntry))
+						cells[spanEntry.Item2 * width + spanEntry.Item1].AddSpan(spanEntry.Item3);
+				}
+			});*/
+
+			Parallel.For(0, threads, i =>
+			{
+				int start = triOffset + i * numBatches;
+				int end = triOffset + (i + 1) * numBatches;
+				if (end > triEnd)
+					end = triEnd;
+
+				for (int j = start; j < end; j++)
+				{
+					Triangle3 t = tris[j];
+					RasterizeTriangle(ref t.A, ref t.B, ref t.C, area);
+				}
+			});
 		}
 
 		/// <summary>
@@ -613,8 +646,11 @@ namespace SharpNav
 			if (vertEnd > verts.Length)
 				throw new ArgumentOutOfRangeException("triCount", "The specified offset, count, and stride end outside the bounds of the provided array.");
 
-			for (int i = vertOffset; i < vertEnd; i += vertStride * 3)
+			Parallel.For(0, triCount, i =>
+			{
+				i = vertOffset + (i * vertStride * 3);
 				RasterizeTriangle(ref verts[i], ref verts[i + vertStride], ref verts[i + vertStride * 2], area);
+			});
 		}
 
 		/// <summary>
@@ -685,8 +721,9 @@ namespace SharpNav
 
 			Vector3 a, b, c;
 
-			for (int i = floatOffset; i < floatEnd; i += floatStride * 3)
+			Parallel.For(0, triCount, i =>
 			{
+				i = floatOffset + (i * floatStride * 3);
 				int floatStride2 = floatStride * 2;
 
 				a.X = verts[i];
@@ -702,7 +739,7 @@ namespace SharpNav
 				c.Z = verts[i + floatStride2 + 2];
 
 				RasterizeTriangle(ref a, ref b, ref c, area);
-			}
+			});
 		}
 
 		/// <summary>

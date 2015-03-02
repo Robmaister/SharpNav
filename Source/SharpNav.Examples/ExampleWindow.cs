@@ -364,6 +364,8 @@ namespace SharpNav.Examples
 
 		private void GenerateNavMesh()
 		{
+			Console.WriteLine("Generating NavMesh");
+
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 			long prevMs = 0;
@@ -380,22 +382,31 @@ namespace SharpNav.Examples
 				Console.WriteLine(" + Ctor\t\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
-				Area[] areas = AreaGenerator.From(triEnumerable, Area.Default)
+				/*Area[] areas = AreaGenerator.From(triEnumerable, Area.Default)
 					.MarkAboveHeight(areaSettings.MaxLevelHeight, Area.Null)
 					.MarkBelowHeight(areaSettings.MinLevelHeight, Area.Null)
 					.MarkBelowSlope(areaSettings.MaxTriSlope, Area.Null)
 					.ToArray();
-				heightfield.RasterizeTrianglesWithAreas(levelTris, areas);
-				//heightfield.RasterizeTriangles(level.Positions);
+				heightfield.RasterizeTrianglesWithAreas(levelTris, areas);*/
+				heightfield.RasterizeTriangles(levelTris, Area.Default);
 
 				Console.WriteLine(" + Rasterization\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				Console.WriteLine(" + Filtering");
 				prevMs = sw.ElapsedMilliseconds;
 
 				heightfield.FilterLedgeSpans(settings.VoxelAgentHeight, settings.VoxelMaxClimb);
+
+				Console.WriteLine("   + Ledge Spans\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
 				heightfield.FilterLowHangingWalkableObstacles(settings.VoxelMaxClimb);
+
+				Console.WriteLine("   + Low Hanging Obstacles\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				prevMs = sw.ElapsedMilliseconds;
+
 				heightfield.FilterWalkableLowHeightSpans(settings.VoxelAgentHeight);
 
-				Console.WriteLine(" + Filtering\t\t\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
+				Console.WriteLine("   + Low Height Spans\t" + (sw.ElapsedMilliseconds - prevMs).ToString("D3") + " ms");
 				prevMs = sw.ElapsedMilliseconds;
 
 				compactHeightfield = new CompactHeightfield(heightfield, settings);
