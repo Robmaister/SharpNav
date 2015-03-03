@@ -1,0 +1,49 @@
+version: 1.0.0-alpha.1+appveyor.{build}
+branches:
+  only:
+  - master
+configuration:
+- Standalone
+- OpenTK
+- SharpDX
+- MonoGame
+platform: Any CPU
+install:
+- ps: >+
+    # AppVeyor 1.0 compatibility variables
+
+    [System.Environment]::SetEnvironmentVariable("AppVeyorCI", "2.0")
+
+    [System.Environment]::SetEnvironmentVariable("Appveyor_ProjectName", "$env:APPVEYOR_PROJECT_NAME")
+
+    [System.Environment]::SetEnvironmentVariable("Appveyor_ProjectVersion", "$env:APPVEYOR_BUILD_VERSION")
+
+    [System.Environment]::SetEnvironmentVariable("Appveyor_ProjectBuildNumber", "$env:APPVEYOR_BUILD_NUMBER")
+
+    [System.Environment]::SetEnvironmentVariable("CommitId", "$env:APPVEYOR_REPO_COMMIT")
+
+    [System.Environment]::SetEnvironmentVariable("RepositoryType", "$env:APPVEYOR_REPO_PROVIDER")
+
+    [System.Environment]::SetEnvironmentVariable("RepositoryName", "$env:APPVEYOR_REPO_NAME")
+
+    [System.Environment]::SetEnvironmentVariable("RepositoryBranch", "$env:APPVEYOR_REPO_BRANCH")
+
+    [System.Environment]::SetEnvironmentVariable("BuildFolder", "$env:APPVEYOR_BUILD_FOLDER")
+
+    [System.Environment]::SetEnvironmentVariable("SrcFolder", "$env:APPVEYOR_BUILD_FOLDER")
+
+    [System.Environment]::SetEnvironmentVariable("OutFolder", "$env:APPVEYOR_BUILD_FOLDER")
+
+    [System.Environment]::SetEnvironmentVariable("TempFolder", "$env:TEMP")
+
+before_build:
+- nuget restore
+build:
+  project: Source/SharpNav.sln
+  parallel: true
+  verbosity: normal
+test:
+  categories:
+    except:
+    - BrokenButUnused
+deploy: off
