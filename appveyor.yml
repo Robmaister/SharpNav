@@ -13,14 +13,9 @@ configuration:
   - SharpDX
   - MonoGame
   
-platform:
-  - Any CPU
-  
 build:
-  project: Build/CoreOnly.proj
-#  parallel: true
-  verbosity: normal
-  
+  - msbuild "Build/CoreOnly.proj" /p:Configuration=$(CONFIGURATION) /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
 test:
   categories:
     except:
