@@ -39,7 +39,7 @@ install:
 before_build:
 - nuget restore Source/SharpNav.sln
 build:
-  project: Source/SharpNav.sln
+  project: Build/CoreOnly.proj
   parallel: true
   verbosity: normal
 test:
