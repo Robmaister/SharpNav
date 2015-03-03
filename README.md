@@ -1,4 +1,5 @@
-SharpNav [![Build Status](https://img.shields.io/travis/Robmaister/SharpNav.svg)](https://travis-ci.org/Robmaister/SharpNav) [![Build status](https://ci.appveyor.com/api/projects/status/fqegsrv5pdt5b7ng?svg=true)](https://ci.appveyor.com/project/Robmaister/sharpnav) [![NuGet Version](http://img.shields.io/nuget/vpre/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![NuGet Downloads](http://img.shields.io/nuget/dt/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
+![SharpNav](https://raw.githubusercontent.com/Robmaister/SharpNav/master/Graphics/Logo/Full.png)
+[![Build Status](https://img.shields.io/travis/Robmaister/SharpNav.svg)](https://travis-ci.org/Robmaister/SharpNav) [![Build status](https://ci.appveyor.com/api/projects/status/fqegsrv5pdt5b7ng?svg=true)](https://ci.appveyor.com/project/Robmaister/sharpnav) [![NuGet Version](http://img.shields.io/nuget/vpre/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![NuGet Downloads](http://img.shields.io/nuget/dt/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
 ========
 
 
