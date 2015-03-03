@@ -13,8 +13,8 @@ configuration:
   - SharpDX
   - MonoGame
   
-build:
-  - msbuild "Build/CoreOnly.proj" /p:Configuration=$(CONFIGURATION) /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+build_script:
+  - cmd: msbuild "Build/CoreOnly.proj" /p:Configuration=$(CONFIGURATION) /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 test:
   categories:
