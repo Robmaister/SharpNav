@@ -14,7 +14,7 @@ configuration:
   - MonoGame
   
 build_script:
-  - cmd: msbuild "Build/CoreOnly.proj" /p:Configuration=$(CONFIGURATION) /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cmd: msbuild "Build/CoreOnly.proj" /t:$(CONFIGURATION) /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 test:
   categories:
