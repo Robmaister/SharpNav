@@ -37,7 +37,7 @@ install:
     [System.Environment]::SetEnvironmentVariable("TempFolder", "$env:TEMP")
 
 before_build:
-- nuget restore
+- nuget restore Source/SharpNav.sln
 build:
   project: Source/SharpNav.sln
   parallel: true
