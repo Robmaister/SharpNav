@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -80,6 +80,9 @@ namespace SharpNav
 			bits = masked | (int)flags;
 		}
 
+		/// <summary>
+		/// Gets the ID of the region without any flags.
+		/// </summary>
 		public int Id
 		{
 			get
@@ -88,6 +91,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets the flags set for this region.
+		/// </summary>
 		public RegionFlags Flags
 		{
 			get
@@ -96,6 +102,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether the region is the null region (ID == 0).
+		/// </summary>
 		public bool IsNull
 		{
 			get
@@ -104,6 +113,11 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Creates a new <see cref="RegionId"/> from a value that contains both the region ID and the flags.
+		/// </summary>
+		/// <param name="bits">The int containing <see cref="RegionId"/> data.</param>
+		/// <returns>A new instance of the <see cref="RegionId"/> struct with the specified data.</returns>
 		public static RegionId FromRawBits(int bits)
 		{
 			RegionId id;
@@ -111,6 +125,12 @@ namespace SharpNav
 			return id;
 		}
 
+		/// <summary>
+		/// Creates a new <see cref="RegionId"/> with extra flags.
+		/// </summary>
+		/// <param name="region">The region to add flags to.</param>
+		/// <param name="flags">The flags to add.</param>
+		/// <returns>A new instance of the <see cref="RegionId"/> struct with extra flags.</returns>
 		public static RegionId WithFlags(RegionId region, RegionFlags flags)
 		{
 			if ((RegionFlags)((int)flags & ~MaskId) != flags)
@@ -120,11 +140,22 @@ namespace SharpNav
 			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
 		}
 
+		/// <summary>
+		/// Creates a new instance of the <see cref="RegionId"/> class without any flags set.
+		/// </summary>
+		/// <param name="region">The region to use.</param>
+		/// <returns>A new instance of the <see cref="RegionId"/> struct without any flags set.</returns>
 		public static RegionId WithoutFlags(RegionId region)
 		{
 			return new RegionId(region.Id);
 		}
 
+		/// <summary>
+		/// Creates a new instance of the <see cref="RegionId"/> class without certain flags set.
+		/// </summary>
+		/// <param name="region">The region to use.</param>
+		/// <param name="flags">The flags to unset.</param>
+		/// <returns>A new instnace of the <see cref="RegionId"/> struct without certain flags set.</returns>
 		public static RegionId WithoutFlags(RegionId region, RegionFlags flags)
 		{
 			if ((RegionFlags)((int)flags & ~MaskId) != flags)
@@ -134,6 +165,12 @@ namespace SharpNav
 			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
 		}
 
+		/// <summary>
+		/// Checks if a region has certain flags.
+		/// </summary>
+		/// <param name="region">The region to check.</param>
+		/// <param name="flags">The flags to check.</param>
+		/// <returns>A value indicating whether the region has all of the specified flags.</returns>
 		public static bool HasFlags(RegionId region, RegionFlags flags)
 		{
 			return (region.Flags & flags) != 0;
@@ -198,6 +235,10 @@ namespace SharpNav
 				return false;
 		}
 
+		/// <summary>
+		/// Gets a unique hash code for this instance.
+		/// </summary>
+		/// <returns>A hash code.</returns>
 		public override int GetHashCode()
 		{
 			if (IsNull)
@@ -206,6 +247,10 @@ namespace SharpNav
 			return bits.GetHashCode();
 		}
 
+		/// <summary>
+		/// Gets a human-readable version of this instance.
+		/// </summary>
+		/// <returns>A string representing this instance.</returns>
 		public override string ToString()
 		{
 			return "{ Id: " + Id + ", Flags: " + Flags + "}";
@@ -217,8 +262,6 @@ namespace SharpNav
 	/// </summary>
 	public class Region
 	{
-		public const int IdMask = 0x1fffffff;
-
 		private int spanCount;
 		private RegionId id;
 		private Area areaType;
@@ -345,6 +388,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether the region is a border region.
+		/// </summary>
 		public bool IsBorder
 		{
 			get
@@ -353,6 +399,9 @@ namespace SharpNav
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether the region is either a border region or the null region.
+		/// </summary>
 		public bool IsBorderOrNull
 		{
 			get

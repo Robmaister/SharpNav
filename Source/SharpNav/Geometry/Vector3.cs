@@ -229,8 +229,7 @@ namespace SharpNav.Geometry
 		/// <summary>
 		/// Gets the length (magnitude) of the vector.
 		/// </summary>
-		/// <see cref="LengthFast"/>
-		/// <seealso cref="LengthSquared"/>
+		/// <see cref="LengthSquared"/>
 		public float Length()
 		{
 			return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z);
@@ -248,7 +247,6 @@ namespace SharpNav.Geometry
 		/// for comparisons.
 		/// </remarks>
 		/// <see cref="Length"/>
-		/// <seealso cref="LengthFast"/>
 		public float LengthSquared()
 		{
 			return X * X + Y * Y + Z * Z;

@@ -1,15 +1,11 @@
-// Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013, 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using SharpNav;
 using SharpNav.Geometry;
 
 #if OPENTK
@@ -18,6 +14,9 @@ using OpenTK;
 
 namespace SharpNav.Examples
 {
+	/// <summary>
+	/// Parses a model in .obj format.
+	/// </summary>
 	public class ObjModel
 	{
 		private static readonly char[] lineSplitChars = { ' ' };
@@ -25,8 +24,10 @@ namespace SharpNav.Examples
 		private List<Triangle3> tris;
 		private List<Vector3> norms;
 
-		private Vector3 bboxOffset;
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ObjModel"/> class.
+		/// </summary>
+		/// <param name="path">The path of the .obj file to parse.</param>
 		public ObjModel(string path)
 		{
 			tris = new List<Triangle3>();
@@ -129,59 +130,23 @@ namespace SharpNav.Examples
 			}
 		}
 
+		/// <summary>
+		/// Gets an array of the triangles in this model.
+		/// </summary>
+		/// <returns></returns>
 		public Triangle3[] GetTriangles()
 		{
 			return tris.ToArray();
 		}
 
+		/// <summary>
+		/// Gets an array of the normals in this model.
+		/// </summary>
+		/// <returns></returns>
 		public Vector3[] GetNormals()
 		{
 			return norms.ToArray();
 		}
-
-		public void SetBoundingBoxOffset(Vector3 offset)
-		{
-			bboxOffset = offset;
-		}
-
-		/*public BBox3 GetBounds()
-		{
-			Vector3 min = Vector3.Zero, max = Vector3.Zero;
-			foreach (Triangle3 t in tris)
-			{
-				VecMin(ref min, t.A);
-				VecMin(ref min, t.B);
-				VecMin(ref min, t.C);
-				VecMax(ref max, t.A);
-				VecMax(ref max, t.B);
-				VecMax(ref max, t.C);
-			}
-
-			min -= bboxOffset;
-			max += bboxOffset;
-
-			return new BBox3(min, max);
-		}
-
-		private void VecMin(ref Vector3 min, Vector3 v)
-		{
-			if (v.X < min.X)
-				min.X = v.X;
-			if (v.Y < min.Y)
-				min.Y = v.Y;
-			if (v.Z < min.Z)
-				min.Z = v.Z;
-		}
-
-		private void VecMax(ref Vector3 max, Vector3 v)
-		{
-			if (v.X > max.X)
-				max.X = v.X;
-			if (v.Y > max.Y)
-				max.Y = v.Y;
-			if (v.Z > max.Z)
-				max.Z = v.Z;
-		}*/
 
 		private bool TryParseVec(string[] values, int x, int y, int z, out Vector3 v)
 		{

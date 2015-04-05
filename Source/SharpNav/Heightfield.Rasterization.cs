@@ -23,7 +23,7 @@ namespace SharpNav
 	/// </content>
 	public partial class Heightfield
 	{
-		private ConcurrentQueue<Tuple<int, int, Span>> spanQueue;
+		//private ConcurrentQueue<Tuple<int, int, Span>> spanQueue;
 
 		/// <summary>
 		/// Rasterizes several triangles at once from an indexed array with per-triangle area flags.
@@ -549,10 +549,10 @@ namespace SharpNav
 			int numBatches = 8;
 			int threads = (triCount / numBatches) + 1;
 
-			spanQueue = new ConcurrentQueue<Tuple<int, int, Span>>();
+			/*spanQueue = new ConcurrentQueue<Tuple<int, int, Span>>();
 			bool allProcessed;
 
-			/*var task = Task.Factory.StartNew(() =>
+			var task = Task.Factory.StartNew(() =>
 			{
 				while (true)
 				{
