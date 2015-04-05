@@ -79,7 +79,7 @@ namespace SharpNav.Examples
 		private const int AGENT_MAX_TRAIL = 64;
 		private int numIterations = 50;
 		private int numActiveAgents = 3;
-		private AgentTrail[] trails = new AgentTrail[AGENT_MAX_TRAIL];
+		private AgentTrail[] trails = new AgentTrail[MAX_AGENTS];
 
 		private struct AgentTrail
 		{
