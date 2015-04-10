@@ -176,31 +176,113 @@ namespace SharpNav
 			return (region.Flags & flags) != 0;
 		}
 
+		/// <summary>
+		/// Compares an instance of <see cref="RegionId"/> with an integer for equality.
+		/// </summary>
+		/// <remarks>
+		/// This checks for both the ID and flags set on the region. If you want to only compare the IDs, use the
+		/// following code:
+		/// <code>
+		/// RegionId left = ...;
+		/// int right = ...;
+		/// if (left.Id == right)
+		/// {
+		///    // ...
+		/// }
+		/// </code>
+		/// </remarks>
+		/// <param name="left">An instance of <see cref="RegionId"/>.</param>
+		/// <param name="right">An integer.</param>
+		/// <returns>A value indicating whether the two values are equal.</returns>
 		public static bool operator ==(RegionId left, int right)
 		{
 			return left.Equals(right);
 		}
 
+		/// <summary>
+		/// Compares an instance of <see cref="RegionId"/> with an integer for inequality.
+		/// </summary>
+		/// <remarks>
+		/// This checks for both the ID and flags set on the region. If you want to only compare the IDs, use the
+		/// following code:
+		/// <code>
+		/// RegionId left = ...;
+		/// int right = ...;
+		/// if (left.Id != right)
+		/// {
+		///    // ...
+		/// }
+		/// </code>
+		/// </remarks>
+		/// <param name="left">An instance of <see cref="RegionId"/>.</param>
+		/// <param name="right">An integer.</param>
+		/// <returns>A value indicating whether the two values are unequal.</returns>
 		public static bool operator !=(RegionId left, int right)
 		{
 			return !(left == right);
 		}
 
+		/// <summary>
+		/// Compares two instances of <see cref="RegionId"/> for equality.
+		/// </summary>
+		/// <remarks>
+		/// This checks for both the ID and flags set on the regions. If you want to only compare the IDs, use the
+		/// following code:
+		/// <code>
+		/// RegionId left = ...;
+		/// RegionId right = ...;
+		/// if (left.Id == right.Id)
+		/// {
+		///    // ...
+		/// }
+		/// </code>
+		/// </remarks>
+		/// <param name="left">An instance of <see cref="RegionId"/>.</param>
+		/// <param name="right">Another instance of <see cref="RegionId"/>.</param>
+		/// <returns>A value indicating whether the two instances are equal.</returns>
 		public static bool operator ==(RegionId left, RegionId right)
 		{
 			return left.Equals(right);
 		}
 
+		/// <summary>
+		/// Compares two instances of <see cref="RegionId"/> for inequality.
+		/// </summary>
+		/// <remarks>
+		/// This checks for both the ID and flags set on the regions. If you want to only compare the IDs, use the
+		/// following code:
+		/// <code>
+		/// RegionId left = ...;
+		/// RegionId right = ...;
+		/// if (left.Id != right.Id)
+		/// {
+		///    // ...
+		/// }
+		/// </code>
+		/// </remarks>
+		/// <param name="left">An instance of <see cref="RegionId"/>.</param>
+		/// <param name="right">Another instance of <see cref="RegionId"/>.</param>
+		/// <returns>A value indicating whether the two instances are unequal.</returns>
 		public static bool operator !=(RegionId left, RegionId right)
 		{
 			return !(left == right);
 		}
 
+		/// <summary>
+		/// Converts an instance of <see cref="RegionId"/> to an integer containing both the ID and the flags.
+		/// </summary>
+		/// <param name="id">An instance of <see cref="RegionId"/>.</param>
+		/// <returns>An integer.</returns>
 		public static explicit operator int(RegionId id)
 		{
 			return id.bits;
 		}
 
+		/// <summary>
+		/// Compares this instance with another instance of <see cref="RegionId"/> for equality, including flags.
+		/// </summary>
+		/// <param name="other">An instance of <see cref="RegionId"/>.</param>
+		/// <returns>A value indicating whether the two instances are equal.</returns>
 		public bool Equals(RegionId other)
 		{
 			bool thisNull = this.IsNull;
@@ -214,6 +296,11 @@ namespace SharpNav
 				return this.bits == other.bits;
 		}
 
+		/// <summary>
+		/// Compares this instance with another an intenger for equality, including flags.
+		/// </summary>
+		/// <param name="other">An integer.</param>
+		/// <returns>A value indicating whether the two instances are equal.</returns>
 		public bool Equals(int other)
 		{
 			RegionId otherId;
@@ -222,6 +309,11 @@ namespace SharpNav
 			return this.Equals(otherId);
 		}
 
+		/// <summary>
+		/// Compares this instance with an object for equality.
+		/// </summary>
+		/// <param name="obj">An object</param>
+		/// <returns>A value indicating whether the two instances are equal.</returns>
 		public override bool Equals(object obj)
 		{
 			var regObj = obj as RegionId?;

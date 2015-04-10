@@ -584,7 +584,7 @@ namespace SharpNav
 		/// <param name="options">Options flag</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
 		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, 
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			straightPathCount = 0;
 
@@ -638,7 +638,7 @@ namespace SharpNav
 								return false;
 							}
 
-							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							if ((options & (PathBuildFlags.AreaCrossingVertices | PathBuildFlags.AllCrossingVertices)) != 0)
 							{
 								//append portals
 								stat = AppendPortals(apexIndex, i, closestEndPos, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
@@ -682,7 +682,7 @@ namespace SharpNav
 						else
 						{
 							//append portals along current straight path segment
-							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							if ((options & (PathBuildFlags.AreaCrossingVertices | PathBuildFlags.AllCrossingVertices)) != 0)
 							{
 								stat = AppendPortals(apexIndex, leftIndex, portalLeft, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
@@ -733,7 +733,7 @@ namespace SharpNav
 						}
 						else
 						{
-							if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+							if ((options & (PathBuildFlags.AreaCrossingVertices | PathBuildFlags.AllCrossingVertices)) != 0)
 							{
 								stat = AppendPortals(apexIndex, rightIndex, portalRight, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
@@ -772,7 +772,7 @@ namespace SharpNav
 				}
 
 				//append portals along the current straight line segment
-				if ((options & (PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS | PathfinderCommon.STRAIGHTPATH_ALL_CROSSINGS)) != 0)
+				if ((options & (PathBuildFlags.AreaCrossingVertices | PathBuildFlags.AllCrossingVertices)) != 0)
 				{
 					stat = AppendPortals(apexIndex, pathSize - 1, closestEndPos, path, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath, options);
 
@@ -1958,7 +1958,7 @@ namespace SharpNav
 			if (tile == null)
 				return false;
 
-			PathfinderCommon.ClosestPointOnPolyInTile(tile, poly, pos, ref closest);
+			tile.ClosestPointOnPoly(poly, pos, ref closest);
 			return true;
 		}
 
@@ -2084,7 +2084,7 @@ namespace SharpNav
 			if (nav.TryGetTileAndPolyByRef(reference, out tile, out poly) == false)
 				return false;
 
-			PathfinderCommon.ClosestPointOnPolyBoundary(tile, poly, pos, out closest);
+			tile.ClosestPointOnPolyBoundary(poly, pos, out closest);
 			return true;
 		}
 
@@ -2150,7 +2150,7 @@ namespace SharpNav
 		/// <param name="options">Options flag</param>
 		/// <returns></returns>
 		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, 
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, int options)
+			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -2176,7 +2176,7 @@ namespace SharpNav
 				if (GetPortalPoints(from, fromPoly, fromTile, to, toPoly, toTile, ref left, ref right) == false)
 					break;
 
-				if ((options & PathfinderCommon.STRAIGHTPATH_AREA_CROSSINGS) != 0)
+				if ((options & PathBuildFlags.AreaCrossingVertices) != 0)
 				{
 					//skip intersection if only area crossings are requested
 					if (fromPoly.Area == toPoly.Area)
@@ -2220,7 +2220,7 @@ namespace SharpNav
 			if (poly.PolyType == PolygonType.OffMeshConnection)
 			{
 				Vector3 closest;
-				PathfinderCommon.ClosestPointOnPolyOffMeshConnection(tile, poly, pos, out closest);
+				tile.ClosestPointOnPolyOffMeshConnection(poly, pos, out closest);
 				height = closest.Y;
 				return true;
 			}
@@ -2237,7 +2237,7 @@ namespace SharpNav
 				}
 
 				float h = 0;
-				if (PathfinderCommon.ClosestHeight(tile, indexPoly, pos, out h))
+				if (tile.ClosestHeight(indexPoly, pos, out h))
 				{
 					height = h;
 					return true;

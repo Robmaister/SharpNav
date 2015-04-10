@@ -132,6 +132,7 @@
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />
     <Compile Include="Pathfinding\NavPoint.cs" />
+    <Compile Include="Pathfinding\PathBuildFlags.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
     <Compile Include="Crowds\PathQueue.cs" />
     <Compile Include="PolyBounds.cs" />
