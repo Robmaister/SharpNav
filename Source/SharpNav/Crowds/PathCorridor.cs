@@ -265,7 +265,7 @@ namespace SharpNav.Crowds
 					{
 						furthestPath = i;
 						furthestVisited = j;
-						found = false;
+						found = true;
 					}
 				}
 

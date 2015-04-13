@@ -187,7 +187,7 @@ namespace SharpNav
 				//store triangles
 				for (int j = 0; j < tempTris.Count; j++)
 				{
-					storedTriangles.Add(new TriangleData(tempTris[j], tempVerts, poly));
+					storedTriangles.Add(new TriangleData(tempTris[j], tempVerts, poly, npoly));
 				}
 			}
 
@@ -317,12 +317,12 @@ namespace SharpNav
 		/// <param name="vb">Triangle vertex B</param>
 		/// <param name="vpoly">Polygon vertex data</param>
 		/// <returns>1 if the vertices are close, 0 if otherwise</returns>
-		private static int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly)
+		private static int GetEdgeFlags(Vector3 va, Vector3 vb, Vector3[] vpoly, int npoly)
 		{
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
 
-			for (int i = 0, j = vpoly.Length - 1; i < vpoly.Length; j = i++)
+            for (int i = 0, j = npoly - 1; i < npoly; j = i++)
 			{
 				Vector3 pt1 = va;
 				Vector3 pt2 = vb;
@@ -1426,12 +1426,12 @@ namespace SharpNav
 			/// <param name="data">The triangle itself</param>
 			/// <param name="verts">The list of all the vertices</param>
 			/// <param name="vpoly">The list of the polygon's vertices</param>
-			public TriangleData(TriangleData data, List<Vector3> verts, Vector3[] vpoly)
+			public TriangleData(TriangleData data, List<Vector3> verts, Vector3[] vpoly, int npoly)
 			{
 				VertexHash0 = data.VertexHash0;
 				VertexHash1 = data.VertexHash1;
 				VertexHash2 = data.VertexHash2;
-				Flags = GetTriFlags(ref data, verts, vpoly);
+				Flags = GetTriFlags(ref data, verts, vpoly, npoly);
 			}
 
 			/// <summary>
@@ -1463,16 +1463,16 @@ namespace SharpNav
 			/// <param name="verts">The vertex buffer that the triangle is referencing.</param>
 			/// <param name="vpoly">Polygon vertex data.</param>
 			/// <returns>The triangle's flags.</returns>
-			public static int GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly)
+			public static int GetTriFlags(ref TriangleData t, List<Vector3> verts, Vector3[] vpoly, int npoly)
 			{
 				int flags = 0;
 
 				//the triangle flags store five bits ?0?0? (like 10001, 10101, etc..)
 				//each bit stores whether two vertices are close enough to a polygon edge 
 				//since triangle has three vertices, there are three distinct pairs of vertices (va,vb), (vb,vc) and (vc,va)
-				flags |= GetEdgeFlags(verts[t.VertexHash0], verts[t.VertexHash1], vpoly) << 0;
-				flags |= GetEdgeFlags(verts[t.VertexHash1], verts[t.VertexHash2], vpoly) << 2;
-				flags |= GetEdgeFlags(verts[t.VertexHash2], verts[t.VertexHash0], vpoly) << 4;
+				flags |= GetEdgeFlags(verts[t.VertexHash0], verts[t.VertexHash1], vpoly, npoly) << 0;
+				flags |= GetEdgeFlags(verts[t.VertexHash1], verts[t.VertexHash2], vpoly, npoly) << 2;
+				flags |= GetEdgeFlags(verts[t.VertexHash2], verts[t.VertexHash0], vpoly, npoly) << 4;
 
 				return flags;
 			}

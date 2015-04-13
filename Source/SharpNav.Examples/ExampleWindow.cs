@@ -78,8 +78,8 @@ namespace SharpNav.Examples
 		private const int MAX_AGENTS = 128;
 		private const int AGENT_MAX_TRAIL = 64;
 		private int numIterations = 50;
-		private int numActiveAgents = 3;
-		private AgentTrail[] trails = new AgentTrail[AGENT_MAX_TRAIL];
+		private int numActiveAgents = 0;
+		private AgentTrail[] trails = new AgentTrail[MAX_AGENTS];
 
 		private struct AgentTrail
 		{
@@ -159,7 +159,7 @@ namespace SharpNav.Examples
 				isShiftDown = true;
 
 			//TODO make cam speed/shift speedup controllable from GUI
-			float camSpeed = 5f * (float)e.Time * (isShiftDown ? 3f : 1f);
+			float camSpeed = 10f * (float)e.Time * (isShiftDown ? 1f : 3f);
 			float zoomSpeed = (float)Math.PI * (float)e.Time * (isShiftDown ? 0.2f : 0.1f);
 
 			if (k[Key.W])
@@ -199,10 +199,12 @@ namespace SharpNav.Examples
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
 			cam.LoadView();
+            if (crowd != null)
+                crowd.Update((float)e.Time);
 
 			if (hasGenerated && displayMode == DisplayMode.Crowd)
 			{
-				crowd.Update((float)e.Time);
+				//crowd.Update((float)e.Time);
 
 				//Iterate through each crowd agent
 				/*for (int j = 0; j < numActiveAgents; j++)
@@ -301,27 +303,35 @@ namespace SharpNav.Examples
 			{
 				case DisplayMode.Heightfield: 
 					DrawHeightfield();
+                    DrawCrowd();
 					break;
 				case DisplayMode.CompactHeightfield:
 					DrawCompactHeightfield();
+                    DrawCrowd();
 					break;
 				case DisplayMode.DistanceField:
 					DrawDistanceField();
+                    DrawCrowd();
 					break;
 				case DisplayMode.Regions:
 					DrawRegions();
+                    DrawCrowd();
 					break;
 				case DisplayMode.Contours:
 					DrawContours();
+                    DrawCrowd();
 					break;
 				case DisplayMode.PolyMesh:
 					DrawPolyMesh();
+                    DrawCrowd();
 					break;
 				case DisplayMode.PolyMeshDetail:
 					DrawPolyMeshDetail();
+                    DrawCrowd();
 					break;
 				case DisplayMode.Pathfinding:
 					DrawPathfinding();
+                    DrawCrowd();
 					break;
 				case DisplayMode.Crowd:
 					DrawCrowd();
