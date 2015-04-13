@@ -543,7 +543,7 @@ namespace SharpNav
 				}
 
 				//link target poly to off-mesh connection
-				if ((targetCon.Flags & PathfinderCommon.OFFMESH_CON_BIDIR) != 0)
+				if ((targetCon.Flags & OffMeshConnectionFlags.Bidirectional) != 0)
 				{
 					int tidx = AllocLink(tile);
 					if (IsLinkAllocated(tidx))
@@ -816,7 +816,7 @@ namespace SharpNav
 			{
 				int reference = polys[i];
 				Vector3 closestPtPoly = new Vector3();
-				PathfinderCommon.ClosestPointOnPolyInTile(tile, DecodePolyIdPoly(reference), center, ref closestPtPoly);
+				tile.ClosestPointOnPoly(DecodePolyIdPoly(reference), center, ref closestPtPoly);
 				float d = (center - closestPtPoly).LengthSquared();
 				if (d < nearestDistanceSqr)
 				{

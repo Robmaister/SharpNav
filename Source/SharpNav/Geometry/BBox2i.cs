@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -76,6 +76,16 @@ namespace SharpNav.Geometry
 		public override string ToString()
 		{
 			return "{ Min: " + Min.ToString() + ", Max: " + Max.ToString() + " }";
+		}
+
+		/// <summary>
+		/// Gets a unique hash code for this instance.
+		/// </summary>
+		/// <returns>A hash code.</returns>
+		public override int GetHashCode()
+		{
+			//TODO write a good hash code.
+			return Min.GetHashCode() ^ Max.GetHashCode();
 		}
 
 		/// <summary>

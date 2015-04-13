@@ -1,6 +1,8 @@
 // Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
+using System;
+
 using SharpNav.Geometry;
 
 #if MONOGAME
@@ -13,6 +15,13 @@ using Vector3 = SharpDX.Vector3;
 
 namespace SharpNav.Pathfinding
 {
+	[Flags]
+	public enum OffMeshConnectionFlags
+	{
+		None = 0x0,
+		Bidirectional = 0x1
+	}
+
 	/// <summary>
 	/// An offmesh connection links two polygons, which are not directly adjacent, but are accessibly through
 	/// other means (jumping, climbing, etc...).
@@ -42,7 +51,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the polygon flag
 		/// </summary>
-		public int Flags { get; set; }
+		public OffMeshConnectionFlags Flags { get; set; }
 
 		/// <summary>
 		/// Gets or sets the endpoint's side
