@@ -121,13 +121,12 @@ namespace SharpNav.Crowds
 			const int MaxVisited = 16;
 			int[] visited = new int[MaxVisited];
 			List<int> listVisited = new List<int>(MaxVisited);
-			int numVisited = 0;
 			bool status = navquery.MoveAlongSurface(new NavPoint(path[0], pos), npos, ref result, listVisited);
 			visited = listVisited.ToArray();
 
 			if (status == true)
 			{
-				pathCount = MergeCorridorStartMoved(path, pathCount, maxPath, visited, numVisited);
+				pathCount = MergeCorridorStartMoved(path, pathCount, maxPath, visited, listVisited.Count);
 
 				//adjust the position to stay on top of the navmesh
 				float h = pos.Y;
