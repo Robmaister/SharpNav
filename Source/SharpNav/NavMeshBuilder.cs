@@ -275,7 +275,7 @@ namespace SharpNav
 					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
 					navPolys[offMeshPolyBase + n].Verts[0] = offMeshVertsBase + (n * 2 + 0);
 					navPolys[offMeshPolyBase + n].Verts[1] = offMeshVertsBase + (n * 2 + 1);
-					navPolys[offMeshPolyBase + n].Flags = offMeshCons[i].Flags;
+					navPolys[offMeshPolyBase + n].Flags = (int)offMeshCons[i].Flags;
 					navPolys[offMeshPolyBase + n].Area = polyMesh.Polys[offMeshCons[i].Poly].Area; //HACK is this correct?
 					navPolys[offMeshPolyBase + n].PolyType = PolygonType.OffMeshConnection;
 					n++;
