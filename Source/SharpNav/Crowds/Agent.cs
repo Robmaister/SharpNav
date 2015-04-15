@@ -26,7 +26,7 @@ namespace SharpNav.Crowds
 		/// The maximum number of corners a crowd agent will look ahead in the path
 		/// </summary>
 		private const int AgentMaxCorners = 4;
-        public const int AgentMaxNeighbors = 6;
+		public const int AgentMaxNeighbors = 6;
 
 		private bool active;
 		private AgentState state;
@@ -68,7 +68,7 @@ namespace SharpNav.Crowds
 			active = false;
 			corridor = new PathCorridor(maxPath);
 			boundary = new LocalBoundary();
-            neighbors = new CrowdNeighbor[AgentMaxNeighbors];
+			neighbors = new CrowdNeighbor[AgentMaxNeighbors];
 			CornerVerts = new Vector3[AgentMaxCorners];
 			CornerFlags = new int[AgentMaxCorners];
 			CornerPolys = new int[AgentMaxCorners];
@@ -126,9 +126,6 @@ namespace SharpNav.Crowds
 
 			set
 			{
-                //if ((currentPos - value).Length() > 1f)
-                //    currentPos = value;
-
 				currentPos = value;
 			}
 		}

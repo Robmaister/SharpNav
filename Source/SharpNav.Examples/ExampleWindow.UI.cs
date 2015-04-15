@@ -102,37 +102,37 @@ namespace SharpNav.Examples
 			const int leftMax = 125;
 			const int rightMax = 20;
 
-            GroupBox areaSetting = new GroupBox(genBase);
-            areaSetting.Text = "Area";
-            areaSetting.Dock = Pos.Top;
-            areaSetting.Height = 90;
+			GroupBox areaSetting = new GroupBox(genBase);
+			areaSetting.Text = "Area";
+			areaSetting.Dock = Pos.Top;
+			areaSetting.Height = 90;
 
-            var levelTris = level.GetTriangles();
-            BBox3 bounds = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length).GetBoundingBox();
+			var levelTris = level.GetTriangles();
+			BBox3 bounds = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length).GetBoundingBox();
 
-            Base maxTriSlope = CreateSliderOption(areaSetting, "Max Tri Slope:", 0.0001f, 3.14f, 3.14f, "N2", leftMax, rightMax, v => areaSettings.MaxTriSlope = v);
-            Base minLevelHeight = CreateSliderOption(areaSetting, "Min Height:", bounds.Min.Y, bounds.Max.Y, bounds.Min.Y, "N0", leftMax, rightMax, v => areaSettings.MinLevelHeight = v);
-            Base maxLevelHeight = CreateSliderOption(areaSetting, "Max Height:", bounds.Min.Y, bounds.Max.Y, bounds.Max.Y, "N0", leftMax, rightMax, v => areaSettings.MaxLevelHeight = v);
+			Base maxTriSlope = CreateSliderOption(areaSetting, "Max Tri Slope:", 0.0001f, 3.14f, 3.14f, "N2", leftMax, rightMax, v => areaSettings.MaxTriSlope = v);
+			Base minLevelHeight = CreateSliderOption(areaSetting, "Min Height:", bounds.Min.Y, bounds.Max.Y, bounds.Min.Y, "N0", leftMax, rightMax, v => areaSettings.MinLevelHeight = v);
+			Base maxLevelHeight = CreateSliderOption(areaSetting, "Max Height:", bounds.Min.Y, bounds.Max.Y, bounds.Max.Y, "N0", leftMax, rightMax, v => areaSettings.MaxLevelHeight = v);
 
-            GroupBox rsSettings = new GroupBox(genBase);
-            rsSettings.Text = "Rasterization";
-            rsSettings.Dock = Pos.Top;
-            rsSettings.Height = 90;
+			GroupBox rsSettings = new GroupBox(genBase);
+			rsSettings.Text = "Rasterization";
+			rsSettings.Dock = Pos.Top;
+			rsSettings.Height = 90;
 
-            Base cellSizeSetting = CreateSliderOption(rsSettings, "Cell Size:", 0.1f, 2.0f, 0.3f, "N2", leftMax, rightMax, v => settings.CellSize = v);
-            Base cellHeightSetting = CreateSliderOption(rsSettings, "Cell Height:", 0.1f, 2f, 0.2f, "N2", leftMax, rightMax, v => settings.CellHeight = v);
+			Base cellSizeSetting = CreateSliderOption(rsSettings, "Cell Size:", 0.1f, 2.0f, 0.3f, "N2", leftMax, rightMax, v => settings.CellSize = v);
+			Base cellHeightSetting = CreateSliderOption(rsSettings, "Cell Height:", 0.1f, 2f, 0.2f, "N2", leftMax, rightMax, v => settings.CellHeight = v);
 
-            GroupBox agentSettings = new GroupBox(genBase);
-            agentSettings.Text = "Agent";
-            agentSettings.Dock = Pos.Top;
-            agentSettings.Height = 115;
+			GroupBox agentSettings = new GroupBox(genBase);
+			agentSettings.Text = "Agent";
+			agentSettings.Dock = Pos.Top;
+			agentSettings.Height = 115;
 
-            Base maxSlopeSetting = CreateSliderOption(agentSettings, "Max Climb:", 0.1f, 5.0f, 0.9f, "N0", leftMax, rightMax, v => settings.MaxClimb = v);
-            Base maxHeightSetting = CreateSliderOption(agentSettings, "Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.AgentHeight = v);
-            Base erodeRadius = CreateSliderOption(agentSettings, "Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => { settings.AgentRadius = v; agentCylinder.Radius = v; });
-            Base addRemoveAgent = CreateAddRemoveButton(agentSettings, "Count", leftMax, rightMax, 0, MAX_AGENTS, () => { numActiveAgents++; GenerateCrowd(); }, () => { numActiveAgents--; GenerateCrowd(); });
+			Base maxSlopeSetting = CreateSliderOption(agentSettings, "Max Climb:", 0.1f, 5.0f, 0.9f, "N0", leftMax, rightMax, v => settings.MaxClimb = v);
+			Base maxHeightSetting = CreateSliderOption(agentSettings, "Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.AgentHeight = v);
+			Base erodeRadius = CreateSliderOption(agentSettings, "Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => { settings.AgentRadius = v; agentCylinder.Radius = v; });
+			Base addRemoveAgent = CreateAddRemoveButton(agentSettings, "Count", leftMax, rightMax, 0, MAX_AGENTS, () => { numActiveAgents++; GenerateCrowd(); }, () => { numActiveAgents--; GenerateCrowd(); });
 
-            GroupBox regionSettings = new GroupBox(genBase);
+			GroupBox regionSettings = new GroupBox(genBase);
 			regionSettings.Text = "Region";
 			regionSettings.Dock = Pos.Top;
 			regionSettings.Height = 65;
@@ -167,51 +167,51 @@ namespace SharpNav.Examples
 			Console.SetOut(new GwenTextWriter(logBox));
 		}
 
-        private Base CreateAddRemoveButton(Base parent, string labelText, int labelMaxWidth, int valueLabelMaxWidth, int minValue, int maxValue, Action onAdd, Action onRemove)
-        {
-            Base b = new Base(parent);
-            b.Dock = Pos.Top;
-            b.Padding = new Padding(0, 0, 0, 4);
+		private Base CreateAddRemoveButton(Base parent, string labelText, int labelMaxWidth, int valueLabelMaxWidth, int minValue, int maxValue, Action onAdd, Action onRemove)
+		{
+			Base b = new Base(parent);
+			b.Dock = Pos.Top;
+			b.Padding = new Padding(0, 0, 0, 4);
 
-            //Base r = new Base(b);
-            //r.Dock = Pos.Right;
-            //r.Padding = new Padding(0, 0, 0, 0);
+			//Base r = new Base(b);
+			//r.Dock = Pos.Right;
+			//r.Padding = new Padding(0, 0, 0, 0);
 
-            //Base l = new Base(b);
-            //l.Dock = Pos.Left;
-            //l.Padding = new Padding(0, 0, 0, 0);
+			//Base l = new Base(b);
+			//l.Dock = Pos.Left;
+			//l.Padding = new Padding(0, 0, 0, 0);
 
 
-            Label label = new Label(b);
-            label.Text = labelText;
-            label.Dock = Pos.Left;
-            label.Padding = new Padding(0, 0, Math.Max(0, labelMaxWidth - label.Width), 0);
+			Label label = new Label(b);
+			label.Text = labelText;
+			label.Dock = Pos.Left;
+			label.Padding = new Padding(0, 0, Math.Max(0, labelMaxWidth - label.Width), 0);
 
-            Label valueLabel = new Label(b);
-            valueLabel.Dock = Pos.Left;
-            valueLabel.Text = "0";
-            valueLabel.Padding = new Padding(Math.Max(0, valueLabelMaxWidth - valueLabel.Width), 0, 0, 0);
+			Label valueLabel = new Label(b);
+			valueLabel.Dock = Pos.Left;
+			valueLabel.Text = "0";
+			valueLabel.Padding = new Padding(Math.Max(0, valueLabelMaxWidth - valueLabel.Width), 0, 0, 0);
 
-            Button addButton = new Button(b);
-            addButton.Text = "+";
-            addButton.Height = 20;
-            addButton.Width = 20;
-            addButton.Dock = Pos.Right;
-            addButton.Released += (s, e) => onAdd();
-            addButton.Released += (s, e) => valueLabel.Text = Math.Min(maxValue, int.Parse(valueLabel.Text) + 1).ToString();
+			Button addButton = new Button(b);
+			addButton.Text = "+";
+			addButton.Height = 20;
+			addButton.Width = 20;
+			addButton.Dock = Pos.Right;
+			addButton.Released += (s, e) => onAdd();
+			addButton.Released += (s, e) => valueLabel.Text = Math.Min(maxValue, int.Parse(valueLabel.Text) + 1).ToString();
 
-            Button removeButton = new Button(b);
-            removeButton.Text = "-";
-            removeButton.Height = 20;
-            removeButton.Width = 20;
-            removeButton.Dock = Pos.Right;
-            removeButton.Released += (s, e) => onRemove();
-            removeButton.Released += (s, e) => valueLabel.Text = Math.Max(minValue, int.Parse(valueLabel.Text) - 1).ToString();
+			Button removeButton = new Button(b);
+			removeButton.Text = "-";
+			removeButton.Height = 20;
+			removeButton.Width = 20;
+			removeButton.Dock = Pos.Right;
+			removeButton.Released += (s, e) => onRemove();
+			removeButton.Released += (s, e) => valueLabel.Text = Math.Max(minValue, int.Parse(valueLabel.Text) - 1).ToString();
 
-            b.SizeToChildren();
+			b.SizeToChildren();
 
-            return b;
-        }
+			return b;
+		}
 
 		private Base CreateSliderOption(Base parent, string labelText, float min, float max, float value, string valueStringFormat, int labelMaxWidth, int valueLabelMaxWidth, Action<float> onChange)
 		{

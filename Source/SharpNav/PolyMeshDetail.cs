@@ -322,7 +322,7 @@ namespace SharpNav
 			//true if edge is part of polygon
 			float thrSqr = 0.001f * 0.001f;
 
-            for (int i = 0, j = npoly - 1; i < npoly; j = i++)
+			for (int i = 0, j = npoly - 1; i < npoly; j = i++)
 			{
 				Vector3 pt1 = va;
 				Vector3 pt2 = vb;

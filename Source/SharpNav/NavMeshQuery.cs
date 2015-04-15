@@ -934,8 +934,8 @@ namespace SharpNav
 				}
 			}
 
-            if ((endPos - bestPos).Length() > 1f)
-                return false;
+			if ((endPos - bestPos).Length() > 1f)
+				return false;
 
 			if (bestNode != null)
 			{

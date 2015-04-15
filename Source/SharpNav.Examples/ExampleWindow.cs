@@ -159,7 +159,7 @@ namespace SharpNav.Examples
 				isShiftDown = true;
 
 			//TODO make cam speed/shift speedup controllable from GUI
-			float camSpeed = 10f * (float)e.Time * (isShiftDown ? 1f : 3f);
+			float camSpeed = 10f * (float)e.Time * (isShiftDown ? 3f : 1f);
 			float zoomSpeed = (float)Math.PI * (float)e.Time * (isShiftDown ? 0.2f : 0.1f);
 
 			if (k[Key.W])
@@ -199,8 +199,8 @@ namespace SharpNav.Examples
 			GL.LoadMatrix(ref persp);
 			GL.MatrixMode(MatrixMode.Modelview);
 			cam.LoadView();
-            if (crowd != null)
-                crowd.Update((float)e.Time);
+			if (crowd != null)
+				crowd.Update((float)e.Time);
 
 			if (hasGenerated && displayMode == DisplayMode.Crowd)
 			{
@@ -303,35 +303,35 @@ namespace SharpNav.Examples
 			{
 				case DisplayMode.Heightfield: 
 					DrawHeightfield();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.CompactHeightfield:
 					DrawCompactHeightfield();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.DistanceField:
 					DrawDistanceField();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.Regions:
 					DrawRegions();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.Contours:
 					DrawContours();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.PolyMesh:
 					DrawPolyMesh();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.PolyMeshDetail:
 					DrawPolyMeshDetail();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.Pathfinding:
 					DrawPathfinding();
-                    DrawCrowd();
+					DrawCrowd();
 					break;
 				case DisplayMode.Crowd:
 					DrawCrowd();

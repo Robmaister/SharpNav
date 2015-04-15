@@ -546,7 +546,7 @@ namespace SharpNav.Crowds
 						continue;
 
 					//move along navmesh
-                    agents[i].Corridor.MovePosition(agents[i].Position, navQuery);
+					agents[i].Corridor.MovePosition(agents[i].Position, navQuery);
 
 					//get valid constrained position back
 					agents[i].Position = agents[i].Corridor.Pos;
