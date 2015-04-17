@@ -1,17 +1,50 @@
-foreach ($file in Get-ChildItem *.nuspec) {
-	NuGet Pack $file | out-null
+$msbuild = "C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe"
+$slnpath = "../../Source/SharpNav.sln"
+$configs = "Standalone", "OpenTK", "MonoGame", "SharpDX"
+
+""
+"                BUILDING                 "
+"========================================="
+""
+foreach ($config in $configs) {
+	$config
+	"---------------------------"
+	&$msbuild ($slnpath, '/m', '/nologo', '/v:m', '/clp:Summary', ('/p:configuration=' + $config))
+	if (!$?) {
+		write-host "MSBuild exited with an error, aborting." -foregroundcolor "red"
+		pause
+		exit
+	}
+	"---------------------------"
+	""
 }
+""
+"                 PACKING                 "
+"========================================="
+""
+foreach ($file in Get-ChildItem *.nuspec) {
+	$file.Name.TrimEnd($file.Extension)
+	"---------------------------"
+	NuGet Pack $file | % { write-host ("  " + $_) } 
+	"---------------------------"
+	""
+}
+""
 
+""
+"               PUBLISHING                "
+"========================================="
+""
+"Packages ready to publish:"
 $packages = Get-ChildItem *.nupkg
-
-"Packages to publish:"
-$packages | % { write-host ("`t- " + $_.Name) }
+$packages | % { write-host ("  - " + $_.Name) }
+""
 
 $yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes", "Publish"
 $no = New-Object System.Management.Automation.Host.ChoiceDescription "&No", "Don't Publish"
 $options = [System.Management.Automation.Host.ChoiceDescription[]]($no, $yes)
  
-$result = $host.ui.PromptForChoice("Upload packages", "Are you sure you want to publish these packages?", $options, 0)
+$result = $host.ui.PromptForChoice("", "Are you sure you want to publish these packages?", $options, 0)
 
 if ($result -eq 0) {
 	"Upload aborted, nothing published."
@@ -21,3 +54,7 @@ elseif ($result -eq 1) {
 		NuGet Push $package
 	}
 }
+
+""
+"Done."
+""
