@@ -136,8 +136,8 @@ namespace SharpNav
 			if ((RegionFlags)((int)flags & ~MaskId) != flags)
 				throw new ArgumentException("flags", "The provide region flags are invalid.");
 
-			RegionFlags newFlags = region.Flags & flags;
-			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
+			RegionFlags newFlags = region.Flags | flags;
+			return RegionId.FromRawBits((region.bits & MaskId) | (int)newFlags);
 		}
 
 		/// <summary>
@@ -162,7 +162,7 @@ namespace SharpNav
 				throw new ArgumentException("flags", "The provide region flags are invalid.");
 
 			RegionFlags newFlags = region.Flags & ~flags;
-			return RegionId.FromRawBits((region.bits & RegionId.MaskId) | (int)newFlags);
+			return RegionId.FromRawBits((region.bits & MaskId) | (int)newFlags);
 		}
 
 		/// <summary>

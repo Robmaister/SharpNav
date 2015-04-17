@@ -31,7 +31,7 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// The maximum number of neighbors that a crowd agent can take into account for steering decisions
 		/// </summary>
-		private const int AgentMaxNeighbours = 6;
+		private const int AgentMaxNeighbours = Agent.AgentMaxNeighbors;
 
 		/// <summary>
 		/// The maximum number of corners a crowd agent will look ahead in the path
@@ -1277,7 +1277,7 @@ namespace SharpNav.Crowds
 
 	public struct AgentAnimation
 	{
-		public bool Active;
+		public bool Active {get; set;}
 		public Vector3 InitPos, StartPos, EndPos;
 		public int PolyRef;
 		public float T, TMax;

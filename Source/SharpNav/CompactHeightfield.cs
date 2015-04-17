@@ -99,11 +99,11 @@ namespace SharpNav
 			}
 
 			//set neighbor connections
-			for (int y = 0; y < length; y++)
+			for (int z = 0; z < length; z++)
 			{
 				for (int x = 0; x < width; x++)
 				{
-					CompactCell c = cells[y * width + x];
+					CompactCell c = cells[z * width + x];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						CompactSpan s = spans[i];
@@ -111,12 +111,12 @@ namespace SharpNav
 						for (var dir = Direction.West; dir <= Direction.South; dir++)
 						{
 							int dx = x + dir.GetHorizontalOffset();
-							int dy = y + dir.GetVerticalOffset();
+							int dz = z + dir.GetVerticalOffset();
 
-							if (dx < 0 || dy < 0 || dx >= width || dy >= length)
+							if (dx < 0 || dz < 0 || dx >= width || dz >= length)
 								continue;
 
-							CompactCell dc = cells[dy * width + dx];
+							CompactCell dc = cells[dz * width + dx];
 							for (int j = dc.StartIndex, cellEnd = dc.StartIndex + dc.Count; j < cellEnd; j++)
 							{
 								CompactSpan ds = spans[j];
@@ -1401,7 +1401,7 @@ namespace SharpNav
 			}
 
 			int contourSetWidth = width - borderSize * 2;
-			int contourSetHeight = height - borderSize * 2;
+			int contourSetLength = length - borderSize * 2;
 
 			int maxContours = Math.Max(maxRegions, 8);
 			var contours = new List<Contour>(maxContours);
@@ -1410,12 +1410,12 @@ namespace SharpNav
 
 			//Modify flags array by using the CompactHeightfield data
 			//mark boundaries
-			for (int y = 0; y < length; y++)
+			for (int z = 0; z < length; z++)
 			{
 				for (int x = 0; x < width; x++)
 				{
 					//loop through all the spans in the cell
-					CompactCell c = cells[x + y * width];
+					CompactCell c = cells[x + z * width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						CompactSpan s = spans[i];
@@ -1435,8 +1435,8 @@ namespace SharpNav
 							if (s.IsConnected(dir))
 							{
 								int dx = x + dir.GetHorizontalOffset();
-								int dy = y + dir.GetVerticalOffset();
-								int di = cells[dx + dy * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
+								int dz = z + dir.GetVerticalOffset();
+								int di = cells[dx + dz * width].StartIndex + CompactSpan.GetConnection(ref s, dir);
 								r = spans[di].Region;
 							}
 
@@ -1458,11 +1458,11 @@ namespace SharpNav
 			var verts = new List<ContourVertex>();
 			var simplified = new List<ContourVertex>();
 
-			for (int y = 0; y < length; y++)
+			for (int z = 0; z < length; z++)
 			{
 				for (int x = 0; x < width; x++)
 				{
-					CompactCell c = cells[x + y * width];
+					CompactCell c = cells[x + z * width];
 					for (int i = c.StartIndex, end = c.StartIndex + c.Count; i < end; i++)
 					{
 						//flags is either 0000 or 1111
@@ -1474,7 +1474,7 @@ namespace SharpNav
 							continue;
 						}
 
-						var spanRef = new CompactSpanReference(x, y, i);
+						var spanRef = new CompactSpanReference(x, z, i);
 						RegionId reg = this[spanRef].Region;
 						if (reg.IsNull || RegionId.HasFlags(reg, RegionFlags.Border))
 							continue;
@@ -1529,7 +1529,7 @@ namespace SharpNav
 				}
 			}
 
-			return new ContourSet(contours, contourSetBounds, contourSetWidth, contourSetHeight);
+			return new ContourSet(contours, contourSetBounds, contourSetWidth, contourSetLength);
 		}
 
 		/// <summary>

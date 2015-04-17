@@ -26,7 +26,7 @@ namespace SharpNav.Crowds
 		private const int MaxQueue = 8;
 
 		private PathQuery[] queue; //size = MAX_QUEUE
-		private int nextHandle;
+		private int nextHandle = 1;
 		private int maxPathSize;
 		private int queueHead;
 		private NavMeshQuery navquery;
