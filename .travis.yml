@@ -14,7 +14,7 @@ env:
    - XBUILD_TARGET=MonoGame
 
 install:
- - travis_retry nuget restore Build/CI/$XBUILD_TARGET.packages.config -PackagesDirectory Source/packages/
+ - travis_retry nuget restore Build/CI/$XBUILD_TARGET/packages.config -SolutionDirectory Source/
  - travis_retry nuget install NUnit.Runners -OutputDirectory test -ExcludeVersion
 script:
  - xbuild /t:$XBUILD_TARGET /verbosity:minimal ./Build/CoreOnly.proj

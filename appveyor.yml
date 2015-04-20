@@ -11,7 +11,7 @@ configuration:
   - MonoGame
   
 before_build:
-  - nuget restore Build/CI/%CONFIGURATION%.packages.config -PackagesDirectory Source/packages
+  - nuget restore Build/CI/%CONFIGURATION%/packages.config -SolutionDirectory Source/
   
 build_script:
   - cmd: msbuild "Build/CoreOnly.proj" /t:%CONFIGURATION% /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
