@@ -3,15 +3,15 @@ version: 1.0.0-alpha.1+appveyor.{build}
 branches:
   only:
     - master
-    
-before_build:
-  - nuget restore Source/SharpNav.sln
   
 configuration:
   - Standalone
   - OpenTK
   - SharpDX
   - MonoGame
+  
+before_build:
+  - nuget restore Build/CI/%CONFIGURATION%.packages.config -SolutionDirectory Source/
   
 build_script:
   - cmd: msbuild "Build/CoreOnly.proj" /t:%CONFIGURATION% /verbosity:normal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
