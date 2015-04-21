@@ -9,6 +9,9 @@ using Gwen.Control;
 using SharpNav;
 using SharpNav.Geometry;
 
+//Doesn't compile if in an unsupported configuration
+#if STANDALONE || OPENTK
+
 namespace SharpNav.Examples
 {
 	public partial class ExampleWindow
@@ -259,3 +262,5 @@ namespace SharpNav.Examples
 		}
 	}
 }
+
+#endif

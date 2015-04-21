@@ -12,6 +12,9 @@ using SharpNav.Geometry;
 using OpenTK;
 #endif
 
+//Doesn't compile if in an unsupported configuration
+#if STANDALONE || OPENTK
+
 namespace SharpNav.Examples
 {
 	/// <summary>
@@ -163,3 +166,5 @@ namespace SharpNav.Examples
 		}
 	}
 }
+
+#endif

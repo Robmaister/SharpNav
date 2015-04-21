@@ -23,12 +23,15 @@ using SharpNav.Pathfinding;
 using Key = OpenTK.Input.Key;
 
 //Prevents name collision under the Standalone configuration
-#if !OPENTK
+#if STANDALONE
 using Vector3 = OpenTK.Vector3;
 using SVector3 = SharpNav.Geometry.Vector3;
-#else
+#elif OPENTK
 using SVector3 = OpenTK.Vector3;
 #endif
+
+//Doesn't compile if in an unsupported configuration
+#if STANDALONE || OPENTK
 
 namespace SharpNav.Examples
 {
@@ -783,3 +786,5 @@ namespace SharpNav.Examples
 		}
 	}
 }
+
+#endif

@@ -1,10 +1,15 @@
-// Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013, 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 
+#if OPENTK
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+#endif
+
+//Doesn't compile if in an unsupported configuration
+#if STANDALONE || OPENTK
 
 namespace SharpNav.Examples
 {
@@ -299,3 +304,5 @@ namespace SharpNav.Examples
 		#endregion
 	}
 }
+
+#endif
