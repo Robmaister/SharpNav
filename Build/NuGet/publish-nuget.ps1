@@ -1,5 +1,5 @@
 $msbuild = "C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe"
-$slnpath = "../../Source/SharpNav.sln"
+$buildfile = "../CoreOnly.proj"
 $configs = "Standalone", "OpenTK", "MonoGame", "SharpDX"
 
 ""
@@ -9,10 +9,9 @@ $configs = "Standalone", "OpenTK", "MonoGame", "SharpDX"
 foreach ($config in $configs) {
 	$config
 	"---------------------------"
-	&$msbuild ($slnpath, '/m', '/nologo', '/v:m', '/clp:Summary', ('/p:configuration=' + $config))
+	&$msbuild ($buildfile, '/m', '/nologo', '/v:m', '/clp:Summary', ('/p:configuration=' + $config))
 	if (!$?) {
 		write-host "MSBuild exited with an error, aborting." -foregroundcolor "red"
-		pause
 		exit
 	}
 	"---------------------------"
@@ -25,7 +24,7 @@ foreach ($config in $configs) {
 foreach ($file in Get-ChildItem *.nuspec) {
 	$file.Name.TrimEnd($file.Extension)
 	"---------------------------"
-	NuGet Pack $file | % { write-host ("  " + $_) } 
+	NuGet Pack $file
 	"---------------------------"
 	""
 }
