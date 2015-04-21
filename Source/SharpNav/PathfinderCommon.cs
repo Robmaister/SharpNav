@@ -23,9 +23,6 @@ namespace SharpNav
 	{
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
 
-		public const int EXT_LINK = unchecked((int)0x80000000); //entity links to external entity
-		public const int NULL_LINK = unchecked((int)0xffffffff); //doesn't link to anything
-
 		public const int STRAIGHTPATH_START = 0x01; //vertex is in start position of path
 		public const int STRAIGHTPATH_END = 0x02; //vertex is in end position of path
 		public const int STRAIGHTPATH_OFFMESH_CONNECTION = 0x04; //vertex is at start of an off-mesh connection

@@ -9,6 +9,16 @@ namespace SharpNav.Pathfinding
 	public class Link
 	{
 		/// <summary>
+		/// Entity links to external entity.
+		/// </summary>
+		public const int External = unchecked((int)0x80000000);
+
+		/// <summary>
+		/// Doesn't link to anything.
+		/// </summary>
+		public const int Null = unchecked((int)0xffffffff);
+
+		/// <summary>
 		/// Gets or sets the neighbor reference (the one it's linked to)
 		/// </summary>
 		public int Reference { get; set; }

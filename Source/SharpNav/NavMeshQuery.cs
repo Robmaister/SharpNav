@@ -314,7 +314,7 @@ namespace SharpNav
 				if (parentRef != 0)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
-				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
+				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
 					Link link = bestTile.Links[i];
 					int neighbourRef = link.Reference;
@@ -467,7 +467,7 @@ namespace SharpNav
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				//examine neighbors
-				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
+				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
 					int neighbourRef = bestTile.Links[i].Reference;
 
@@ -864,10 +864,10 @@ namespace SharpNav
 					//find links to neighbors
 					List<int> neis = new List<int>(8);
 
-					if ((curPoly.Neis[j] & PathfinderCommon.EXT_LINK) != 0)
+					if ((curPoly.Neis[j] & Link.External) != 0)
 					{
 						//tile border
-						for (int k = curPoly.FirstLink; k != PathfinderCommon.NULL_LINK; k = curTile.Links[k].Next)
+						for (int k = curPoly.FirstLink; k != Link.Null; k = curTile.Links[k].Next)
 						{
 							Link link = curTile.Links[k];
 							if (link.Edge == j)
@@ -1073,7 +1073,7 @@ namespace SharpNav
 					}
 				}
 
-				for (int i = bestPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = bestTile.Links[i].Next)
+				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
 					int neighbourRef = bestTile.Links[i].Reference;
 
@@ -1366,7 +1366,7 @@ namespace SharpNav
 				//follow neighbours
 				int nextRef = 0;
 
-				for (int i = poly.FirstLink; i != PathfinderCommon.NULL_LINK; i = tile.Links[i].Next)
+				for (int i = poly.FirstLink; i != Link.Null; i = tile.Links[i].Next)
 				{
 					Link link = tile.Links[i];
 
@@ -1538,7 +1538,7 @@ namespace SharpNav
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
 
-				for (int i = curPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = curTile.Links[i].Next)
+				for (int i = curPoly.FirstLink; i != Link.Null; i = curTile.Links[i].Next)
 				{
 					Link link = curTile.Links[i];
 					int neighbourRef = link.Reference;
@@ -1595,7 +1595,7 @@ namespace SharpNav
 
 						//connected polys do not overlap
 						bool connected = false;
-						for (int k = curPoly.FirstLink; k != PathfinderCommon.NULL_LINK; k = curTile.Links[k].Next)
+						for (int k = curPoly.FirstLink; k != Link.Null; k = curTile.Links[k].Next)
 						{
 							if (curTile.Links[k].Reference == pastRef)
 							{
@@ -1676,10 +1676,10 @@ namespace SharpNav
 			{
 				//skip non-solid edges
 				nints = 0;
-				if ((poly.Neis[j] & PathfinderCommon.EXT_LINK) != 0)
+				if ((poly.Neis[j] & Link.External) != 0)
 				{
 					//tile border
-					for (int k = poly.FirstLink; k != PathfinderCommon.NULL_LINK; k = tile.Links[k].Next)
+					for (int k = poly.FirstLink; k != Link.Null; k = tile.Links[k].Next)
 					{
 						Link link = tile.Links[k];
 						if (link.Edge == j)
@@ -1870,7 +1870,7 @@ namespace SharpNav
 		{
 			//find the link that points to the 'to' polygon
 			Link link = null;
-			for (int i = fromPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.Links[i].Next)
+			for (int i = fromPoly.FirstLink; i != Link.Null; i = fromTile.Links[i].Next)
 			{
 				if (fromTile.Links[i].Reference == to)
 				{
@@ -1886,7 +1886,7 @@ namespace SharpNav
 			if (fromPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = fromPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = fromTile.Links[i].Next)
+				for (int i = fromPoly.FirstLink; i != Link.Null; i = fromTile.Links[i].Next)
 				{
 					if (fromTile.Links[i].Reference == to)
 					{
@@ -1903,7 +1903,7 @@ namespace SharpNav
 			if (toPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = toPoly.FirstLink; i != PathfinderCommon.NULL_LINK; i = toTile.Links[i].Next)
+				for (int i = toPoly.FirstLink; i != Link.Null; i = toTile.Links[i].Next)
 				{
 					if (toTile.Links[i].Reference == from)
 					{

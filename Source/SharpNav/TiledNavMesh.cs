@@ -229,7 +229,7 @@ namespace SharpNav
 			for (int i = 0; i < header.MaxLinkCount; i++)
 				tile.Links[i] = new Link();
 
-			tile.Links[header.MaxLinkCount - 1].Next = PathfinderCommon.NULL_LINK;
+			tile.Links[header.MaxLinkCount - 1].Next = Link.Null;
 			for (int i = 0; i < header.MaxLinkCount - 1; i++)
 				tile.Links[i].Next = i + 1;
 
@@ -289,7 +289,7 @@ namespace SharpNav
 			for (int i = 0; i < tile.Header.PolyCount; i++)
 			{
 				//The polygon links will end in a null link
-				tile.Polys[i].FirstLink = PathfinderCommon.NULL_LINK;
+				tile.Polys[i].FirstLink = Link.Null;
 
 				//Avoid Off-Mesh Connection polygons
 				if (tile.Polys[i].PolyType == PolygonType.OffMeshConnection)
@@ -408,7 +408,7 @@ namespace SharpNav
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip non-portal edges
-					if ((tile.Polys[i].Neis[j] & PathfinderCommon.EXT_LINK) == 0)
+					if ((tile.Polys[i].Neis[j] & Link.External) == 0)
 						continue;
 
 					int dir = tile.Polys[i].Neis[j] & 0xff;
@@ -594,7 +594,7 @@ namespace SharpNav
 			int idx0 = 0, idx1 = 1;
 
 			//find the link that points to the first vertex
-			for (int i = poly.FirstLink; i != PathfinderCommon.NULL_LINK; i = tile.Links[i].Next)
+			for (int i = poly.FirstLink; i != Link.Null; i = tile.Links[i].Next)
 			{
 				if (tile.Links[i].Edge == 0)
 				{
@@ -648,7 +648,7 @@ namespace SharpNav
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip edges which do not point to the right side
-					if (tile.Polys[i].Neis[j] != (PathfinderCommon.EXT_LINK | side))
+					if (tile.Polys[i].Neis[j] != (Link.External | side))
 						continue;
 
 					//Grab two adjacent vertices
@@ -934,7 +934,7 @@ namespace SharpNav
 		public int AllocLink(MeshTile tile)
 		{
 			if (!IsLinkAllocated(tile.LinksFreeList))
-				return PathfinderCommon.NULL_LINK;
+				return Link.Null;
 
 			int link = tile.LinksFreeList;
 			tile.LinksFreeList = tile.Links[link].Next;
@@ -1109,7 +1109,7 @@ namespace SharpNav
 		/// <returns>True if allocated, false if not</returns>
 		public bool IsLinkAllocated(int index)
 		{
-			return index != PathfinderCommon.NULL_LINK;
+			return index != Link.Null;
 		}
 
 		/// <summary>
@@ -1119,7 +1119,7 @@ namespace SharpNav
 		/// <returns>True if externally linked, false if not</returns>
 		public bool IsExternalLink(int neighbor)
 		{
-			return (neighbor & PathfinderCommon.EXT_LINK) != 0;
+			return (neighbor & Link.External) != 0;
 		}
 		
 		/// <summary>

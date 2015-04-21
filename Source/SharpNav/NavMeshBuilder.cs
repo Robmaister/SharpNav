@@ -246,13 +246,13 @@ namespace SharpNav
 						if (dir == 0xf) //border
 							navPolys[i].Neis[j] = 0;
 						else if (dir == 0) //portal x-
-							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 4;
+							navPolys[i].Neis[j] = Link.External | 4;
 						else if (dir == 1) //portal z+
-							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 2;
+							navPolys[i].Neis[j] = Link.External | 2;
 						else if (dir == 2) //portal x+
-							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 0;
+							navPolys[i].Neis[j] = Link.External | 0;
 						else if (dir == 3) //portal z-
-							navPolys[i].Neis[j] = PathfinderCommon.EXT_LINK | 6;
+							navPolys[i].Neis[j] = Link.External | 6;
 					}
 					else
 					{
