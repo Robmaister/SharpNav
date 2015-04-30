@@ -45,11 +45,8 @@
 			this.resetAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-<<<<<<< HEAD
 			this.textBox1 = new System.Windows.Forms.TextBox();
-=======
 			this.generateButton = new System.Windows.Forms.Button();
->>>>>>> 8eaa188f6afe4d917cc36d79961561a0a929aa6d
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -183,7 +180,6 @@
 			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
 			this.aboutToolStripMenuItem.Text = "About...";
 			// 
-<<<<<<< HEAD
 			// textBox1
 			// 
 			this.textBox1.Location = new System.Drawing.Point(246, 60);
@@ -191,7 +187,6 @@
 			this.textBox1.Name = "textBox1";
 			this.textBox1.Size = new System.Drawing.Size(255, 415);
 			this.textBox1.TabIndex = 2;
-=======
 			// generateButton
 			// 
 			this.generateButton.Dock = System.Windows.Forms.DockStyle.Bottom;
@@ -201,19 +196,15 @@
 			this.generateButton.TabIndex = 2;
 			this.generateButton.Text = "Generate";
 			this.generateButton.UseVisualStyleBackColor = true;
->>>>>>> 8eaa188f6afe4d917cc36d79961561a0a929aa6d
 			// 
 			// ConfigurationForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-<<<<<<< HEAD
 			this.ClientSize = new System.Drawing.Size(513, 569);
 			this.Controls.Add(this.textBox1);
-=======
 			this.ClientSize = new System.Drawing.Size(311, 435);
 			this.Controls.Add(this.generateButton);
->>>>>>> 8eaa188f6afe4d917cc36d79961561a0a929aa6d
 			this.Controls.Add(this.propertyGrid1);
 			this.Controls.Add(this.menuStrip1);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -245,10 +236,7 @@
 		private System.Windows.Forms.ToolStripMenuItem resetAllToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-<<<<<<< HEAD
 		private System.Windows.Forms.TextBox textBox1;
-=======
 		private System.Windows.Forms.Button generateButton;
->>>>>>> 8eaa188f6afe4d917cc36d79961561a0a929aa6d
 	}
 }
