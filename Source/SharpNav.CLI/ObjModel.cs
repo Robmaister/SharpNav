@@ -1,17 +1,30 @@
+<<<<<<< HEAD
 // Copyright (c) 2013, 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+=======
+// Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+<<<<<<< HEAD
 
+=======
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using SharpNav;
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 using SharpNav.Geometry;
 
 #if OPENTK
 using OpenTK;
 #endif
 
+<<<<<<< HEAD
 //Doesn't compile if in an unsupported configuration
 //#if STANDALONE || OPENTK
 
@@ -20,6 +33,10 @@ namespace SharpNav.CLI
 	/// <summary>
 	/// Parses a model in .obj format.
 	/// </summary>
+=======
+namespace SharpNav.CLI
+{
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 	public class ObjModel
 	{
 		private static readonly char[] lineSplitChars = { ' ' };
@@ -27,10 +44,15 @@ namespace SharpNav.CLI
 		private List<Triangle3> tris;
 		private List<Vector3> norms;
 
+<<<<<<< HEAD
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ObjModel"/> class.
 		/// </summary>
 		/// <param name="path">The path of the .obj file to parse.</param>
+=======
+		private Vector3 bboxOffset;
+
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 		public ObjModel(string path)
 		{
 			tris = new List<Triangle3>();
@@ -133,24 +155,77 @@ namespace SharpNav.CLI
 			}
 		}
 
+<<<<<<< HEAD
 		/// <summary>
 		/// Gets an array of the triangles in this model.
 		/// </summary>
 		/// <returns></returns>
+=======
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 		public Triangle3[] GetTriangles()
 		{
 			return tris.ToArray();
 		}
 
+<<<<<<< HEAD
 		/// <summary>
 		/// Gets an array of the normals in this model.
 		/// </summary>
 		/// <returns></returns>
+=======
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 		public Vector3[] GetNormals()
 		{
 			return norms.ToArray();
 		}
 
+<<<<<<< HEAD
+=======
+		public void SetBoundingBoxOffset(Vector3 offset)
+		{
+			bboxOffset = offset;
+		}
+
+		/*public BBox3 GetBounds()
+		{
+			Vector3 min = Vector3.Zero, max = Vector3.Zero;
+			foreach (Triangle3 t in tris)
+			{
+				VecMin(ref min, t.A);
+				VecMin(ref min, t.B);
+				VecMin(ref min, t.C);
+				VecMax(ref max, t.A);
+				VecMax(ref max, t.B);
+				VecMax(ref max, t.C);
+			}
+
+			min -= bboxOffset;
+			max += bboxOffset;
+
+			return new BBox3(min, max);
+		}
+
+		private void VecMin(ref Vector3 min, Vector3 v)
+		{
+			if (v.X < min.X)
+				min.X = v.X;
+			if (v.Y < min.Y)
+				min.Y = v.Y;
+			if (v.Z < min.Z)
+				min.Z = v.Z;
+		}
+
+		private void VecMax(ref Vector3 max, Vector3 v)
+		{
+			if (v.X > max.X)
+				max.X = v.X;
+			if (v.Y > max.Y)
+				max.Y = v.Y;
+			if (v.Z > max.Z)
+				max.Z = v.Z;
+		}*/
+
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 		private bool TryParseVec(string[] values, int x, int y, int z, out Vector3 v)
 		{
 			v = Vector3.Zero;
@@ -166,5 +241,8 @@ namespace SharpNav.CLI
 		}
 	}
 }
+<<<<<<< HEAD
 
 //#endif
+=======
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21

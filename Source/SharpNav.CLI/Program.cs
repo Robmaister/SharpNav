@@ -65,7 +65,11 @@ namespace SharpNav.CLI
 				Console.WriteLine(f);
 				var input = new StreamReader(f);
 
+<<<<<<< HEAD
 				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention());
+=======
+				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention()/*,ignoreUnmatched: true*/);
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 
 				var setting = deserializer.Deserialize<Setting>(input);
 
@@ -85,6 +89,12 @@ namespace SharpNav.CLI
 				Console.WriteLine("verts-per-poly: {0}", setting.Config.VertsPerPoly);
 				Console.WriteLine("sample-distance: {0}", setting.Config.SampleDistance);
 				Console.WriteLine("max-sample-error: {0}", setting.Config.MaxSampleError);
+<<<<<<< HEAD
+=======
+				
+				//foreach(var conf in setting.Config)
+				//Console.WriteLine(conf);
+>>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 
 				List<string> meshes = new List<string>();
 				List<ObjModel> models = new List<ObjModel>();
