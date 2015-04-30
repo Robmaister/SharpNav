@@ -249,9 +249,6 @@
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 		private System.Windows.Forms.TextBox textBox1;
-<<<<<<< HEAD
 		private System.Windows.Forms.Button generateButton;
-=======
->>>>>>> b823b5591cae9f08e70dee21b1d92fe710755b21
 	}
 }
