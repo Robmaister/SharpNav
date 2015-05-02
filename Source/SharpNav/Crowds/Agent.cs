@@ -18,7 +18,7 @@ namespace SharpNav.Crowds
 	/// <summary>
 	/// A crowd agent is a unit that moves across the navigation mesh
 	/// </summary>
-	public class Agent
+	public class Agent : IEquatable<Agent>
 	{
 		#region Fields
 
@@ -332,6 +332,37 @@ namespace SharpNav.Crowds
 		public void UpdateAgentParameters(AgentParams parameters)
 		{
 			this.Parameters = parameters;
+		}
+
+		public static bool operator ==(Agent left, Agent right)
+		{
+			return left.Equals(right);
+		}
+
+		public static bool operator !=(Agent left, Agent right)
+		{
+			return !(left == right);
+		}
+
+		public bool Equals(Agent other)
+		{
+			//TODO find a way to actually compare for equality.
+			return object.ReferenceEquals(this, other);
+		}
+
+		public override bool Equals(object obj)
+		{
+			var other = obj as Agent;
+			if (other != null)
+				return this.Equals(other);
+
+			return false;
+		}
+
+		public override string ToString()
+		{
+			//TODO write an actual ToString.
+			return base.ToString();
 		}
 
 		#endregion

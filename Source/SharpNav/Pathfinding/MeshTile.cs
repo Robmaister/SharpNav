@@ -87,7 +87,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Given a point, find the closest point on that poly.
 		/// </summary>
-		/// <param name="tile">The current tile.</param>
 		/// <param name="poly">The current polygon.</param>
 		/// <param name="pos">The current position</param>
 		/// <param name="closest">Reference to the closest point</param>
@@ -109,7 +108,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Given a point, find the closest point on that poly.
 		/// </summary>
-		/// <param name="tile">The current tile</param>
 		/// <param name="indexPoly">The current poly's index</param>
 		/// <param name="pos">The current position</param>
 		/// <param name="closest">Reference to the closest point</param>
@@ -134,7 +132,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Given a point, find the closest point on that poly.
 		/// </summary>
-		/// <param name="tile">The current tile.</param>
 		/// <param name="poly">The current polygon.</param>
 		/// <param name="pos">The current position</param>
 		/// <param name="closest">Reference to the closest point</param>
@@ -178,7 +175,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Find the distance from a point to a triangle.
 		/// </summary>
-		/// <param name="tile">Current mesh tile</param>
 		/// <param name="indexPoly">Current polygon's index</param>
 		/// <param name="pos">Current position</param>
 		/// <param name="h">Resulting height</param>
@@ -213,7 +209,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Find the closest point on an offmesh connection, which is in between the two points.
 		/// </summary>
-		/// <param name="tile">Current mesh tile.</param>
 		/// <param name="poly">Current polygon</param>
 		/// <param name="pos">Current position</param>
 		/// <param name="closest">Resulting point that is closest.</param>

@@ -50,7 +50,7 @@ namespace SharpNav.Crowds
 		private ObstacleAvoidanceQuery.ObstacleAvoidanceParams[] obstacleQueryParams;
 		private ObstacleAvoidanceQuery obstacleQuery;
 
-		private ProximityGrid grid;
+		private ProximityGrid<Agent> grid;
 
 		private int[] pathResult;
 		private int maxPathResult;
@@ -77,7 +77,7 @@ namespace SharpNav.Crowds
 			this.ext = new Vector3(maxAgentRadius * 2.0f, maxAgentRadius * 1.5f, maxAgentRadius * 2.0f);
 
 			//initialize proximity grid
-			this.grid = new ProximityGrid(maxAgents * 4, maxAgentRadius * 3);
+			this.grid = new ProximityGrid<Agent>(maxAgents * 4, maxAgentRadius * 3);
 
 			//allocate obstacle avoidance query
 			this.obstacleQuery = new ObstacleAvoidanceQuery(6, 8);
@@ -260,9 +260,11 @@ namespace SharpNav.Crowds
 			grid.Clear();
 			for (int i = 0; i < numAgents; i++)
 			{
-				Vector3 p = agents[i].Position;
-				float r = agents[i].Parameters.Radius;
-				grid.AddItem(i, p.X - r, p.Z - r, p.X + r, p.Z + r);
+				Agent a = agents[i];
+
+				Vector3 p = a.Position;
+				float r = a.Parameters.Radius;
+				grid.AddItem(a, p.X - r, p.Z - r, p.X + r, p.Z + r);
 			}
 
 			//get nearby navmesh segments and agents to collide with
@@ -1071,17 +1073,17 @@ namespace SharpNav.Crowds
 		/// <param name="agents">Array of all crowd agents</param>
 		/// <param name="grid">The ProximityGrid</param>
 		/// <returns>The number of neighbors</returns>
-		public int GetNeighbours(Vector3 pos, float height, float range, Agent skip, CrowdNeighbor[] result, int maxResult, Agent[] agents, ProximityGrid grid)
+		public int GetNeighbours(Vector3 pos, float height, float range, Agent skip, CrowdNeighbor[] result, int maxResult, Agent[] agents, ProximityGrid<Agent> grid)
 		{
 			int n = 0;
 
 			const int MAX_NEIS = 32;
-			int[] ids = new int[MAX_NEIS];
+			Agent[] ids = new Agent[MAX_NEIS];
 			int nids = grid.QueryItems(pos.X - range, pos.Z - range, pos.X + range, pos.Z + range, ids, MAX_NEIS);
 
 			for (int i = 0; i < nids; i++)
 			{
-				Agent ag = agents[ids[i]];
+				Agent ag = ids[i];
 
 				if (ag == skip)
 					continue;
@@ -1110,7 +1112,7 @@ namespace SharpNav.Crowds
 		/// <param name="nneis">The number of neighbors</param>
 		/// <param name="maxNeis">The maximum number of neighbors allowed</param>
 		/// <returns>An updated neighbor count</returns>
-		public int AddNeighbour(int idx, float dist, CrowdNeighbor[] neis, int nneis, int maxNeis)
+		public int AddNeighbour(Agent agent, float dist, CrowdNeighbor[] neis, int nneis, int maxNeis)
 		{
 			//insert neighbour based on distance
 			int neiPos = 0;
@@ -1143,9 +1145,21 @@ namespace SharpNav.Crowds
 				neiPos = i;
 			}
 
-			neis[neiPos] = new CrowdNeighbor();
-			neis[neiPos].Index = idx;
-			neis[neiPos].Distance = dist;
+			//TODO rework Crowd so that Agents are passed around instead of indices
+			int index;
+			for (index = 0; index < agents.Length; index++)
+			{
+				if (agent.Equals(agents[index]))
+					break;
+			}
+
+			if (index == agents.Length)
+				throw new IndexOutOfRangeException("Agent not in crowd.");
+
+			var neighbor = new CrowdNeighbor();
+			neighbor.Index = index;
+			neighbor.Distance = dist;
+			neis[neiPos] = neighbor;
 
 			return Math.Min(nneis + 1, maxNeis);
 		}
