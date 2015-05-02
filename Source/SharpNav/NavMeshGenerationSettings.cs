@@ -14,7 +14,7 @@ namespace SharpNav
 		/// Prevents a default instance of the <see cref="NavMeshGenerationSettings"/> class from being created.
 		/// Use <see cref="Default"/> instead.
 		/// </summary>
-		private NavMeshGenerationSettings()
+		public NavMeshGenerationSettings()
 		{
 		}
 
