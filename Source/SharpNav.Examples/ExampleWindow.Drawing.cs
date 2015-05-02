@@ -898,6 +898,9 @@ namespace SharpNav.Examples
 
 		private void DrawCrowd()
 		{
+			if (crowd == null)
+				return;
+
 			GL.PushMatrix();
 
 			//The black line represents the actual path that the agent takes

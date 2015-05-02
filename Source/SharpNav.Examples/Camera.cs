@@ -3,9 +3,19 @@
 
 using System;
 
-#if OPENTK
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+
+using SharpNav.Geometry;
+
+#if STANDALONE
+using Vector3 = OpenTK.Vector3;
+using Vector2 = OpenTK.Vector2;
+using SVector3 = SharpNav.Geometry.Vector3;
+using SVector2 = SharpNav.Geometry.Vector2;
+#elif OPENTK
+//using Vector2 = OpenTK.Vector2;
+//using Vector3 = OpenTK.Vector3;
 #endif
 
 //Doesn't compile if in an unsupported configuration

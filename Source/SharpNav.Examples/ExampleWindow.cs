@@ -513,6 +513,9 @@ namespace SharpNav.Examples
 
 		private void GeneratePathfinding()
 		{
+			if (!hasGenerated)
+				return;
+
 			Random rand = new Random();
 
 			buildData = new NavMeshBuilder(polyMesh, polyMeshDetail, new SharpNav.Pathfinding.OffMeshConnection[0], settings);
@@ -710,6 +713,9 @@ namespace SharpNav.Examples
 
 		private void GenerateCrowd()
 		{
+			if (!hasGenerated)
+				return;
+
 			Random rand = new Random();
 			crowd = new Crowd(MAX_AGENTS, 0.6f, ref tiledNavMesh);
 	
