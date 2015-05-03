@@ -157,7 +157,7 @@ namespace SharpNav.Crowds
 		/// <param name="navquery">The NavMeshQuery</param>
 		public void Update(int reference, Vector3 pos, float collisionQueryRange, NavMeshQuery navquery)
 		{
-			const int MAX_SEGS_PER_POLY = PathfinderCommon.VERTS_PER_POLYGON;
+			const int MAX_SEGS_PER_POLY = PathfindingCommon.VERTS_PER_POLYGON;
 
 			if (reference == 0)
 			{

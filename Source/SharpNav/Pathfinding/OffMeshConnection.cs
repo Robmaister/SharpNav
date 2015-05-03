@@ -15,10 +15,20 @@ using Vector3 = SharpDX.Vector3;
 
 namespace SharpNav.Pathfinding
 {
+	/// <summary>
+	/// A set of flags that define properties about an off-mesh connection.
+	/// </summary>
 	[Flags]
 	public enum OffMeshConnectionFlags
 	{
+		/// <summary>
+		/// No flags.
+		/// </summary>
 		None = 0x0,
+
+		/// <summary>
+		/// The connection is bi-directional.
+		/// </summary>
 		Bidirectional = 0x1
 	}
 
@@ -59,8 +69,8 @@ namespace SharpNav.Pathfinding
 		public int Side { get; set; } 
 
 		/// <summary>
-		/// Gets or sets the id 
+		/// Gets or sets user data for this connection.
 		/// </summary>
-		public uint UserId { get; set; }
+		public object Tag { get; set; }
 	}
 }

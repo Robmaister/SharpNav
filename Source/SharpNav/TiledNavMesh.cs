@@ -98,6 +98,11 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Gets or sets user data for this navmesh.
+		/// </summary>
+		public object Tag { get; set; }
+
+		/// <summary>
 		/// Initialize the Tiled Navigation Mesh variables and arrays.
 		/// </summary>
 		/// <param name="parameters">Tiled Navigation Mesh attributes</param>
@@ -154,7 +159,7 @@ namespace SharpNav
 		public void AddTile(NavMeshBuilder data, int lastRef, ref int result)
 		{
 			//make sure data is in right format
-			PathfinderCommon.NavMeshInfo header = data.Header;
+			PathfindingCommon.NavMeshInfo header = data.Header;
 
 			//make sure location is free
 			if (GetTileAt(header.X, header.Y, header.Layer) != null)

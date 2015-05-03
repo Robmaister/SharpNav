@@ -32,7 +32,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the header
 		/// </summary>
-		public PathfinderCommon.NavMeshInfo Header { get; set; }
+		public PathfindingCommon.NavMeshInfo Header { get; set; }
 
 		/// <summary>
 		/// Gets or sets the PolyMesh polygons
@@ -138,9 +138,9 @@ namespace SharpNav.Pathfinding
 		public void ClosestPointOnPolyBoundary(Poly poly, Vector3 pos, out Vector3 closest)
 		{
 			//Clamp point to be inside the polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
+			float[] edgeDistance = new float[PathfindingCommon.VERTS_PER_POLYGON];
+			float[] edgeT = new float[PathfindingCommon.VERTS_PER_POLYGON];
 			int numPolyVerts = poly.VertCount;
 			for (int i = 0; i < numPolyVerts; i++)
 				verts[i] = Verts[poly.Verts[i]];

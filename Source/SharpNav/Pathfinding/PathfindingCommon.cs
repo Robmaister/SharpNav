@@ -4,7 +4,6 @@
 using System;
 
 using SharpNav.Geometry;
-using SharpNav.Pathfinding;
 
 #if MONOGAME
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -14,12 +13,12 @@ using Vector3 = OpenTK.Vector3;
 using Vector3 = SharpDX.Vector3;
 #endif
 
-namespace SharpNav
+namespace SharpNav.Pathfinding
 {
 	/// <summary>
 	/// Store constants, structs, methods in this single class so that other classes can access this information.
 	/// </summary>
-	public class PathfinderCommon
+	public class PathfindingCommon
 	{
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
 
@@ -86,7 +85,6 @@ namespace SharpNav
 			public int X;
 			public int Y;
 			public int Layer;
-			public uint UserId;
 			public int PolyCount;
 			public int VertCount;
 			public int MaxLinkCount;

@@ -149,7 +149,7 @@ namespace SharpNav.Crowds
 			//prune points in the beginning of the path which are too close
 			while (numCorners > 0)
 			{
-				if (((cornerFlags[0] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) ||
+				if (((cornerFlags[0] & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0) ||
 					Vector3Extensions.Distance2D(cornerVerts[0], pos) > MinTargetDist)
 					break;
 				numCorners--;
@@ -167,7 +167,7 @@ namespace SharpNav.Crowds
 			//prune points after an off-mesh connection
 			for (int i = 0; i < numCorners; i++)
 			{
-				if ((cornerFlags[i] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
+				if ((cornerFlags[i] & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
 				{
 					numCorners = i + 1;
 					break;

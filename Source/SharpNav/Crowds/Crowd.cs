@@ -978,7 +978,7 @@ namespace SharpNav.Crowds
 			if (ag.CornerCount == 0)
 				return false;
 
-			bool offmeshConnection = ((ag.CornerFlags[ag.CornerCount - 1] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
+			bool offmeshConnection = ((ag.CornerFlags[ag.CornerCount - 1] & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
 				? true : false;
 			if (offmeshConnection)
 			{
@@ -1054,7 +1054,7 @@ namespace SharpNav.Crowds
 			if (ag.CornerCount == 0)
 				return range;
 
-			bool endOfPath = ((ag.CornerFlags[ag.CornerCount - 1] & PathfinderCommon.STRAIGHTPATH_END) != 0) ? true : false;
+			bool endOfPath = ((ag.CornerFlags[ag.CornerCount - 1] & PathfindingCommon.STRAIGHTPATH_END) != 0) ? true : false;
 			if (endOfPath)
 				return Math.Min(Vector3Extensions.Distance2D(ag.Position, ag.CornerVerts[ag.CornerCount - 1]), range);
 

@@ -24,7 +24,7 @@ namespace SharpNav
 	/// </summary>
 	public class NavMeshBuilder
 	{
-		private PathfinderCommon.NavMeshInfo header;
+		private PathfindingCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
 		private PolyMeshDetail.MeshData[] navDMeshes;
@@ -44,7 +44,7 @@ namespace SharpNav
 		/// <param name="settings">The settings used to build.</param>
 		public NavMeshBuilder(PolyMesh polyMesh, PolyMeshDetail polyMeshDetail, OffMeshConnection[] offMeshCons, NavMeshGenerationSettings settings)
 		{
-			if (settings.VertsPerPoly > PathfinderCommon.VERTS_PER_POLYGON)
+			if (settings.VertsPerPoly > PathfindingCommon.VERTS_PER_POLYGON)
 				throw new InvalidOperationException("The number of vertices per polygon is above SharpNav's limit");
 			if (polyMesh.VertCount == 0)
 				throw new InvalidOperationException("The provided PolyMesh has no vertices.");
@@ -169,7 +169,7 @@ namespace SharpNav
 			}
 
 			//allocate data
-			header = new PathfinderCommon.NavMeshInfo();
+			header = new PathfindingCommon.NavMeshInfo();
 			navVerts = new Vector3[totVertCount];
 			navPolys = new Poly[totPolyCount];
 			navDMeshes = new PolyMeshDetail.MeshData[polyMesh.PolyCount];
@@ -182,7 +182,6 @@ namespace SharpNav
 			header.X = 0;
 			header.Y = 0;
 			header.Layer = 0;
-			header.UserId = 0;
 			header.PolyCount = totPolyCount;
 			header.VertCount = totVertCount;
 			header.MaxLinkCount = maxLinkCount;
@@ -368,7 +367,7 @@ namespace SharpNav
 					offMeshConnections[n].Radius = offMeshCons[i].Radius;
 					offMeshConnections[n].Flags = offMeshCons[i].Flags;
 					offMeshConnections[n].Side = offMeshConClass[i * 2 + 1];
-					offMeshConnections[n].UserId = offMeshCons[i].UserId;
+					offMeshConnections[n].Tag = offMeshCons[i].Tag;
 
 					n++;
 				}
@@ -378,7 +377,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the file header
 		/// </summary>
-		public PathfinderCommon.NavMeshInfo Header 
+		public PathfindingCommon.NavMeshInfo Header 
 		{ 
 			get 
 			{ 

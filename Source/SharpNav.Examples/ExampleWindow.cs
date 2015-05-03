@@ -561,8 +561,8 @@ namespace SharpNav.Examples
 				if (!GetSteerTarget(navMeshQuery, iterPos, targetPos, SLOP, polys, npolys, ref steerPos, ref steerPosFlag, ref steerPosRef))
 					break;
 
-				bool endOfPath = (steerPosFlag & PathfinderCommon.STRAIGHTPATH_END) != 0 ? true : false;
-				bool offMeshConnection = (steerPosFlag & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ? true : false;
+				bool endOfPath = (steerPosFlag & PathfindingCommon.STRAIGHTPATH_END) != 0 ? true : false;
+				bool offMeshConnection = (steerPosFlag & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ? true : false;
 
 				//find movement delta
 				SVector3 delta = steerPos - iterPos;
@@ -640,7 +640,7 @@ namespace SharpNav.Examples
 			int ns = 0;
 			while (ns < nsteerPath)
 			{
-				if ((steerPathFlags[ns] & PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ||
+				if ((steerPathFlags[ns] & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0 ||
 					!InRange(steerPath[ns], startPos, minTargetDist, 1000.0f))
 					break;
 

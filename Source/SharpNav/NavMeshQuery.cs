@@ -107,15 +107,15 @@ namespace SharpNav
 		/// <param name="randomPt">Resulting random point</param>
 		public void FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
 		{
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] areas = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
+			float[] areas = new float[PathfindingCommon.VERTS_PER_POLYGON];
 			for (int j = 0; j < poly.VertCount; j++)
 				verts[j] = tile.Verts[poly.Verts[j]];
 
 			float s = (float)rand.NextDouble();
 			float t = (float)rand.NextDouble();
 
-			PathfinderCommon.RandomPointInConvexPoly(verts, poly.VertCount, areas, s, t, out randomPt);
+			PathfindingCommon.RandomPointInConvexPoly(verts, poly.VertCount, areas, s, t, out randomPt);
 
 			//TODO bad state again.
 			float h = 0.0f;
@@ -599,7 +599,7 @@ namespace SharpNav
 			Vector3 closestEndPos = new Vector3();
 			ClosestPointOnPolyBoundary(path[pathSize - 1], endPos, ref closestEndPos);
 
-			stat = AppendVertex(closestStartPos, PathfinderCommon.STRAIGHTPATH_START, path[0], straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+			stat = AppendVertex(closestStartPos, PathfindingCommon.STRAIGHTPATH_START, path[0], straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 			if (!stat)
 				return true;
@@ -695,9 +695,9 @@ namespace SharpNav
 
 							int flags = 0;
 							if (leftPolyRef == 0)
-								flags = PathfinderCommon.STRAIGHTPATH_END;
+								flags = PathfindingCommon.STRAIGHTPATH_END;
 							else if (leftPolyType == PolygonType.OffMeshConnection)
-								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
+								flags = PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
 							int reference = leftPolyRef;
 
@@ -746,9 +746,9 @@ namespace SharpNav
 
 							int flags = 0;
 							if (rightPolyRef == 0)
-								flags = PathfinderCommon.STRAIGHTPATH_END;
+								flags = PathfindingCommon.STRAIGHTPATH_END;
 							else if (rightPolyType == PolygonType.OffMeshConnection)
-								flags = PathfinderCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
+								flags = PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
 							int reference = rightPolyRef;
 
@@ -781,7 +781,7 @@ namespace SharpNav
 				}
 			}
 
-			stat = AppendVertex(closestEndPos, PathfinderCommon.STRAIGHTPATH_END, 0, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+			stat = AppendVertex(closestEndPos, PathfindingCommon.STRAIGHTPATH_END, 0, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 			return true;
 		}
@@ -832,7 +832,7 @@ namespace SharpNav
 			float searchRad = (startPoint.Position - endPos).Length() / 2.0f + 0.001f;
 			float searchRadSqr = searchRad * searchRad;
 
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
 			
 			while (nodeQueue.Count > 0)
 			{
@@ -1318,7 +1318,7 @@ namespace SharpNav
 				return false;
 
 			int curRef = startPoint.Polygon;
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
 			int n = 0;
 
 			hitNormal = new Vector3(0, 0, 0);
@@ -1513,8 +1513,8 @@ namespace SharpNav
 
 			float radiusSqr = radius * radius;
 
-			Vector3[] pa = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			Vector3[] pb = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] pa = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
+			Vector3[] pb = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
 
 			int n = 0;
 			if (n < maxResult)
@@ -2009,9 +2009,9 @@ namespace SharpNav
 			PolyMeshDetail.MeshData pd = tile.DetailMeshes[indexPoly];
 
 			//Clamp point to be inside the polygon
-			Vector3[] verts = new Vector3[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edgeDistance = new float[PathfinderCommon.VERTS_PER_POLYGON];
-			float[] edgeT = new float[PathfinderCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
+			float[] edgeDistance = new float[PathfindingCommon.VERTS_PER_POLYGON];
+			float[] edgeT = new float[PathfindingCommon.VERTS_PER_POLYGON];
 			int numPolyVerts = poly.VertCount;
 			for (int i = 0; i < numPolyVerts; i++)
 				verts[i] = tile.Verts[poly.Verts[i]];
@@ -2129,7 +2129,7 @@ namespace SharpNav
 				
 				straightPathCount++;
 
-				if (flags == PathfinderCommon.STRAIGHTPATH_END || straightPathCount >= maxStraightPath)
+				if (flags == PathfindingCommon.STRAIGHTPATH_END || straightPathCount >= maxStraightPath)
 				{
 					return false;
 				}

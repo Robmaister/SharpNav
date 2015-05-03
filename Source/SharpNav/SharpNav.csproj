@@ -148,7 +148,7 @@
     <Compile Include="Node.cs" />
     <Compile Include="NodePool.cs" />
     <Compile Include="NodeFlags.cs" />
-    <Compile Include="PathfinderCommon.cs" />
+    <Compile Include="Pathfinding\PathfindingCommon.cs" />
     <Compile Include="Pathfinding\PolygonType.cs" />
     <Compile Include="PolyVertex.cs" />
     <Compile Include="Collections\Generic\ProximityGrid.cs" />
