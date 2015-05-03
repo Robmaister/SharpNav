@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!-- Properties for all configurations -->
   <PropertyGroup>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharpNav</RootNamespace>
     <AssemblyName>SharpNav</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -25,6 +25,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\..\Binaries\SharpNav\Debug\SharpNav.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Standalone|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SharpNav.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\..\Binaries\SharpNav\Standalone\SharpNav.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'OpenTK|AnyCPU'">
     <OutputPath>..\..\Binaries\SharpNav\OpenTK\</OutputPath>
@@ -45,6 +47,7 @@
     <AssemblyOriginatorKeyFile>SharpNav.OpenTK.snk</AssemblyOriginatorKeyFile>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\Binaries\SharpNav\OpenTK\SharpNav.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'SharpDX|AnyCPU'">
     <OutputPath>..\..\Binaries\SharpNav\SharpDX\</OutputPath>
@@ -54,6 +57,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SharpNav.SharpDX.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>..\..\Binaries\SharpNav\SharpDX\SharpNav.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MonoGame|AnyCPU'">
     <OutputPath>..\..\Binaries\SharpNav\MonoGame\</OutputPath>
@@ -62,15 +66,16 @@
     <WarningLevel>4</WarningLevel>
     <SignAssembly>false</SignAssembly>
     <DocumentationFile>..\..\Binaries\SharpNav\MonoGame\SharpNav.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <!-- Common items -->
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.7\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
   </ItemGroup>
   <!-- Configuration specific items -->
   <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
