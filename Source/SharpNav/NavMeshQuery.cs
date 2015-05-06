@@ -583,8 +583,7 @@ namespace SharpNav
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <param name="options">Options flag</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
-		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, 
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			straightPathCount = 0;
 
@@ -1294,6 +1293,7 @@ namespace SharpNav
 					{
 						break;
 					}
+
 					node = nodePool.GetNodeAtIdx(node.ParentIdx);
 				}
 				while (node != null);
@@ -1670,7 +1670,7 @@ namespace SharpNav
 			SegInterval[] ints = new SegInterval[MAX_INTERVAL];
 			int nints;
 
-			bool storePortals = (segmentRefs.Length != 0);
+			bool storePortals = segmentRefs.Length != 0;
 
 			for (int i = 0, j = poly.VertCount - 1; i < poly.VertCount; j = i++)
 			{
@@ -2103,8 +2103,7 @@ namespace SharpNav
 		/// <param name="straightPathCount">The number of points on the path</param>
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <returns>True, if end of path hasn't been reached yet and path isn't full. False, if otherwise.</returns>
-		public bool AppendVertex(Vector3 pos, int flags, int reference, 
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		public bool AppendVertex(Vector3 pos, int flags, int reference, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
 		{
 			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
 			{
@@ -2152,8 +2151,7 @@ namespace SharpNav
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <param name="options">Options flag</param>
 		/// <returns></returns>
-		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, 
-			Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -2272,6 +2270,7 @@ namespace SharpNav
 		public void FindNearestPoly(ref Vector3 center, ref Vector3 extents, out NavPoint nearestPt)
 		{
 			nearestPt = NavPoint.Null;
+
 			//TODO error state?
 
 			// Get nearby polygons from proximity grid.

@@ -141,8 +141,7 @@ namespace SharpNav.Crowds
 				//precalculate if the agent is close to the segment
 				float r = 0.01f;
 				float t;
-				segments[i].Touch = Distance.PointToSegment2DSquared(ref position, ref segments[i].P, 
-					ref segments[i].Q, out t) < (r * r);
+				segments[i].Touch = Distance.PointToSegment2DSquared(ref position, ref segments[i].P, ref segments[i].Q, out t) < (r * r);
 			}
 		}
 
@@ -163,8 +162,7 @@ namespace SharpNav.Crowds
 				vab = vab - cir.Vel;
 
 				//side
-				side += MathHelper.Clamp(Math.Min(Vector3Extensions.Dot2D(ref cir.Dp, ref vab) * 0.5f + 0.5f, 
-					Vector3Extensions.Dot2D(ref cir.Np, ref vab) * 2.0f), 0.0f, 1.0f);
+				side += MathHelper.Clamp(Math.Min(Vector3Extensions.Dot2D(ref cir.Dp, ref vab) * 0.5f + 0.5f, Vector3Extensions.Dot2D(ref cir.Np, ref vab) * 2.0f), 0.0f, 1.0f);
 				numSide++;
 
 				float htmin = 0, htmax = 0;
@@ -290,8 +288,7 @@ namespace SharpNav.Crowds
 			return true;
 		}
 
-		public int SampleVelocityGrid(Vector3 pos, float rad, float vmax, Vector3 vel, Vector3 desiredVel, 
-			ref Vector3 nvel, ObstacleAvoidanceParams parameters)
+		public int SampleVelocityGrid(Vector3 pos, float rad, float vmax, Vector3 vel, Vector3 desiredVel, ref Vector3 nvel, ObstacleAvoidanceParams parameters)
 		{
 			Prepare(pos, desiredVel);
 			this.parameters = parameters;
@@ -334,8 +331,7 @@ namespace SharpNav.Crowds
 			return numSamples;
 		}
 
-		public int SampleVelocityAdaptive(Vector3 position, float radius, float vmax, Vector3 vel, 
-			Vector3 desiredVel, ref Vector3 nvel, ObstacleAvoidanceParams parameters)
+		public int SampleVelocityAdaptive(Vector3 position, float radius, float vmax, Vector3 vel, Vector3 desiredVel, ref Vector3 nvel, ObstacleAvoidanceParams parameters)
 		{
 			Prepare(position, desiredVel);
 

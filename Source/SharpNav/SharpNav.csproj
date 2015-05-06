@@ -163,7 +163,9 @@
     <Compile Include="Span.cs" />
     <Compile Include="SpanReference.cs" />
     <Compile Include="TiledNavMesh.cs" />
-    <Compile Include="Geometry\Vector2.cs" />
+    <Compile Include="Geometry\Vector2.cs">
+      <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Geometry\Vector3.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

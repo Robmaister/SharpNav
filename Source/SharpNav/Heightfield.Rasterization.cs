@@ -3,10 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using SharpNav.Geometry;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
-using System.Threading;
+
+using SharpNav.Geometry;
 
 #if MONOGAME
 using Vector3 = Microsoft.Xna.Framework.Vector3;

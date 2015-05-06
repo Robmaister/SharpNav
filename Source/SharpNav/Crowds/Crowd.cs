@@ -192,6 +192,7 @@ namespace SharpNav.Crowds
 		/// The agent is deactivated and will no longer be processed. It can still be reused later.
 		/// </summary>
 		/// <param name="index">The agent's id</param>
+		/// <returns>A value indicating whether the agent was successfully removed.</returns>
 		public bool RemoveAgent(int index)
 		{
 			if (index < 0 || index >= maxAgents)
@@ -275,16 +276,13 @@ namespace SharpNav.Crowds
 
 				//update the collision boundary after certain distance has passed or if it has become invalid
 				float updateThr = agents[i].Parameters.CollisionQueryRange * 0.25f;
-				if (Vector3Extensions.Distance2D(agents[i].Position, agents[i].Boundary.Center) > updateThr * updateThr ||
-					!agents[i].Boundary.IsValid(navQuery))
+				if (Vector3Extensions.Distance2D(agents[i].Position, agents[i].Boundary.Center) > updateThr * updateThr || !agents[i].Boundary.IsValid(navQuery))
 				{
-					agents[i].Boundary.Update(agents[i].Corridor.GetFirstPoly(), agents[i].Position, 
-						agents[i].Parameters.CollisionQueryRange, navQuery);
+					agents[i].Boundary.Update(agents[i].Corridor.GetFirstPoly(), agents[i].Position, agents[i].Parameters.CollisionQueryRange, navQuery);
 				}
 
 				//query neighbour agents
-				agents[i].NeighborCount = GetNeighbours(agents[i].Position, agents[i].Parameters.Height, agents[i].Parameters.CollisionQueryRange,
-					agents[i], agents[i].Neighbors, AgentMaxNeighbours, agents, grid);
+				agents[i].NeighborCount = GetNeighbours(agents[i].Position, agents[i].Parameters.Height, agents[i].Parameters.CollisionQueryRange, agents[i], agents[i].Neighbors, AgentMaxNeighbours, agents, grid);
 
 				for (int j = 0; j < agents[i].NeighborCount; j++)
 					agents[i].Neighbors[j].Index = GetAgentIndex(agents[agents[i].Neighbors[j].Index]);
@@ -329,8 +327,7 @@ namespace SharpNav.Crowds
 					
 					//adjust the path over the off-mesh connection
 					int[] refs = new int[2];
-					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].CornerPolys[agents[i].CornerCount - 1], 
-						refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
+					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].CornerPolys[agents[i].CornerCount - 1], refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
 					{
 						agentAnims[idx].InitPos = agents[i].Position;
 						agentAnims[idx].PolyRef = refs[1];
@@ -458,13 +455,11 @@ namespace SharpNav.Crowds
 
 					if (adaptive)
 					{
-						ns = obstacleQuery.SampleVelocityAdaptive(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed,
-							agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
+						ns = obstacleQuery.SampleVelocityAdaptive(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed, agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
 					}
 					else
 					{
-						ns = obstacleQuery.SampleVelocityGrid(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed,
-							agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
+						ns = obstacleQuery.SampleVelocityGrid(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed, agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
 					}
 
 					this.velocitySampleCount += ns;
@@ -1106,7 +1101,7 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// Add a CrowdNeighbor to the array
 		/// </summary>
-		/// <param name="idx">The neighbor's id</param>
+		/// <param name="Agent">The neighbor</param>
 		/// <param name="dist">Distance from current agent</param>
 		/// <param name="neis">The neighbors array</param>
 		/// <param name="nneis">The number of neighbors</param>
@@ -1291,7 +1286,7 @@ namespace SharpNav.Crowds
 
 	public struct AgentAnimation
 	{
-		public bool Active {get; set;}
+		public bool Active { get; set; }
 		public Vector3 InitPos, StartPos, EndPos;
 		public int PolyRef;
 		public float T, TMax;

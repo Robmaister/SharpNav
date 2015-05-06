@@ -1493,8 +1493,8 @@ namespace SharpNav
 			/// </summary>
 			/// <param name="endPt0">Point A</param>
 			/// <param name="endPt1">Point B</param>
-			/// <param name="leftFace">The face to the left of the edge</param>
-			/// <param name="rightFace">The face to the right of the edge</param>
+			/// <param name="rightFace">The face to the left of the edge</param>
+			/// <param name="leftFace">The face to the right of the edge</param>
 			public EdgeInfo(int endPt0, int endPt1, int rightFace, int leftFace)
 			{
 				this.EndPt0 = endPt0;

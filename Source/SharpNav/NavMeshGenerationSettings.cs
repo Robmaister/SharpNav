@@ -16,6 +16,7 @@ namespace SharpNav
 		/// </summary>
 		public NavMeshGenerationSettings()
 		{
+			//TODO now that this is public set reasonable defaults.
 		}
 
 		/// <summary>
@@ -25,6 +26,7 @@ namespace SharpNav
 		{
 			get
 			{
+				//TODO rename this property to something more descriptive.
 				var settings = new NavMeshGenerationSettings();
 
 				settings.CellSize = 0.3f;
