@@ -43,24 +43,24 @@ namespace SharpNav.CLI
 			catch (OptionException)
 			{
 				Log.Error("Invalid option.");
-				Log.Write("usage: sharpnav <OPTIONS> [FILES]");
-				Log.Write("Avaliable Options:");
+				Log.WriteLine("usage: sharpnav <OPTIONS> [FILES]");
+				Log.WriteLine("Avaliable Options:");
 				set.WriteOptionDescriptions(Console.Out);
 				return 1;
 			}
 
 			if (help)
 			{
-				Log.Write("usage: sharpnav <OPTIONS> [FILES]");
-				Log.Write("Available Options:");
+				Log.WriteLine("usage: sharpnav <OPTIONS> [FILES]");
+				Log.WriteLine("Available Options:");
 				set.WriteOptionDescriptions(Console.Out);
 				return 0;
 			}
 
 			if (version)
 			{
-				Log.Write("SharpNav     " + SharpNavVersion);
-				Log.Write("SharpNav.CLI " + ThisVersion);
+				Log.WriteLine("SharpNav     " + SharpNavVersion);
+				Log.WriteLine("SharpNav.CLI " + ThisVersion);
 				return 0;
 			}
 
@@ -85,7 +85,8 @@ namespace SharpNav.CLI
 				catch (Exception e)
 				{
 					Log.Error("Error opening file \"" + f + "\".");
-					Log.Debug(e.StackTrace);
+					Log.Debug(e.GetType().ToString() + " thrown:");
+					Log.Debug(e.StackTrace, 1);
 					return 1;
 				}
 
@@ -140,7 +141,7 @@ namespace SharpNav.CLI
 				}
 			}
 
-			Log.Write("Done. " + files.Count + " files processed.");
+			Log.WriteLine("Done. " + files.Count + " files processed.");
 
 			#if DEBUG
 			Console.ReadLine();
