@@ -1,4 +1,4 @@
-// Copyright (c) 2013, 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -7,13 +7,6 @@ using System.Globalization;
 using System.IO;
 
 using SharpNav.Geometry;
-
-#if OPENTK
-using OpenTK;
-#endif
-
-//Doesn't compile if in an unsupported configuration
-//#if STANDALONE || OPENTK
 
 namespace SharpNav.GUI
 {
@@ -166,5 +159,3 @@ namespace SharpNav.GUI
 		}
 	}
 }
-
-//#endif

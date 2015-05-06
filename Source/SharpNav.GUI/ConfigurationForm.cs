@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Forms;
-using System.IO;
+﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
-using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Windows.Forms;
 
 using SharpNav.Geometry;
+
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace SharpNav.GUI
 {
@@ -140,7 +136,7 @@ namespace SharpNav.GUI
 
 				}
 			}
-         
+		 
 		}
 
 		private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)

@@ -1,17 +1,22 @@
-﻿using System;
+﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
+using System.Reflection;
+
 using Mono.Options;
-using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using SharpNav;
+
 using SharpNav.Geometry;
 
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
+
+//TODO differentiate between exit codes for errors
+//TODO documentation should include a sample YAML file
+//TODO move YAML parsing into SharpNav.IO
+//TODO more logging
 
 namespace SharpNav.CLI
 {
@@ -24,11 +29,10 @@ namespace SharpNav.CLI
 		{
 			bool help = false;
 			bool version = false;
-			Verbosity verbosity = Verbosity.Normal;
 			List<string> files = new List<string>();
 
 			var set = new OptionSet()
-				.Add("verbosity=|v=", "Changes verbosity level. silent, minimal, normal, verbose, and debug are the only valid choices.", opt => { verbosity = Verbosity.Debug; })
+				.Add("verbosity=|v=", "Changes verbosity level. Valid options:\ns[ilent]\nm[inimal]\nn[ormal]\nv[erbose]\nd[ebug]", opt => { Log.Verbosity = Verbosity.Parse(opt); })
 				.Add("version", "Displays version information", opt => version = (opt != null))
 				.Add("help|h", "Displays usage information", opt => help = (opt != null));
 
@@ -38,73 +42,86 @@ namespace SharpNav.CLI
 			}
 			catch (OptionException)
 			{
-				Console.WriteLine("Options:");
+				Log.Error("Invalid option.");
+				Log.Write("usage: sharpnav <OPTIONS> [FILES]");
+				Log.Write("Avaliable Options:");
 				set.WriteOptionDescriptions(Console.Out);
 				return 1;
 			}
 
 			if (help)
 			{
-				Console.WriteLine("Options:");
+				Log.Write("usage: sharpnav <OPTIONS> [FILES]");
+				Log.Write("Available Options:");
 				set.WriteOptionDescriptions(Console.Out);
 				return 0;
 			}
 
 			if (version)
 			{
-				Console.WriteLine("SharpNav     " + SharpNavVersion);
-				Console.WriteLine("SharpNav.CLI " + ThisVersion);
+				Log.Write("SharpNav     " + SharpNavVersion);
+				Log.Write("SharpNav.CLI " + ThisVersion);
 				return 0;
 			}
 
-			if (verbosity > Verbosity.Normal)
-				Console.WriteLine("Verbosity enabled (not really)");
+			if (files.Count == 0)
+			{
+				Log.Error("No configuration files to process.");
+				return 1;
+			}
+
+			Log.Info("Number of files to parse: " + files.Count);
 
 			foreach (var f in files)
 			{
-				Console.WriteLine(f);
-				var input = new StreamReader(f);
+				StreamReader input = null;
+				Log.Info("Parsing file \"" + f + "\"");
 
-				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention()/*,ignoreUnmatched: true*/);
 
+				try
+				{
+					input = new StreamReader(f);
+				}
+				catch (Exception e)
+				{
+					Log.Error("Error opening file \"" + f + "\".");
+					Log.Debug(e.StackTrace);
+					return 1;
+				}
+
+				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention());
 				var setting = deserializer.Deserialize<Setting>(input);
 
-				//string export_file_name = setting.Export;
-
-				Console.WriteLine("Config:");
-				Console.WriteLine();
-				Console.WriteLine("cell-size: {0}", setting.Config.CellSize);
-				Console.WriteLine("cell-height: {0}", setting.Config.CellHeight);
-				Console.WriteLine("max-climb: {0}", setting.Config.MaxClimb);
-				Console.WriteLine("agent-height: {0}", setting.Config.AgentHeight);
-				Console.WriteLine("agent-radius: {0}", setting.Config.AgentRadius);
-				Console.WriteLine("min-region-size: {0}", setting.Config.MinRegionSize);
-				Console.WriteLine("merged-region-size: {0}", setting.Config.MergedRegionSize);
-				Console.WriteLine("max-edge-len: {0}", setting.Config.MaxEdgeLength);
-				Console.WriteLine("max-edge-error: {0}", setting.Config.MaxEdgeError);
-				Console.WriteLine("verts-per-poly: {0}", setting.Config.VertsPerPoly);
-				Console.WriteLine("sample-distance: {0}", setting.Config.SampleDistance);
-				Console.WriteLine("max-sample-error: {0}", setting.Config.MaxSampleError);
-				
-				//foreach(var conf in setting.Config)
-				//Console.WriteLine(conf);
+				Log.Debug("Parsed configuration:");
+				Log.Debug("Cell Size:          " + setting.Config.CellSize, 1);
+				Log.Debug("Cell Height:        " + setting.Config.CellHeight, 1);
+				Log.Debug("Max Climb:          " + setting.Config.MaxClimb, 1);
+				Log.Debug("Agent Height:       " + setting.Config.AgentHeight, 1);
+				Log.Debug("Agent Radius:       " + setting.Config.AgentRadius, 1);
+				Log.Debug("Min Region Size:    " + setting.Config.MinRegionSize, 1);
+				Log.Debug("Merged Region Size: " + setting.Config.MergedRegionSize, 1);
+				Log.Debug("Max Edge Length:    " + setting.Config.MaxEdgeLength, 1);
+				Log.Debug("Max Edge Error:     " + setting.Config.MaxEdgeError, 1);
+				Log.Debug("Verts Per Poly:     " + setting.Config.VertsPerPoly, 1);
+				Log.Debug("Sample Distance:    " + setting.Config.SampleDistance, 1);
+				Log.Debug("Max Sample Error:   " + setting.Config.MaxSampleError, 1);
+				Log.Debug("");
+				Log.Debug("Output File: " + setting.Export, 1);
+				Log.Debug("");
+				Log.Debug("Meshes");
 
 				List<string> meshes = new List<string>();
 				List<ObjModel> models = new List<ObjModel>();
 
-				Console.WriteLine();
-				Console.WriteLine("Export Path:");
-				Console.WriteLine(setting.Export);
-				Console.WriteLine();
-				Console.WriteLine("Meshes:");
 				foreach (var mesh in setting.Meshes)
 				{
-					Console.WriteLine("Path:{0}\nScale:{1}", mesh.Path, mesh.Scale);
+					Log.Debug("Path:  " + mesh.Path, 2);
+					Log.Debug("Scale: " + mesh.Scale, 2);
 					meshes.Add(mesh.Path);
 					
-					//Console.WriteLine("array: {0} {1} {2}", mesh.Position[0], mesh.Position[1], mesh.Position[2]);
+					//Log.Debug("array: " + mesh.Position[0] + " " + mesh.Position[1] + " " + mesh.Position[2]);
 					mesh.vector = new  Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
-					//Console.WriteLine("vector: {0} {1} {2}", mesh.vector.X, mesh.vector.Y, mesh.vector.Z);
+					//Log.Debug("vector: " + mesh.vector.X + " " + mesh.vector.Y + " " + mesh.vector.Z);
 
 					if (File.Exists(mesh.Path))
 					{
@@ -112,16 +129,23 @@ namespace SharpNav.CLI
 						float scale = mesh.Scale;
 						//TODO SCALE THE OBJ FILE
 						models.Add(obj);
-						Console.WriteLine("Position vector: {0} {1} {2}", mesh.vector.X, mesh.vector.Y, mesh.vector.Z);
+						Log.Debug("Position vector: " + mesh.vector.X + ", " + mesh.vector.Y + ", " + mesh.vector.Z);
 					}
 					else
 					{
-						Console.WriteLine("Obj file not exists.");
+						Log.Error("Mesh file does not exist.");
+						return 1;
 					}
 					
 				}
 			}
+
+			Log.Write("Done. " + files.Count + " files processed.");
+
+			#if DEBUG
 			Console.ReadLine();
+			#endif
+
 			return 0;
 		}
 

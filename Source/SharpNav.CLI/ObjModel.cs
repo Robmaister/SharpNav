@@ -1,20 +1,13 @@
-// Copyright (c) 2013 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using SharpNav;
 using SharpNav.Geometry;
-
-#if OPENTK
-using OpenTK;
-#endif
 
 namespace SharpNav.CLI
 {

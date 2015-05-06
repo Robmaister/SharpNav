@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+
+using System;
 
 namespace SharpNav.CLI
 {
 	/// <summary>
 	/// An enumeration of different levels of output.
 	/// </summary>
-	public enum Verbosity
+	public enum VerbosityLevel
 	{
 		/// <summary>
 		/// Program outputs nothing.
@@ -35,5 +34,41 @@ namespace SharpNav.CLI
 		/// Outputs everything. Great for tracking down a bug.
 		/// </summary>
 		Debug
+	}
+
+	/// <summary>
+	/// Helpers for the <see cref="VerbosityLevel"/> enumeration.
+	/// </summary>
+	public static class Verbosity
+	{
+		/// <summary>
+		/// Parses a <see cref="VerbosityLevel"/> from a string.
+		/// </summary>
+		/// <param name="level">The level as a string.</param>
+		/// <returns>A value from the <see cref="VerbosityLevel"/> enumeration.</returns>
+		public static VerbosityLevel Parse(string level)
+		{
+			switch (level.ToLowerInvariant())
+			{
+				case "s":
+				case "silent:":
+					return VerbosityLevel.Silent;
+				case "m":
+				case "minimal":
+					return VerbosityLevel.Minimal;
+				case "n":
+				case "normal":
+					return VerbosityLevel.Normal;
+				case "v":
+				case "verbose":
+					return VerbosityLevel.Verbose;
+				case "d":
+				case "debug":
+					return VerbosityLevel.Debug;
+				default:
+					Console.WriteLine("[ERROR] Cannot parse verbosity level \"" + level + "\". Setting to Normal.");
+					return VerbosityLevel.Normal;
+			}
+		}
 	}
 }

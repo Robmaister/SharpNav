@@ -49,6 +49,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Log.cs" />
     <Compile Include="Mono.Options\Options.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
