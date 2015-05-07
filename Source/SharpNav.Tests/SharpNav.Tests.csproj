@@ -110,6 +110,8 @@
     <Compile Include="Geometry\DistanceTests.cs" />
     <Compile Include="Geometry\IntersectionTests.cs" />
     <Compile Include="MathHelperTests.cs" />
+    <Compile Include="NavMeshSerializationTests.cs" />
+    <Compile Include="ObjModel.cs" />
     <Compile Include="RegionTests.cs" />
     <Compile Include="CellTests.cs" />
     <Compile Include="HeightfieldTests.cs" />
@@ -122,6 +124,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="nav_test.obj">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <None Include="SharpNav.Tests.snk" />
   </ItemGroup>

@@ -129,6 +129,7 @@
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="Crowds\LocalBoundary.cs" />
+    <Compile Include="IO\NavMeshJsonSerializer.cs" />
     <Compile Include="IO\NavMeshSerializer.cs" />
     <Compile Include="NavMesh.cs" />
     <Compile Include="NavMeshGenerationSettings.cs" />
