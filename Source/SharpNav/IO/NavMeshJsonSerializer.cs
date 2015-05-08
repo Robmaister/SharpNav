@@ -5,16 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+
 using Newtonsoft.Json.Linq;
+
 using SharpNav.Collections;
 using SharpNav.Geometry;
 using SharpNav.Pathfinding;
+
+#if MONOGAME
+using Vector3 = Microsoft.Xna.Framework.Vector3;
+#elif OPENTK
+using Vector3 = OpenTK.Vector3;
+#elif SHARPDX
+using Vector3 = SharpDX.Vector3;
+#endif
 
 namespace SharpNav.IO
 {
