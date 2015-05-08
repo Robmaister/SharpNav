@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using Newtonsoft.Json;
+
 using SharpNav;
 
 #if MONOGAME
@@ -66,6 +68,7 @@ namespace SharpNav.Geometry
 		/// <summary>
 		/// Gets the center of the box.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Center
 		{
 			get
@@ -77,6 +80,7 @@ namespace SharpNav.Geometry
 		/// <summary>
 		/// Gets the size of the box.
 		/// </summary>
+		[JsonIgnore]
 		public Vector3 Size
 		{
 			get
