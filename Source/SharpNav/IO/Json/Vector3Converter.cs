@@ -3,6 +3,8 @@
 
 using System;
 
+using SharpNav.Geometry;
+
 using Newtonsoft.Json;
 
 #if MONOGAME
