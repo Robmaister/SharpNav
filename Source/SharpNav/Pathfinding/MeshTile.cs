@@ -43,7 +43,7 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the PolyMesh vertices
 		/// </summary>
 		public Vector3[] Verts { get; set; }
-																	
+
 		/// <summary>
 		/// Gets or sets the links between polygons
 		/// </summary>

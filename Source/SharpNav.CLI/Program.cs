@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 using Mono.Options;
 
 using SharpNav.Geometry;
+using SharpNav.IO;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -91,7 +93,7 @@ namespace SharpNav.CLI
 				}
 
 				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention());
-				var setting = deserializer.Deserialize<Setting>(input);
+				var setting = deserializer.Deserialize<Settings>(input);
 
 				Log.Debug("Parsed configuration:");
 				Log.Debug("Cell Size:          " + setting.Config.CellSize, 1);
@@ -121,7 +123,7 @@ namespace SharpNav.CLI
 					meshes.Add(mesh.Path);
 					
 					//Log.Debug("array: " + mesh.Position[0] + " " + mesh.Position[1] + " " + mesh.Position[2]);
-					mesh.vector = new  Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
+					mesh.vector = new Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
 					//Log.Debug("vector: " + mesh.vector.X + " " + mesh.vector.Y + " " + mesh.vector.Z);
 
 					if (File.Exists(mesh.Path))
@@ -139,6 +141,13 @@ namespace SharpNav.CLI
 					}
 					
 				}
+
+				var tris = Enumerable.Empty<Triangle3>();
+				foreach (var model in models)
+					tris = tris.Concat(model.GetTriangles());
+
+				TiledNavMesh navmesh = NavMesh.Generate(tris, setting.Config);
+				new NavMeshJsonSerializer().Serialize(setting.Export, navmesh);
 			}
 
 			Log.WriteLine("Done. " + files.Count + " files processed.");
@@ -150,20 +159,20 @@ namespace SharpNav.CLI
 			return 0;
 		}
 
-		public class Setting
+		public class Settings
 		{
 			public NavMeshGenerationSettings Config { get; set; }
 			public string Export { get; set; }
-			public List<Object> Meshes { get; set; }
+			public List<MeshSettings> Meshes { get; set; }
 
 		}
 
-		public class Export
+		public class ExportSettings
 		{
 			public string Path { get; set; }
 		}
 
-		public class Object
+		public class MeshSettings
 		{
 			public string Path { get; set; }
 			public float Scale { get; set; }

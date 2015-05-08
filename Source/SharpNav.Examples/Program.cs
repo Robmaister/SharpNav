@@ -7,6 +7,7 @@ namespace SharpNav.Examples
 {
 	class Program
 	{
+		[STAThread]
 		static void Main(string[] args)
 		{
 			#if OPENTK || STANDALONE

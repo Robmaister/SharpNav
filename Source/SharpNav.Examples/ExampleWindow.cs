@@ -18,6 +18,7 @@ using OpenTK.Input;
 using SharpNav;
 using SharpNav.Crowds;
 using SharpNav.Geometry;
+using SharpNav.IO;
 using SharpNav.Pathfinding;
 
 using Key = OpenTK.Input.Key;
@@ -47,8 +48,8 @@ namespace SharpNav.Examples
 			Contours,
 			PolyMesh,
 			PolyMeshDetail,
+			NavMesh,
 			Pathfinding,
-			Crowd
 		}
 
 		private bool interceptExceptions;
@@ -200,24 +201,6 @@ namespace SharpNav.Examples
 			if (crowd != null)
 				crowd.Update((float)e.Time);
 
-			if (hasGenerated && displayMode == DisplayMode.Crowd)
-			{
-				//crowd.Update((float)e.Time);
-
-				//Iterate through each crowd agent
-				/*for (int j = 0; j < numActiveAgents; j++)
-				{
-					Crowd.CrowdAgent ag = crowd.GetAgent(j);
-					if (!ag.Active)
-						continue;
-
-					//update agent movement trail
-					trails[j].HTrail = (trails[j].HTrail + 1) % AGENT_MAX_TRAIL;
-					trails[j].Trail[trails[j].HTrail] = ag.NPos;
-				}*/
-
-			}
-
 			prevK = k;
 			prevM = m;
 
@@ -232,6 +215,8 @@ namespace SharpNav.Examples
 
 			if (e.Key == Key.Escape)
 				Exit();
+			else if (e.Key == Key.F9)
+				Gwen.Platform.Neutral.FileOpen("Load NavMesh from file", ".", "All SharpNav Files(.snb, .snx, .snj)|*.snb;*.snx;*.snj|SharpNav Binary(.snb)|*.snb|SharpNav XML(.snx)|*.snx|SharpNav JSON(.snj)|*.snj", LoadNavMeshFromFile);
 			else if (e.Key == Key.F11)
 				WindowState = OpenTK.WindowState.Normal;
 			else if (e.Key == Key.F12)
@@ -301,41 +286,34 @@ namespace SharpNav.Examples
 			{
 				case DisplayMode.Heightfield: 
 					DrawHeightfield();
-					DrawCrowd();
 					break;
 				case DisplayMode.CompactHeightfield:
 					DrawCompactHeightfield();
-					DrawCrowd();
 					break;
 				case DisplayMode.DistanceField:
 					DrawDistanceField();
-					DrawCrowd();
 					break;
 				case DisplayMode.Regions:
 					DrawRegions();
-					DrawCrowd();
 					break;
 				case DisplayMode.Contours:
 					DrawContours();
-					DrawCrowd();
 					break;
 				case DisplayMode.PolyMesh:
 					DrawPolyMesh();
-					DrawCrowd();
 					break;
 				case DisplayMode.PolyMeshDetail:
 					DrawPolyMeshDetail();
-					DrawCrowd();
+					break;
+				case DisplayMode.NavMesh:
+					DrawNavMesh();
 					break;
 				case DisplayMode.Pathfinding:
 					DrawPathfinding();
-					DrawCrowd();
-					break;
-				case DisplayMode.Crowd:
-					DrawCrowd();
 					break;
 			}
 
+			DrawCrowd();
 			DrawUI();
 
 			SwapBuffers();
@@ -368,6 +346,12 @@ namespace SharpNav.Examples
 			UnloadDebugMeshes();
 
 			base.OnUnload(e);
+		}
+
+		private void LoadNavMeshFromFile(string path)
+		{
+			tiledNavMesh = new NavMeshJsonSerializer().Deserialize(path);
+			displayMode = DisplayMode.NavMesh;
 		}
 
 		private void GenerateNavMesh()

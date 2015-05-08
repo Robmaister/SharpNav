@@ -93,8 +93,8 @@ namespace SharpNav.Examples
 			displayModes.AddItem("Contours", "", DisplayMode.Contours);
 			displayModes.AddItem("Polygon Mesh", "", DisplayMode.PolyMesh);
 			displayModes.AddItem("Polygon Mesh Detail", "", DisplayMode.PolyMeshDetail);
+			displayModes.AddItem("NavMesh", "", DisplayMode.NavMesh);
 			displayModes.AddItem("Pathfinding", "", DisplayMode.Pathfinding);
-			//displayModes.AddItem("Crowd", "", DisplayMode.Crowd);
 			displayModes.ItemSelected += (s, e) => displayMode = (DisplayMode)e.SelectedItem.UserData;
 
 			displayModes.SelectByUserData(DisplayMode.PolyMeshDetail);

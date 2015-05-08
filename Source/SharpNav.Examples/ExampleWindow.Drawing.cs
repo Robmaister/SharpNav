@@ -804,6 +804,124 @@ namespace SharpNav.Examples
 			GL.PopMatrix();
 		}
 
+		private void DrawNavMesh()
+		{
+			if (tiledNavMesh == null)
+				return;
+
+			var tile = tiledNavMesh.GetTileAt(0, 0, 0);
+
+			GL.PushMatrix();
+
+			Color4 color = Color4.DarkViolet;
+			color.A = 0.5f;
+			GL.Color4(color);
+
+			GL.Begin(PrimitiveType.Triangles);
+
+			for (int i = 0; i < tile.Polys.Length; i++)
+			{
+				//if (!tile.Polys[i].Area.IsWalkable)
+					//continue;
+
+				for (int j = 2; j < PathfindingCommon.VERTS_PER_POLYGON; j++)
+				{
+					if (tile.Polys[i].Verts[j] == 0)
+						break;
+
+					int vertIndex0 = tile.Polys[i].Verts[0];
+					int vertIndex1 = tile.Polys[i].Verts[j - 1];
+					int vertIndex2 = tile.Polys[i].Verts[j];
+
+					var v = tile.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.Verts[vertIndex2];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			GL.DepthMask(false);
+
+			//neighbor edges
+			GL.Color4(Color4.Purple);
+
+			GL.LineWidth(1.5f);
+			GL.Begin(PrimitiveType.Lines);
+
+			for (int i = 0; i < tile.Polys.Length; i++)
+			{
+				for (int j = 0; j < PathfindingCommon.VERTS_PER_POLYGON; j++)
+				{
+					if (tile.Polys[i].Verts[j] == 0)
+						break;
+					if (PolyMesh.IsBoundaryEdge(tile.Polys[i].Neis[j]))
+						continue;
+
+					int nj = (j + 1 >= PathfindingCommon.VERTS_PER_POLYGON || tile.Polys[i].Verts[j + 1] == 0) ? 0 : j + 1;
+
+					int vertIndex0 = tile.Polys[i].Verts[j];
+					int vertIndex1 = tile.Polys[i].Verts[nj];
+
+					var v = tile.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			//boundary edges
+			GL.LineWidth(3.5f);
+			GL.Begin(PrimitiveType.Lines);
+			for (int i = 0; i < tile.Polys.Length; i++)
+			{
+				for (int j = 0; j < PathfindingCommon.VERTS_PER_POLYGON; j++)
+				{
+					if (tile.Polys[i].Verts[j] == 0)
+						break;
+
+					if (PolyMesh.IsInteriorEdge(tile.Polys[i].Neis[j]))
+						continue;
+
+					int nj = (j + 1 >= PathfindingCommon.VERTS_PER_POLYGON || tile.Polys[i].Verts[j + 1] == 0) ? 0 : j + 1;
+
+					int vertIndex0 = tile.Polys[i].Verts[j];
+					int vertIndex1 = tile.Polys[i].Verts[nj];
+
+					var v = tile.Verts[vertIndex0];
+					GL.Vertex3(v.X, v.Y, v.Z);
+
+					v = tile.Verts[vertIndex1];
+					GL.Vertex3(v.X, v.Y, v.Z);
+				}
+			}
+
+			GL.End();
+
+			GL.PointSize(4.8f);
+			GL.Begin(PrimitiveType.Points);
+
+			for (int i = 0; i < tile.Verts.Length; i++)
+			{
+				var v = tile.Verts[i];
+				GL.Vertex3(v.X, v.Y, v.Z);
+			}
+
+			GL.End();
+
+			GL.DepthMask(true);
+
+			GL.PopMatrix();
+		}
+
 		private void DrawPathfinding()
 		{
 			GL.PushMatrix();
