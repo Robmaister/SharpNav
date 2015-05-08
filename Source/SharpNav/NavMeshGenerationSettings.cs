@@ -1,13 +1,68 @@
 // Copyright (c) 2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
+using System.ComponentModel;
+using System.Drawing.Design;
+using System.Windows.Forms;
+using System.Windows.Forms.Design;
 using System;
 
 namespace SharpNav
 {
 	/// <summary>
+	/// The following two classes are made for the GUI application purpose
+	/// </summary>
+	class NavMeshGenerationSettingsForm : Form
+	{
+		private PropertyGrid p;
+		private Button okButton;
+		public NavMeshGenerationSettingsForm()
+		{
+			p = new PropertyGrid();
+			Controls.Add(p);
+			p.Dock = DockStyle.Fill;
+			okButton = new Button();
+			okButton.Text = "OK";
+			okButton.Dock = DockStyle.Bottom;
+			okButton.DialogResult = DialogResult.OK;
+			Controls.Add(okButton);
+		}
+		public NavMeshGenerationSettings NavSetting
+		{
+			get { return p.SelectedObject as NavMeshGenerationSettings; }
+			set { p.SelectedObject = value; }
+		}
+	}
+	class NavMeshGenerationSettingsEditor : UITypeEditor
+	{
+		public override UITypeEditorEditStyle GetEditStyle(ITypeDescriptorContext context)
+		{
+			return UITypeEditorEditStyle.Modal;
+		}
+		public override object EditValue(ITypeDescriptorContext context, System.IServiceProvider provider, object value)
+		{
+			IWindowsFormsEditorService svc = provider.GetService(typeof(IWindowsFormsEditorService)) as IWindowsFormsEditorService;
+
+			NavMeshGenerationSettings config = value as NavMeshGenerationSettings;
+
+			using (NavMeshGenerationSettingsForm form = new NavMeshGenerationSettingsForm())
+			{
+				form.NavSetting = config;
+				if (svc.ShowDialog(form) == DialogResult.OK)
+				{
+					config = form.NavSetting; // update object
+				}
+			}
+
+			return value; // can also replace the wrapper object here
+		}
+	}
+
+	/// <summary>
 	/// Contains all the settings necessary to convert a mesh to a navmesh.
 	/// </summary>
+	[Editor(typeof(NavMeshGenerationSettingsEditor), typeof(UITypeEditor))]
+	[TypeConverter(typeof(ExpandableObjectConverter))]
 	public class NavMeshGenerationSettings
 	{
 		/// <summary>

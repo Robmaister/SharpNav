@@ -46,18 +46,18 @@
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.generateButton = new System.Windows.Forms.Button();
-			this.textBox1 = new System.Windows.Forms.TextBox();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
 			// 
-			this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Top;
+			this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.propertyGrid1.HelpVisible = false;
 			this.propertyGrid1.Location = new System.Drawing.Point(0, 24);
 			this.propertyGrid1.Name = "propertyGrid1";
-			this.propertyGrid1.Size = new System.Drawing.Size(328, 355);
+			this.propertyGrid1.Size = new System.Drawing.Size(368, 355);
 			this.propertyGrid1.TabIndex = 0;
+			this.propertyGrid1.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGrid1_PropertyValueChanged);
 			// 
 			// menuStrip1
 			// 
@@ -67,10 +67,9 @@
             this.helpToolStripMenuItem});
 			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
 			this.menuStrip1.Name = "menuStrip1";
-			this.menuStrip1.Size = new System.Drawing.Size(328, 24);
+			this.menuStrip1.Size = new System.Drawing.Size(368, 24);
 			this.menuStrip1.TabIndex = 1;
 			this.menuStrip1.Text = "menuStrip1";
-			this.menuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuStrip1_ItemClicked);
 			// 
 			// fileToolStripMenuItem
 			// 
@@ -93,6 +92,7 @@
 			this.newToolStripMenuItem.Name = "newToolStripMenuItem";
 			this.newToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
 			this.newToolStripMenuItem.Text = "New";
+			this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
 			// 
 			// toolStripSeparator1
 			// 
@@ -122,6 +122,7 @@
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
 			this.saveToolStripMenuItem.Size = new System.Drawing.Size(123, 22);
 			this.saveToolStripMenuItem.Text = "Save";
+			this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
 			// 
 			// saveAsToolStripMenuItem
 			// 
@@ -155,6 +156,7 @@
 			this.resetAllToolStripMenuItem.Name = "resetAllToolStripMenuItem";
 			this.resetAllToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
 			this.resetAllToolStripMenuItem.Text = "Reset All";
+			this.resetAllToolStripMenuItem.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
 			// 
 			// helpToolStripMenuItem
 			// 
@@ -169,31 +171,24 @@
 			this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
 			this.aboutToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
 			this.aboutToolStripMenuItem.Text = "About...";
+			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
 			// 
 			// generateButton
 			// 
 			this.generateButton.Dock = System.Windows.Forms.DockStyle.Bottom;
-			this.generateButton.Location = new System.Drawing.Point(0, 381);
+			this.generateButton.Location = new System.Drawing.Point(0, 424);
 			this.generateButton.Name = "generateButton";
-			this.generateButton.Size = new System.Drawing.Size(328, 50);
+			this.generateButton.Size = new System.Drawing.Size(368, 50);
 			this.generateButton.TabIndex = 2;
 			this.generateButton.Text = "Generate";
 			this.generateButton.UseVisualStyleBackColor = true;
-			// 
-			// textBox1
-			// 
-			this.textBox1.Dock = System.Windows.Forms.DockStyle.Left;
-			this.textBox1.Location = new System.Drawing.Point(0, 60);
-			this.textBox1.Multiline = true;
-			this.textBox1.Name = "textBox1";
-			this.textBox1.Size = new System.Drawing.Size(255, 415);
-			this.textBox1.TabIndex = 2;
+			this.generateButton.Click += new System.EventHandler(this.generateButton_Click);
 			// 
 			// ConfigurationForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(328, 431);
+			this.ClientSize = new System.Drawing.Size(368, 474);
 			this.Controls.Add(this.generateButton);
 			this.Controls.Add(this.propertyGrid1);
 			this.Controls.Add(this.menuStrip1);
@@ -227,6 +222,5 @@
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 		private System.Windows.Forms.Button generateButton;
-		private System.Windows.Forms.TextBox textBox1;
 	}
 }
