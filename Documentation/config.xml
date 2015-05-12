@@ -11,6 +11,7 @@ Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/mast
 	
 	<topic id="overview.md" page-id="overview" name="SharpNav Documentation" filename="overview.md">
 		<topic id="release-notes.md" page-id="release-notes" name="Release Notes" filename="release-notes.md">
+        	<topic id="v1.0.0-alpha.2.md" page-id="release-notes-v1.0.0-alpha.2" name="SharpNav 1.0.0-alpha.2" filename="Release Notes/v1.0.0-alpha.2.md" />
 			<topic id="v1.0.0-alpha.1.md" page-id="release-notes-v1.0.0-alpha.1" name="SharpNav 1.0.0-alpha.1" filename="Release Notes/v1.0.0-alpha.1.md" />
 			<topic id="v0.9.0.md" page-id="release-notes-v0.9.0" name="SharpNav 0.9.0" filename="Release Notes/v0.9.0.md" />
 		</topic>

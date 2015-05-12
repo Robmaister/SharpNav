@@ -61,6 +61,10 @@ Binaries are not output to their project's local `bin` folder, they are all outp
 
 SharpNav can be configured to depend on other libraries. Each one has it's own compile configuration that requires the library to be installed on the machine (in the GAC or the assembly search path), with the exception being OpenTK. OpenTK is used for the Examples project, and is therefore included in the repository. If you want to compile against a different version of OpenTK, drop in your replacement in the [`Dependencies`](https://github.com/Robmaister/SharpNav/tree/master/Dependencies) folder.
 
+## Mailing List
+
+Join the [SharpNav mailing list](https://groups.google.com/forum/#!forum/sharpnav) to ask questions about SharpNav or for help with using it. New versions of SharpNav will also be announced on the same mailing list.
+
 ## License
 
 SharpNav is licensed under the MIT license. The terms of the MIT license are included in both the [LICENSE](https://github.com/Robmaister/SharpNav/blob/master/LICENSE) file and below:
