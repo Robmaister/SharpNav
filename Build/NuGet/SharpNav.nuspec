@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>SharpNav</id>
-    <version>1.0.0-alpha</version>
+    <version>1.0.0-alpha2</version>
     <authors>Robert Rouhani</authors>
     <owners>Robert Rouhani</owners>
     <iconUrl>https://raw.githubusercontent.com/Robmaister/SharpNav/master/Graphics/Logo/NuGet.png</iconUrl>
@@ -10,8 +10,14 @@
     <projectUrl>https://github.com/Robmaister/SharpNav</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A fully-managed navigation mesh library.</description>
-    <releaseNotes>Major changes to the public API, fixed bug with Delaunay hull generation in PolyMeshDetail. Expect a lot of significant API changes leading up to the 1.0.0 release. This alpha version and future ones will be primarily API changes. This release is marked as 1.0.0-alpha only on NuGet (instead of 1.0.0-alpha.1) because the NuGet client won't support semver 2.0.0 until NuGet 3.0.</releaseNotes>
-    <copyright>Copyright (c) 2013-2014 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
+    <releaseNotes>
+- JSON serialization for NavMesh
+- Started refactoring and cleaning up pathfinding and crowd APIs
+- Fixed a few crowd bugs
+
+For the full release notes, see http://sharpnav.com/docs/html/index.htm?page=release-notes-v1.0.0-alpha.2
+    </releaseNotes>
+    <copyright>Copyright (c) 2013-2015 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
     <tags>Navigation Pathfinding NavMesh Nav Mesh Crowd Agent AI Recast</tags>
   </metadata>
   <files>

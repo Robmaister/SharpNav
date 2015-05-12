@@ -1,4 +1,4 @@
-version: 1.0.0-alpha.1+appveyor.{build}
+version: 1.0.0-alpha.2+appveyor.{build}
 
 branches:
   only:

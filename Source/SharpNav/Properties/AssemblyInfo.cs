@@ -55,7 +55,7 @@ using System.Runtime.InteropServices;
 //     1.2.0       |   1.2.0.200
 //     2.0.1       |   2.0.1.200
 // 
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.0.1")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 // There are two ways of differentiating versions of SharpNav.dll that are built with engine integrations.
@@ -64,13 +64,13 @@ using System.Runtime.InteropServices;
 // version of SharpNav a different strong name. Multiple integrated versions of SharpNav can now be
 // installed to the GAC without worrying about them interfering with one another.
 #if MONOGAME
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+monogame")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.2+monogame")]
 #elif OPENTK
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+opentk")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.2+opentk")]
 #elif SHARPDX
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1+sharpdx")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.2+sharpdx")]
 #else
-[assembly: AssemblyInformationalVersion("1.0.0-alpha.1")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha.2")]
 #endif
 
 // Setting ComVisible to false makes the types in this assembly not visible 
