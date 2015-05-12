@@ -81,7 +81,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -106,7 +106,7 @@
     	    <li class="code tab">F#</li> 
 	    </ul>            
         <div class="tabcontent selected">     
-        <pre class='brush: csharp;'>public class Agent</pre>
+        <pre class='brush: csharp;'>public class Agent : IEquatable&lt;Agent&gt;</pre>
         </div>
         <div class="tabcontent">     
             <p>Syntax for VB is not yet implemented.</p>
@@ -117,7 +117,11 @@
 
         </div>
         <div class="tabcontent">     
-        <pre class='brush: fsharp;'>type public Agent = class end</pre>
+        <pre class='brush: fsharp;'>type public Agent =
+	class
+		interface IEquatable&lt;Agent&gt;
+	end
+</pre>
         </div>
     </div>
         <p>The Agent type exposes the following members.</p>
@@ -178,6 +182,14 @@
 	<th class="platicon-col">Platforms</th>
     <th class="name-col">Name</th>
     <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_Agent_AgentMaxNeighbors');" href="F_SharpNav_Crowds_Agent_AgentMaxNeighbors.htm" >AgentMaxNeighbors</a></td>
+    <td class="desc-col">&nbsp;</td>
 </tr>
                 <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
 </td>
@@ -410,6 +422,20 @@
 </td>
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_Equals');" href="M_SharpNav_Crowds_Agent_Equals.htm" >Equals(Agent)</a></td>
+    <td class="desc-col">&nbsp;(Implements <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/ms131190"  target='_blank'>IEquatable&lt;T&gt;.Equals()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_Equals_1');" href="M_SharpNav_Crowds_Agent_Equals_1.htm" >Equals(object)</a></td>
+    <td class="desc-col">&nbsp;(Overrides <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/bsc2ak47"  target='_blank'>object.Equals()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_Integrate');" href="M_SharpNav_Crowds_Agent_Integrate.htm" >Integrate</a></td>
     <td class="desc-col">Update the position after a certain time 'dt'&nbsp;</td>
 </tr>
@@ -452,8 +478,57 @@
 </td>
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_ToString');" href="M_SharpNav_Crowds_Agent_ToString.htm" >ToString</a></td>
+    <td class="desc-col">&nbsp;(Overrides <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/7bxwbwt2"  target='_blank'>object.ToString()</a>.)</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_UpdateAgentParameters');" href="M_SharpNav_Crowds_Agent_UpdateAgentParameters.htm" >UpdateAgentParameters</a></td>
     <td class="desc-col">Modify the agent parameters&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Operators_slider = new Fx.Slide('section_Operators_content');
+            $('section_Operators_toggle').addEvent('click', function (event) {
+                $('section_Operators_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Operators_slider.open]);
+                event.stop();
+                section_Operators_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Operators" class="section">
+        <div class="title"><a id="section_Operators_toggle" href="#" class="title"><div id="section_Operators_icon" class="toggle_icon out"></div><span class="title">Operators</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Operators_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_op_Equality');" href="M_SharpNav_Crowds_Agent_op_Equality.htm" >Equality</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Operator"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Crowds_Agent_op_Inequality');" href="M_SharpNav_Crowds_Agent_op_Inequality.htm" >Inequality</a></td>
+    <td class="desc-col">&nbsp;</td>
 </tr>
         </table>
         <a href="#top">Top</a>

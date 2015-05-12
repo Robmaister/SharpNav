@@ -81,7 +81,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Pathfinding');" href="N_SharpNav_Pathfinding.htm" >SharpNav.Pathfinding</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -269,6 +269,67 @@
 </td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Pathfinding_MeshTile_Verts');" href="P_SharpNav_Pathfinding_MeshTile_Verts.htm" >Verts</a></td>
     <td class="desc-col">Gets or sets the PolyMesh vertices&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Methods_slider = new Fx.Slide('section_Methods_content');
+            $('section_Methods_toggle').addEvent('click', function (event) {
+                $('section_Methods_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Methods_slider.open]);
+                event.stop();
+                section_Methods_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Methods" class="section">
+        <div class="title"><a id="section_Methods_toggle" href="#" class="title"><div id="section_Methods_icon" class="toggle_icon out"></div><span class="title">Methods</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Methods_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_MeshTile_ClosestHeight');" href="M_SharpNav_Pathfinding_MeshTile_ClosestHeight.htm" >ClosestHeight</a></td>
+    <td class="desc-col">Find the distance from a point to a triangle.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPoly');" href="M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPoly.htm" >ClosestPointOnPoly(Poly, Vector3, Vector3)</a></td>
+    <td class="desc-col">Given a point, find the closest point on that poly.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPoly_1');" href="M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPoly_1.htm" >ClosestPointOnPoly(int, Vector3, Vector3)</a></td>
+    <td class="desc-col">Given a point, find the closest point on that poly.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPolyBoundary');" href="M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPolyBoundary.htm" >ClosestPointOnPolyBoundary</a></td>
+    <td class="desc-col">Given a point, find the closest point on that poly.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Method"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPolyOffMeshConnection');" href="M_SharpNav_Pathfinding_MeshTile_ClosestPointOnPolyOffMeshConnection.htm" >ClosestPointOnPolyOffMeshConnection</a></td>
+    <td class="desc-col">Find the closest point on an offmesh connection, which is in between the two points.&nbsp;</td>
 </tr>
         </table>
         <a href="#top">Top</a>

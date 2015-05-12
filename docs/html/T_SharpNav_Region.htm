@@ -81,7 +81,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -161,40 +161,6 @@
     </div>    
     <script language="javascript">
         window.addEvent('domready', function() {           
-            var section_Fields_slider = new Fx.Slide('section_Fields_content');
-            $('section_Fields_toggle').addEvent('click', function (event) {
-                $('section_Fields_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Fields_slider.open]);
-                event.stop();
-                section_Fields_slider.toggle();
-            });
-        });
-    </script>        
-    <div id="section_Fields" class="section">
-        <div class="title"><a id="section_Fields_toggle" href="#" class="title"><div id="section_Fields_icon" class="toggle_icon out"></div><span class="title">Fields</span></a><div class="hr"><hr/></div></div>
-        <div id="section_Fields_content" class="block">
-            <div class="members">
-        <table class="members">
-            <tr>		<th class="icon-col">&nbsp;</th>
-	<th class="platicon-col">Platforms</th>
-    <th class="name-col">Name</th>
-    <th class="desc-col">Description</th>
-</tr>
-                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
-        <div class="icon static" title="Static"></div>
-</td>
-    <td class="platicon-col">        <div class="icon default" title="default"></div>
-</td>
-        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Region_IdMask');" href="F_SharpNav_Region_IdMask.htm" >IdMask</a></td>
-    <td class="desc-col">&nbsp;</td>
-</tr>
-        </table>
-        <a href="#top">Top</a>
-    </div>
-
-        </div>
-    </div>    
-    <script language="javascript">
-        window.addEvent('domready', function() {           
             var section_Properties_slider = new Fx.Slide('section_Properties_content');
             $('section_Properties_toggle').addEvent('click', function (event) {
                 $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
@@ -246,14 +212,14 @@
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Region_IsBorder');" href="P_SharpNav_Region_IsBorder.htm" >IsBorder</a></td>
-    <td class="desc-col">&nbsp;</td>
+    <td class="desc-col">Gets a value indicating whether the region is a border region.&nbsp;</td>
 </tr>
                 <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
 </td>
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Region_IsBorderOrNull');" href="P_SharpNav_Region_IsBorderOrNull.htm" >IsBorderOrNull</a></td>
-    <td class="desc-col">&nbsp;</td>
+    <td class="desc-col">Gets a value indicating whether the region is either a border region or the null region.&nbsp;</td>
 </tr>
                 <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
 </td>

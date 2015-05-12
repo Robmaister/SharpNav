@@ -59,12 +59,12 @@
 </div>
 <div style="clear: both;"></div>
         
-<div class="summary"></div>
+<div class="summary">Compares two instances of <strong>RegionId</strong> for inequality.</div>
 
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -118,7 +118,7 @@
 				</dt>
 				<dd>
 					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_RegionId');" href="T_SharpNav_RegionId.htm" >SharpNav.RegionId</a><br />
-						
+						An instance of <strong>RegionId</strong>.
 					</span>            
 				</dd>
 			</dl>
@@ -128,13 +128,13 @@
 				</dt>
 				<dd>
 					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_RegionId');" href="T_SharpNav_RegionId.htm" >SharpNav.RegionId</a><br />
-						
+						Another instance of <strong>RegionId</strong>.
 					</span>            
 				</dd>
 			</dl>
             <h4 class="sdoc-subheading">Return Value</h4>
         <span>Type: <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/a28wyd50"  target='_blank'>System.Boolean</a><br />
-        
+        A value indicating whether the two instances are unequal.
         </span>            
     </div>
 
@@ -142,6 +142,31 @@
     </div>    
 
 
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Remarks_slider = new Fx.Slide('section_Remarks_content');
+            $('section_Remarks_toggle').addEvent('click', function (event) {
+                $('section_Remarks_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Remarks_slider.open]);
+                event.stop();
+                section_Remarks_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Remarks" class="section">
+        <div class="title"><a id="section_Remarks_toggle" href="#" class="title"><div id="section_Remarks_icon" class="toggle_icon out"></div><span class="title">Remarks</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Remarks_content" class="block">
+        This checks for both the ID and flags set on the regions. If you want to only compare the IDs, use the
+            following code:
+            <code>
+            RegionId left = ...;
+            RegionId right = ...;
+            if (left.Id != right.Id)
+            {
+               // ...
+            }
+            </code>
+        </div>
+    </div>    
 
 
 

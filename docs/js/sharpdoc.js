@@ -50,12 +50,11 @@ function loadContent(rootTopic, extension) {
 
     if(data != null && data !="")
     {
-        var pattern = /page=(\w+)/;
-        var page = pattern.exec(data);
-        if(page != null)
+        var page = $get("page", data);
+        if(page != "")
         {
-            url = page[1] + extension;
-            topicToHighlight = page[1];
+            url = page + extension;
+            topicToHighlight = page;
         }
     }
     

@@ -3,7 +3,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
     <head>
-    	<title>v1.0.0-alpha.1</title>
+    	<title>SharpNav 1.0.0-alpha.1</title>
     <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
     <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
     <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
@@ -26,7 +26,7 @@
     <meta name="Microsoft.Help.Id" content="v1.0.0-alpha.1.md" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
-    <meta name="Microsoft.Help.F1" content="v1.0.0-alpha.1" />
+    <meta name="Microsoft.Help.F1" content="SharpNav 1.0.0-alpha.1" />
     <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
     <meta name="Microsoft.Help.Category" content="DevLang:VB" />
     <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
@@ -49,10 +49,48 @@
             
       
 <div class="content-title">
-	<h1 class="content-title">v1.0.0-alpha.1</h1>   
+	<h1 class="content-title">SharpNav 1.0.0-alpha.1</h1>   
 </div>
 <div style="clear: both;"></div> 
-<p>TODO v1.0.0-alpha.1</p>
+<p>v1.0.0-alpha.1 was released on December 31, 2014. It is the second release of
+SharpNav and the first pre-release of v1.0.0. It fixes several bugs from
+v0.9.0 and makes several changes to the public API.</p>
+
+<h2>Major Changes</h2>
+
+<ul>
+<li>Removed existing but broken XNA and Unity3D builds.</li>
+<li>Raw contour vertices are no longer stored in the <code>Contour</code> class.</li>
+<li>SharpNav now relies on NuGet to retrieve packages.</li>
+</ul>
+
+<h2>Minor Changes</h2>
+
+<ul>
+<li>The <code>RegionId</code> enum is now the <code>Region</code> struct.</li>
+<li>The <code>AreaId</code> enum is now the <code>Area</code> struct.</li>
+<li>All vector types are now in the <code>SharpNav.Geometry</code> namespace in the
+Standalone build.</li>
+<li>The <code>ContourSet</code> constructor no longer takes a <code>CompactHeightfield</code> as a
+parameter. It is instead handled in <code>CompactHeightfield.BuildContourSet</code>.</li>
+</ul>
+
+<h2>Bugfixes</h2>
+
+<ul>
+<li>Fixed incorrect slope calculation in <code>AreaIdGenerator</code>.</li>
+<li>Fixed most bugs preventing proper triangulation in <code>PolyMeshDetail</code>.</li>
+<li>Fixed thread safety issue with triangle rasterization in <code>Heightfield</code>.</li>
+</ul>
+
+<h2>Known Issues</h2>
+
+<ul>
+<li>With enough detail, <code>PolyMeshDetail</code> will still produce incorrectly
+triangulated meshes.</li>
+<li>Edge cases consuming a lot of memory likely still exist.</li>
+<li>public APIs are still unfinished.</li>
+</ul>
         </div>
     </div>
 

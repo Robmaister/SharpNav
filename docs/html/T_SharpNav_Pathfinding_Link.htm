@@ -81,7 +81,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Pathfinding');" href="N_SharpNav_Pathfinding.htm" >SharpNav.Pathfinding</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -152,6 +152,48 @@
 </td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_Pathfinding_Link__ctor');" href="M_SharpNav_Pathfinding_Link__ctor.htm" >Link</a></td>
     <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Fields_slider = new Fx.Slide('section_Fields_content');
+            $('section_Fields_toggle').addEvent('click', function (event) {
+                $('section_Fields_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Fields_slider.open]);
+                event.stop();
+                section_Fields_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Fields" class="section">
+        <div class="title"><a id="section_Fields_toggle" href="#" class="title"><div id="section_Fields_icon" class="toggle_icon out"></div><span class="title">Fields</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Fields_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Pathfinding_Link_External');" href="F_SharpNav_Pathfinding_Link_External.htm" >External</a></td>
+    <td class="desc-col">Entity links to external entity.&nbsp;</td>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
+        <div class="icon static" title="Static"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Pathfinding_Link_Null');" href="F_SharpNav_Pathfinding_Link_Null.htm" >Null</a></td>
+    <td class="desc-col">Doesn't link to anything.&nbsp;</td>
 </tr>
         </table>
         <a href="#top">Top</a>

@@ -23,7 +23,7 @@
         SyntaxHighlighter.all();
     </script>
     <script src="../js/sharpdoc.js" language="javascript"></script>            
-    <meta name="Microsoft.Help.Id" content="M:SharpNav.PolyMeshDetail.TriangleData.#ctor(SharpNav.PolyMeshDetail.TriangleData,System.Collections.Generic.List{SharpNav.Geometry.Vector3},SharpNav.Geometry.Vector3[])" />
+    <meta name="Microsoft.Help.Id" content="M:SharpNav.PolyMeshDetail.TriangleData.#ctor(SharpNav.PolyMeshDetail.TriangleData,System.Collections.Generic.List{SharpNav.Geometry.Vector3},SharpNav.Geometry.Vector3[],System.Int32)" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
     <meta name="Microsoft.Help.F1" content="System.Void SharpNav.PolyMeshDetail/TriangleData::.ctor(SharpNav.PolyMeshDetail/TriangleData,System.Collections.Generic.List" />
@@ -64,7 +64,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -94,7 +94,8 @@
         <pre class='brush: csharp;'>public PolyMeshDetail.TriangleData(
 	PolyMeshDetail.TriangleData data, 
 	List&lt;Vector3&gt; verts, 
-	Vector3[] vpoly
+	Vector3[] vpoly, 
+	int npoly
 )</pre>
         </div>
         <div class="tabcontent">     
@@ -109,7 +110,8 @@
         <pre class='brush: fsharp;'>new : 
 	data : PolyMeshDetail.TriangleData * 
 	verts : List&lt;Vector3&gt; * 
-	vpoly : Vector3[] -&gt; PolyMeshDetail.TriangleData</pre>
+	vpoly : Vector3[] * 
+	npoly : int -&gt; PolyMeshDetail.TriangleData</pre>
         </div>
     </div>
     <div id="sdoc-parameters">        
@@ -141,6 +143,16 @@
 				<dd>
 					<span>Type: <a target="_blank" href="" >SharpNav.Geometry.Vector3[]</a><br />
 						The list of the polygon's vertices
+					</span>            
+				</dd>
+			</dl>
+			<dl>
+				<dt>
+					<span class="sdoc-parameter">npoly</span>
+				</dt>
+				<dd>
+					<span>Type: <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/td2s409d"  target='_blank'>System.Int32</a><br />
+						
 					</span>            
 				</dd>
 			</dl>

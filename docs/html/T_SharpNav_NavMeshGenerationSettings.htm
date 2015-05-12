@@ -81,7 +81,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -106,7 +106,9 @@
     	    <li class="code tab">F#</li> 
 	    </ul>            
         <div class="tabcontent selected">     
-        <pre class='brush: csharp;'>public class NavMeshGenerationSettings</pre>
+        <pre class='brush: csharp;'>[EditorAttribute(SharpNav.NavMeshGenerationSettingsEditor, System.Drawing.Design.UITypeEditor)]
+[TypeConverterAttribute(System.ComponentModel.ExpandableObjectConverter)]
+public class NavMeshGenerationSettings</pre>
         </div>
         <div class="tabcontent">     
             <p>Syntax for VB is not yet implemented.</p>
@@ -117,7 +119,9 @@
 
         </div>
         <div class="tabcontent">     
-        <pre class='brush: fsharp;'>type public NavMeshGenerationSettings = class end</pre>
+        <pre class='brush: fsharp;'>[&lt;EditorAttribute(SharpNav.NavMeshGenerationSettingsEditor, System.Drawing.Design.UITypeEditor)&gt;]
+[&lt;TypeConverterAttribute(System.ComponentModel.ExpandableObjectConverter)&gt;]
+type public NavMeshGenerationSettings = class end</pre>
         </div>
     </div>
         <p>The NavMeshGenerationSettings type exposes the following members.</p>
@@ -126,6 +130,40 @@
     </div>    
 
 <div class="members">
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Constructors_slider = new Fx.Slide('section_Constructors_content');
+            $('section_Constructors_toggle').addEvent('click', function (event) {
+                $('section_Constructors_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Constructors_slider.open]);
+                event.stop();
+                section_Constructors_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Constructors" class="section">
+        <div class="title"><a id="section_Constructors_toggle" href="#" class="title"><div id="section_Constructors_icon" class="toggle_icon out"></div><span class="title">Constructors</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Constructors_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubmethod" title="Public Constructor"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('M_SharpNav_NavMeshGenerationSettings__ctor');" href="M_SharpNav_NavMeshGenerationSettings__ctor.htm" >NavMeshGenerationSettings</a></td>
+    <td class="desc-col">Prevents a default instance of the <strong>NavMeshGenerationSettings</strong> class from being created.
+            Use <a target="mainFrame" onclick="hightLightTopic('P_SharpNav_NavMeshGenerationSettings_Default');" href="P_SharpNav_NavMeshGenerationSettings_Default.htm" >Default</a> instead.&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
     <script language="javascript">
         window.addEvent('domready', function() {           
             var section_Properties_slider = new Fx.Slide('section_Properties_content');

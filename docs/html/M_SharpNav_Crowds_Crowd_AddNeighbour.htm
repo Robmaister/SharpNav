@@ -23,10 +23,10 @@
         SyntaxHighlighter.all();
     </script>
     <script src="../js/sharpdoc.js" language="javascript"></script>            
-    <meta name="Microsoft.Help.Id" content="M:SharpNav.Crowds.Crowd.AddNeighbour(System.Int32,System.Single,SharpNav.Crowds.CrowdNeighbor[],System.Int32,System.Int32)" />
+    <meta name="Microsoft.Help.Id" content="M:SharpNav.Crowds.Crowd.AddNeighbour(SharpNav.Crowds.Agent,System.Single,SharpNav.Crowds.CrowdNeighbor[],System.Int32,System.Int32)" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
-    <meta name="Microsoft.Help.F1" content="System.Int32 SharpNav.Crowds.Crowd::AddNeighbour(System.Int32,System.Single,SharpNav.Crowds.CrowdNeighbor[],System.Int32,System.Int32)" />
+    <meta name="Microsoft.Help.F1" content="System.Int32 SharpNav.Crowds.Crowd::AddNeighbour(SharpNav.Crowds.Agent,System.Single,SharpNav.Crowds.CrowdNeighbor[],System.Int32,System.Int32)" />
     <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
     <meta name="Microsoft.Help.Category" content="DevLang:VB" />
     <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
@@ -64,7 +64,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -92,7 +92,7 @@
 	    </ul>            
         <div class="tabcontent selected">     
         <pre class='brush: csharp;'>public int AddNeighbour(
-	int idx, 
+	Agent agent, 
 	float dist, 
 	CrowdNeighbor[] neis, 
 	int nneis, 
@@ -109,7 +109,7 @@
         </div>
         <div class="tabcontent">     
         <pre class='brush: fsharp;'>member AddNeighbour : 
-	idx : int * 
+	agent : Agent * 
 	dist : float * 
 	neis : CrowdNeighbor[] * 
 	nneis : int * 
@@ -120,11 +120,11 @@
     <h4 class="sdoc-subheading">Parameters</h4>
 			<dl>
 				<dt>
-					<span class="sdoc-parameter">idx</span>
+					<span class="sdoc-parameter">agent</span>
 				</dt>
 				<dd>
-					<span>Type: <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/td2s409d"  target='_blank'>System.Int32</a><br />
-						The neighbor's id
+					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_Crowds_Agent');" href="T_SharpNav_Crowds_Agent.htm" >SharpNav.Crowds.Agent</a><br />
+						
 					</span>            
 				</dd>
 			</dl>

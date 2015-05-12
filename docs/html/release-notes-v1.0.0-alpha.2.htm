@@ -3,7 +3,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
     <head>
-    	<title>v0.9.2</title>
+    	<title>SharpNav 1.0.0-alpha.2</title>
     <link href="../syntaxhighlighter/styles/shCoreDefault.css" rel="stylesheet" type="text/css" />
     <link href="../css/syntaxHighlighter.css" rel="stylesheet" type="text/css" />
     <link href="../css/sharpdoc.css" rel="stylesheet" type="text/css" />
@@ -23,10 +23,10 @@
         SyntaxHighlighter.all();
     </script>
     <script src="../js/sharpdoc.js" language="javascript"></script>            
-    <meta name="Microsoft.Help.Id" content="v0.9.2.md" />
+    <meta name="Microsoft.Help.Id" content="v1.0.0-alpha.2.md" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
-    <meta name="Microsoft.Help.F1" content="v0.9.2" />
+    <meta name="Microsoft.Help.F1" content="SharpNav 1.0.0-alpha.2" />
     <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
     <meta name="Microsoft.Help.Category" content="DevLang:VB" />
     <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
@@ -39,7 +39,7 @@
 	<body>
         <script type="text/javascript" language="javascript">
             if(window == window.top)
-                location.href = "index.htm?page=release-notes-v0.9.2";
+                location.href = "index.htm?page=release-notes-v1.0.0-alpha.2";
             document.addEvent('domready', function () {
                 InstallCodeTabs();
             });
@@ -49,10 +49,55 @@
             
       
 <div class="content-title">
-	<h1 class="content-title">v0.9.2</h1>   
+	<h1 class="content-title">SharpNav 1.0.0-alpha.2</h1>   
 </div>
 <div style="clear: both;"></div> 
-<p>TODO: v0.9.2</p>
+<p>v1.0.0-alpha.2 was released on May 11, 2015. It is the third release of
+SharpNav and the second pre-release of v1.0.0. It fixes a few bugs from
+v1.0.0-alpha.1 and changes some of the pathfinding and crowd APIs.</p>
+
+<h2>Major Changes</h2>
+
+<ul>
+<li>Added serialization/deserialization API.
+<ul>
+<li>Implemented a JSON serializer (<a target="_blank" href="https://github.com/Robmaister/SharpNav/pull/38" >PR #38</a>).</li>
+</ul></li>
+<li>Started CLI and GUI clients.</li>
+<li>Introduced the <code>NavPoint</code> struct to replace the common <code>int</code> and <code>Vector3</code>
+pair in pathfinding code.</li>
+<li>Updated all projects to .NET 4.5.1</li>
+<li>Started multithreading parts of navmesh generation (Heightfield
+rasterization).</li>
+</ul>
+
+<h2>Minor Changes</h2>
+
+<ul>
+<li>Added Appveyor as a second continuous integration service.</li>
+<li>Moved all source code and <code>SharpNav.sln</code> to the <code>Source/</code> directory.</li>
+<li>Refactored some values in <code>NavMeshGenerationSettings</code>.</li>
+<li>Most of the functions inside <code>PathfinderCommon</code> were refactored to their
+proper classes. The rest of the class was moved into
+<code>SharpNav.Pathfinding</code> and renamed to <code>PathfindingCommon</code>.</li>
+</ul>
+
+<h2>Bugfixes</h2>
+
+<ul>
+<li>Fixed several crowd bugs (<a target="_blank" href="https://github.com/Robmaister/SharpNav/pull/30" >PR #30</a>).</li>
+</ul>
+
+<h2>Known Issues</h2>
+
+<ul>
+<li>CLI client doesn't log a lot of useful things.</li>
+<li>CLI client only exports JSON file format.</li>
+<li>GUI client doesn't generate a navmesh.</li>
+<li>GUI client doesn't have all buttons/menus functional.</li>
+<li>Edge cases consuming a lot of memory likely still exist.</li>
+<li>public APIs are still unfinished.</li>
+</ul>
         </div>
     </div>
 

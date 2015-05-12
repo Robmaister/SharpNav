@@ -65,7 +65,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -136,13 +136,6 @@ type public AgentAnimation = struct end</pre>
 </td>
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
-        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_AgentAnimation_Active');" href="F_SharpNav_Crowds_AgentAnimation_Active.htm" >Active</a></td>
-    <td class="desc-col">&nbsp;</td>
-</tr>
-                <tr>        <td class="icon-col">        <div class="icon pubfield" title="Public Field"></div>
-</td>
-    <td class="platicon-col">        <div class="icon default" title="default"></div>
-</td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_AgentAnimation_EndPos');" href="F_SharpNav_Crowds_AgentAnimation_EndPos.htm" >EndPos</a></td>
     <td class="desc-col">&nbsp;</td>
 </tr>
@@ -179,6 +172,39 @@ type public AgentAnimation = struct end</pre>
     <td class="platicon-col">        <div class="icon default" title="default"></div>
 </td>
         <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('F_SharpNav_Crowds_AgentAnimation_TMax');" href="F_SharpNav_Crowds_AgentAnimation_TMax.htm" >TMax</a></td>
+    <td class="desc-col">&nbsp;</td>
+</tr>
+        </table>
+        <a href="#top">Top</a>
+    </div>
+
+        </div>
+    </div>    
+    <script language="javascript">
+        window.addEvent('domready', function() {           
+            var section_Properties_slider = new Fx.Slide('section_Properties_content');
+            $('section_Properties_toggle').addEvent('click', function (event) {
+                $('section_Properties_icon').setProperty('class', {'true': 'toggle_icon in', 'false': 'toggle_icon out'}[section_Properties_slider.open]);
+                event.stop();
+                section_Properties_slider.toggle();
+            });
+        });
+    </script>        
+    <div id="section_Properties" class="section">
+        <div class="title"><a id="section_Properties_toggle" href="#" class="title"><div id="section_Properties_icon" class="toggle_icon out"></div><span class="title">Properties</span></a><div class="hr"><hr/></div></div>
+        <div id="section_Properties_content" class="block">
+            <div class="members">
+        <table class="members">
+            <tr>		<th class="icon-col">&nbsp;</th>
+	<th class="platicon-col">Platforms</th>
+    <th class="name-col">Name</th>
+    <th class="desc-col">Description</th>
+</tr>
+                <tr>        <td class="icon-col">        <div class="icon pubproperty" title="Public Property"></div>
+</td>
+    <td class="platicon-col">        <div class="icon default" title="default"></div>
+</td>
+        <td class="name-col"><a target="mainFrame" onclick="hightLightTopic('P_SharpNav_Crowds_AgentAnimation_Active');" href="P_SharpNav_Crowds_AgentAnimation_Active.htm" >Active</a></td>
     <td class="desc-col">&nbsp;</td>
 </tr>
         </table>

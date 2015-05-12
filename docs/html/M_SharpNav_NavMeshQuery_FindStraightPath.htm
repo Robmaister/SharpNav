@@ -23,10 +23,10 @@
         SyntaxHighlighter.all();
     </script>
     <script src="../js/sharpdoc.js" language="javascript"></script>            
-    <meta name="Microsoft.Help.Id" content="M:SharpNav.NavMeshQuery.FindStraightPath(SharpNav.Geometry.Vector3,SharpNav.Geometry.Vector3,System.Int32[],System.Int32,SharpNav.Geometry.Vector3[],System.Int32[],System.Int32[],System.Int32@,System.Int32,System.Int32)" />
+    <meta name="Microsoft.Help.Id" content="M:SharpNav.NavMeshQuery.FindStraightPath(SharpNav.Geometry.Vector3,SharpNav.Geometry.Vector3,System.Int32[],System.Int32,SharpNav.Geometry.Vector3[],System.Int32[],System.Int32[],System.Int32@,System.Int32,SharpNav.Pathfinding.PathBuildFlags)" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
-    <meta name="Microsoft.Help.F1" content="System.Boolean SharpNav.NavMeshQuery::FindStraightPath(SharpNav.Geometry.Vector3,SharpNav.Geometry.Vector3,System.Int32[],System.Int32,SharpNav.Geometry.Vector3[],System.Int32[],System.Int32[],System.Int32&amp;amp;,System.Int32,System.Int32)" />
+    <meta name="Microsoft.Help.F1" content="System.Boolean SharpNav.NavMeshQuery::FindStraightPath(SharpNav.Geometry.Vector3,SharpNav.Geometry.Vector3,System.Int32[],System.Int32,SharpNav.Geometry.Vector3[],System.Int32[],System.Int32[],System.Int32&amp;amp;,System.Int32,SharpNav.Pathfinding.PathBuildFlags)" />
     <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
     <meta name="Microsoft.Help.Category" content="DevLang:VB" />
     <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
@@ -64,7 +64,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav');" href="N_SharpNav.htm" >SharpNav</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -101,7 +101,7 @@
 	Int32[] straightPathRefs, 
 	Int32 straightPathCount, 
 	int maxStraightPath, 
-	int options
+	PathBuildFlags options
 )</pre>
         </div>
         <div class="tabcontent">     
@@ -123,7 +123,7 @@
 	straightPathRefs : Int32[] * 
 	straightPathCount : Int32 * 
 	maxStraightPath : int * 
-	options : int -&gt; bool</pre>
+	options : PathBuildFlags -&gt; bool</pre>
         </div>
     </div>
     <div id="sdoc-parameters">        
@@ -223,7 +223,7 @@
 					<span class="sdoc-parameter">options</span>
 				</dt>
 				<dd>
-					<span>Type: <a target="_blank" href="http://msdn2.microsoft.com/en-us/library/td2s409d"  target='_blank'>System.Int32</a><br />
+					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_Pathfinding_PathBuildFlags');" href="T_SharpNav_Pathfinding_PathBuildFlags.htm" >SharpNav.Pathfinding.PathBuildFlags</a><br />
 						Options flag
 					</span>            
 				</dd>

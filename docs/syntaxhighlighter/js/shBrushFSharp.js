@@ -1,3 +1,5 @@
+// Taken from https://gist.github.com/khabinov/1916577
+
 // WTFPL licensed
 // scratching the surface of research microsoft com/fsharp/manual/spec2.aspx#_Toc207785562
 // omits reserved-ident-formats, reserved-symbolic-sequence, quote-op-*, symbolic-op, ...

@@ -23,10 +23,10 @@
         SyntaxHighlighter.all();
     </script>
     <script src="../js/sharpdoc.js" language="javascript"></script>            
-    <meta name="Microsoft.Help.Id" content="M:SharpNav.Crowds.Crowd.GetNeighbours(SharpNav.Geometry.Vector3,System.Single,System.Single,SharpNav.Crowds.Agent,SharpNav.Crowds.CrowdNeighbor[],System.Int32,SharpNav.Crowds.Agent[],SharpNav.Crowds.ProximityGrid)" />
+    <meta name="Microsoft.Help.Id" content="M:SharpNav.Crowds.Crowd.GetNeighbours(SharpNav.Geometry.Vector3,System.Single,System.Single,SharpNav.Crowds.Agent,SharpNav.Crowds.CrowdNeighbor[],System.Int32,SharpNav.Crowds.Agent[],SharpNav.Collections.Generic.ProximityGrid{SharpNav.Crowds.Agent})" />
     <meta name="Microsoft.Help.SelfBranded" content="true" />
     <meta name="Microsoft.Help.Locale" content="en-us" />
-    <meta name="Microsoft.Help.F1" content="System.Int32 SharpNav.Crowds.Crowd::GetNeighbours(SharpNav.Geometry.Vector3,System.Single,System.Single,SharpNav.Crowds.Agent,SharpNav.Crowds.CrowdNeighbor[],System.Int32,SharpNav.Crowds.Agent[],SharpNav.Crowds.ProximityGrid)" />
+    <meta name="Microsoft.Help.F1" content="System.Int32 SharpNav.Crowds.Crowd::GetNeighbours(SharpNav.Geometry.Vector3,System.Single,System.Single,SharpNav.Crowds.Agent,SharpNav.Crowds.CrowdNeighbor[],System.Int32,SharpNav.Crowds.Agent[],SharpNav.Collections.Generic.ProximityGrid" />
     <meta name="Microsoft.Help.Category" content="TargetOS:Windows" />
     <meta name="Microsoft.Help.Category" content="DevLang:VB" />
     <meta name="Microsoft.Help.Category" content="DevLang:CSharp" />
@@ -64,7 +64,7 @@
 <br/>
 <div class="origin">
 <strong>Namespace: </strong><a target="mainFrame" onclick="hightLightTopic('N_SharpNav_Crowds');" href="N_SharpNav_Crowds.htm" >SharpNav.Crowds</a><br />
-<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.0)<br />
+<strong>Assembly: </strong>SharpNav (SharpNav.dll 1.0.0.1)<br />
       
 
 </div>
@@ -99,7 +99,7 @@
 	CrowdNeighbor[] result, 
 	int maxResult, 
 	Agent[] agents, 
-	ProximityGrid grid
+	ProximityGrid&lt;Agent&gt; grid
 )</pre>
         </div>
         <div class="tabcontent">     
@@ -119,7 +119,7 @@
 	result : CrowdNeighbor[] * 
 	maxResult : int * 
 	agents : Agent[] * 
-	grid : ProximityGrid -&gt; int</pre>
+	grid : ProximityGrid&lt;Agent&gt; -&gt; int</pre>
         </div>
     </div>
     <div id="sdoc-parameters">        
@@ -199,7 +199,7 @@
 					<span class="sdoc-parameter">grid</span>
 				</dt>
 				<dd>
-					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_Crowds_ProximityGrid');" href="T_SharpNav_Crowds_ProximityGrid.htm" >SharpNav.Crowds.ProximityGrid</a><br />
+					<span>Type: <a target="mainFrame" onclick="hightLightTopic('T_SharpNav_Collections_Generic_ProximityGrid_1');" href="T_SharpNav_Collections_Generic_ProximityGrid_1.htm" >ProximityGrid</a>&lt;<a target="mainFrame" onclick="hightLightTopic('T_SharpNav_Crowds_Agent');" href="T_SharpNav_Crowds_Agent.htm" >Agent</a>&gt;<br />
 						The ProximityGrid
 					</span>            
 				</dd>
