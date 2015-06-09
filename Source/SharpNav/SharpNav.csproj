@@ -140,6 +140,7 @@
     </Compile>
     <Compile Include="Crowds\ObstacleAvoidanceQuery.cs" />
     <Compile Include="Crowds\PathCorridor.cs" />
+    <Compile Include="Pathfinding\BoundarySide.cs" />
     <Compile Include="Pathfinding\Link.cs" />
     <Compile Include="Pathfinding\MeshTile.cs" />
     <Compile Include="Pathfinding\OffMeshConnection.cs" />

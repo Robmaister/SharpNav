@@ -54,7 +54,7 @@ namespace SharpNav
 			int nvp = settings.VertsPerPoly;
 
 			//classify off-mesh connection points
-			int[] offMeshConClass = new int[offMeshCons.Length * 2];
+			BoundarySide[] offMeshSides = new BoundarySide[offMeshCons.Length * 2];
 			int storedOffMeshConCount = 0;
 			int offMeshConLinkCount = 0;
 
@@ -95,23 +95,23 @@ namespace SharpNav
 					Vector3 p0 = offMeshCons[i].Pos0;
 					Vector3 p1 = offMeshCons[i].Pos1;
 
-					offMeshConClass[i * 2 + 0] = ClassifyOffMeshPoint(p0, bounds);
-					offMeshConClass[i * 2 + 1] = ClassifyOffMeshPoint(p1, bounds);
+					offMeshSides[i * 2 + 0] = BoundarySideExtensions.FromPoint(p0, bounds);
+					offMeshSides[i * 2 + 1] = BoundarySideExtensions.FromPoint(p1, bounds);
 
 					//off-mesh start position isn't touching mesh
-					if (offMeshConClass[i * 2 + 0] == -1)
+					if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 					{
 						if (p0.Y < bounds.Min.Y || p0.Y > bounds.Max.Y)
-							offMeshConClass[i * 2 + 0] = 0;
+							offMeshSides[i * 2 + 0] = 0;
 					}
 
 					//count number of links to allocate
-					if (offMeshConClass[i * 2 + 0] == -1)
+					if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 						offMeshConLinkCount++;
-					if (offMeshConClass[i * 2 + 1] == -1)
+					if (offMeshSides[i * 2 + 1] == BoundarySide.Internal)
 						offMeshConLinkCount++;
 
-					if (offMeshConClass[i * 2 + 0] == -1)
+					if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 						storedOffMeshConCount++;
 				}
 			}
@@ -214,7 +214,7 @@ namespace SharpNav
 			for (int i = 0; i < offMeshCons.Length; i++)
 			{
 				//only store connections which start from this tile
-				if (offMeshConClass[i * 2 + 0] == -1)
+				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
 					navVerts[offMeshVertsBase + (n * 2 + 0)] = offMeshCons[i].Pos0;
 					navVerts[offMeshVertsBase + (n * 2 + 1)] = offMeshCons[i].Pos1;
@@ -268,7 +268,7 @@ namespace SharpNav
 			for (int i = 0; i < offMeshCons.Length; i++)
 			{
 				//only store connections which start from this tile
-				if (offMeshConClass[i * 2 + 0] == -1)
+				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
 					navPolys[offMeshPolyBase + n].VertCount = 2;
 					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
@@ -356,7 +356,7 @@ namespace SharpNav
 			for (int i = 0; i < offMeshConnections.Length; i++)
 			{
 				//only store connections which start from this tile
-				if (offMeshConClass[i * 2 + 0] == -1)
+				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
 					offMeshConnections[n].Poly = offMeshPolyBase + n;
 
@@ -366,7 +366,7 @@ namespace SharpNav
 
 					offMeshConnections[n].Radius = offMeshCons[i].Radius;
 					offMeshConnections[n].Flags = offMeshCons[i].Flags;
-					offMeshConnections[n].Side = offMeshConClass[i * 2 + 1];
+					offMeshConnections[n].Side = offMeshSides[i * 2 + 1];
 					offMeshConnections[n].Tag = offMeshCons[i].Tag;
 
 					n++;
@@ -460,56 +460,6 @@ namespace SharpNav
 			{ 
 				return offMeshConnections; 
 			} 
-		}
-
-		/// <summary>
-		/// Decide which sector the offmesh point is a part of.
-		/// </summary>
-		/// <param name="pt">The point</param>
-		/// <param name="bounds">The bounds</param>
-		/// <returns>An integer representing a sector, or -1 if it is not in any.</returns>
-		private static int ClassifyOffMeshPoint(Vector3 pt, BBox3 bounds)
-		{
-			const int PlusX = 1;
-			const int PlusZ = 2;  
-			const int MinusX = 4; 
-			const int MinusZ = 8; 
-
-			int outcode = 0;
-			outcode |= (pt.X >= bounds.Max.X) ? PlusX : 0;
-			outcode |= (pt.Z >= bounds.Max.Z) ? PlusZ : 0;
-			outcode |= (pt.X < bounds.Min.X) ? MinusX : 0;
-			outcode |= (pt.Z < bounds.Min.Z) ? MinusZ : 0;
-
-			switch (outcode)
-			{
-				case PlusX:
-					return 0;
-
-				case PlusX | PlusZ:
-					return 1;
-
-				case PlusZ:
-					return 2;
-
-				case MinusX | PlusZ:
-					return 3;
-
-				case MinusX:
-					return 4;
-
-				case MinusX | MinusZ:
-					return 5;
-
-				case MinusZ:
-					return 6;
-
-				case PlusX | MinusZ:
-					return 7;
-
-				default:
-					return -1;
-			}
 		}
 	}
 }

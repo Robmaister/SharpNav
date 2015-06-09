@@ -1384,7 +1384,7 @@ namespace SharpNav
 						continue;
 
 					//if the link is internal, just return the ref
-					if (link.Side == 0xff)
+					if (link.Side == BoundarySide.Internal)
 					{
 						nextRef = link.Reference;
 						break;
@@ -1406,7 +1406,7 @@ namespace SharpNav
 					Vector3 right = tile.Verts[v1];
 
 					//check that the intersection lies inside the link portal
-					if (link.Side == 0 || link.Side == 4)
+					if (link.Side == BoundarySide.PlusX || link.Side == BoundarySide.MinusX)
 					{
 						//calculate link size
 						float s = 1.0f / 255.0f;
@@ -1428,7 +1428,7 @@ namespace SharpNav
 							break;
 						}
 					}
-					else if (link.Side == 2 || link.Side == 6)
+					else if (link.Side == BoundarySide.PlusZ || link.Side == BoundarySide.MinusZ)
 					{
 						//calculate link size
 						float s = 1.0f / 255.0f;
@@ -1924,7 +1924,7 @@ namespace SharpNav
 			right = fromTile.Verts[v1];
 
 			//if the link is at the tile boundary, clamp the vertices to tile width
-			if (link.Side != 0xff)
+			if (link.Side != BoundarySide.Internal)
 			{
 				//unpack portal limits
 				if (link.BMin != 0 || link.BMax != 255)

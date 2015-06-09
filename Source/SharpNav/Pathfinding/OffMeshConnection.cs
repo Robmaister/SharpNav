@@ -19,7 +19,7 @@ namespace SharpNav.Pathfinding
 	/// A set of flags that define properties about an off-mesh connection.
 	/// </summary>
 	[Flags]
-	public enum OffMeshConnectionFlags
+	public enum OffMeshConnectionFlags : byte
 	{
 		/// <summary>
 		/// No flags.
@@ -66,7 +66,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the endpoint's side
 		/// </summary>
-		public int Side { get; set; } 
+		public BoundarySide Side { get; set; } 
 
 		/// <summary>
 		/// Gets or sets user data for this connection.

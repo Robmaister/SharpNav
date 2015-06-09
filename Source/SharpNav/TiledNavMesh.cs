@@ -255,24 +255,26 @@ namespace SharpNav
 			{
 				if (neis[j] != tile)
 				{
-					ConnectExtLinks(ref tile, ref neis[j], -1);
-					ConnectExtLinks(ref neis[j], ref tile, -1);
+					ConnectExtLinks(ref tile, ref neis[j], BoundarySide.Internal);
+					ConnectExtLinks(ref neis[j], ref tile, BoundarySide.Internal);
 				}
 
-				ConnectExtOffMeshLinks(ref tile, ref neis[j], -1);
-				ConnectExtOffMeshLinks(ref neis[j], ref tile, -1);
+				ConnectExtOffMeshLinks(ref tile, ref neis[j], BoundarySide.Internal);
+				ConnectExtOffMeshLinks(ref neis[j], ref tile, BoundarySide.Internal);
 			}
 
 			//connect with neighbour tiles
 			for (int i = 0; i < 8; i++)
 			{
-				nneis = GetNeighbourTilesAt(header.X, header.Y, i, neis);
+				BoundarySide b = (BoundarySide)i;
+				BoundarySide bo = b.GetOpposite();
+				nneis = GetNeighbourTilesAt(header.X, header.Y, b, neis);
 				for (int j = 0; j < nneis; j++)
 				{
-					ConnectExtLinks(ref tile, ref neis[j], i);
-					ConnectExtLinks(ref neis[j], ref tile, OppositeTile(i));
-					ConnectExtOffMeshLinks(ref tile, ref neis[j], i);
-					ConnectExtOffMeshLinks(ref neis[j], ref tile, OppositeTile(i));
+					ConnectExtLinks(ref tile, ref neis[j], b);
+					ConnectExtLinks(ref neis[j], ref tile, bo);
+					ConnectExtOffMeshLinks(ref tile, ref neis[j], b);
+					ConnectExtOffMeshLinks(ref neis[j], ref tile, bo);
 				}
 			}
 
@@ -316,7 +318,7 @@ namespace SharpNav
 						//Initialize a new link
 						tile.Links[idx].Reference = GetReference(polyBase, tile.Polys[i].Neis[j] - 1);
 						tile.Links[idx].Edge = j;
-						tile.Links[idx].Side = 0xff;
+						tile.Links[idx].Side = BoundarySide.Internal;
 						tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 						//Add to polygon's links list
@@ -368,7 +370,7 @@ namespace SharpNav
 					//Initialize a new link
 					tile.Links[idx].Reference = reference;
 					tile.Links[idx].Edge = 0;
-					tile.Links[idx].Side = 0xff;
+					tile.Links[idx].Side = BoundarySide.Internal;
 					tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 					//Add to polygon's links list
@@ -384,7 +386,7 @@ namespace SharpNav
 					int landPolyIdx = DecodePolyIdPoly(reference);
 					tile.Links[idx].Reference = GetReference(polyBase, tile.OffMeshConnections[con].Poly);
 					tile.Links[idx].Edge = 0xff;
-					tile.Links[idx].Side = 0xff;
+					tile.Links[idx].Side = BoundarySide.Internal;
 					tile.Links[idx].BMin = tile.Links[idx].BMax = 0;
 
 					//Add to polygon's links list
@@ -400,7 +402,7 @@ namespace SharpNav
 		/// <param name="tile">Current Tile</param>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
-		public void ConnectExtLinks(ref MeshTile tile, ref MeshTile target, int side)
+		public void ConnectExtLinks(ref MeshTile tile, ref MeshTile target, BoundarySide side)
 		{
 			if (tile == null)
 				return;
@@ -416,8 +418,8 @@ namespace SharpNav
 					if ((tile.Polys[i].Neis[j] & Link.External) == 0)
 						continue;
 
-					int dir = tile.Polys[i].Neis[j] & 0xff;
-					if (side != -1 && dir != side)
+					BoundarySide dir = (BoundarySide)(tile.Polys[i].Neis[j] & 0xff);
+					if (side != BoundarySide.Internal && dir != side)
 						continue;
 
 					//Create new links
@@ -425,7 +427,7 @@ namespace SharpNav
 					Vector3 vb = tile.Verts[tile.Polys[i].Verts[(j + 1) % numPolyVerts]];
 					List<int> nei = new List<int>(4);
 					List<float> neia = new List<float>(4 * 2);
-					FindConnectingPolys(va, vb, target, OppositeTile(dir), nei, neia);
+					FindConnectingPolys(va, vb, target, dir.GetOpposite(), nei, neia);
 
 					//Iterate through neighbors
 					for (int k = 0; k < nei.Count; k++)
@@ -443,7 +445,7 @@ namespace SharpNav
 							tile.Polys[i].FirstLink = idx;
 
 							//Compress portal limits to a value
-							if (dir == 0 || dir == 4)
+							if (dir == BoundarySide.PlusX || dir == BoundarySide.MinusX)
 							{
 								float tmin = (neia[k * 2 + 0] - va.Z) / (vb.Z - va.Z);
 								float tmax = (neia[k * 2 + 1] - va.Z) / (vb.Z - va.Z);
@@ -458,7 +460,7 @@ namespace SharpNav
 								tile.Links[idx].BMin = (int)(MathHelper.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
 								tile.Links[idx].BMax = (int)(MathHelper.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
 							}
-							else if (dir == 2 || dir == 6)
+							else if (dir == BoundarySide.PlusZ || dir == BoundarySide.MinusZ)
 							{
 								float tmin = (neia[k * 2 + 0] - va.X) / (vb.X - va.X);
 								float tmax = (neia[k * 2 + 1] - va.X) / (vb.X - va.X);
@@ -480,28 +482,18 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// Find the opposite side
-		/// </summary>
-		/// <param name="side">Current side</param>
-		/// <returns>Opposite side</returns>
-		public int OppositeTile(int side)
-		{
-			return (side + 4) % 8;
-		}
-
-		/// <summary>
 		/// Connect Off-Mesh links between polygons from two different tiles.
 		/// </summary>
 		/// <param name="tile">Current Tile</param>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
-		public void ConnectExtOffMeshLinks(ref MeshTile tile, ref MeshTile target, int side)
+		public void ConnectExtOffMeshLinks(ref MeshTile tile, ref MeshTile target, BoundarySide side)
 		{
 			if (tile == null)
 				return;
 
 			//Connect off-mesh links, specifically links which land from target tile to this tile
-			int oppositeSide = (side == -1) ? 0xff : OppositeTile(side);
+			BoundarySide oppositeSide = side.GetOpposite();
 
 			//Iterate through all the off-mesh connections of target tile
 			for (int i = 0; i < target.Header.OffMeshConCount; i++)
@@ -556,7 +548,7 @@ namespace SharpNav
 						int landPolyIdx = DecodePolyIdPoly(reference);
 						tile.Links[tidx].Reference = GetReference(GetPolyRefBase(target), targetCon.Poly);
 						tile.Links[tidx].Edge = 0xff;
-						tile.Links[tidx].Side = (side == -1) ? 0xff : side;
+						tile.Links[tidx].Side = side;
 						tile.Links[tidx].BMin = tile.Links[tidx].BMax = 0;
 
 						//add to linked list
@@ -628,7 +620,7 @@ namespace SharpNav
 		/// <param name="side">Polygon edge</param>
 		/// <param name="con">Resulting Connection polygon</param>
 		/// <param name="conarea">Resulting Connection area</param>
-		public void FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, int side, List<int> con, List<float> conarea)
+		public void FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, BoundarySide side, List<int> con, List<float> conarea)
 		{
 			if (tile == null)
 				return;
@@ -653,7 +645,7 @@ namespace SharpNav
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip edges which do not point to the right side
-					if (tile.Polys[i].Neis[j] != (Link.External | side))
+					if (tile.Polys[i].Neis[j] != (Link.External | (int)side))
 						continue;
 
 					//Grab two adjacent vertices
@@ -693,9 +685,9 @@ namespace SharpNav
 		/// <param name="bmin">Minimum bounds</param>
 		/// <param name="bmax">Maximum bounds</param>
 		/// <param name="side">The side</param>
-		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector2 bmin, Vector2 bmax, int side)
+		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector2 bmin, Vector2 bmax, BoundarySide side)
 		{
-			if (side == 0 || side == 4)
+			if (side == BoundarySide.PlusX || side == BoundarySide.MinusX)
 			{
 				if (va.Z < vb.Z)
 				{
@@ -714,7 +706,7 @@ namespace SharpNav
 					bmax.Y = va.Y;
 				}
 			}
-			else if (side == 2 || side == 6)
+			else if (side == BoundarySide.PlusZ || side == BoundarySide.MinusZ)
 			{
 				if (va.X < vb.X)
 				{
@@ -741,11 +733,11 @@ namespace SharpNav
 		/// <param name="va">Vertex A</param>
 		/// <param name="side">The side</param>
 		/// <returns>Slab coordinate value</returns>
-		public float GetSlabCoord(Vector3 va, int side)
+		public float GetSlabCoord(Vector3 va, BoundarySide side)
 		{
-			if (side == 0 || side == 4)
+			if (side == BoundarySide.PlusX || side == BoundarySide.MinusX)
 				return va.X;
-			else if (side == 2 || side == 6)
+			else if (side == BoundarySide.PlusZ || side == BoundarySide.MinusZ)
 				return va.Z;
 			
 			return 0;
@@ -1035,43 +1027,43 @@ namespace SharpNav
 		/// <param name="side">The side value</param>
 		/// <param name="tiles">An array of MeshTiles</param>
 		/// <returns>The number of tiles satisfying the condition</returns>
-		public int GetNeighbourTilesAt(int x, int y, int side, MeshTile[] tiles)
+		public int GetNeighbourTilesAt(int x, int y, BoundarySide side, MeshTile[] tiles)
 		{
 			int nx = x, ny = y;
 			switch (side)
 			{
-				case 0:
+				case BoundarySide.PlusX:
 					nx++;
 					break;
 
-				case 1:
+				case BoundarySide.PlusXPlusZ:
 					nx++;
 					ny++;
 					break;
 
-				case 2:
+				case BoundarySide.PlusZ:
 					ny++;
 					break;
 
-				case 3:
+				case BoundarySide.MinusXPlusZ:
 					nx--;
 					ny++;
 					break;
 
-				case 4:
+				case BoundarySide.MinusX:
 					nx--;
 					break;
 
-				case 5:
+				case BoundarySide.MinusXMinusZ:
 					nx--;
 					ny--;
 					break;
 
-				case 6:
+				case BoundarySide.MinusZ:
 					ny--;
 					break;
 
-				case 7:
+				case BoundarySide.PlusXMinusZ:
 					nx++;
 					ny--;
 					break;

@@ -36,7 +36,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the polygon side
 		/// </summary>
-		public int Side { get; set; }
+		public BoundarySide Side { get; set; }
 
 		/// <summary>
 		/// Gets or sets the minimum Vector3 of the bounding box
