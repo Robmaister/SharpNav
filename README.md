@@ -59,7 +59,7 @@ SharpNav follows the standard C# project structure. It is actively developed on 
 
 Binaries are not output to their project's local `bin` folder, they are all output to the `Binaries` folder in the repository's root directory.
 
-SharpNav can be configured to depend on other libraries. Each one has it's own compile configuration that requires the library to be installed on the machine (in the GAC or the assembly search path), with the exception being OpenTK. OpenTK is used for the Examples project, and is therefore included in the repository. If you want to compile against a different version of OpenTK, drop in your replacement in the [`Dependencies`](Dependencies) folder.
+SharpNav can be configured to depend on other libraries. Each one has it's own compile configuration that require at least one extra NuGet package. The way the project is currently structured requires all of the engine integrations' packages to be downloaded regardless of which configuration is selected (this balloons the size of a checked out and built repository to a little under 700MB). Fixing this would be a great contribution if anyone reading this is a MSBuild guru :stuck_out_tongue:
 
 ## Mailing List
 
