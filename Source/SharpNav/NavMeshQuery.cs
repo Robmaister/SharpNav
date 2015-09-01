@@ -217,10 +217,32 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Finds a random point in a NavMesh connected to a specified point on the same mesh.
+		/// </summary>
+		/// <param name="connectedTo">The point that the random point will be connected to.</param>
+		/// <param name="randomPoint">A random point connected to <c>connectedTo</c>.</param>
+		public void FindRandomConnectedPoint(NavPoint connectedTo, out NavPoint randomPoint)
+		{
+			FindRandomPointAroundCircle(connectedTo, 0, out randomPoint);
+		}
+
+		/// <summary>
+		/// Finds a random point in a NavMesh connected to a specified point on the same mesh.
+		/// </summary>
+		/// <param name="connectedTo">The point that the random point will be connected to.</param>
+		/// <returns>A random point connected to <c>connectedTo</c>.</returns>
+		public NavPoint FindRandomConnectedPoint(NavPoint connectedTo)
+		{
+			NavPoint result;
+			FindRandomConnectedPoint(connectedTo, out result);
+			return result;
+		}
+
+		/// <summary>
 		/// Finds a random point in a NavMesh within a specified circle.
 		/// </summary>
 		/// <param name="center">The center point.</param>
-		/// <param name="radius">The maximum distance away from the center that the random point can be.</param>
+		/// <param name="radius">The maximum distance away from the center that the random point can be. If 0, any point on the mesh can be returned.</param>
 		/// <returns>A random point within the specified circle.</returns>
 		public NavPoint FindRandomPointAroundCircle(NavPoint center, float radius)
 		{
@@ -233,7 +255,7 @@ namespace SharpNav
 		/// Finds a random point in a NavMesh within a specified circle.
 		/// </summary>
 		/// <param name="center">The center point.</param>
-		/// <param name="radius">The maximum distance away from the center that the random point can be.</param>
+		/// <param name="radius">The maximum distance away from the center that the random point can be. If 0, any point on the mesh can be returned.</param>
 		/// <param name="randomPoint">A random point within the specified circle.</param>
 		public void FindRandomPointAroundCircle(NavPoint center, float radius, out NavPoint randomPoint)
 		{
@@ -264,6 +286,7 @@ namespace SharpNav
 			startNode.Flags = NodeFlags.Open;
 			openList.Push(startNode);
 
+			bool doRadiusCheck = radius != 0;
 			float radiusSqr = radius * radius;
 			float areaSum = 0.0f;
 
@@ -335,10 +358,13 @@ namespace SharpNav
 						continue;
 
 					//if circle isn't touching next polygon, skip it
-					float tseg;
-					float distSqr = Distance.PointToSegment2DSquared(ref center.Position, ref va, ref vb, out tseg);
-					if (distSqr > radiusSqr)
-						continue;
+					if (doRadiusCheck)
+					{
+						float tseg;
+						float distSqr = Distance.PointToSegment2DSquared(ref center.Position, ref va, ref vb, out tseg);
+						if (distSqr > radiusSqr)
+							continue;
+					}
 
 					Node neighbourNode = nodePool.GetNode(neighbourRef);
 					if (neighbourNode == null)
