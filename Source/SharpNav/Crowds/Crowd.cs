@@ -52,7 +52,7 @@ namespace SharpNav.Crowds
 
 		private ProximityGrid<Agent> grid;
 
-		private int[] pathResult;
+		private PolyId[] pathResult;
 		private int maxPathResult;
 
 		private Vector3 ext;
@@ -100,7 +100,7 @@ namespace SharpNav.Crowds
 
 			//allocate temp buffer for merging paths
 			this.maxPathResult = 256;
-			this.pathResult = new int[this.maxPathResult];
+			this.pathResult = new PolyId[this.maxPathResult];
 
 			this.pathq = new PathQueue(maxPathResult, 4096, ref navMesh);
 
@@ -326,7 +326,7 @@ namespace SharpNav.Crowds
 					int idx = i;
 					
 					//adjust the path over the off-mesh connection
-					int[] refs = new int[2];
+					PolyId[] refs = new PolyId[2];
 					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].CornerPolys[agents[i].CornerCount - 1], refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
 					{
 						agentAnims[idx].InitPos = agents[i].Position;
@@ -621,12 +621,12 @@ namespace SharpNav.Crowds
 
 				if (agents[i].TargetState == TargetState.Requesting)
 				{
-					int[] path = agents[i].Corridor.Path;
+					PolyId[] path = agents[i].Corridor.Path;
 					int npath = agents[i].Corridor.PathCount;
 
 					const int MAX_RES = 32;
 					Vector3 reqPos = new Vector3();
-					int[] reqPath = new int[MAX_RES];
+					PolyId[] reqPath = new PolyId[MAX_RES];
 					int reqPathCount = 0;
 
 					//quick search towards the goal
@@ -699,8 +699,8 @@ namespace SharpNav.Crowds
 
 			for (int i = 0; i < numQueue; i++)
 			{
-				queue[i].TargetPathqRef = pathq.Request(queue[i].Corridor.GetLastPoly(), queue[i].TargetRef, queue[i].Corridor.Target, queue[i].TargetPosition);
-				if (queue[i].TargetPathqRef != PathQueue.Invalid)
+				queue[i].TargetPathQueryIndex = pathq.Request(new NavPoint(queue[i].Corridor.GetLastPoly(), queue[i].Corridor.Target), new NavPoint(queue[i].TargetRef, queue[i].TargetPosition));
+				if (queue[i].TargetPathQueryIndex != PathQueue.Invalid)
 					queue[i].TargetState = TargetState.WaitingForPath;
 			}
 
@@ -718,12 +718,12 @@ namespace SharpNav.Crowds
 				if (agents[i].TargetState == TargetState.WaitingForPath)
 				{
 					//poll path queue
-					status = pathq.GetRequestStatus(agents[i].TargetPathqRef);
+					status = pathq.GetRequestStatus(agents[i].TargetPathQueryIndex);
 					if (status == Status.Failure)
 					{
 						//path find failed, retry if the target location is still valid
-						agents[i].TargetPathqRef = PathQueue.Invalid;
-						if (agents[i].TargetRef != 0)
+						agents[i].TargetPathQueryIndex = PathQueue.Invalid;
+						if (agents[i].TargetRef != PolyId.Null)
 							agents[i].TargetState = TargetState.Requesting;
 						else
 							agents[i].TargetState = TargetState.Failed;
@@ -731,19 +731,19 @@ namespace SharpNav.Crowds
 					}
 					else if (status == Status.Success)
 					{
-						int[] path = agents[i].Corridor.Path;
+						PolyId[] path = agents[i].Corridor.Path;
 						int npath = agents[i].Corridor.PathCount;
 
 						//apply results
 						Vector3 targetPos = new Vector3();
 						targetPos = agents[i].TargetPosition;
 
-						int[] res = new int[this.maxPathResult];
+						PolyId[] res = new PolyId[this.maxPathResult];
 						for (int j = 0; j < this.maxPathResult; j++)
 							res[i] = pathResult[j];
 						bool valid = true;
 						int nres = 0;
-						status = pathq.GetPathResult(agents[i].TargetPathqRef, res, ref nres, maxPathResult).ToStatus();
+						status = pathq.GetPathResult(agents[i].TargetPathQueryIndex, res, ref nres, maxPathResult).ToStatus();
 						if (status == Status.Failure || nres == 0)
 							valid = false;
 
@@ -883,24 +883,24 @@ namespace SharpNav.Crowds
 				bool replan = false;
 
 				//first check that the current location is valid
-				int agentRef = ag.Corridor.GetFirstPoly();
+				PolyId agentRef = ag.Corridor.GetFirstPoly();
 				Vector3 agentPos = ag.Position;
 				if (!navQuery.IsValidPolyRef(agentRef))
 				{
 					//current location is not valid, try to reposition
 					Vector3 nearest = agentPos;
 					Vector3 pos = ag.Position;
-					agentRef = 0;
+					agentRef = PolyId.Null;
 					NavPoint nearestPt;
 					navQuery.FindNearestPoly(ref pos, ref ext, out nearestPt);
 					nearest = nearestPt.Position;
 					agentRef = nearestPt.Polygon;
 					agentPos = nearestPt.Position;
 
-					if (agentRef == 0)
+					if (agentRef == PolyId.Null)
 					{
 						//could not find location in navmesh, set state to invalid
-						ag.Corridor.Reset(0, agentPos);
+						ag.Corridor.Reset(PolyId.Null, agentPos);
 						ag.IsPartial = false;
 						ag.Boundary.Reset();
 						ag.State = AgentState.Invalid;
@@ -924,7 +924,7 @@ namespace SharpNav.Crowds
 						//current target is not valid, try to reposition
 						Vector3 nearest = ag.TargetPosition;
 						Vector3 tpos = ag.TargetPosition;
-						ag.TargetRef = 0;
+						ag.TargetRef = PolyId.Null;
 						NavPoint nearestPt;
 						navQuery.FindNearestPoly(ref tpos, ref ext, out nearestPt);
 						ag.TargetRef = nearestPt.Polygon;
@@ -933,7 +933,7 @@ namespace SharpNav.Crowds
 						replan = true;
 					}
 
-					if (ag.TargetRef == 0)
+					if (ag.TargetRef == PolyId.Null)
 					{
 						//failed to reposition target
 						ag.Corridor.Reset(agentRef, agentPos);
@@ -1288,7 +1288,7 @@ namespace SharpNav.Crowds
 	{
 		public bool Active { get; set; }
 		public Vector3 InitPos, StartPos, EndPos;
-		public int PolyRef;
+		public PolyId PolyRef;
 		public float T, TMax;
 	}
 }

@@ -32,7 +32,7 @@ namespace SharpNav.Crowds
 		private Segment[] segs;
 		private int segCount;
 
-		private int[] polys;
+		private PolyId[] polys;
 		private int numPolys;
 
 		#endregion
@@ -46,7 +46,7 @@ namespace SharpNav.Crowds
 		{
 			Reset();
 			segs = new Segment[MaxLocalSegs];
-			polys = new int[MaxLocalPolys];
+			polys = new PolyId[MaxLocalPolys];
 		}
 
 		#endregion
@@ -155,11 +155,11 @@ namespace SharpNav.Crowds
 		/// <param name="pos">Current position</param>
 		/// <param name="collisionQueryRange">Range to query</param>
 		/// <param name="navquery">The NavMeshQuery</param>
-		public void Update(int reference, Vector3 pos, float collisionQueryRange, NavMeshQuery navquery)
+		public void Update(PolyId reference, Vector3 pos, float collisionQueryRange, NavMeshQuery navquery)
 		{
 			const int MAX_SEGS_PER_POLY = PathfindingCommon.VERTS_PER_POLYGON;
 
-			if (reference == 0)
+			if (reference == PolyId.Null)
 			{
 				this.center = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 				this.segCount = 0;
@@ -170,7 +170,7 @@ namespace SharpNav.Crowds
 			this.center = pos;
 
 			//first query non-overlapping polygons
-			int[] tempArray = new int[polys.Length];
+			PolyId[] tempArray = new PolyId[polys.Length];
 			navquery.FindLocalNeighbourhood(new NavPoint(reference, pos), collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
 
 			//secondly, store all polygon edges
@@ -179,7 +179,7 @@ namespace SharpNav.Crowds
 			int numSegs = 0;
 			for (int j = 0; j < numPolys; j++)
 			{
-				tempArray = new int[segs.Length];
+				tempArray = new PolyId[segs.Length];
 				navquery.GetPolyWallSegments(polys[j], segs, tempArray, ref numSegs, MAX_SEGS_PER_POLY);
 				for (int k = 0; k < numSegs; k++)
 				{

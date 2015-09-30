@@ -148,6 +148,7 @@
     <Compile Include="Pathfinding\PathBuildFlags.cs" />
     <Compile Include="Pathfinding\Poly.cs" />
     <Compile Include="Crowds\PathQueue.cs" />
+    <Compile Include="Pathfinding\PolyId.cs" />
     <Compile Include="PolyBounds.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />

@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 
+using SharpNav.Pathfinding;
+
 namespace SharpNav
 {
 	/// <summary>
@@ -11,9 +13,8 @@ namespace SharpNav
 	/// </summary>
 	public class NodePool
 	{
-		private int hashSize;
 		private List<Node> nodes;
-		private Dictionary<int, Node> nodeDict;
+		private Dictionary<PolyId, Node> nodeDict;
 		private int maxNodes;
 
 		/// <summary>
@@ -21,13 +22,12 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="maxNodes">The maximum number of nodes that can be stored</param>
 		/// <param name="hashSize">The maximum number of elements in the hash table</param>
-		public NodePool(int maxNodes, int hashSize)
+		public NodePool(int maxNodes)
 		{
 			this.maxNodes = maxNodes;
-			this.hashSize = hashSize;
 
 			nodes = new List<Node>(maxNodes);
-			nodeDict = new Dictionary<int, Node>(new IntNodeIdComparer(hashSize));
+			nodeDict = new Dictionary<PolyId, Node>();
 		}
 
 		/// <summary>
@@ -44,7 +44,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="id">Node's id</param>
 		/// <returns>The node, if found. Null, if otherwise.</returns>
-		public Node FindNode(int id)
+		public Node FindNode(PolyId id)
 		{
 			Node node;
 			if (nodeDict.TryGetValue(id, out node))
@@ -60,7 +60,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="id">Node's id</param>
 		/// <returns>The node</returns>
-		public Node GetNode(int id)
+		public Node GetNode(PolyId id)
 		{
 			Node node;
 			if (nodeDict.TryGetValue(id, out node))
@@ -119,7 +119,7 @@ namespace SharpNav
 		/// <summary>
 		/// Determine whether two nodes are equal
 		/// </summary>
-		private class IntNodeIdComparer : IEqualityComparer<int>
+		/*private class IntNodeIdComparer : IEqualityComparer<PolyId>
 		{
 			private int hashSize;
 
@@ -138,7 +138,7 @@ namespace SharpNav
 			/// <param name="left">The first object</param>
 			/// <param name="right">The second object</param>
 			/// <returns>True if equal, false if not equal</returns>
-			public bool Equals(int left, int right)
+			public bool Equals(PolyId left, int right)
 			{
 				return left == right;
 			}
@@ -159,6 +159,6 @@ namespace SharpNav
 
 				return obj & (hashSize - 1);
 			}
-		}
+		}*/
 	}
 }

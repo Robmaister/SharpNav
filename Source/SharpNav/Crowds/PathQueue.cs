@@ -22,10 +22,11 @@ namespace SharpNav.Crowds
 	{
 		#region Fields
 
-		public const byte Invalid = 0;
+		public const int Invalid = 0;
 		private const int MaxQueue = 8;
+		private const int MaxKeepAlive = 2; //in number of times Update() is called
 
-		private PathQuery[] queue; //size = MAX_QUEUE
+		private PathQuery[] queue;
 		private int nextHandle = 1;
 		private int maxPathSize;
 		private int queueHead;
@@ -43,8 +44,8 @@ namespace SharpNav.Crowds
 			this.queue = new PathQuery[MaxQueue];
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				queue[i].Reference = Invalid;
-				queue[i].Path = new int[maxPathSize];
+				queue[i].Index = 0;
+				queue[i].Path = new PolyId[maxPathSize];
 			}
 
 			this.queueHead = 0;
@@ -56,8 +57,6 @@ namespace SharpNav.Crowds
 
 		public void Update(int maxIters)
 		{
-			const int MAX_KEEP_ALIVE = 2; //in update ticks
-
 			//update path request until there is nothing left to update
 			//or up to maxIters pathfinder iterations have been consumed
 			int iterCount = maxIters;
@@ -67,20 +66,20 @@ namespace SharpNav.Crowds
 				PathQuery q = queue[queueHead % MaxQueue];
 
 				//skip inactive requests
-				if (q.Reference == Invalid)
+				if (q.Index == 0)
 				{
 					queueHead++;
 					continue;
 				}
 
 				//handle completed request
-				if (q.status == Status.Success || q.status == Status.Failure)
+				if (q.Status == Status.Success || q.Status == Status.Failure)
 				{
 					q.KeepAlive++;
-					if (q.KeepAlive > MAX_KEEP_ALIVE)
+					if (q.KeepAlive > MaxKeepAlive)
 					{
-						q.Reference = Invalid;
-						q.status = 0;
+						q.Index = 0;
+						q.Status = 0;
 					}
 
 					queueHead++;
@@ -88,23 +87,23 @@ namespace SharpNav.Crowds
 				}
 
 				//handle query start
-				if (q.status == 0)
+				if (q.Status == 0)
 				{
-					q.status = navquery.InitSlicedFindPath(new NavPoint(q.StartRef, q.StartPos), new NavPoint(q.EndRef, q.EndPos)).ToStatus();
+					q.Status = navquery.InitSlicedFindPath(q.Start, q.End).ToStatus();
 				}
 
 				//handle query in progress
-				if (q.status == Status.InProgress)
+				if (q.Status == Status.InProgress)
 				{
 					int iters = 0;
-					q.status = navquery.UpdateSlicedFindPath(iterCount, ref iters).ToStatus();
+					q.Status = navquery.UpdateSlicedFindPath(iterCount, ref iters).ToStatus();
 
 					iterCount -= iters;
 				}
 
-				if (q.status == Status.Success)
+				if (q.Status == Status.Success)
 				{
-					q.status = navquery.FinalizeSlicedFindPath(q.Path, ref q.PathCount, maxPathSize).ToStatus();
+					q.Status = navquery.FinalizeSlicedFindPath(q.Path, ref q.PathCount, maxPathSize).ToStatus();
 				}
 
 				if (iterCount <= 0)
@@ -117,18 +116,16 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// Request an empty slot in the path queue
 		/// </summary>
-		/// <param name="startRef">Start polygon reference</param>
-		/// <param name="endRef">End polygon reference</param>
-		/// <param name="startPos">Start position</param>
-		/// <param name="endPos">End position</param>
+		/// <param name="start">Start position</param>
+		/// <param name="end">End position</param>
 		/// <returns>Index of empty slot</returns>
-		public int Request(int startRef, int endRef, Vector3 startPos, Vector3 endPos)
+		public int Request(NavPoint start, NavPoint end)
 		{
 			//find empty slot
 			int slot = -1;
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				if (queue[i].Reference == Invalid)
+				if (queue[i].Index == 0)
 				{
 					slot = i;
 					break;
@@ -137,25 +134,23 @@ namespace SharpNav.Crowds
 
 			//could not find slot
 			if (slot == -1)
-				return Invalid;
+				return PathQueue.Invalid;
 
-			int reference = nextHandle++;
-			if (nextHandle == Invalid) nextHandle++;
+			int index = nextHandle++;
+			if (nextHandle == 0) nextHandle++;
 
 			PathQuery q = queue[slot];
-			q.Reference = reference;
-			q.StartPos = startPos;
-			q.StartRef = startRef;
-			q.EndPos = endPos;
-			q.EndRef = endRef;
+			q.Index = index;
+			q.Start = start;
+			q.End = end;
 
-			q.status = 0;
+			q.Status = 0;
 			q.PathCount = 0;
 			q.KeepAlive = 0;
 
 			queue[slot] = q;
 
-			return reference;
+			return index;
 		}
 
 		/// <summary>
@@ -163,28 +158,28 @@ namespace SharpNav.Crowds
 		/// </summary>
 		/// <param name="reference">The polygon reference</param>
 		/// <returns>The status in the queue</returns>
-		public Status GetRequestStatus(int reference)
+		public Status GetRequestStatus(int index)
 		{
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				if (queue[i].Reference == reference)
-					return queue[i].status;
+				if (queue[i].Index == index)
+					return queue[i].Status;
 			}
 
 			return Status.Failure;
 		}
 
-		public bool GetPathResult(int reference, int[] path, ref int pathSize, int maxPath)
+		public bool GetPathResult(int index, PolyId[] path, ref int pathSize, int maxPath)
 		{
 			for (int i = 0; i < MaxQueue; i++)
 			{
-				if (queue[i].Reference == reference)
+				if (queue[i].Index == index)
 				{
 					PathQuery q = queue[i];
 					
 					//free request for reuse
-					q.Reference = Invalid;
-					q.status = 0;
+					q.Index = 0;
+					q.Status = 0;
 					
 					//copy path
 					int n = Math.Min(q.PathCount, maxPath);
@@ -204,18 +199,17 @@ namespace SharpNav.Crowds
 
 		private struct PathQuery
 		{
-			public int Reference;
+			public int Index;
 			
 			//path find start and end location
-			public Vector3 StartPos, EndPos;
-			public int StartRef, EndRef;
+			public NavPoint Start, End;
 
 			//result
-			public int[] Path;
+			public PolyId[] Path;
 			public int PathCount;
 
 			//state
-			public Status status;
+			public Status Status;
 			public int KeepAlive;
 		}
 	}

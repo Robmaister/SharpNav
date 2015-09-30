@@ -57,8 +57,8 @@ namespace SharpNav
 			for (int i = 0; i < areaCost.Length; i++)
 				areaCost[i] = 1.0f;
 
-			nodePool = new NodePool(maxNodes, MathHelper.NextPowerOfTwo(maxNodes / 4));
-			tinyNodePool = new NodePool(64, 32);
+			nodePool = new NodePool(maxNodes/*, MathHelper.NextPowerOfTwo(maxNodes / 4)*/);
+			tinyNodePool = new NodePool(64/*, 32*/);
 			openList = new PriorityQueue<Node>(maxNodes);
 
 			this.rand = rand;
@@ -91,7 +91,7 @@ namespace SharpNav
 		/// <param name="poly">The current polygon</param>
 		/// <param name="polyRef">Polygon reference</param>
 		/// <returns>Resulting random point</returns>
-		public Vector3 FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef)
+		public Vector3 FindRandomPointOnPoly(MeshTile tile, Poly poly, PolyId polyRef)
 		{
 			Vector3 result;
 			this.FindRandomPointOnPoly(tile, poly, polyRef, out result);
@@ -105,7 +105,7 @@ namespace SharpNav
 		/// <param name="poly">The current polygon</param>
 		/// <param name="polyRef">Polygon reference</param>
 		/// <param name="randomPt">Resulting random point</param>
-		public void FindRandomPointOnPoly(MeshTile tile, Poly poly, int polyRef, out Vector3 randomPt)
+		public void FindRandomPointOnPoly(MeshTile tile, Poly poly, PolyId polyRef, out Vector3 randomPt)
 		{
 			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
 			float[] areas = new float[PathfindingCommon.VERTS_PER_POLYGON];
@@ -172,8 +172,8 @@ namespace SharpNav
 
 			//randomly pick one polygon weighted by polygon area
 			Poly poly = null;
-			int polyRef = 0;
-			int polyBase = nav.GetPolyRefBase(tile);
+			PolyId polyRef = PolyId.Null;
+			PolyId polyBase = nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
 			for (int i = 0; i < tile.Header.PolyCount; i++)
@@ -184,7 +184,8 @@ namespace SharpNav
 				if (p.PolyType != PolygonType.Ground)
 					continue;
 
-				int reference = polyBase | i;
+				PolyId reference;
+				PolyId.SetPolyIndex(ref polyBase, i, out reference);
 
 				//calculate area of polygon
 				float polyArea = 0.0f;
@@ -264,7 +265,7 @@ namespace SharpNav
 				throw new InvalidOperationException("Something null");
 
 			//validate input
-			if (center.Polygon == 0)
+			if (center.Polygon == PolyId.Null)
 				throw new ArgumentOutOfRangeException("startRef", "Null poly reference");
 
 			if (!nav.IsValidPolyRef(center.Polygon))
@@ -292,7 +293,7 @@ namespace SharpNav
 
 			MeshTile randomTile = null;
 			Poly randomPoly = null;
-			int randomPolyRef = 0;
+			PolyId randomPolyRef = PolyId.Null;
 
 			while (openList.Count > 0)
 			{
@@ -300,7 +301,7 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//get poly and tile
-				int bestRef = bestNode.Id;
+				PolyId bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
@@ -329,21 +330,21 @@ namespace SharpNav
 				}
 
 				//get parent poly and tile
-				int parentRef = 0;
+				PolyId parentRef = PolyId.Null;
 				MeshTile parentTile;
 				Poly parentPoly;
 				if (bestNode.ParentIdx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
-				if (parentRef != 0)
+				if (parentRef != PolyId.Null)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
 					Link link = bestTile.Links[i];
-					int neighbourRef = link.Reference;
+					PolyId neighbourRef = link.Reference;
 
 					//skip invalid neighbours and do not follor back to parent
-					if (neighbourRef == 0 || neighbourRef == parentRef)
+					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
 						continue;
 
 					//expand to neighbour
@@ -420,17 +421,17 @@ namespace SharpNav
 		/// <param name="endPt">The end point.</param>
 		/// <param name="path">The path of polygon references</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
-		public bool FindPath(ref NavPoint startPt, ref NavPoint endPt, List<int> path)
+		public bool FindPath(ref NavPoint startPt, ref NavPoint endPt, List<PolyId> path)
 		{
 			//reset path of polygons
 			path.Clear();
 
-			int startRef = startPt.Polygon;
+			PolyId startRef = startPt.Polygon;
 			Vector3 startPos = startPt.Position;
-			int endRef = endPt.Polygon;
+			PolyId endRef = endPt.Polygon;
 			Vector3 endPos = endPt.Position;
 
-			if (startRef == 0 || endRef == 0)
+			if (startRef == PolyId.Null || endRef == PolyId.Null)
 				return false;
 
 			//path can't store any elements
@@ -478,27 +479,27 @@ namespace SharpNav
 				}
 
 				//get current poly and tile
-				int bestRef = bestNode.Id;
+				PolyId bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(bestRef, out bestTile, out bestPoly);
 
 				//get parent poly and tile
-				int parentRef = 0;
+				PolyId parentRef = PolyId.Null;
 				MeshTile parentTile;
 				Poly parentPoly;
 				if (bestNode.ParentIdx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
-				if (parentRef != 0)
+				if (parentRef != PolyId.Null)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				//examine neighbors
 				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
-					int neighbourRef = bestTile.Links[i].Reference;
+					PolyId neighbourRef = bestTile.Links[i].Reference;
 
 					//skip invalid ids and do not expand back to where we came from
-					if (neighbourRef == 0 || neighbourRef == parentRef)
+					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
 						continue;
 
 					//get neighbour poly and tile
@@ -609,7 +610,7 @@ namespace SharpNav
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <param name="options">Options flag</param>
 		/// <returns>True, if path found. False, if otherwise.</returns>
-		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, int[] path, int pathSize, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
+		public bool FindStraightPath(Vector3 startPos, Vector3 endPos, PolyId[] path, int pathSize, Vector3[] straightPath, int[] straightPathFlags, PolyId[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			straightPathCount = 0;
 
@@ -641,8 +642,8 @@ namespace SharpNav
 				PolygonType leftPolyType = 0;
 				PolygonType rightPolyType = 0;
 
-				int leftPolyRef = path[0];
-				int rightPolyRef = path[0];
+				PolyId leftPolyRef = path[0];
+				PolyId rightPolyRef = path[0];
 
 				for (int i = 0; i < pathSize; i++)
 				{
@@ -700,7 +701,7 @@ namespace SharpNav
 						if (portalApex == portalRight || triArea2D > 0.0)
 						{
 							portalRight = right;
-							rightPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
+							rightPolyRef = (i + 1 < pathSize) ? path[i + 1] : PolyId.Null;
 							rightPolyType = toType;
 							rightIndex = i;
 						}
@@ -719,12 +720,12 @@ namespace SharpNav
 							apexIndex = leftIndex;
 
 							int flags = 0;
-							if (leftPolyRef == 0)
+							if (leftPolyRef == PolyId.Null)
 								flags = PathfindingCommon.STRAIGHTPATH_END;
 							else if (leftPolyType == PolygonType.OffMeshConnection)
 								flags = PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
-							int reference = leftPolyRef;
+							PolyId reference = leftPolyRef;
 
 							//append or update vertex
 							stat = AppendVertex(portalApex, flags, reference, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
@@ -752,7 +753,7 @@ namespace SharpNav
 						if (portalApex == portalLeft || triArea2D < 0.0f)
 						{
 							portalLeft = left;
-							leftPolyRef = (i + 1 < pathSize) ? path[i + 1] : 0;
+							leftPolyRef = (i + 1 < pathSize) ? path[i + 1] : PolyId.Null;
 							leftPolyType = toType;
 							leftIndex = i;
 						}
@@ -770,12 +771,12 @@ namespace SharpNav
 							apexIndex = rightIndex;
 
 							int flags = 0;
-							if (rightPolyRef == 0)
+							if (rightPolyRef == PolyId.Null)
 								flags = PathfindingCommon.STRAIGHTPATH_END;
 							else if (rightPolyType == PolygonType.OffMeshConnection)
 								flags = PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION;
 
-							int reference = rightPolyRef;
+							PolyId reference = rightPolyRef;
 
 							//append or update vertex
 							stat = AppendVertex(portalApex, flags, reference, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
@@ -806,7 +807,7 @@ namespace SharpNav
 				}
 			}
 
-			stat = AppendVertex(closestEndPos, PathfindingCommon.STRAIGHTPATH_END, 0, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
+			stat = AppendVertex(closestEndPos, PathfindingCommon.STRAIGHTPATH_END, PolyId.Null, straightPath, straightPathFlags, straightPathRefs, ref straightPathCount, maxStraightPath);
 
 			return true;
 		}
@@ -820,7 +821,7 @@ namespace SharpNav
 		/// <param name="resultPos">Intermediate point</param>
 		/// <param name="visited">Visited polygon references</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool MoveAlongSurface(NavPoint startPoint, Vector3 endPos, ref Vector3 resultPos, List<int> visited)
+		public bool MoveAlongSurface(NavPoint startPoint, Vector3 endPos, ref Vector3 resultPos, List<PolyId> visited)
 		{
 			if (nav == null)
 				return false;
@@ -830,7 +831,7 @@ namespace SharpNav
 			visited.Clear();
 
 			//validate input
-			if (startPoint.Polygon == 0)
+			if (startPoint.Polygon == PolyId.Null)
 				return false;
 			if (!nav.IsValidPolyRef(startPoint.Polygon))
 				return false;
@@ -865,7 +866,7 @@ namespace SharpNav
 				Node curNode = nodeQueue.Dequeue();
 
 				//get poly and tile
-				int curRef = curNode.Id;
+				PolyId curRef = curNode.Id;
 				MeshTile curTile;
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
@@ -887,7 +888,7 @@ namespace SharpNav
 				for (int i = 0, j = curPoly.VertCount - 1; i < curPoly.VertCount; j = i++)
 				{
 					//find links to neighbors
-					List<int> neis = new List<int>(8);
+					List<PolyId> neis = new List<PolyId>(8);
 
 					if ((curPoly.Neis[j] & Link.External) != 0)
 					{
@@ -897,7 +898,7 @@ namespace SharpNav
 							Link link = curTile.Links[k];
 							if (link.Edge == j)
 							{
-								if (link.Reference != 0)
+								if (link.Reference != PolyId.Null)
 								{
 									MeshTile neiTile;
 									Poly neiPoly;
@@ -912,7 +913,8 @@ namespace SharpNav
 					else if (curPoly.Neis[j] != 0)
 					{
 						int idx = curPoly.Neis[j] - 1;
-						int reference = nav.GetPolyRefBase(curTile) | idx;
+						PolyId reference = nav.GetPolyRefBase(curTile);
+						PolyId.SetPolyIndex(ref reference, idx, out reference);
 						neis.Add(reference); //internal edge, encode id
 					}
 
@@ -993,18 +995,10 @@ namespace SharpNav
 		/// <returns>True if path initialized, false otherwise</returns>
 		public bool InitSlicedFindPath(NavPoint startPoint, NavPoint endPoint)
 		{
-			//init path state
-			query = new QueryData();
-			query.Status = false;
-			query.StartRef = startPoint.Polygon;
-			query.EndRef = endPoint.Polygon;
-			query.StartPos = startPoint.Position;
-			query.EndPos = endPoint.Position;
-
-			if (query.StartRef == 0 || query.EndRef == 0)
+			//validate input
+			if (startPoint.Polygon == PolyId.Null || endPoint.Polygon == PolyId.Null)
 				return false;
 
-			//validate input
 			if (!nav.IsValidPolyRef(startPoint.Polygon) || !nav.IsValidPolyRef(endPoint.Polygon))
 				return false;
 
@@ -1013,6 +1007,12 @@ namespace SharpNav
 				query.Status = true;
 				return true;
 			}
+
+			//init path state
+			query = new QueryData();
+			query.Status = false;
+			query.Start = startPoint;
+			query.End = endPoint;
 
 			nodePool.Clear();
 			openList.Clear();
@@ -1045,7 +1045,7 @@ namespace SharpNav
 				return query.Status;
 
 			//make sure the request is still valid
-			if (!nav.IsValidPolyRef(query.StartRef) || !nav.IsValidPolyRef(query.EndRef))
+			if (!nav.IsValidPolyRef(query.Start.Polygon) || !nav.IsValidPolyRef(query.End.Polygon))
 			{
 				query.Status = false;
 				return false;
@@ -1061,7 +1061,7 @@ namespace SharpNav
 				SetNodeFlagClosed(ref bestNode);
 
 				//reached the goal, stop searching
-				if (bestNode.Id == query.EndRef)
+				if (bestNode.Id == query.End.Polygon)
 				{
 					query.LastBestNode = bestNode;
 					query.Status = true;
@@ -1070,7 +1070,7 @@ namespace SharpNav
 				}
 
 				//get current poly and tile
-				int bestRef = bestNode.Id;
+				PolyId bestRef = bestNode.Id;
 				MeshTile bestTile;
 				Poly bestPoly;
 				if (nav.TryGetTileAndPolyByRef(bestRef, out bestTile, out bestPoly) == false)
@@ -1082,12 +1082,12 @@ namespace SharpNav
 				}
 
 				//get parent poly and tile
-				int parentRef = 0;
+				PolyId parentRef = PolyId.Null;
 				MeshTile parentTile;
 				Poly parentPoly;
 				if (bestNode.ParentIdx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
-				if (parentRef != 0)
+				if (parentRef != PolyId.Null)
 				{
 					if (nav.TryGetTileAndPolyByRef(parentRef, out parentTile, out parentPoly) == false)
 					{
@@ -1100,10 +1100,10 @@ namespace SharpNav
 
 				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
 				{
-					int neighbourRef = bestTile.Links[i].Reference;
+					PolyId neighbourRef = bestTile.Links[i].Reference;
 
 					//skip invalid ids and do not expand back to where we came from
-					if (neighbourRef == 0 || neighbourRef == parentRef)
+					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
 						continue;
 
 					//get neighbour poly and tile
@@ -1125,11 +1125,11 @@ namespace SharpNav
 					float heuristic = 0;
 
 					//special case for last node
-					if (neighbourRef == query.EndRef)
+					if (neighbourRef == query.End.Polygon)
 					{
 						//cost
 						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
-						float endCost = GetCost(neighbourNode.Pos, query.EndPos, neighbourPoly);
+						float endCost = GetCost(neighbourNode.Pos, query.End.Position, neighbourPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -1140,7 +1140,7 @@ namespace SharpNav
 						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
 
 						cost = bestNode.cost + curCost;
-						heuristic = (neighbourNode.Pos - query.EndPos).Length() * H_SCALE;
+						heuristic = (neighbourNode.Pos - query.End.Position).Length() * H_SCALE;
 					}
 
 					float total = cost + heuristic;
@@ -1199,7 +1199,7 @@ namespace SharpNav
 		/// <param name="pathCount">The path length</param>
 		/// <param name="maxPath">The maximum path length allowed</param>
 		/// <returns>True if the path is saved, false if not</returns>
-		public bool FinalizeSlicedFindPath(int[] path, ref int pathCount, int maxPath)
+		public bool FinalizeSlicedFindPath(PolyId[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
 
@@ -1211,10 +1211,10 @@ namespace SharpNav
 
 			int n = 0;
 
-			if (query.StartRef == query.EndRef)
+			if (query.Start.Polygon == query.End.Polygon)
 			{
 				//special case: the search starts and ends at the same poly
-				path[n++] = query.StartRef;
+				path[n++] = query.Start.Polygon;
 			}
 			else
 			{
@@ -1261,7 +1261,7 @@ namespace SharpNav
 		/// <param name="pathCount">New path's length</param>
 		/// <param name="maxPath">Maximum path length allowed</param>
 		/// <returns>True if path saved, false if not</returns>
-		public bool FinalizedSlicedPathPartial(int[] existing, int existingSize, int[] path, ref int pathCount, int maxPath)
+		public bool FinalizedSlicedPathPartial(PolyId[] existing, int existingSize, PolyId[] path, ref int pathCount, int maxPath)
 		{
 			pathCount = 0;
 
@@ -1278,10 +1278,10 @@ namespace SharpNav
 
 			int n = 0;
 
-			if (query.StartRef == query.EndRef)
+			if (query.Start.Polygon == query.End.Polygon)
 			{
 				//special case: the search starts and ends at the same poly
-				path[n++] = query.StartRef;
+				path[n++] = query.Start.Polygon;
 			}
 			else
 			{
@@ -1334,22 +1334,22 @@ namespace SharpNav
 			return true;
 		}
 
-		public bool Raycast(NavPoint startPoint, Vector3 endPos, ref float t, ref Vector3 hitNormal, int[] path, ref int pathCount, int maxPath)
+		public bool Raycast(NavPoint startPoint, Vector3 endPos, ref float t, ref Vector3 hitNormal, PolyId[] path, ref int pathCount, int maxPath)
 		{
 			t = 0;
 			pathCount = 0;
 
 			//validate input
-			if (startPoint.Polygon == 0 || !nav.IsValidPolyRef(startPoint.Polygon))
+			if (startPoint.Polygon == PolyId.Null || !nav.IsValidPolyRef(startPoint.Polygon))
 				return false;
 
-			int curRef = startPoint.Polygon;
+			PolyId curRef = startPoint.Polygon;
 			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
 			int n = 0;
 
 			hitNormal = new Vector3(0, 0, 0);
 
-			while (curRef != 0)
+			while (curRef != PolyId.Null)
 			{
 				//cast ray against current polygon
 				MeshTile tile;
@@ -1390,7 +1390,7 @@ namespace SharpNav
 				}
 
 				//follow neighbours
-				int nextRef = 0;
+				PolyId nextRef = PolyId.Null;
 
 				for (int i = poly.FirstLink; i != Link.Null; i = tile.Links[i].Next)
 				{
@@ -1478,7 +1478,7 @@ namespace SharpNav
 					}
 				}
 
-				if (nextRef == 0)
+				if (nextRef == PolyId.Null)
 				{
 					//no neighbour, we hit a wall
 
@@ -1517,12 +1517,12 @@ namespace SharpNav
 		/// <param name="resultCount">Number of polygons stored</param>
 		/// <param name="maxResult">Maximum number of polygons allowed</param>
 		/// <returns>True, unless input is invalid</returns>
-		public bool FindLocalNeighbourhood(NavPoint centerPoint, float radius, int[] resultRef, int[] resultParent, ref int resultCount, int maxResult)
+		public bool FindLocalNeighbourhood(NavPoint centerPoint, float radius, PolyId[] resultRef, PolyId[] resultParent, ref int resultCount, int maxResult)
 		{
 			resultCount = 0;
 
 			//validate input
-			if (centerPoint.Polygon == 0 || !nav.IsValidPolyRef(centerPoint.Polygon))
+			if (centerPoint.Polygon == PolyId.Null || !nav.IsValidPolyRef(centerPoint.Polygon))
 				return false;
 
 			int MAX_STACK = 48;
@@ -1546,7 +1546,7 @@ namespace SharpNav
 			if (n < maxResult)
 			{
 				resultRef[n] = startNode.Id;
-				resultParent[n] = 0;
+				resultParent[n] = PolyId.Null;
 				++n;
 			}
 
@@ -1559,7 +1559,7 @@ namespace SharpNav
 				nstack--;
 
 				//get poly and tile
-				int curRef = curNode.Id;
+				PolyId curRef = curNode.Id;
 				MeshTile curTile;
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
@@ -1567,10 +1567,10 @@ namespace SharpNav
 				for (int i = curPoly.FirstLink; i != Link.Null; i = curTile.Links[i].Next)
 				{
 					Link link = curTile.Links[i];
-					int neighbourRef = link.Reference;
+					PolyId neighbourRef = link.Reference;
 
 					//skip invalid neighbours
-					if (neighbourRef == 0)
+					if (neighbourRef == PolyId.Null)
 						continue;
 
 					//skip if cannot allocate more nodes
@@ -1617,7 +1617,7 @@ namespace SharpNav
 					bool overlap = false;
 					for (int j = 0; j < n; j++)
 					{
-						int pastRef = resultRef[j];
+						PolyId pastRef = resultRef[j];
 
 						//connected polys do not overlap
 						bool connected = false;
@@ -1682,7 +1682,7 @@ namespace SharpNav
 		/// <param name="segmentCount">The number of segments stored</param>
 		/// <param name="maxSegments">The maximum number of segments allowed</param>
 		/// <returns>True, unless the polygon reference is invalid</returns>
-		public bool GetPolyWallSegments(int reference, Crowds.LocalBoundary.Segment[] segmentVerts, int[] segmentRefs, ref int segmentCount, int maxSegments)
+		public bool GetPolyWallSegments(PolyId reference, Crowds.LocalBoundary.Segment[] segmentVerts, PolyId[] segmentRefs, ref int segmentCount, int maxSegments)
 		{
 			segmentCount = 0;
 
@@ -1710,7 +1710,7 @@ namespace SharpNav
 						Link link = tile.Links[k];
 						if (link.Edge == j)
 						{
-							if (link.Reference != 0)
+							if (link.Reference != PolyId.Null)
 							{
 								MeshTile neiTile;
 								Poly neiPoly;
@@ -1723,15 +1723,16 @@ namespace SharpNav
 				else
 				{
 					//internal edge
-					int neiRef = 0;
+					PolyId neiRef = PolyId.Null;
 					if (poly.Neis[j] != 0)
 					{
 						int idx = poly.Neis[j] - 1;
-						neiRef = nav.GetPolyRefBase(tile) | idx;
+						PolyId id = nav.GetPolyRefBase(tile);
+						PolyId.SetPolyIndex(ref id, idx, out neiRef);
 					}
 
 					//if the edge leads to another polygon and portals are not stored, skip
-					if (neiRef != 0 && !storePortals)
+					if (neiRef != PolyId.Null && !storePortals)
 						continue;
 
 					if (n < maxSegments)
@@ -1748,8 +1749,8 @@ namespace SharpNav
 				}
 
 				//add sentinels
-				InsertInterval(ints, ref nints, MAX_INTERVAL, -1, 0, 0);
-				InsertInterval(ints, ref nints, MAX_INTERVAL, 255, 256, 0);
+				InsertInterval(ints, ref nints, MAX_INTERVAL, -1, 0, PolyId.Null);
+				InsertInterval(ints, ref nints, MAX_INTERVAL, 255, 256, PolyId.Null);
 
 				//store segments
 				Vector3 vj2 = tile.Verts[poly.Verts[j]];
@@ -1757,7 +1758,7 @@ namespace SharpNav
 				for (int k = 1; k < nints; k++)
 				{
 					//portal segment
-					if (storePortals && ints[k].Reference != 0)
+					if (storePortals && ints[k].Reference != PolyId.Null)
 					{
 						float tmin = ints[k].TMin / 255.0f;
 						float tmax = ints[k].TMax / 255.0f;
@@ -1781,7 +1782,7 @@ namespace SharpNav
 						{
 							Vector3.Lerp(ref vj2, ref vi2, tmin, out segmentVerts[n].Start);
 							Vector3.Lerp(ref vj2, ref vi2, tmax, out segmentVerts[n].End);
-							segmentRefs[n] = 0;
+							segmentRefs[n] = PolyId.Null;
 							n++; 
 						}
 					}
@@ -1802,7 +1803,7 @@ namespace SharpNav
 		/// <param name="tmin">Parameter t minimum</param>
 		/// <param name="tmax">Parameter t maximum</param>
 		/// <param name="reference">Polygon reference</param>
-		public void InsertInterval(SegInterval[] ints, ref int nints, int maxInts, int tmin, int tmax, int reference)
+		public void InsertInterval(SegInterval[] ints, ref int nints, int maxInts, int tmin, int tmax, PolyId reference)
 		{
 			if (nints + 1 > maxInts)
 				return;
@@ -1841,7 +1842,7 @@ namespace SharpNav
 		/// <param name="toTile">"To" mesh tile</param>
 		/// <param name="mid">Edge midpoint</param>
 		/// <returns>True, if midpoint found. False, if otherwise.</returns>
-		public bool GetEdgeMidPoint(int from, Poly fromPoly, MeshTile fromTile, int to, Poly toPoly, MeshTile toTile, ref Vector3 mid)
+		public bool GetEdgeMidPoint(PolyId from, Poly fromPoly, MeshTile fromTile, PolyId to, Poly toPoly, MeshTile toTile, ref Vector3 mid)
 		{
 			Vector3 left = new Vector3();
 			Vector3 right = new Vector3();
@@ -1863,7 +1864,7 @@ namespace SharpNav
 		/// <param name="fromType">Polygon type of "From" polygon</param>
 		/// <param name="toType">Polygon type of "To" polygon</param>
 		/// <returns>True, if points found. False, if otherwise.</returns>
-		public bool GetPortalPoints(int from, int to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
+		public bool GetPortalPoints(PolyId from, PolyId to, ref Vector3 left, ref Vector3 right, ref PolygonType fromType, ref PolygonType toType)
 		{
 			MeshTile fromTile;
 			Poly fromPoly;
@@ -1892,7 +1893,7 @@ namespace SharpNav
 		/// <param name="left">Resulting point on the left side</param>
 		/// <param name="right">Resulting point on the right side</param>
 		/// <returns>True, if points found. False, if otherwise.</returns>
-		public bool GetPortalPoints(int from, Poly fromPoly, MeshTile fromTile, int to, Poly toPoly, MeshTile toTile, ref Vector3 left, ref Vector3 right)
+		public bool GetPortalPoints(PolyId from, Poly fromPoly, MeshTile fromTile, PolyId to, Poly toPoly, MeshTile toTile, ref Vector3 left, ref Vector3 right)
 		{
 			//find the link that points to the 'to' polygon
 			Link link = null;
@@ -1973,7 +1974,7 @@ namespace SharpNav
 		/// <param name="pos">Given point</param>
 		/// <param name="closest">Resulting closest point</param>
 		/// <returns>True, if point found. False, if otherwise.</returns>
-		public bool ClosestPointOnPoly(int reference, Vector3 pos, ref Vector3 closest)
+		public bool ClosestPointOnPoly(PolyId reference, Vector3 pos, ref Vector3 closest)
 		{
 			if (nav == null)
 				return false;
@@ -1999,7 +2000,7 @@ namespace SharpNav
 		/// <param name="closest">Resulting closest position</param>
 		/// <param name="posOverPoly">Determines whether the position can be found on the polygon</param>
 		/// <returns>True, if the closest point is found. False, if otherwise.</returns>
-		public bool ClosestPointOnPoly(int reference, Vector3 pos, out Vector3 closest, out bool posOverPoly)
+		public bool ClosestPointOnPoly(PolyId reference, Vector3 pos, out Vector3 closest, out bool posOverPoly)
 		{
 			posOverPoly = false;
 			closest = Vector3.Zero;
@@ -2106,7 +2107,7 @@ namespace SharpNav
 		/// <param name="pos">Current position</param>
 		/// <param name="closest">Resulting closest point</param>
 		/// <returns>True, if the closest point is found. False, if otherwise.</returns>
-		public bool ClosestPointOnPolyBoundary(int reference, Vector3 pos, ref Vector3 closest)
+		public bool ClosestPointOnPolyBoundary(PolyId reference, Vector3 pos, ref Vector3 closest)
 		{
 			MeshTile tile;
 			Poly poly;
@@ -2129,7 +2130,7 @@ namespace SharpNav
 		/// <param name="straightPathCount">The number of points on the path</param>
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <returns>True, if end of path hasn't been reached yet and path isn't full. False, if otherwise.</returns>
-		public bool AppendVertex(Vector3 pos, int flags, int reference, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
+		public bool AppendVertex(Vector3 pos, int flags, PolyId reference, Vector3[] straightPath, int[] straightPathFlags, PolyId[] straightPathRefs, ref int straightPathCount, int maxStraightPath)
 		{
 			if (straightPathCount > 0 && straightPath[straightPathCount - 1] == pos)
 			{
@@ -2177,7 +2178,7 @@ namespace SharpNav
 		/// <param name="maxStraightPath">The maximum length allowed for the straight path</param>
 		/// <param name="options">Options flag</param>
 		/// <returns></returns>
-		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, int[] path, Vector3[] straightPath, int[] straightPathFlags, int[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
+		public bool AppendPortals(int startIdx, int endIdx, Vector3 endPos, PolyId[] path, Vector3[] straightPath, int[] straightPathFlags, PolyId[] straightPathRefs, ref int straightPathCount, int maxStraightPath, PathBuildFlags options)
 		{
 			Vector3 startPos = straightPath[straightPathCount - 1];
 
@@ -2186,13 +2187,13 @@ namespace SharpNav
 			for (int i = startIdx; i < endIdx; i++)
 			{
 				//calculate portal
-				int from = path[i];
+				PolyId from = path[i];
 				MeshTile fromTile;
 				Poly fromPoly;
 				if (nav.TryGetTileAndPolyByRef(from, out fromTile, out fromPoly) == false)
 					return false;
 
-				int to = path[i + 1];
+				PolyId to = path[i + 1];
 				MeshTile toTile;
 				Poly toPoly;
 				if (nav.TryGetTileAndPolyByRef(to, out toTile, out toPoly) == false)
@@ -2233,7 +2234,7 @@ namespace SharpNav
 		/// <param name="pos">Current position</param>
 		/// <param name="height">Resulting polygon height</param>
 		/// <returns>True, if height found. False, if otherwise.</returns>
-		public bool GetPolyHeight(int reference, Vector3 pos, ref float height)
+		public bool GetPolyHeight(PolyId reference, Vector3 pos, ref float height)
 		{
 			if (nav == null)
 				return false;
@@ -2300,14 +2301,14 @@ namespace SharpNav
 			//TODO error state?
 
 			// Get nearby polygons from proximity grid.
-			List<int> polys = new List<int>(128);
+			List<PolyId> polys = new List<PolyId>(128);
 			if (!QueryPolygons(ref center, ref extents, polys))
 				throw new InvalidOperationException("no nearby polys?");
 
 			float nearestDistanceSqr = float.MaxValue;
 			for (int i = 0; i < polys.Count; i++) 
 			{
-				int reference = polys[i];
+				PolyId reference = polys[i];
 				Vector3 closestPtPoly;
 				bool posOverPoly;
 				ClosestPointOnPoly(reference, center, out closestPtPoly, out posOverPoly);
@@ -2344,7 +2345,7 @@ namespace SharpNav
 		/// <param name="extent">The range to search within</param>
 		/// <param name="polys">A list of polygons</param>
 		/// <returns>True, if successful. False, if otherwise.</returns>
-		public bool QueryPolygons(ref Vector3 center, ref Vector3 extent, List<int> polys)
+		public bool QueryPolygons(ref Vector3 center, ref Vector3 extent, List<PolyId> polys)
 		{
 			Vector3 bmin = center - extent;
 			Vector3 bmax = center + extent;
@@ -2376,7 +2377,7 @@ namespace SharpNav
 			return polys.Count != 0;
 		}
 
-		public bool IsValidPolyRef(int reference)
+		public bool IsValidPolyRef(PolyId reference)
 		{
 			MeshTile tile;
 			Poly poly;
@@ -2417,13 +2418,12 @@ namespace SharpNav
 			public bool Status;
 			public Node LastBestNode;
 			public float LastBestNodeCost;
-			public int StartRef, EndRef;
-			public Vector3 StartPos, EndPos;
+			public NavPoint Start, End;
 		}
 
 		public struct SegInterval
 		{
-			public int Reference;
+			public PolyId Reference;
 			public int TMin, TMax;
 		}
 	}

@@ -24,6 +24,8 @@ namespace SharpNav
 	/// </summary>
 	public class NavMeshBuilder
 	{
+
+
 		private PathfindingCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;

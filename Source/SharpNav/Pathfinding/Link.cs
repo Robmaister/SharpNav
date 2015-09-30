@@ -21,7 +21,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the neighbor reference (the one it's linked to)
 		/// </summary>
-		public int Reference { get; set; }
+		public PolyId Reference { get; set; }
 
 		/// <summary>
 		/// Gets or sets the index of next link

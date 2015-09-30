@@ -45,11 +45,11 @@ namespace SharpNav.IO
 		{
 			JObject root = new JObject();
 
-			SerializeNavMeshField(root, mesh, "parameters");
 			SerializeNavMeshField(root, mesh, "origin");
 			SerializeNavMeshField(root, mesh, "tileWidth");
 			SerializeNavMeshField(root, mesh, "tileHeight");
 			SerializeNavMeshField(root, mesh, "maxTiles");
+			SerializeNavMeshField(root, mesh, "maxPolys");
 			SerializeNavMeshField(root, mesh, "tileLookupTableSize");
 			SerializeNavMeshField(root, mesh, "tileLookupTableMask");
 			SerializeNavMeshField(root, mesh, "saltBits");
@@ -71,11 +71,11 @@ namespace SharpNav.IO
 			JObject root = JObject.Parse(File.ReadAllText(path));
 			var mesh = (TiledNavMesh)FormatterServices.GetUninitializedObject(typeof(TiledNavMesh));
 
-			DeserializeNavMeshField(root, mesh, "parameters", typeof(TiledNavMesh.TiledNavMeshParams));
 			DeserializeNavMeshField(root, mesh, "origin", typeof(Vector3));
 			DeserializeNavMeshField(root, mesh, "tileWidth", typeof(float));
 			DeserializeNavMeshField(root, mesh, "tileHeight", typeof(float));
 			DeserializeNavMeshField(root, mesh, "maxTiles", typeof(int));
+			DeserializeNavMeshField(root, mesh, "maxPolys", typeof(int));
 			DeserializeNavMeshField(root, mesh, "tileLookupTableSize", typeof(int));
 			DeserializeNavMeshField(root, mesh, "tileLookupTableMask", typeof(int));
 			DeserializeNavMeshField(root, mesh, "saltBits", typeof(int));

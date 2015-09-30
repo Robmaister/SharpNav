@@ -5,6 +5,7 @@ using System;
 
 using SharpNav.Collections.Generic;
 using SharpNav.Geometry;
+using SharpNav.Pathfinding;
 
 #if MONOGAME
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -26,7 +27,9 @@ namespace SharpNav
 		public float total;
 		public int ParentIdx = 30; //index to parent node
 		public NodeFlags Flags = 0; //node flags 0/open/closed
-		public int Id; //polygon ref the node corresponds to
+		public PolyId Id; //polygon ref the node corresponds to
+
+		//TODO should make more generic or move to Pathfinding namespace
 
 		public float Cost 
 		{ 
