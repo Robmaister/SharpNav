@@ -131,7 +131,7 @@ namespace SharpNav.Examples
 			agentSettings.Height = 115;
 
 			Base maxSlopeSetting = CreateSliderOption(agentSettings, "Max Climb:", 0.1f, 5.0f, 0.9f, "N0", leftMax, rightMax, v => settings.MaxClimb = v);
-			Base maxHeightSetting = CreateSliderOption(agentSettings, "Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => settings.AgentHeight = v);
+			Base maxHeightSetting = CreateSliderOption(agentSettings, "Height:", 0.1f, 5.0f, 2.0f, "N0", leftMax, rightMax, v => { settings.AgentHeight = v; agentCylinder.Height = v; });
 			Base erodeRadius = CreateSliderOption(agentSettings, "Radius:", 0.0f, 5.0f, 0.6f, "N1", leftMax, rightMax, v => { settings.AgentRadius = v; agentCylinder.Radius = v; });
 			Base addRemoveAgent = CreateAddRemoveButton(agentSettings, "Count", leftMax, rightMax, 0, MAX_AGENTS, () => { numActiveAgents++; GenerateCrowd(); }, () => { numActiveAgents--; GenerateCrowd(); });
 

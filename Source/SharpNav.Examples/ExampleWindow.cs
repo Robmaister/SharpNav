@@ -74,7 +74,7 @@ namespace SharpNav.Examples
 		//Smooth path for a single unit
 		private NavPoint startPt;
 		private NavPoint endPt;
-		private List<int> path;
+		private List<PolyId> path;
 		private List<SVector3> smoothPath;
 
 		//A crowd is made up of multiple units, each with their own path
@@ -274,7 +274,7 @@ namespace SharpNav.Examples
 			{
 				GL.Enable(EnableCap.Lighting);
 				GL.Enable(EnableCap.Light0);
-				GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
+				GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0.5f, 1, 0.5f, 0));
 
 				DrawLevel();
 
@@ -514,12 +514,12 @@ namespace SharpNav.Examples
 
 			//calculate the overall path, which contains an array of polygon references
 			int MAX_POLYS = 256;
-			path = new List<int>(MAX_POLYS);
+			path = new List<PolyId>(MAX_POLYS);
 			navMeshQuery.FindPath(ref startPt, ref endPt, path);
 
 			//find a smooth path over the mesh surface
 			int npolys = path.Count;
-			int[] polys = path.ToArray();
+			PolyId[] polys = path.ToArray();
 			SVector3 iterPos = new SVector3();
 			SVector3 targetPos = new SVector3();
 			navMeshQuery.ClosestPointOnPoly(startPt.Polygon, startPt.Position, ref iterPos);
@@ -535,7 +535,7 @@ namespace SharpNav.Examples
 				//find location to steer towards
 				SVector3 steerPos = new SVector3();
 				int steerPosFlag = 0;
-				int steerPosRef = 0;
+				PolyId steerPosRef = PolyId.Null;
 
 				if (!GetSteerTarget(navMeshQuery, iterPos, targetPos, SLOP, polys, npolys, ref steerPos, ref steerPosFlag, ref steerPosRef))
 					break;
@@ -559,7 +559,7 @@ namespace SharpNav.Examples
 
 				//move
 				SVector3 result = new SVector3();
-				List<int> visited = new List<int>(16);
+				List<PolyId> visited = new List<PolyId>(16);
 				navMeshQuery.MoveAlongSurface(new NavPoint(polys[0], iterPos), moveTgt, ref result, visited);
 				npolys = FixupCorridor(polys, npolys, MAX_POLYS, visited);
 				float h = 0;
@@ -601,13 +601,13 @@ namespace SharpNav.Examples
 			dest.Z = v1.Z + v2.Z * s;
 		}
 
-		private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, int[] path, int pathSize,
-			ref SVector3 steerPos, ref int steerPosFlag, ref int steerPosRef)
+		private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, PolyId[] path, int pathSize,
+			ref SVector3 steerPos, ref int steerPosFlag, ref PolyId steerPosRef)
 		{
 			int MAX_STEER_POINTS = 3;
 			SVector3[] steerPath = new SVector3[MAX_STEER_POINTS];
 			int[] steerPathFlags = new int[MAX_STEER_POINTS];
-			int[] steerPathPolys = new int[MAX_STEER_POINTS];
+			PolyId[] steerPathPolys = new PolyId[MAX_STEER_POINTS];
 			int nsteerPath = 0;
 			navMeshQuery.FindStraightPath(startPos, endPos, path, pathSize,
 				steerPath, steerPathFlags, steerPathPolys, ref nsteerPath, MAX_STEER_POINTS, 0);
@@ -646,7 +646,7 @@ namespace SharpNav.Examples
 			return (dx * dx + dz * dz) < (r * r) && Math.Abs(dy) < h;
 		}
 
-		private int FixupCorridor(int[] path, int npath, int maxPath, List<int> visited)
+		private int FixupCorridor(PolyId[] path, int npath, int maxPath, List<PolyId> visited)
 		{
 			int furthestPath = -1;
 			int furthestVisited = -1;

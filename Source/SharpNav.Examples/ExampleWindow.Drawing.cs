@@ -33,60 +33,7 @@ namespace SharpNav.Examples
 		private bool levelHasNorm;
 
 		private ObjModel level;
-		private AgentCylinder agentCylinder = new AgentCylinder();
-		public class AgentCylinder
-		{
-			int segments = 12; // Higher numbers improve quality 
-			float radius = 0.6f;    // The radius (width) of the cylinder
-			float height { get {return radius * 2;}}   // The height of the cylinder
-			List<Vector3> vertices = new List<Vector3>();
-			List<int> indices = new List<int>();
-			public float Radius { get { return radius; } set { radius = value; Init(); } }
-
-			public void Init()
-			{
-				vertices.Clear();
-				for (double y = 0; y < 2; y++)
-				{
-					for (double x = 0; x < segments; x++)
-					{
-						double theta = (x / (segments - 1)) * 2 * Math.PI;
-
-						vertices.Add(new Vector3()
-						{
-							X = (float)(radius * Math.Cos(theta)),
-							Y = (float)(height * y),
-							Z = (float)(radius * Math.Sin(theta)),
-						});
-					}
-				}
-
-				indices.Clear();
-				for (int x = 0; x < segments - 1; x++)
-				{
-					indices.Add(x);
-					indices.Add(x + segments);
-					indices.Add(x + segments + 1);
-
-					indices.Add(x + segments + 1);
-					indices.Add(x + 1);
-					indices.Add(x);
-				}
-				for (int x = 1; x < segments - 1; x++)
-				{
-					indices.Add(segments);
-					indices.Add(x + segments + 1);
-					indices.Add(x + segments);
-				}                
-			}
-			public void Draw(Vector3 pos)
-			{
-				GL.Begin(BeginMode.Triangles);
-				foreach (int index in indices)
-					GL.Vertex3(vertices[index] + pos);
-				GL.End();
-			}
-		}
+		private AgentCylinder agentCylinder;
 
 		private static readonly byte[] squareInds =
 		{
@@ -166,6 +113,8 @@ namespace SharpNav.Examples
 			GL.Light(LightName.Light0, LightParameter.Ambient, new Vector4(0.6f, 0.6f, 0.6f, 1f));
 			GL.Disable(EnableCap.Light0);
 			GL.Disable(EnableCap.Lighting);
+
+			agentCylinder = new AgentCylinder(12, 0.5f, 2f);
 		}
 
 		private void LoadLevel()
@@ -287,7 +236,7 @@ namespace SharpNav.Examples
 
 			GL.Enable(EnableCap.Lighting);
 			GL.Enable(EnableCap.Light0);
-			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0f, 1, 0f, 0));
+			GL.Light(LightName.Light0, LightParameter.Position, new Vector4(0.5f, 1, 0.5f, 0));
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, heightfieldVoxelVbo);
 			GL.VertexPointer(3, VertexPointerType.Float, 6 * 4, 0);
@@ -924,6 +873,9 @@ namespace SharpNav.Examples
 
 		private void DrawPathfinding()
 		{
+			if (path == null)
+				return;
+
 			GL.PushMatrix();
 
 			Color4 color = Color4.Cyan;
@@ -939,7 +891,7 @@ namespace SharpNav.Examples
 					color = Color4.LightYellow;
 				GL.Color4(color);
 
-				int polyRef = path[i];
+				PolyId polyRef = path[i];
 				MeshTile tile;
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
@@ -977,7 +929,7 @@ namespace SharpNav.Examples
 					color = Color4.Yellow;
 				GL.Color4(color);
 
-				int polyRef = path[i];
+				PolyId polyRef = path[i];
 				MeshTile tile;
 				Poly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
@@ -1076,24 +1028,22 @@ namespace SharpNav.Examples
 			GL.Color4(Color4.PaleVioletRed);
 			GL.PointSize(10);
 			GL.Begin(PrimitiveType.Points);
-			//for (int i = 0; i < numActiveAgents; i++)
-			//{
-			//    SVector3 p = crowd.GetAgent(i).Position;
-			//    GL.Vertex3(p.X, p.Y + settings.AgentRadius, p.Z);
-			//}
 			GL.Color4(Color4.Blue);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				SVector3 p = crowd.GetAgent(i).TargetPosition;
 
-				GL.Vertex3(p.X, p.Y + settings.AgentRadius, p.Z);
+				GL.Vertex3(p.X, p.Y, p.Z);
 			}
 			GL.End();
-			GL.Color4(Color4.LightGray);
-			for (int i = 0; i < numActiveAgents; i++)
+
+			if (agentCylinder != null)
 			{
-				SVector3 p = crowd.GetAgent(i).Position;
-				agentCylinder.Draw(new Vector3(p.X, p.Y, p.Z));
+				for (int i = 0; i < numActiveAgents; i++)
+				{
+					SVector3 p = crowd.GetAgent(i).Position;
+					agentCylinder.Draw(new Vector3(p.X, p.Y, p.Z));
+				}
 			}
 
 			GL.PopMatrix();

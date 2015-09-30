@@ -78,6 +78,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AgentCylinder.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="PlyModel.cs" />
     <Compile Include="ExampleWindow.cs" />
