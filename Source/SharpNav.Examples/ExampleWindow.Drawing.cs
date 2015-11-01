@@ -215,7 +215,7 @@ namespace SharpNav.Examples
 				GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			}
 
-			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumVerts);
+			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumVerts / 3);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
