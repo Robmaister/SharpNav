@@ -29,7 +29,7 @@ namespace SharpNav.Examples
 	public partial class ExampleWindow
 	{
 		private int levelVbo, levelNormVbo, heightfieldVoxelVbo, heightfieldVoxelIbo, squareVbo, squareIbo;
-		private int levelNumVerts;
+		private int levelNumInds;
 		private bool levelHasNorm;
 
 		private ObjModel level;
@@ -122,7 +122,7 @@ namespace SharpNav.Examples
 			level = new ObjModel("nav_test.obj");
 			var levelTris = level.GetTriangles();
 			var levelNorms = level.GetNormals();
-			levelNumVerts = levelTris.Length * 3 * 3;
+			levelNumInds = levelTris.Length * 3;
 			levelHasNorm = levelNorms != null && levelNorms.Length > 0;
 
 			var bounds = TriangleEnumerable.FromTriangle(levelTris, 0, levelTris.Length).GetBoundingBox();
@@ -135,7 +135,7 @@ namespace SharpNav.Examples
 
 			levelVbo = GL.GenBuffer();
 			GL.BindBuffer(BufferTarget.ArrayBuffer, levelVbo);
-			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(levelNumVerts * 4), levelTris, BufferUsageHint.StaticDraw);
+			GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(levelNumInds * 3 * 4), levelTris, BufferUsageHint.StaticDraw);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
 			if (levelHasNorm)
@@ -215,7 +215,7 @@ namespace SharpNav.Examples
 				GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			}
 
-			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumVerts / 3);
+			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumInds);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
