@@ -22,7 +22,7 @@ using Vector3 = OpenTK.Vector3;
 using Vector3 = SharpDX.Vector3;
 #endif
 
-namespace SharpNav.IO
+namespace SharpNav.IO.Json
 {
 	/// <summary>
 	/// Subclass of NavMeshSerializer that implements 

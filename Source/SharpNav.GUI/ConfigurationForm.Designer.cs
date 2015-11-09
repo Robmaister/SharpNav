@@ -46,16 +46,19 @@
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.generateButton = new System.Windows.Forms.Button();
+			this.saveSettingsFileDialog = new System.Windows.Forms.SaveFileDialog();
+			this.openSettingsFileDialog = new System.Windows.Forms.OpenFileDialog();
 			this.menuStrip1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// propertyGrid1
 			// 
+			this.propertyGrid1.CategoryForeColor = System.Drawing.SystemColors.InactiveCaptionText;
 			this.propertyGrid1.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.propertyGrid1.HelpVisible = false;
 			this.propertyGrid1.Location = new System.Drawing.Point(0, 24);
 			this.propertyGrid1.Name = "propertyGrid1";
-			this.propertyGrid1.Size = new System.Drawing.Size(368, 355);
+			this.propertyGrid1.Size = new System.Drawing.Size(368, 450);
 			this.propertyGrid1.TabIndex = 0;
 			this.propertyGrid1.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGrid1_PropertyValueChanged);
 			// 
@@ -184,6 +187,15 @@
 			this.generateButton.UseVisualStyleBackColor = true;
 			this.generateButton.Click += new System.EventHandler(this.generateButton_Click);
 			// 
+			// saveSettingsFileDialog
+			// 
+			this.saveSettingsFileDialog.Filter = "SharpNav Config Files (*.sncfg)|*.sncfg";
+			// 
+			// openSettingsFileDialog
+			// 
+			this.openSettingsFileDialog.FileName = "config.sncfg";
+			this.openSettingsFileDialog.Filter = "SharpNav Config Files (*.sncfg)|*.sncfg";
+			// 
 			// ConfigurationForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -222,5 +234,7 @@
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 		private System.Windows.Forms.Button generateButton;
+		private System.Windows.Forms.SaveFileDialog saveSettingsFileDialog;
+		private System.Windows.Forms.OpenFileDialog openSettingsFileDialog;
 	}
 }

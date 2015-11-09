@@ -76,8 +76,10 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="YamlDotNet, Version=3.7.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.Signed.3.7.0\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- Configuration specific items -->
   <ItemGroup Condition="'$(Configuration)' == 'OpenTK'">
@@ -132,12 +134,11 @@
     <Compile Include="HeightPatch.cs" />
     <Compile Include="Crowds\LocalBoundary.cs" />
     <Compile Include="IO\Json\Vector3Converter.cs" />
-    <Compile Include="IO\NavMeshJsonSerializer.cs" />
+    <Compile Include="IO\Json\NavMeshJsonSerializer.cs" />
+    <Compile Include="IO\NavMeshConfigurationFile.cs" />
     <Compile Include="IO\NavMeshSerializer.cs" />
     <Compile Include="NavMesh.cs" />
-    <Compile Include="NavMeshGenerationSettings.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="NavMeshGenerationSettings.cs" />
     <Compile Include="Crowds\ObstacleAvoidanceQuery.cs" />
     <Compile Include="Crowds\PathCorridor.cs" />
     <Compile Include="Pathfinding\BoundarySide.cs" />

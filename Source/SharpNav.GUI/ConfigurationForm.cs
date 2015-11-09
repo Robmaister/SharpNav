@@ -14,9 +14,7 @@ using System.Windows.Forms.Design;
 using System.IO;
 
 using SharpNav.Geometry;
-
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using SharpNav.IO;
 
 namespace SharpNav.GUI
 {
@@ -30,6 +28,13 @@ namespace SharpNav.GUI
 		{
 			InitializeComponent();
 			changed = false;
+
+			//change the way things are viewed without adding System.ComponentModel as a dependency to SharpNav
+			TypeDescriptor.AddAttributes(typeof(NavMeshGenerationSettings), new TypeConverterAttribute(typeof(ExpandableObjectConverter)));
+			propertyGrid1.BrowsableAttributes = new AttributeCollection(new Attribute[] {
+				new BrowsableAttribute(true),
+				new ReadOnlyAttribute(false)
+			});
 		}
 
 		protected override bool ProcessDialogKey(Keys keyData)
@@ -38,117 +43,38 @@ namespace SharpNav.GUI
 			return base.ProcessDialogKey(keyData);
 		}
 
-		public class Setting
-		{
-			public NavMeshGenerationSettings config { get; set; }
-			public string export { get; set; }
-			public List<Object> meshes { get; set; }
-		}
-
-		public class Export
-		{
-			public string path { get; set; }
-		}
-
-		[TypeConverter(typeof(ExpandableObjectConverter))]
-		public class Object
-		{
-			public string Path { get; set; }
-			public float Scale { get; set; }
-			public float[] Position { get; set; }
-			//public Vector3 vector { get; set; }
-			//TODO: rotation;
-		}
-
 		private void newToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Setting setting = new Setting();
-			setting.config = NavMeshGenerationSettings.Default;
-			setting.export = "default.snb";
-			setting.meshes = new List<Object>();
-			propertyGrid1.SelectedObject = setting;
+			NavMeshConfigurationFile file = new NavMeshConfigurationFile();
+			file.GenerationSettings = NavMeshGenerationSettings.Default;
+			file.ExportPath = "default.snb";
+			propertyGrid1.SelectedObject = file;
 			changed = true;
 		}
 
 		private void openToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-
-			OpenFileDialog open = new OpenFileDialog();
-			open.Filter = "SharpNav Config Files (*.sncfg)|*.sncfg|  All Files (*.*)|*.*";
-
-
-			if (open.ShowDialog() == DialogResult.OK)
+			if (openSettingsFileDialog.ShowDialog() == DialogResult.OK)
 			{
-				var input = new StreamReader(File.OpenRead(open.FileName));
+				var input = new StreamReader(File.OpenRead(openSettingsFileDialog.FileName));
 
-				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention());
+				var file = new NavMeshConfigurationFile(input);
 
-				var setting = deserializer.Deserialize<Setting>(input);
+				propertyGrid1.SelectedObject = file;
 
-				propertyGrid1.SelectedObject = setting;
-
-				cwd = open.FileName;
+				cwd = openSettingsFileDialog.FileName;
 			}
 		}
 
-		private void saveprocess(Setting setting, string location)
+		//TODO remove function now that it's a single line
+		private void saveprocess(NavMeshConfigurationFile file, string location)
 		{
-			var serializer = new Serializer(namingConvention: new HyphenatedNamingConvention());
-			string temp_path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-			string temp_file = "sharpnavconfig_temp.txt";
-			string temp = System.IO.Path.Combine(temp_path, temp_file);
-			
-			StreamWriter write = new StreamWriter(temp);
-			serializer.Serialize(write, setting);
-			write.Dispose();
-
-			string line = null;
-			using (StreamReader reader = new StreamReader(temp))
-			{
-				using (StreamWriter writer = new StreamWriter(File.Create(location)))
-				{
-					while ((line = reader.ReadLine()) != null)
-					{
-						int i = line.IndexOf(":");
-						if(i<=0)
-							writer.WriteLine(line);
-						else
-						{
-							string sub = line.Substring(0, i);
-							if(string.Compare(sub, "  voxel-agent-height") == 0
-								||string.Compare(sub, "  voxel-max-climb") == 0
-								||string.Compare(sub, "  voxel-agent-radius") == 0)
-							{
-								continue;
-							}
-							else
-								writer.WriteLine(line);
-						}
-					}
-				}
-			}
-			if (System.IO.File.Exists(temp))
-			{
-				// Use a try block to catch IOExceptions, to 
-				// handle the case of the file already being 
-				// opened by another process. 
-				try
-				{
-					System.IO.File.Delete(temp);
-				}
-				catch (System.IO.IOException e)
-				{
-					MessageBox.Show(e.Message);
-					return;
-				}
-			}
-			cwd = location;
-			changed = false;
+			file.Save(location);
 		}
 
 		private void saveToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Setting setting = propertyGrid1.SelectedObject as Setting;
+			NavMeshConfigurationFile setting = propertyGrid1.SelectedObject as NavMeshConfigurationFile;
 			if (setting == null)
 			{
 				//MessageBox.Show("Nothing to save");
@@ -164,18 +90,16 @@ namespace SharpNav.GUI
 
 		private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Setting setting = propertyGrid1.SelectedObject as Setting;
-			if (setting == null)
+			NavMeshConfigurationFile file = propertyGrid1.SelectedObject as NavMeshConfigurationFile;
+			if (file == null)
 			{
 				//MessageBox.Show("Nothing to save");
 			}
 			else
 			{
-				SaveFileDialog save = new SaveFileDialog();
-				save.Filter = "SharpNav Config Files (*.sncfg)|*.sncfg|  All Files (*.*)|*.*";
-				if (save.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+				if (saveSettingsFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 				{
-					saveprocess(setting, save.FileName);
+					saveprocess(file, saveSettingsFileDialog.FileName);
 				}
 			}
 		}
@@ -194,7 +118,7 @@ namespace SharpNav.GUI
 						saveAsToolStripMenuItem_Click(sender, e);
 					else
 					{
-						Setting setting = propertyGrid1.SelectedObject as Setting;
+						NavMeshConfigurationFile setting = propertyGrid1.SelectedObject as NavMeshConfigurationFile;
 						saveprocess(setting, cwd);
 					}
 					Application.Exit();
@@ -208,20 +132,17 @@ namespace SharpNav.GUI
 
 		private void resetAllToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			Setting setting = new Setting();
-			setting.config = NavMeshGenerationSettings.Default;
-			setting.export = "default.snb";
-			setting.meshes = new List<Object>();
+			NavMeshConfigurationFile setting = new NavMeshConfigurationFile();
+			setting.GenerationSettings = NavMeshGenerationSettings.Default;
+			setting.ExportPath = "default.snb";
 			propertyGrid1.SelectedObject = setting;
 			changed = true;
 		}
 
 		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			//MessageBox.Show("This is a GUI made for SharpNav");
-			if (MessageBox.Show(
-				"This is GUI made of SharpNav. \n\nDo you want to visit the github page?", "About", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk
-					) == DialogResult.Yes)
+			//TODO different form with GitHub link
+			if (MessageBox.Show("This is the GUI version of the SharpNav Configuration Tool. Visit the GitHub page?", "About", MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
 			{
 				System.Diagnostics.Process.Start("https://github.com/Robmaister/SharpNav");
 			}
@@ -229,20 +150,20 @@ namespace SharpNav.GUI
 
 		private void generateButton_Click(object sender, EventArgs e)
 		{
-			Setting setting = propertyGrid1.SelectedObject as Setting;
+			NavMeshConfigurationFile setting = propertyGrid1.SelectedObject as NavMeshConfigurationFile;
 			if (setting == null)
 			{
 				return;
 			}
 			List<ObjModel> models = new List<ObjModel>();
 
-			if (setting.meshes.Count == 0)
+			if (setting.InputMeshes.Count == 0)
 			{
 				MessageBox.Show("No Obj files included");
 				return;
 			}
 
-			foreach (var mesh in setting.meshes)
+			foreach (var mesh in setting.InputMeshes)
 			{
 				//mesh.vector = new Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
 

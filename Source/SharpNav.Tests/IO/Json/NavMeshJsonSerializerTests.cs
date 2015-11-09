@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
+
 using NUnit.Framework;
-using SharpNav.Geometry;
-using SharpNav.IO;
+
+using SharpNav.IO.Json;
 
 namespace SharpNav.Tests
 {

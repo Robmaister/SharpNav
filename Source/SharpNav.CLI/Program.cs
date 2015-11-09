@@ -11,13 +11,12 @@ using Mono.Options;
 
 using SharpNav.Geometry;
 using SharpNav.IO;
+using SharpNav.IO.Json;
 
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+
 
 //TODO differentiate between exit codes for errors
 //TODO documentation should include a sample YAML file
-//TODO move YAML parsing into SharpNav.IO
 //TODO more logging
 
 namespace SharpNav.CLI
@@ -92,39 +91,37 @@ namespace SharpNav.CLI
 					return 1;
 				}
 
-				var deserializer = new Deserializer(namingConvention: new HyphenatedNamingConvention());
-				var setting = deserializer.Deserialize<Settings>(input);
+				NavMeshConfigurationFile file = new NavMeshConfigurationFile(input);
 
 				Log.Debug("Parsed configuration:");
-				Log.Debug("Cell Size:          " + setting.Config.CellSize, 1);
-				Log.Debug("Cell Height:        " + setting.Config.CellHeight, 1);
-				Log.Debug("Max Climb:          " + setting.Config.MaxClimb, 1);
-				Log.Debug("Agent Height:       " + setting.Config.AgentHeight, 1);
-				Log.Debug("Agent Radius:       " + setting.Config.AgentRadius, 1);
-				Log.Debug("Min Region Size:    " + setting.Config.MinRegionSize, 1);
-				Log.Debug("Merged Region Size: " + setting.Config.MergedRegionSize, 1);
-				Log.Debug("Max Edge Length:    " + setting.Config.MaxEdgeLength, 1);
-				Log.Debug("Max Edge Error:     " + setting.Config.MaxEdgeError, 1);
-				Log.Debug("Verts Per Poly:     " + setting.Config.VertsPerPoly, 1);
-				Log.Debug("Sample Distance:    " + setting.Config.SampleDistance, 1);
-				Log.Debug("Max Sample Error:   " + setting.Config.MaxSampleError, 1);
+				Log.Debug("Cell Size:          " + file.GenerationSettings.CellSize, 1);
+				Log.Debug("Cell Height:        " + file.GenerationSettings.CellHeight, 1);
+				Log.Debug("Max Climb:          " + file.GenerationSettings.MaxClimb, 1);
+				Log.Debug("Agent Height:       " + file.GenerationSettings.AgentHeight, 1);
+				Log.Debug("Agent Radius:       " + file.GenerationSettings.AgentRadius, 1);
+				Log.Debug("Min Region Size:    " + file.GenerationSettings.MinRegionSize, 1);
+				Log.Debug("Merged Region Size: " + file.GenerationSettings.MergedRegionSize, 1);
+				Log.Debug("Max Edge Length:    " + file.GenerationSettings.MaxEdgeLength, 1);
+				Log.Debug("Max Edge Error:     " + file.GenerationSettings.MaxEdgeError, 1);
+				Log.Debug("Verts Per Poly:     " + file.GenerationSettings.VertsPerPoly, 1);
+				Log.Debug("Sample Distance:    " + file.GenerationSettings.SampleDistance, 1);
+				Log.Debug("Max Sample Error:   " + file.GenerationSettings.MaxSampleError, 1);
 				Log.Debug("");
-				Log.Debug("Output File: " + setting.Export, 1);
+				Log.Debug("Output File: " + file.ExportPath, 1);
 				Log.Debug("");
 				Log.Debug("Meshes");
 
 				List<string> meshes = new List<string>();
 				List<ObjModel> models = new List<ObjModel>();
 
-				foreach (var mesh in setting.Meshes)
+				foreach (var mesh in file.InputMeshes)
 				{
 					Log.Debug("Path:  " + mesh.Path, 2);
 					Log.Debug("Scale: " + mesh.Scale, 2);
+					Log.Debug("Position: " + mesh.Position.ToString(), 2);
 					meshes.Add(mesh.Path);
 					
-					//Log.Debug("array: " + mesh.Position[0] + " " + mesh.Position[1] + " " + mesh.Position[2]);
-					mesh.vector = new Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
-					//Log.Debug("vector: " + mesh.vector.X + " " + mesh.vector.Y + " " + mesh.vector.Z);
+					Vector3 position = new Vector3(mesh.Position[0], mesh.Position[1], mesh.Position[2]);
 
 					if (File.Exists(mesh.Path))
 					{
@@ -132,7 +129,6 @@ namespace SharpNav.CLI
 						float scale = mesh.Scale;
 						//TODO SCALE THE OBJ FILE
 						models.Add(obj);
-						Log.Debug("Position vector: " + mesh.vector.X + ", " + mesh.vector.Y + ", " + mesh.vector.Z);
 					}
 					else
 					{
@@ -146,8 +142,8 @@ namespace SharpNav.CLI
 				foreach (var model in models)
 					tris = tris.Concat(model.GetTriangles());
 
-				TiledNavMesh navmesh = NavMesh.Generate(tris, setting.Config);
-				new NavMeshJsonSerializer().Serialize(setting.Export, navmesh);
+				TiledNavMesh navmesh = NavMesh.Generate(tris, file.GenerationSettings);
+				new NavMeshJsonSerializer().Serialize(file.ExportPath, navmesh);
 			}
 
 			Log.WriteLine("Done. " + files.Count + " files processed.");
@@ -159,26 +155,6 @@ namespace SharpNav.CLI
 			return 0;
 		}
 
-		public class Settings
-		{
-			public NavMeshGenerationSettings Config { get; set; }
-			public string Export { get; set; }
-			public List<MeshSettings> Meshes { get; set; }
-
-		}
-
-		public class ExportSettings
-		{
-			public string Path { get; set; }
-		}
-
-		public class MeshSettings
-		{
-			public string Path { get; set; }
-			public float Scale { get; set; }
-			public float[] Position { get; set; }
-			public Vector3 vector { get; set; }
-			//TODO: rotation;
-		}
+		
 	}
 }

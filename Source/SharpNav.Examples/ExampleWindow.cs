@@ -18,7 +18,7 @@ using OpenTK.Input;
 using SharpNav;
 using SharpNav.Crowds;
 using SharpNav.Geometry;
-using SharpNav.IO;
+using SharpNav.IO.Json;
 using SharpNav.Pathfinding;
 
 using Key = OpenTK.Input.Key;
