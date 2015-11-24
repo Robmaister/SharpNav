@@ -15,10 +15,10 @@ namespace SharpNav.Collections.Generic
 	/// <typeparam name="T">Type of element that given BufferedQueue object stores. </typeparam>
 	public class BufferedQueue<T> : ICollection<T>
 	{
-        private const int SIZE = 100;   // Fixed internal size of the data array
+		private const int SIZE = 100;   // Fixed internal size of the data array
 		private T[] data;               // Internal data array
-	    private int first;              // Index of first element in queue
-        private int last;               // Index of last element in queue
+		private int first;              // Index of first element in queue
+		private int last;               // Index of last element in queue
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BufferedQueue{T}"/> class.
@@ -27,7 +27,7 @@ namespace SharpNav.Collections.Generic
 		public BufferedQueue(int size)
 		{
 			this.data = new T[SIZE];
-            this.first = this.last = -1;
+			this.first = this.last = -1;
 		}
 
 		/// <summary>
@@ -39,13 +39,13 @@ namespace SharpNav.Collections.Generic
 		{
 			if (items.Count <= SIZE)
 			{
-                this.data = new T[SIZE];
+				this.data = new T[SIZE];
 				items.CopyTo(data, 0);
 				this.first = 0;
 			}
 			else
 			{
-                this.data = items.Skip(items.Count - SIZE).ToArray();
+				this.data = items.Skip(items.Count - SIZE).ToArray();
 				this.first = 0;
 			}
 		}
@@ -57,7 +57,7 @@ namespace SharpNav.Collections.Generic
 		{
 			get
 			{
-                return (last >= 0 && first >= 0) ? last - first : 0;
+				return (last >= 0 && first >= 0) ? last - first : 0;
 			}
 		}
 
@@ -94,8 +94,8 @@ namespace SharpNav.Collections.Generic
 		{
 			if (last == data.Length)
 				return false;
-            if (first < 0)
-                first = 0; 
+			if (first < 0)
+				first = 0; 
 			data[++last] = item;
 			return true;
 		}
@@ -119,7 +119,7 @@ namespace SharpNav.Collections.Generic
 		{
 			if (last == 0)
 				throw new InvalidOperationException("The queue is empty.");
-            return data[last]; 
+			return data[last]; 
 		}
 
 		/// <summary>

@@ -19,6 +19,45 @@ namespace SharpNav.Geometry
 	internal static class Intersection
 	{
 		/// <summary>
+		/// Determine whether a ray (origin, dir) is intersecting a segment AB.
+		/// </summary>
+		/// <param name="origin">The origin of the ray.</param>
+		/// <param name="dir">The direction of the ray.</param>
+		/// <param name="a">The endpoint A of segment AB.</param>
+		/// <param name="b">The endpoint B of segment AB.</param>
+		/// <param name="t">The parameter t</param>
+		/// <returns>A value indicating whether the ray is intersecting with the segment.</returns>
+		public static bool RaySegment(Vector3 origin, Vector3 dir, Vector3 a, Vector3 b, out float t)
+		{
+			//default if not intersectng
+			t = 0;
+
+			Vector3 v = b - a;
+			Vector3 w = origin - a;
+
+			float d;
+
+			Vector3Extensions.PerpDotXZ(ref dir, ref v, out d);
+			d *= -1;
+			if (Math.Abs(d) < 1e-6f)
+				return false;
+
+			d = 1.0f / d;
+			Vector3Extensions.PerpDotXZ(ref v, ref w, out t);
+			t *= -d;
+			if (t < 0 || t > 1)
+				return false;
+
+			float s;
+			Vector3Extensions.PerpDotXZ(ref dir, ref w, out s);
+			s *= -d;
+			if (s < 0 || s > 1)
+				return false;
+
+			return true;
+		}
+
+		/// <summary>
 		/// Determines whether two 2D segments AB and CD are intersecting.
 		/// </summary>
 		/// <param name="a">The endpoint A of segment AB.</param>

@@ -1101,7 +1101,7 @@ namespace SharpNav.Crowds
 		/// <summary>
 		/// Add a CrowdNeighbor to the array
 		/// </summary>
-		/// <param name="Agent">The neighbor</param>
+		/// <param name="agent">The neighbor</param>
 		/// <param name="dist">Distance from current agent</param>
 		/// <param name="neis">The neighbors array</param>
 		/// <param name="nneis">The number of neighbors</param>

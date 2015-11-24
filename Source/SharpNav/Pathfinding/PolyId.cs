@@ -129,9 +129,16 @@ namespace SharpNav.Pathfinding
 			return base.GetHashCode();
 		}
 
+		public string ToString(int polyBits, int tileBits, int saltBits)
+		{
+			int polyIndex, tileIndex, salt;
+			Decode(polyBits, tileBits, saltBits, out polyIndex, out tileIndex, out salt);
+
+			return "{ Poly: " + polyIndex + ", Tile: " + tileIndex + ", Salt: " + salt + "}";
+		}
+
 		public override string ToString()
 		{
-			//TODO include poly/tile/salt bits for a real ToString?
 			return bits.ToString();
 		}
 	}

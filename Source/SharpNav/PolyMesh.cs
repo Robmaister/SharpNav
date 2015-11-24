@@ -66,22 +66,8 @@ namespace SharpNav
 			this.borderSize = borderSize;
 
 			//get maximum limits
-			//TODO move to ContourSet?
-			int maxVertices = 0;
-			int maxTris = 0;
-			int maxVertsPerCont = 0;
-			foreach (var cont in contSet)
-			{
-				int vertCount = cont.Vertices.Length;
-
-				//skip null contours
-				if (vertCount < 3) 
-					continue;
-
-				maxVertices += vertCount;
-				maxTris += vertCount - 2;
-				maxVertsPerCont = Math.Max(maxVertsPerCont, vertCount);
-			}
+			int maxVertices, maxTris, maxVertsPerCont;
+			contSet.GetVertexLimits(out maxVertices, out maxTris, out maxVertsPerCont);
 
 			//initialize the mesh members
 			var verts = new List<PolyVertex>(maxVertices);
@@ -90,6 +76,7 @@ namespace SharpNav
 			Queue<int> vertRemoveQueue = new Queue<int>(maxVertices);
 
 			this.numVertsPerPoly = numVertsPerPoly;
+			int[] mergeTemp = new int[numVertsPerPoly];
 
 			var vertDict = new Dictionary<PolyVertex, int>(new PolyVertex.RoughYEqualityComparer(2));
 
@@ -191,19 +178,15 @@ namespace SharpNav
 							}
 						}
 
-						if (bestMergeVal > 0)
-						{
-							int pa = bestPolyA;
-							int pb = bestPolyB;
-							MergePolys(contPolys, pa, pb, bestEdgeA, bestEdgeB);
-							contPolys[pb] = contPolys[contPolys.Count - 1];
-							contPolys.RemoveAt(contPolys.Count - 1);
-						}
-						else
-						{
-							//no more merging
+						if (bestMergeVal <= 0)
 							break;
-						}
+
+						Polygon pa = contPolys[bestPolyA];
+						Polygon pb = contPolys[bestPolyB];
+						pa.MergeWith(pb, bestEdgeA, bestEdgeB, mergeTemp);
+						contPolys[bestPolyB] = contPolys[contPolys.Count - 1];
+						contPolys.RemoveAt(contPolys.Count - 1);
+
 					}
 				}
 
@@ -968,40 +951,6 @@ namespace SharpNav
 		}
 
 		/// <summary>
-		/// The two polygon arrrays are merged into a single array
-		/// </summary>
-		/// <param name="polys">The polygon list</param>
-		/// <param name="polyA">Polygon A</param>
-		/// <param name="polyB">Polygon B</param>
-		/// <param name="edgeA">Starting edge for polygon A</param>
-		/// <param name="edgeB">Starting edge for polygon B</param>
-		private void MergePolys(List<Polygon> polys, int polyA, int polyB, int edgeA, int edgeB)
-		{
-			//TODO replace with Polygon.Merge()
-			int numA = polys[polyA].VertexCount;
-			int numB = polys[polyB].VertexCount;
-			int[] temp = new int[numA + numB];
-
-			//merge
-			for (int i = 0; i < numVertsPerPoly; i++)
-				temp[i] = NullId;
-
-			int n = 0;
-
-			//add polygon A
-			for (int i = 0; i < numA - 1; i++)
-				temp[n++] = polys[polyA].Vertices[(edgeA + 1 + i) % numA];
-
-			//add polygon B
-			for (int i = 0; i < numB - 1; i++)
-				temp[n++] = polys[polyB].Vertices[(edgeB + 1 + i) % numB];
-
-			//save merged data to new polygon
-			for (int i = 0; i < numVertsPerPoly; i++)
-				polys[polyA].Vertices[i] = temp[i];
-		}
-
-		/// <summary>
 		/// Removing vertices will leave holes that have to be triangulated again.
 		/// </summary>
 		/// <param name="verts">A list of vertices</param>
@@ -1009,7 +958,7 @@ namespace SharpNav
 		/// <param name="vertex">The vertex to remove</param>
 		private void RemoveVertex(List<PolyVertex> verts, List<Polygon> polys, int vertex)
 		{
-			int numVertsPerPoly = this.numVertsPerPoly;
+			int[] mergeTemp = new int[numVertsPerPoly];
 
 			//count number of polygons to remove
 			int numRemovedVerts = 0;
@@ -1188,19 +1137,14 @@ namespace SharpNav
 						}
 					}
 
-					if (bestMergeVal > 0)
-					{
-						int polyA = bestPolyA;
-						int polyB = bestPolyB;
-						MergePolys(mergePolys, polyA, polyB, bestEa, bestEb);
-						mergePolys[polyB] = mergePolys[mergePolys.Count - 1];
-						mergePolys.RemoveAt(mergePolys.Count - 1);
-					}
-					else
-					{
-						//no more merging
+					if (bestMergeVal <= 0)
 						break;
-					}
+
+					Polygon pa = mergePolys[bestPolyA];
+					Polygon pb = mergePolys[bestPolyB];
+					pa.MergeWith(pb, bestEa, bestEb, mergeTemp);
+					mergePolys[bestPolyB] = mergePolys[mergePolys.Count - 1];
+					mergePolys.RemoveAt(mergePolys.Count - 1);
 				}
 			}
 
@@ -1401,6 +1345,38 @@ namespace SharpNav
 				}
 
 				return false;
+			}
+
+			/// <summary>
+			/// Merges another polygon with this one.
+			/// </summary>
+			/// <param name="other">The other polygon to merge into this one.</param>
+			/// <param name="startEdge">This starting edge for this polygon.</param>
+			/// <param name="otherStartEdge">The starting edge for the other polygon.</param>
+			/// <param name="temp">A temporary vertex buffer. Must be at least <c>numVertsPerPoly</c> long.</param>
+			public void MergeWith(Polygon other, int startEdge, int otherStartEdge, int[] temp)
+			{
+				if (temp.Length < vertices.Length)
+					throw new ArgumentException("Buffer not large enough. Must be at least numVertsPerPoly (" + vertices.Length + ")", "temp");
+
+				int thisCount = this.VertexCount;
+				int otherCount = other.VertexCount;
+
+				int n = 0;
+
+				for (int t = 0; t < temp.Length; t++)
+					temp[t] = NullId;
+
+				//add self, starting at best edge
+				for (int i = 0; i < thisCount - 1; i++)
+					temp[n++] = this.Vertices[(startEdge + 1 + i) % thisCount];
+
+				//add other polygon
+				for (int i = 0; i < otherCount - 1; i++)
+					temp[n++] = other.Vertices[(otherStartEdge + 1 + i) % otherCount];
+
+				//save merged data back
+				Array.Copy(temp, this.vertices, this.vertices.Length);
 			}
 		}
 	}

@@ -35,6 +35,9 @@ namespace SharpNav
 			this.bounds = bounds;
 			this.width = width;
 			this.height = height;
+
+			//prevent null contours from ever being added to the set.
+			this.contours.RemoveAll(c => c.IsNull);
 		}
 
 		/// <summary>
@@ -90,6 +93,50 @@ namespace SharpNav
 		}
 
 		/// <summary>
+		/// Calculates the maximum number of vertices, triangles, and vertices per contour in the
+		/// set of contours.
+		/// </summary>
+		/// <param name="maxVertices">The maximum number of vertices possible from this contour set.</param>
+		/// <param name="maxTris">The maximum number of triangles possible from this contour set.</param>
+		/// <param name="maxVertsPerContour">The maximum number of vertices per contour within the set.</param>
+		public void GetVertexLimits(out int maxVertices, out int maxTris, out int maxVertsPerContour)
+		{
+			//TODO refactor name of function?
+			maxVertices = 0;
+			maxTris = 0;
+			maxVertsPerContour = 0;
+
+			foreach (var c in contours)
+			{
+				int vertCount = c.Vertices.Length;
+
+				maxVertices += vertCount;
+				maxTris += vertCount - 2;
+				maxVertsPerContour = Math.Max(maxVertsPerContour, vertCount);
+			}
+		}
+
+		/// <summary>
+		/// Add a new contour to the set
+		/// </summary>
+		/// <param name="item">The contour to add</param>
+		public void Add(Contour item)
+		{
+			if (item.IsNull)
+				throw new ArgumentException("Contour is null (less than 3 vertices)");
+
+			contours.Add(item);
+		}
+
+		/// <summary>
+		/// Clear the set of contours.
+		/// </summary>
+		public void Clear()
+		{
+			contours.Clear();
+		}
+
+		/// <summary>
 		/// Checks if a specified <see cref="ContourSet"/> is contained in the <see cref="ContourSet"/>.
 		/// </summary>
 		/// <param name="item">A contour.</param>
@@ -119,23 +166,6 @@ namespace SharpNav
 		}
 
 		//TODO support the extra ICollection methods later?
-
-		/// <summary>
-		/// Add a new contour to the set
-		/// </summary>
-		/// <param name="item">The contour to add</param>
-		void ICollection<Contour>.Add(Contour item)
-		{
-			throw new InvalidOperationException();
-		}
-		
-		/// <summary>
-		/// (Not implemented) Clear the list
-		/// </summary>
-		void ICollection<Contour>.Clear()
-		{
-			throw new InvalidOperationException();
-		}
 
 		/// <summary>
 		/// (Not implemented) Remove a contour from the set

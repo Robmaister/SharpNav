@@ -187,8 +187,8 @@ namespace SharpNav.Crowds
 			for (int i = 0; i < numSegments; i++)
 			{
 				ObstacleSegment seg = segments[i];
-				float htmin = 0;
 
+				float htmin;
 				if (seg.Touch)
 				{
 					//special case when the agent is very close to the segment
@@ -206,7 +206,7 @@ namespace SharpNav.Crowds
 				}
 				else
 				{
-					if (!IntersectRaySegment(position, vcand, seg.P, seg.Q, ref htmin))
+					if (!Intersection.RaySegment(position, vcand, seg.P, seg.Q, out htmin))
 						continue;
 				}
 
@@ -232,7 +232,7 @@ namespace SharpNav.Crowds
 			return penalty;
 		}
 
-		public bool SweepCircleCircle(Vector3 center0, float radius0, Vector3 v, Vector3 center1, float radius1, ref float tmin, ref float tmax)
+		public static bool SweepCircleCircle(Vector3 center0, float radius0, Vector3 v, Vector3 center1, float radius1, ref float tmin, ref float tmax)
 		{
 			const float EPS = 0.0001f;
 			Vector3 s = center1 - center0;
@@ -251,40 +251,6 @@ namespace SharpNav.Crowds
 			float rd = (float)Math.Sqrt(d);
 			tmin = (b - rd) * a;
 			tmax = (b + rd) * a;
-			return true;
-		}
-
-		/// <summary>
-		/// Determine whether the ray intersects the segment
-		/// </summary>
-		/// <param name="ap">A point</param>
-		/// <param name="u">A vector</param>
-		/// <param name="bp">Segment B endpoint</param>
-		/// <param name="bq">Another one of segment B's endpoints</param>
-		/// <param name="t">The parameter t</param>
-		/// <returns>True if intersect, false if not</returns>
-		public bool IntersectRaySegment(Vector3 ap, Vector3 u, Vector3 bp, Vector3 bq, ref float t)
-		{
-			Vector3 v = bq - bp;
-			Vector3 w = ap - bp;
-			float d;
-			Vector3Extensions.PerpDotXZ(ref u, ref v, out d);
-			d *= -1;
-			if (Math.Abs(d) < 1e-6f)
-				return false;
-
-			d = 1.0f / d;
-			Vector3Extensions.PerpDotXZ(ref v, ref w, out t);
-			t *= -d;
-			if (t < 0 || t > 1)
-				return false;
-
-			float s;
-			Vector3Extensions.PerpDotXZ(ref u, ref w, out s);
-			s *= -d;
-			if (s < 0 || s > 1)
-				return false;
-
 			return true;
 		}
 
