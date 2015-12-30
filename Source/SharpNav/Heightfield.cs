@@ -343,10 +343,10 @@ namespace SharpNav
 						int bottom = (int)currentSpan.Maximum;
 						int top = (i == spans.Count - 1) ? int.MaxValue : spans[i + 1].Minimum;
 
-						// Find neighbours minimum height.
+						// Find neighbors minimum height.
 						int minHeight = int.MaxValue;
 
-						// Min and max height of accessible neighbours.
+						// Min and max height of accessible neighbors.
 						int accessibleMin = currentSpan.Maximum;
 						int accessibleMax = currentSpan.Maximum;
 
@@ -355,7 +355,7 @@ namespace SharpNav
 							int dx = x + dir.GetHorizontalOffset();
 							int dy = y + dir.GetVerticalOffset();
 
-							// Skip neighbours which are out of bounds.
+							// Skip neighbors which are out of bounds.
 							if (dx < 0 || dy < 0 || dx >= width || dy >= length)
 							{
 								minHeight = Math.Min(minHeight, -walkableClimb - bottom);
@@ -368,7 +368,7 @@ namespace SharpNav
 							int neighborBottom = -walkableClimb;
 							int neighborTop = neighborSpans.Count > 0 ? neighborSpans[0].Minimum : int.MaxValue;
 
-							// Skip neightbour if the gap between the spans is too small.
+							// Skip neighbor if the gap between the spans is too small.
 							if (Math.Min(top, neighborTop) - Math.Max(bottom, neighborBottom) > walkableHeight)
 								minHeight = Math.Min(minHeight, neighborBottom - bottom);
 
@@ -380,12 +380,12 @@ namespace SharpNav
 								neighborBottom = currentNeighborSpan.Maximum;
 								neighborTop = (j == neighborSpans.Count - 1) ? int.MaxValue : neighborSpans[j + 1].Minimum;
 
-								// Skip neightbour if the gap between the spans is too small.
+								// Skip neighbor if the gap between the spans is too small.
 								if (Math.Min(top, neighborTop) - Math.Max(bottom, neighborBottom) > walkableHeight)
 								{
 									minHeight = Math.Min(minHeight, neighborBottom - bottom);
 
-									// Find min/max accessible neighbour height.
+									// Find min/max accessible neighbor height.
 									if (Math.Abs(neighborBottom - bottom) <= walkableClimb)
 									{
 										if (neighborBottom < accessibleMin) accessibleMin = neighborBottom;
@@ -396,11 +396,11 @@ namespace SharpNav
 						}
 
 						// The current span is close to a ledge if the drop to any
-						// neighbour span is less than the walkableClimb.
+						// neighbor span is less than the walkableClimb.
 						if (minHeight < -walkableClimb)
 							currentSpan.Area = Area.Null;
 
-						// If the difference between all neighbours is too large,
+						// If the difference between all neighbors is too large,
 						// we are at steep slope, mark the span as ledge.
 						if ((accessibleMax - accessibleMin) > walkableClimb)
 							currentSpan.Area = Area.Null;

@@ -60,9 +60,9 @@ using System.Runtime.InteropServices;
 
 // There are two ways of differentiating versions of SharpNav.dll that are built with engine integrations.
 // The first is metadata included with the SemVer version (e.g. 1.0.0-alpha.2+monogame). The second is that
-// each version is signed with a separate strong name key. This also introduces the benefit of giving each
-// version of SharpNav a different strong name. Multiple integrated versions of SharpNav can now be
-// installed to the GAC without worrying about them interfering with one another.
+// each version is signed with a separate strong name key, which provides a few extra benefits. Multiple
+// integrated versions of SharpNav can now be installed to the GAC without worrying about them interfering
+// with one another.
 #if MONOGAME
 [assembly: AssemblyInformationalVersion("1.0.0-alpha.2+monogame")]
 #elif OPENTK

@@ -215,6 +215,8 @@ namespace SharpNav.Examples
 
 			if (e.Key == Key.Escape)
 				Exit();
+			else if (e.Key == Key.F5)
+				Gwen.Platform.Neutral.FileSave("Save NavMesh to file", ".", "All SharpNav Files(.snb, .snx, .snj)|*.snb;*.snx;*.snj|SharpNav Binary(.snb)|*.snb|SharpNav XML(.snx)|*.snx|SharpNav JSON(.snj)|*.snj", SaveNavMeshToFile);
 			else if (e.Key == Key.F9)
 				Gwen.Platform.Neutral.FileOpen("Load NavMesh from file", ".", "All SharpNav Files(.snb, .snx, .snj)|*.snb;*.snx;*.snj|SharpNav Binary(.snb)|*.snb|SharpNav XML(.snx)|*.snx|SharpNav JSON(.snj)|*.snj", LoadNavMeshFromFile);
 			else if (e.Key == Key.F11)
@@ -351,7 +353,15 @@ namespace SharpNav.Examples
 		private void LoadNavMeshFromFile(string path)
 		{
 			tiledNavMesh = new NavMeshJsonSerializer().Deserialize(path);
+			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
+			hasGenerated = true;
 			displayMode = DisplayMode.NavMesh;
+		}
+
+		private void SaveNavMeshToFile(string path)
+		{
+			new NavMeshJsonSerializer().Serialize(path, tiledNavMesh);
+			Console.WriteLine("Saved to file!");
 		}
 
 		private void GenerateNavMesh()
@@ -477,6 +487,7 @@ namespace SharpNav.Examples
 				catch (Exception e)
 				{
 					Console.WriteLine("Pathfinding generation failed with exception" + Environment.NewLine + e.ToString());
+					hasGenerated = false;
 				}
 
 				Label l = (Label)statusBar.FindChildByName("GenTime");
@@ -692,7 +703,7 @@ namespace SharpNav.Examples
 
 		private void GenerateCrowd()
 		{
-			if (!hasGenerated)
+			if (!hasGenerated || navMeshQuery == null)
 				return;
 
 			Random rand = new Random();

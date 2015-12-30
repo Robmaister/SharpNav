@@ -505,7 +505,7 @@ namespace SharpNav
 		/// <summary>
 		/// Remove adjacent connections if there is a duplicate
 		/// </summary>
-		public void RemoveAdjacentNeighbours()
+		public void RemoveAdjacentNeighbors()
 		{
 			if (connections.Count <= 1)
 				return;
@@ -530,7 +530,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="oldId">The value you want to replace</param>
 		/// <param name="newId">The new value that will be used</param>
-		public void ReplaceNeighbour(RegionId oldId, RegionId newId)
+		public void ReplaceNeighbor(RegionId oldId, RegionId newId)
 		{
 			//replace the connections
 			bool neiChanged = false;
@@ -552,7 +552,7 @@ namespace SharpNav
 
 			//make sure to remove adjacent neighbors
 			if (neiChanged)
-				RemoveAdjacentNeighbours();
+				RemoveAdjacentNeighbors();
 		}
 
 		/// <summary>
@@ -605,7 +605,7 @@ namespace SharpNav
 			RegionId thisId = id;
 			RegionId otherId = otherRegion.id;
 
-			// Duplicate current neighbourhood.
+			// Duplicate current neighborhood.
 			List<RegionId> thisConnected = new List<RegionId>();
 			for (int i = 0; i < connections.Count; ++i)
 				thisConnected.Add(connections[i]);
@@ -639,7 +639,7 @@ namespace SharpNav
 			if (insertInOther == -1)
 				return false;
 
-			// Merge neighbours.
+			// Merge neighbors.
 			connections = new List<RegionId>();
 			for (int i = 0, ni = thisConnected.Count; i < ni - 1; ++i)
 				connections.Add(thisConnected[(insertInThis + 1 + i) % ni]);
@@ -647,7 +647,7 @@ namespace SharpNav
 			for (int i = 0, ni = otherConnected.Count; i < ni - 1; ++i)
 				connections.Add(otherConnected[(insertInOther + 1 + i) % ni]);
 
-			RemoveAdjacentNeighbours();
+			RemoveAdjacentNeighbors();
 
 			for (int j = 0; j < otherRegion.floors.Count; ++j)
 				AddUniqueFloorRegion(otherRegion.floors[j]);
@@ -665,7 +665,7 @@ namespace SharpNav
 		public bool IsConnectedToBorder()
 		{
 			// Region is connected to border if
-			// one of the neighbours is null id.
+			// one of the neighbors is null id.
 			for (int i = 0; i < connections.Count; ++i)
 			{
 				if (connections[i] == 0)

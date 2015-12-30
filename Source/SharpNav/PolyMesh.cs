@@ -138,7 +138,7 @@ namespace SharpNav
 					//each polygon has numVertsPerPoly
 					//index 0, 1, 2 store triangle vertices
 					//other polygon indexes (3 to numVertsPerPoly - 1) should be used for storing extra vertices when two polygons merge together
-					Polygon p = new Polygon(numVertsPerPoly, Area.Null, RegionId.Null, 0);
+					Polygon p = new Polygon(numVertsPerPoly, Area.Null, RegionId.Null);
 					p.Vertices[0] = RemoveDiagonalFlag(indices[ti.Index0]);
 					p.Vertices[1] = RemoveDiagonalFlag(indices[ti.Index1]);
 					p.Vertices[2] = RemoveDiagonalFlag(indices[ti.Index2]);
@@ -194,7 +194,7 @@ namespace SharpNav
 				for (int i = 0; i < contPolys.Count; i++)
 				{
 					Polygon p = contPolys[i];
-					Polygon p2 = new Polygon(numVertsPerPoly, cont.Area, cont.RegionId, 0);
+					Polygon p2 = new Polygon(numVertsPerPoly, cont.Area, cont.RegionId);
 
 					Buffer.BlockCopy(p.Vertices, 0, p2.Vertices, 0, numVertsPerPoly * sizeof(int));
 
@@ -1098,7 +1098,7 @@ namespace SharpNav
 				Triangle t = tris[j];
 				if (t.Index0 != t.Index1 && t.Index0 != t.Index2 && t.Index1 != t.Index2)
 				{
-					Polygon p = new Polygon(numVertsPerPoly, areas[t.Index0], regions[t.Index0], 0);
+					Polygon p = new Polygon(numVertsPerPoly, areas[t.Index0], regions[t.Index0]);
 					p.Vertices[0] = hole[t.Index0];
 					p.Vertices[1] = hole[t.Index1];
 					p.Vertices[2] = hole[t.Index2];
@@ -1212,7 +1212,6 @@ namespace SharpNav
 			private int[] neighborEdges; //"numVertsPerPoly" elements
 			private Area area;
 			private RegionId regionId;
-			private int flags;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="Polygon" /> class.
@@ -1220,14 +1219,12 @@ namespace SharpNav
 			/// <param name="numVertsPerPoly">The number of vertices per polygon.</param>
 			/// <param name="area">The AreaId</param>
 			/// <param name="regionId">The RegionId</param>
-			/// <param name="flags">Polygon flags</param>
-			public Polygon(int numVertsPerPoly, Area area, RegionId regionId, int flags)
+			public Polygon(int numVertsPerPoly, Area area, RegionId regionId)
 			{
 				vertices = new int[numVertsPerPoly];
 				neighborEdges = new int[numVertsPerPoly];
 				this.area = area;
 				this.regionId = regionId;
-				this.flags = flags;
 
 				for (int i = 0; i < numVertsPerPoly; i++)
 				{
@@ -1294,21 +1291,10 @@ namespace SharpNav
 			}
 
 			/// <summary>
-			/// Gets or sets the flags.
+			/// Gets or sets a tag for this instance.
 			/// </summary>
-			/// <value>The flags.</value>
-			public int Flags
-			{
-				get
-				{
-					return flags;
-				}
-
-				set
-				{
-					flags = value;
-				}
-			}
+			/// <value>Any object to tag this instance with.</value>
+			public object Tag { get; set; }
 
 			/// <summary>
 			/// Gets the the number of vertex.

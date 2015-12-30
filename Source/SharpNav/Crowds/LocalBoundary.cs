@@ -107,7 +107,7 @@ namespace SharpNav.Crowds
 		/// <param name="s">The line segment</param>
 		public void AddSegment(float dist, Segment s)
 		{
-			//insert neighbour based on distance
+			//insert neighbor based on distance
 			int segPos = 0;
 			if (segCount == 0)
 			{
@@ -171,7 +171,7 @@ namespace SharpNav.Crowds
 
 			//first query non-overlapping polygons
 			PolyId[] tempArray = new PolyId[polys.Length];
-			navquery.FindLocalNeighbourhood(new NavPoint(reference, pos), collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
+			navquery.FindLocalNeighborhood(new NavPoint(reference, pos), collisionQueryRange, polys, tempArray, ref numPolys, MaxLocalPolys);
 
 			//secondly, store all polygon edges
 			this.segCount = 0;

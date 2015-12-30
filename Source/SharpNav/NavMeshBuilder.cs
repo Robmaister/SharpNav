@@ -24,8 +24,6 @@ namespace SharpNav
 	/// </summary>
 	public class NavMeshBuilder
 	{
-
-
 		private PathfindingCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
 		private Poly[] navPolys;
@@ -229,7 +227,7 @@ namespace SharpNav
 			{
 				navPolys[i] = new Poly();
 				navPolys[i].VertCount = 0;
-				navPolys[i].Flags = polyMesh.Polys[i].Flags;
+				navPolys[i].Tag = polyMesh.Polys[i].Tag;
 				navPolys[i].Area = polyMesh.Polys[i].Area;
 				navPolys[i].PolyType = PolygonType.Ground;
 				navPolys[i].Verts = new int[nvp];
@@ -276,7 +274,7 @@ namespace SharpNav
 					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
 					navPolys[offMeshPolyBase + n].Verts[0] = offMeshVertsBase + (n * 2 + 0);
 					navPolys[offMeshPolyBase + n].Verts[1] = offMeshVertsBase + (n * 2 + 1);
-					navPolys[offMeshPolyBase + n].Flags = (int)offMeshCons[i].Flags;
+					navPolys[offMeshPolyBase + n].Tag = offMeshCons[i].Flags;
 					navPolys[offMeshPolyBase + n].Area = polyMesh.Polys[offMeshCons[i].Poly].Area; //HACK is this correct?
 					navPolys[offMeshPolyBase + n].PolyType = PolygonType.OffMeshConnection;
 					n++;

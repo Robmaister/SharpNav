@@ -24,11 +24,6 @@ namespace SharpNav.Pathfinding
 		public PolyId Reference { get; set; }
 
 		/// <summary>
-		/// Gets or sets the index of next link
-		/// </summary>
-		public int Next { get; set; }
-
-		/// <summary>
 		/// Gets or sets the index of polygon edge
 		/// </summary>
 		public int Edge { get; set; }
@@ -47,5 +42,10 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the maximum Vector3 of the bounding box
 		/// </summary>
 		public int BMax { get; set; }
+
+		public static bool IsExternal(int link)
+		{
+			return (link & Link.External) != 0;
+		}
 	}
 }

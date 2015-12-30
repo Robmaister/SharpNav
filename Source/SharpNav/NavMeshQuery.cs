@@ -155,7 +155,7 @@ namespace SharpNav
 			{
 				MeshTile t = nav[i];
 				
-				if (t == null || t.Header == null)
+				if (t == null)
 					continue;
 
 				//choose random tile using reservoir sampling
@@ -176,7 +176,7 @@ namespace SharpNav
 			PolyId polyBase = nav.GetPolyRefBase(tile);
 
 			float areaSum = 0.0f;
-			for (int i = 0; i < tile.Header.PolyCount; i++)
+			for (int i = 0; i < tile.PolyCount; i++)
 			{
 				Poly p = tile.Polys[i];
 
@@ -185,7 +185,7 @@ namespace SharpNav
 					continue;
 
 				PolyId reference;
-				PolyId.SetPolyIndex(ref polyBase, i, out reference);
+				nav.IdManager.SetPolyIndex(ref polyBase, i, out reference);
 
 				//calculate area of polygon
 				float polyArea = 0.0f;
@@ -338,24 +338,23 @@ namespace SharpNav
 				if (parentRef != PolyId.Null)
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
-				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
+				foreach (Link link in bestPoly.Links)
 				{
-					Link link = bestTile.Links[i];
-					PolyId neighbourRef = link.Reference;
+					PolyId neighborRef = link.Reference;
 
-					//skip invalid neighbours and do not follor back to parent
-					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
+					//skip invalid neighbors and do not follor back to parent
+					if (neighborRef == PolyId.Null || neighborRef == parentRef)
 						continue;
 
-					//expand to neighbour
-					MeshTile neighbourTile;
-					Poly neighbourPoly;
-					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+					//expand to neighbor
+					MeshTile neighborTile;
+					Poly neighborPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighborRef, out neighborTile, out neighborPoly);
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
 					Vector3 vb = new Vector3();
-					if (!GetPortalPoints(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb))
+					if (!GetPortalPoints(bestRef, bestPoly, bestTile, neighborRef, neighborPoly, neighborTile, ref va, ref vb))
 						continue;
 
 					//if circle isn't touching next polygon, skip it
@@ -367,36 +366,36 @@ namespace SharpNav
 							continue;
 					}
 
-					Node neighbourNode = nodePool.GetNode(neighbourRef);
-					if (neighbourNode == null)
+					Node neighborNode = nodePool.GetNode(neighborRef);
+					if (neighborNode == null)
 						continue;
 
-					if (IsInClosedList(neighbourNode))
+					if (IsInClosedList(neighborNode))
 						continue;
 
 					//cost
-					if (neighbourNode.Flags == 0)
-						neighbourNode.Pos = Vector3.Lerp(va, vb, 0.5f);
+					if (neighborNode.Flags == 0)
+						neighborNode.Pos = Vector3.Lerp(va, vb, 0.5f);
 
-					float total = bestNode.total + (bestNode.Pos - neighbourNode.Pos).Length();
+					float total = bestNode.total + (bestNode.Pos - neighborNode.Pos).Length();
 
 					//node is already in open list and new result is worse, so skip
-					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
+					if (IsInOpenList(neighborNode) && total >= neighborNode.total)
 						continue;
 
-					neighbourNode.Id = neighbourRef;
-					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
-					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
-					neighbourNode.total = total;
+					neighborNode.Id = neighborRef;
+					neighborNode.Flags = RemoveNodeFlagClosed(neighborNode);
+					neighborNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
+					neighborNode.total = total;
 
-					if (IsInOpenList(neighbourNode))
+					if (IsInOpenList(neighborNode))
 					{
-						openList.Modify(neighbourNode);
+						openList.Modify(neighborNode);
 					}
 					else
 					{
-						neighbourNode.Flags = NodeFlags.Open;
-						openList.Push(neighbourNode);
+						neighborNode.Flags = NodeFlags.Open;
+						openList.Push(neighborNode);
 					}
 				}
 			}
@@ -494,27 +493,27 @@ namespace SharpNav
 					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				//examine neighbors
-				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
+				foreach (Link link in bestPoly.Links)
 				{
-					PolyId neighbourRef = bestTile.Links[i].Reference;
+					PolyId neighborRef = link.Reference;
 
 					//skip invalid ids and do not expand back to where we came from
-					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
+					if (neighborRef == PolyId.Null || neighborRef == parentRef)
 						continue;
 
-					//get neighbour poly and tile
-					MeshTile neighbourTile;
-					Poly neighbourPoly;
-					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+					//get neighbor poly and tile
+					MeshTile neighborTile;
+					Poly neighborPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighborRef, out neighborTile, out neighborPoly);
 
-					Node neighbourNode = nodePool.GetNode(neighbourRef);
-					if (neighbourNode == null)
+					Node neighborNode = nodePool.GetNode(neighborRef);
+					if (neighborNode == null)
 						continue;
 
 					//if node is visited the first time, calculate node position
-					if (neighbourNode.Flags == 0)
+					if (neighborNode.Flags == 0)
 					{
-						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.Pos);
+						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighborRef, neighborPoly, neighborTile, ref neighborNode.Pos);
 					}
 
 					//calculate cost and heuristic
@@ -522,11 +521,11 @@ namespace SharpNav
 					float heuristic = 0;
 
 					//special case for last node
-					if (neighbourRef == endRef)
+					if (neighborRef == endRef)
 					{
 						//cost
-						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
-						float endCost = GetCost(neighbourNode.Pos, endPos, neighbourPoly);
+						float curCost = GetCost(bestNode.Pos, neighborNode.Pos, bestPoly);
+						float endCost = GetCost(neighborNode.Pos, endPos, neighborPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -534,46 +533,46 @@ namespace SharpNav
 					else
 					{
 						//cost
-						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
+						float curCost = GetCost(bestNode.Pos, neighborNode.Pos, bestPoly);
 						
 						cost = bestNode.cost + curCost;
-						heuristic = (neighbourNode.Pos - endPos).Length() * H_SCALE; 
+						heuristic = (neighborNode.Pos - endPos).Length() * H_SCALE; 
 					}
 
 					float total = cost + heuristic;
 
 					//the node is already in open list and new result is worse, skip
-					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
+					if (IsInOpenList(neighborNode) && total >= neighborNode.total)
 						continue;
 
 					//the node is already visited and processesd, and the new result is worse, skip
-					if (IsInClosedList(neighbourNode) && total >= neighbourNode.total)
+					if (IsInClosedList(neighborNode) && total >= neighborNode.total)
 						continue;
 
 					//add or update the node
-					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
-					neighbourNode.Id = neighbourRef;
-					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
-					neighbourNode.cost = cost;
-					neighbourNode.total = total;
+					neighborNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
+					neighborNode.Id = neighborRef;
+					neighborNode.Flags = RemoveNodeFlagClosed(neighborNode);
+					neighborNode.cost = cost;
+					neighborNode.total = total;
 
-					if (IsInOpenList(neighbourNode))
+					if (IsInOpenList(neighborNode))
 					{
 						//already in open, update node location
-						openList.Modify(neighbourNode);
+						openList.Modify(neighborNode);
 					}
 					else
 					{
 						//put the node in the open list
-						SetNodeFlagOpen(ref neighbourNode);
-						openList.Push(neighbourNode);
+						SetNodeFlagOpen(ref neighborNode);
+						openList.Push(neighborNode);
 					}
 
 					//update nearest node to target so far
 					if (heuristic < lastBestTotalCost)
 					{
 						lastBestTotalCost = heuristic;
-						lastBestNode = neighbourNode;
+						lastBestNode = neighborNode;
 					}
 				}
 			}
@@ -893,9 +892,8 @@ namespace SharpNav
 					if ((curPoly.Neis[j] & Link.External) != 0)
 					{
 						//tile border
-						for (int k = curPoly.FirstLink; k != Link.Null; k = curTile.Links[k].Next)
+						foreach (Link link in curPoly.Links)
 						{
-							Link link = curTile.Links[k];
 							if (link.Edge == j)
 							{
 								if (link.Reference != PolyId.Null)
@@ -914,7 +912,7 @@ namespace SharpNav
 					{
 						int idx = curPoly.Neis[j] - 1;
 						PolyId reference = nav.GetPolyRefBase(curTile);
-						PolyId.SetPolyIndex(ref reference, idx, out reference);
+						nav.IdManager.SetPolyIndex(ref reference, idx, out reference);
 						neis.Add(reference); //internal edge, encode id
 					}
 
@@ -936,12 +934,12 @@ namespace SharpNav
 						for (int k = 0; k < neis.Count; k++)
 						{
 							//skip if no node can be allocated
-							Node neighbourNode = tinyNodePool.GetNode(neis[k]);
-							if (neighbourNode == null)
+							Node neighborNode = tinyNodePool.GetNode(neis[k]);
+							if (neighborNode == null)
 								continue;
 							
 							//skip if already visited
-							if ((neighbourNode.Flags & NodeFlags.Closed) != 0)
+							if ((neighborNode.Flags & NodeFlags.Closed) != 0)
 								continue;
 
 							//skip the link if too far from search constraint
@@ -952,9 +950,9 @@ namespace SharpNav
 							//mark the node as visited and push to queue
 							if (nodeQueue.Count < MAX_STACK)
 							{
-								neighbourNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
-								neighbourNode.Flags |= NodeFlags.Closed;
-								nodeQueue.Enqueue(neighbourNode);
+								neighborNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
+								neighborNode.Flags |= NodeFlags.Closed;
+								nodeQueue.Enqueue(neighborNode);
 							}
 						}
 					}
@@ -1098,26 +1096,26 @@ namespace SharpNav
 					}
 				}
 
-				for (int i = bestPoly.FirstLink; i != Link.Null; i = bestTile.Links[i].Next)
+				foreach (Link link in bestPoly.Links)
 				{
-					PolyId neighbourRef = bestTile.Links[i].Reference;
+					PolyId neighborRef = link.Reference;
 
 					//skip invalid ids and do not expand back to where we came from
-					if (neighbourRef == PolyId.Null || neighbourRef == parentRef)
+					if (neighborRef == PolyId.Null || neighborRef == parentRef)
 						continue;
 
-					//get neighbour poly and tile
-					MeshTile neighbourTile;
-					Poly neighbourPoly;
-					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+					//get neighbor poly and tile
+					MeshTile neighborTile;
+					Poly neighborPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighborRef, out neighborTile, out neighborPoly);
 
-					Node neighbourNode = nodePool.GetNode(neighbourRef);
-					if (neighbourNode == null)
+					Node neighborNode = nodePool.GetNode(neighborRef);
+					if (neighborNode == null)
 						continue;
 
-					if (neighbourNode.Flags == 0)
+					if (neighborNode.Flags == 0)
 					{
-						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighbourRef, neighbourPoly, neighbourTile, ref neighbourNode.Pos);
+						GetEdgeMidPoint(bestRef, bestPoly, bestTile, neighborRef, neighborPoly, neighborTile, ref neighborNode.Pos);
 					}
 
 					//calculate cost and heuristic
@@ -1125,11 +1123,11 @@ namespace SharpNav
 					float heuristic = 0;
 
 					//special case for last node
-					if (neighbourRef == query.End.Polygon)
+					if (neighborRef == query.End.Polygon)
 					{
 						//cost
-						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
-						float endCost = GetCost(neighbourNode.Pos, query.End.Position, neighbourPoly);
+						float curCost = GetCost(bestNode.Pos, neighborNode.Pos, bestPoly);
+						float endCost = GetCost(neighborNode.Pos, query.End.Position, neighborPoly);
 
 						cost = bestNode.cost + curCost + endCost;
 						heuristic = 0;
@@ -1137,46 +1135,46 @@ namespace SharpNav
 					else
 					{
 						//cost
-						float curCost = GetCost(bestNode.Pos, neighbourNode.Pos, bestPoly);
+						float curCost = GetCost(bestNode.Pos, neighborNode.Pos, bestPoly);
 
 						cost = bestNode.cost + curCost;
-						heuristic = (neighbourNode.Pos - query.End.Position).Length() * H_SCALE;
+						heuristic = (neighborNode.Pos - query.End.Position).Length() * H_SCALE;
 					}
 
 					float total = cost + heuristic;
 
 					//the node is already in open list and new result is worse, skip
-					if (IsInOpenList(neighbourNode) && total >= neighbourNode.total)
+					if (IsInOpenList(neighborNode) && total >= neighborNode.total)
 						continue;
 
 					//the node is already visited and processesd, and the new result is worse, skip
-					if (IsInClosedList(neighbourNode) && total >= neighbourNode.total)
+					if (IsInClosedList(neighborNode) && total >= neighborNode.total)
 						continue;
 
 					//add or update the node
-					neighbourNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
-					neighbourNode.Id = neighbourRef;
-					neighbourNode.Flags = RemoveNodeFlagClosed(neighbourNode);
-					neighbourNode.cost = cost;
-					neighbourNode.total = total;
+					neighborNode.ParentIdx = nodePool.GetNodeIdx(bestNode);
+					neighborNode.Id = neighborRef;
+					neighborNode.Flags = RemoveNodeFlagClosed(neighborNode);
+					neighborNode.cost = cost;
+					neighborNode.total = total;
 
-					if (IsInOpenList(neighbourNode))
+					if (IsInOpenList(neighborNode))
 					{
 						//already in open, update node location
-						openList.Modify(neighbourNode);
+						openList.Modify(neighborNode);
 					}
 					else
 					{
 						//put the node in the open list
-						SetNodeFlagOpen(ref neighbourNode);
-						openList.Push(neighbourNode);
+						SetNodeFlagOpen(ref neighborNode);
+						openList.Push(neighborNode);
 					}
 
 					//update nearest node to target so far
 					if (heuristic < query.LastBestNodeCost)
 					{
 						query.LastBestNodeCost = heuristic;
-						query.LastBestNode = neighbourNode;
+						query.LastBestNode = neighborNode;
 					}
 				}
 			}
@@ -1389,13 +1387,11 @@ namespace SharpNav
 					return true;
 				}
 
-				//follow neighbours
+				//follow neighbors
 				PolyId nextRef = PolyId.Null;
 
-				for (int i = poly.FirstLink; i != Link.Null; i = tile.Links[i].Next)
+				foreach (Link link in poly.Links)
 				{
-					Link link = tile.Links[i];
-
 					//find link which contains the edge
 					if (link.Edge != segMax)
 						continue;
@@ -1480,7 +1476,7 @@ namespace SharpNav
 
 				if (nextRef == PolyId.Null)
 				{
-					//no neighbour, we hit a wall
+					//no neighbor, we hit a wall
 
 					//calculate hit normal
 					int a = segMax;
@@ -1498,7 +1494,7 @@ namespace SharpNav
 					return true;
 				}
 
-				//no hit, advance to neighbour polygon
+				//no hit, advance to neighbor polygon
 				curRef = nextRef;
 			}
 
@@ -1517,7 +1513,7 @@ namespace SharpNav
 		/// <param name="resultCount">Number of polygons stored</param>
 		/// <param name="maxResult">Maximum number of polygons allowed</param>
 		/// <returns>True, unless input is invalid</returns>
-		public bool FindLocalNeighbourhood(NavPoint centerPoint, float radius, PolyId[] resultRef, PolyId[] resultParent, ref int resultCount, int maxResult)
+		public bool FindLocalNeighborhood(NavPoint centerPoint, float radius, PolyId[] resultRef, PolyId[] resultParent, ref int resultCount, int maxResult)
 		{
 			resultCount = 0;
 
@@ -1564,37 +1560,36 @@ namespace SharpNav
 				Poly curPoly;
 				nav.TryGetTileAndPolyByRefUnsafe(curRef, out curTile, out curPoly);
 
-				for (int i = curPoly.FirstLink; i != Link.Null; i = curTile.Links[i].Next)
+				foreach (Link link in curPoly.Links)
 				{
-					Link link = curTile.Links[i];
-					PolyId neighbourRef = link.Reference;
+					PolyId neighborRef = link.Reference;
 
-					//skip invalid neighbours
-					if (neighbourRef == PolyId.Null)
+					//skip invalid neighbors
+					if (neighborRef == PolyId.Null)
 						continue;
 
 					//skip if cannot allocate more nodes
-					Node neighbourNode = tinyNodePool.GetNode(neighbourRef);
-					if (neighbourNode == null)
+					Node neighborNode = tinyNodePool.GetNode(neighborRef);
+					if (neighborNode == null)
 						continue;
 
 					//skip visited
-					if ((neighbourNode.Flags & NodeFlags.Closed) != 0)
+					if ((neighborNode.Flags & NodeFlags.Closed) != 0)
 						continue;
 
-					//expand to neighbour
-					MeshTile neighbourTile;
-					Poly neighbourPoly;
-					nav.TryGetTileAndPolyByRefUnsafe(neighbourRef, out neighbourTile, out neighbourPoly);
+					//expand to neighbor
+					MeshTile neighborTile;
+					Poly neighborPoly;
+					nav.TryGetTileAndPolyByRefUnsafe(neighborRef, out neighborTile, out neighborPoly);
 
 					//skip off-mesh connections
-					if (neighbourPoly.PolyType == PolygonType.OffMeshConnection)
+					if (neighborPoly.PolyType == PolygonType.OffMeshConnection)
 						continue;
 
 					//find edge and calculate distance to edge
 					Vector3 va = new Vector3();
 					Vector3 vb = new Vector3();
-					if (!GetPortalPoints(curRef, curPoly, curTile, neighbourRef, neighbourPoly, neighbourTile, ref va, ref vb))
+					if (!GetPortalPoints(curRef, curPoly, curTile, neighborRef, neighborPoly, neighborTile, ref va, ref vb))
 						continue;
 
 					//if the circle is not touching the next polygon, skip it
@@ -1604,15 +1599,15 @@ namespace SharpNav
 						continue;
 
 					//mark node visited
-					neighbourNode.Flags |= NodeFlags.Closed;
-					neighbourNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
+					neighborNode.Flags |= NodeFlags.Closed;
+					neighborNode.ParentIdx = tinyNodePool.GetNodeIdx(curNode);
 
 					//check that the polygon doesn't collide with existing polygons
 
-					//collect vertices of the neighbour poly
-					int npa = neighbourPoly.VertCount;
+					//collect vertices of the neighbor poly
+					int npa = neighborPoly.VertCount;
 					for (int k = 0; k < npa; k++)
-						pa[k] = neighbourTile.Verts[neighbourPoly.Verts[k]];
+						pa[k] = neighborTile.Verts[neighborPoly.Verts[k]];
 
 					bool overlap = false;
 					for (int j = 0; j < n; j++)
@@ -1621,9 +1616,9 @@ namespace SharpNav
 
 						//connected polys do not overlap
 						bool connected = false;
-						for (int k = curPoly.FirstLink; k != Link.Null; k = curTile.Links[k].Next)
+						foreach (Link link2 in curPoly.Links)
 						{
-							if (curTile.Links[k].Reference == pastRef)
+							if (link2.Reference == pastRef)
 							{
 								connected = true;
 								break;
@@ -1656,14 +1651,14 @@ namespace SharpNav
 					//store poly
 					if (n < maxResult)
 					{
-						resultRef[n] = neighbourRef;
+						resultRef[n] = neighborRef;
 						resultParent[n] = curRef;
 						++n;
 					}
 
 					if (nstack < MAX_STACK)
 					{
-						stack[nstack++] = neighbourNode;
+						stack[nstack++] = neighborNode;
 					}
 				}
 			}
@@ -1705,9 +1700,8 @@ namespace SharpNav
 				if ((poly.Neis[j] & Link.External) != 0)
 				{
 					//tile border
-					for (int k = poly.FirstLink; k != Link.Null; k = tile.Links[k].Next)
+					foreach (Link link in poly.Links)
 					{
-						Link link = tile.Links[k];
 						if (link.Edge == j)
 						{
 							if (link.Reference != PolyId.Null)
@@ -1728,7 +1722,7 @@ namespace SharpNav
 					{
 						int idx = poly.Neis[j] - 1;
 						PolyId id = nav.GetPolyRefBase(tile);
-						PolyId.SetPolyIndex(ref id, idx, out neiRef);
+						nav.IdManager.SetPolyIndex(ref id, idx, out neiRef);
 					}
 
 					//if the edge leads to another polygon and portals are not stored, skip
@@ -1897,11 +1891,11 @@ namespace SharpNav
 		{
 			//find the link that points to the 'to' polygon
 			Link link = null;
-			for (int i = fromPoly.FirstLink; i != Link.Null; i = fromTile.Links[i].Next)
+			foreach (Link fromLink in fromPoly.Links)
 			{
-				if (fromTile.Links[i].Reference == to)
+				if (fromLink.Reference == to)
 				{
-					link = fromTile.Links[i];
+					link = fromLink;
 					break;
 				}
 			}
@@ -1913,11 +1907,11 @@ namespace SharpNav
 			if (fromPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = fromPoly.FirstLink; i != Link.Null; i = fromTile.Links[i].Next)
+				foreach (Link fromLink in fromPoly.Links)
 				{
-					if (fromTile.Links[i].Reference == to)
+					if (fromLink.Reference == to)
 					{
-						int v = fromTile.Links[i].Edge;
+						int v = fromLink.Edge;
 						left = fromTile.Verts[fromPoly.Verts[v]];
 						right = fromTile.Verts[fromPoly.Verts[v]];
 						return true;
@@ -1930,11 +1924,11 @@ namespace SharpNav
 			if (toPoly.PolyType == PolygonType.OffMeshConnection)
 			{
 				//find link that points to first vertex
-				for (int i = toPoly.FirstLink; i != Link.Null; i = toTile.Links[i].Next)
+				foreach (Link toLink in toPoly.Links)
 				{
-					if (toTile.Links[i].Reference == from)
+					if (toLink.Reference == from)
 					{
-						int v = toTile.Links[i].Edge;
+						int v = toLink.Edge;
 						left = toTile.Verts[toPoly.Verts[v]];
 						right = toTile.Verts[toPoly.Verts[v]];
 						return true;
@@ -2322,7 +2316,7 @@ namespace SharpNav
 					MeshTile tile;
 					Poly poly;
 					nav.TryGetTileAndPolyByRefUnsafe(polys[i], out tile, out poly);
-					d = Math.Abs(diff.Y) - tile.Header.WalkableClimb;
+					d = Math.Abs(diff.Y) - tile.WalkableClimb;
 					d = d > 0 ? d * d : 0;
 				}
 				else
@@ -2354,18 +2348,15 @@ namespace SharpNav
 			nav.CalcTileLoc(ref bmin, out minx, out miny);
 			nav.CalcTileLoc(ref bmax, out maxx, out maxy);
 
-			MeshTile[] neis = new MeshTile[32];
-			
 			BBox3 bounds = new BBox3(bmin, bmax);
 			int n = 0;
 			for (int y = miny; y <= maxy; y++)
 			{
 				for (int x = minx; x <= maxx; x++)
 				{
-					int nneis = nav.GetTilesAt(x, y, neis);
-					for (int j = 0; j < nneis; j++)
+					foreach (MeshTile neighborTile in nav.GetTilesAt(x, y))
 					{
-						n += nav.QueryPolygonsInTile(neis[j], bounds, polys);
+						n += neighborTile.QueryPolygons(bounds, polys);
 						if (n >= polys.Capacity) 
 						{
 							return true;

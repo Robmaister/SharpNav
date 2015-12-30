@@ -35,7 +35,7 @@ namespace SharpNav.Crowds
 		private PathCorridor corridor;
 		private LocalBoundary boundary;
 		public float topologyOptTime;
-		private CrowdNeighbor[] neighbors;	//size = CROWDAGENT_MAX_NEIGHBOURS
+		private CrowdNeighbor[] neighbors;	//size = CROWDAGENT_MAX_NEIGHBORS
 		private int numNeis;
 		public float DesiredSpeed;
 

@@ -662,7 +662,7 @@ namespace SharpNav
 									regions[j].Id = mergeId;
 
 								//replace current region with new one if current region is neighbor
-								regions[j].ReplaceNeighbour(oldId, mergeId);
+								regions[j].ReplaceNeighbor(oldId, mergeId);
 							}
 
 							mergeCount++;

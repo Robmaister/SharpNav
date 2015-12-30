@@ -24,25 +24,6 @@ namespace SharpNav.Pathfinding
 
 		public int Id { get { return bits; } }
 
-		/// <summary>
-		/// Derive a standard polygon reference, which compresses salt, tile index, and poly index together.
-		/// </summary>
-		/// <param name="polyBits">The number of bits to use for the polygon value.</param>
-		/// <param name="tileBits">The number of bits to use for the tile value.</param>
-		/// <param name="salt">Salt value</param>
-		/// <param name="tileIndex">Tile index</param>
-		/// <param name="polyIndex">Poly index</param>
-		/// <returns>Polygon reference</returns>
-		public static PolyId Encode(int polyBits, int tileBits, int salt, int tileIndex, int polyIndex)
-		{
-			return new PolyId((salt << (int)(polyBits + tileBits)) | (tileIndex << (int)polyBits) | polyIndex);
-		}
-
-		public static void SetPolyIndex(ref PolyId polyBase, int polyIndex, out PolyId result)
-		{
-			result = new PolyId(polyBase.bits | polyIndex);
-		}
-		
 		public static bool operator ==(PolyId left, PolyId right)
 		{
 			return left.Equals(right);
@@ -51,61 +32,6 @@ namespace SharpNav.Pathfinding
 		public static bool operator !=(PolyId left, PolyId right)
 		{
 			return !(left == right);
-		}
-
-		/// <summary>
-		/// Extract a polygon's index (within its tile) from the specified polygon reference.
-		/// </summary>
-		/// <param name="polyBits">The number of bits to use for the polygon value.</param>
-		/// <returns>The value's poly index.</returns>
-		public int DecodePolyIndex(int polyBits)
-		{
-			int polyMask = (1 << polyBits) - 1;
-			return bits & polyMask;
-		}
-
-		/// <summary>
-		/// Extract a tile's index from the specified polygon reference.
-		/// </summary>
-		/// <param name="polyBits">The number of bits to use for the polygon value.</param>
-		/// <param name="tileBits">The number of bits to use for the tile value.</param>
-		/// <returns>The value's tile index.</returns>
-		public int DecodeTileIndex(int polyBits, int tileBits)
-		{
-			int tileMask = (1 << tileBits) - 1;
-			return (bits >> polyBits) & tileMask;
-		}
-
-		/// <summary>
-		/// Extract a tile's salt value from the specified polygon reference.
-		/// </summary>
-		/// <param name="polyBits">The number of bits to use for the polygon value.</param>
-		/// <param name="tileBits">The number of bits to use for the tile value.</param>
-		/// <param name="saltBits">The number of bits to use for the salt.</param>
-		/// <returns>The value's salt.</returns>
-		public int DecodeSalt(int polyBits, int tileBits, int saltBits)
-		{
-			int saltMask = (1 << saltBits) - 1;
-			return (bits >> (polyBits + tileBits)) & saltMask;
-		}
-
-		/// <summary>
-		/// Decode a standard polygon reference.
-		/// </summary>
-		/// <param name="polyBits">The number of bits to use for the polygon value.</param>
-		/// <param name="tileBits">The number of bits to use for the tile value.</param>
-		/// <param name="saltBits">The number of bits to use for the salt.</param>
-		/// <param name="polyIndex">Resulting poly index.</param>
-		/// <param name="tileIndex">Resulting tile index.</param>
-		/// <param name="salt">Resulting salt value.</param>
-		public void Decode(int polyBits, int tileBits, int saltBits, out int polyIndex, out int tileIndex, out int salt)
-		{
-			int saltMask = (1 << saltBits) - 1;
-			int tileMask = (1 << tileBits) - 1;
-			int polyMask = (1 << polyBits) - 1;
-			salt = (bits >> (polyBits + tileBits)) & saltMask;
-			tileIndex = (bits >> polyBits) & tileMask;
-			polyIndex = bits & polyMask;
 		}
 
 		public bool Equals(PolyId other)
@@ -129,10 +55,10 @@ namespace SharpNav.Pathfinding
 			return base.GetHashCode();
 		}
 
-		public string ToString(int polyBits, int tileBits, int saltBits)
+		public string ToString(PolyIdManager manager)
 		{
 			int polyIndex, tileIndex, salt;
-			Decode(polyBits, tileBits, saltBits, out polyIndex, out tileIndex, out salt);
+			manager.Decode(ref this, out polyIndex, out tileIndex, out salt);
 
 			return "{ Poly: " + polyIndex + ", Tile: " + tileIndex + ", Salt: " + salt + "}";
 		}

@@ -102,7 +102,7 @@
   <!-- C# items -->
   <ItemGroup>
     <Compile Include="Area.cs" />
-    <Compile Include="AreaIdGenerator.cs" />
+    <Compile Include="AreaGenerator.cs" />
     <Compile Include="Cell.cs" />
     <Compile Include="Collections\Generic\BufferedQueue.cs" />
     <Compile Include="Collections\Generic\BufferedStack.cs" />
@@ -133,6 +133,8 @@
     <Compile Include="Heightfield.Rasterization.cs" />
     <Compile Include="HeightPatch.cs" />
     <Compile Include="Crowds\LocalBoundary.cs" />
+    <Compile Include="IO\Json\AreaConverter.cs" />
+    <Compile Include="IO\Json\PolyIdConverter.cs" />
     <Compile Include="IO\Json\Vector3Converter.cs" />
     <Compile Include="IO\Json\NavMeshJsonSerializer.cs" />
     <Compile Include="IO\NavMeshConfigurationFile.cs" />
@@ -150,6 +152,7 @@
     <Compile Include="Pathfinding\Poly.cs" />
     <Compile Include="Crowds\PathQueue.cs" />
     <Compile Include="Pathfinding\PolyId.cs" />
+    <Compile Include="Pathfinding\PolyIdManager.cs" />
     <Compile Include="PolyBounds.cs" />
     <Compile Include="PolyMesh.cs" />
     <Compile Include="NavMeshBuilder.cs" />
