@@ -102,9 +102,12 @@ namespace SharpNav
 				}
 
 				//Form triangles inside the area bounded by the contours
-				int ntris = Triangulate(vertices, indices, tris);
+				int ntris = Triangulate(cont.Vertices.Length, vertices, indices, tris);
 				if (ntris <= 0) //TODO notify user when this happens. Logging?
+				{
+					Console.WriteLine("ntris <= 0");
 					ntris = -ntris;
+				}
 
 				//add and merge vertices
 				for (int i = 0; i < cont.Vertices.Length; i++)
@@ -534,10 +537,9 @@ namespace SharpNav
 		/// <param name="indices">Indices array</param>
 		/// <param name="tris">Triangles array</param>
 		/// <returns>The number of triangles.</returns>
-		private static int Triangulate(PolyVertex[] verts, int[] indices, Triangle[] tris)
+		private static int Triangulate(int n, PolyVertex[] verts, int[] indices, Triangle[] tris)
 		{
 			int ntris = 0;
-			int n = verts.Length;
 
 			//last bit of index determines whether vertex can be removed
 			for (int i = 0; i < n; i++)
@@ -580,7 +582,31 @@ namespace SharpNav
 
 				if (minIndex == -1)
 				{
-					return -ntris;
+					minLen = -1;
+					minIndex = -1;
+					for (int i = 0; i < n; i++)
+					{
+						int i1 = Next(i, n);
+						int i2 = Next(i1, n);
+						if (DiagonalieLoose(i, i2, verts, indices))
+						{
+							int p0 = RemoveDiagonalFlag(indices[i]);
+							int p2 = RemoveDiagonalFlag(indices[Next(i2, n)]);
+
+							int dx = verts[p2].X - verts[p0].X;
+							int dy = verts[p2].Z - verts[p0].Z;
+							int len = dx * dx + dy * dy;
+							if (minLen < 0 || len < minLen)
+							{
+								minLen = len;
+								minIndex = i;
+							}
+						}
+					}
+
+					//really messed up
+					if (minIndex == -1)
+						return -ntris;
 				}
 
 				int mi = minIndex;
@@ -1086,7 +1112,7 @@ namespace SharpNav
 			}
 
 			//triangulate the hole
-			int ntris = Triangulate(tverts, thole, tris);
+			int ntris = Triangulate(hole.Count, tverts, thole, tris);
 			if (ntris < 0)
 				ntris = -ntris;
 
@@ -1150,6 +1176,53 @@ namespace SharpNav
 
 			//add merged polys back to the list.
 			polys.AddRange(mergePolys);
+		}
+
+		private static bool DiagonalLoose(int i, int j, PolyVertex[] verts, int[] indices)
+		{
+			return InConeLoose(i, j, verts, indices) && DiagonalieLoose(i, j, verts, indices);
+		}
+
+		private static bool InConeLoose(int i, int j, PolyVertex[] verts, int[] indices)
+		{
+			int pi = RemoveDiagonalFlag(indices[i]);
+			int pj = RemoveDiagonalFlag(indices[j]);
+			int pi1 = RemoveDiagonalFlag(indices[Next(i, verts.Length)]);
+			int pin1 = RemoveDiagonalFlag(indices[Prev(i, verts.Length)]);
+
+			if (PolyVertex.IsLeftOn(ref verts[pin1], ref verts[pi], ref verts[pi1]))
+				return PolyVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pin1])
+					&& PolyVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pi1]);
+
+			return !(PolyVertex.IsLeftOn(ref verts[pi], ref verts[pj], ref verts[pi1])
+				&& PolyVertex.IsLeftOn(ref verts[pj], ref verts[pi], ref verts[pin1]));
+		}
+
+		private static bool DiagonalieLoose(int i, int j, PolyVertex[] verts, int[] indices)
+		{
+			int d0 = RemoveDiagonalFlag(indices[i]);
+			int d1 = RemoveDiagonalFlag(indices[j]);
+
+			for (int k = 0; k < verts.Length; k++)
+			{
+				int k1 = Next(k, verts.Length);
+				if (!((k == i) || (k1 == i) || (k == j) || (k1 == j)))
+				{
+					int p0 = RemoveDiagonalFlag(indices[k]);
+					int p1 = RemoveDiagonalFlag(indices[k1]);
+
+					if (PolyVertex.Equal2D(ref verts[d0], ref verts[p0]) ||
+						PolyVertex.Equal2D(ref verts[d1], ref verts[p0]) ||
+						PolyVertex.Equal2D(ref verts[d0], ref verts[p1]) ||
+						PolyVertex.Equal2D(ref verts[d1], ref verts[p1]))
+						continue;
+
+					if (PolyVertex.IntersectProp(ref verts[d0], ref verts[d1], ref verts[p0], ref verts[p1]))
+						return false;
+				}
+			}
+
+			return true;
 		}
 
 		/// <summary>

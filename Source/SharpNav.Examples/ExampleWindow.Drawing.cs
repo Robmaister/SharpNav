@@ -646,6 +646,9 @@ namespace SharpNav.Examples
 
 			GL.PushMatrix();
 
+			Matrix4 transMatrix = Matrix4.CreateTranslation(0, -polyMesh.CellHeight, 0);
+			GL.MultMatrix(ref transMatrix);
+
 			Color4 color = Color4.DarkViolet;
 			color.A = 0.5f;
 			GL.Color4(color);
