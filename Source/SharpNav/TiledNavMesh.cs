@@ -11,13 +11,10 @@ using SharpNav.Pathfinding;
 using System.Collections.ObjectModel;
 
 #if MONOGAME
-using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 #elif OPENTK
-using Vector2 = OpenTK.Vector2;
 using Vector3 = OpenTK.Vector3;
 #elif SHARPDX
-using Vector2 = SharpDX.Vector2;
 using Vector3 = SharpDX.Vector3;
 #endif
 
