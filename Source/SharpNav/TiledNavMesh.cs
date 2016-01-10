@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -38,7 +38,7 @@ namespace SharpNav
 		//lookup tile by ref
 		//lookup ref by tile
 		private Dictionary<Vector2i, List<MeshTile>> tileSet;
-		private Dictionary<MeshTile, int> tileRefs;
+		private Dictionary<MeshTile, PolyId> tileRefs;
 		private List<MeshTile> tileList;
 
 		private PolyIdManager idManager;
@@ -57,7 +57,7 @@ namespace SharpNav
 
 			//init tiles
 			tileSet = new Dictionary<Vector2i, List<MeshTile>>();
-			tileRefs = new Dictionary<MeshTile, int>();
+			tileRefs = new Dictionary<MeshTile, PolyId>();
 			tileList = new List<MeshTile>();
 
 			//init ID generator values
@@ -86,7 +86,7 @@ namespace SharpNav
 
 			//init tiles
 			tileSet = new Dictionary<Vector2i, List<MeshTile>>();
-			tileRefs = new Dictionary<MeshTile, int>();
+			tileRefs = new Dictionary<MeshTile, PolyId>();
 			tileList = new List<MeshTile>();
 
 			//init ID generator values
@@ -175,8 +175,10 @@ namespace SharpNav
 		/// </summary>
 		public object Tag { get; set; }
 
-		public void AddTile(MeshTile tile)
+		public void AddTileAt(MeshTile tile, PolyId id)
 		{
+			//TODO more error checking, what if tile already exists?
+
 			Vector2i loc = tile.Location;
 			List<MeshTile> locList;
 			if (!tileSet.TryGetValue(loc, out locList))
@@ -190,9 +192,16 @@ namespace SharpNav
 				locList.Add(tile);
 			}
 
-			//TODO decouple base/tile ref, will make it easier to add in the future
-			tileRefs.Add(tile, GetNextTileRef().Id);
-			tileList.Add(tile);
+			tileRefs.Add(tile, id);
+
+			int index = idManager.DecodeTileIndex(ref id);
+
+			//HACK this is pretty bad but only way to insert at index
+			//TODO tileIndex should have a level of indirection from the list?
+			while (index >= tileList.Count)
+				tileList.Add(null);
+
+			tileList[index] = tile;
 		}
 
 		/// <summary>
@@ -213,6 +222,7 @@ namespace SharpNav
 
 			PolyId newTileId = GetNextTileRef();
 			MeshTile tile = new MeshTile(new Vector2i(header.X, header.Y), header.Layer, idManager, newTileId);
+			tile.Salt = idManager.DecodeSalt(ref newTileId);
 
 			if (header.BvNodeCount == 0)
 				tile.BVTree = null;
@@ -266,14 +276,16 @@ namespace SharpNav
 				}
 			}
 
-			AddTile(tile);
+			AddTileAt(tile, GetNextTileRef());
 
 			return newTileId;
 		}
 
 		public PolyId GetNextTileRef()
 		{
-			return idManager.Encode(0, tileList.Count, 0);
+			//Salt is 1 for first version. As tiles get edited, change salt.
+			//Salt can't be 0, otherwise the first poly of tile 0 is incorrectly seen as PolyId.Null.
+			return idManager.Encode(1, tileList.Count, 0);
 		}
 
 		/// <summary>
@@ -338,17 +350,11 @@ namespace SharpNav
 			if (tile == null)
 				return PolyId.Null;
 
-			int it = 0;
-			for (int i = 0; i < tileList.Count; i++)
-			{
-				if (tileList[i] == tile)
-				{
-					it = i;
-					break;
-				}
-			}
+			PolyId id;
+			if (!tileRefs.TryGetValue(tile, out id))
+				id = PolyId.Null;
 
-			return idManager.Encode(tile.Salt, it, 0);
+			return id;
 		}
 
 		/// <summary>
@@ -456,30 +462,6 @@ namespace SharpNav
 			}
 
 			return GetTilesAt(nx, ny);
-		}
-		
-		/// <summary>
-		/// Get the base reference for the polygons in a tile.
-		/// </summary>
-		/// <param name="tile">Current Tile</param>
-		/// <returns>Base poly reference</returns>
-		public PolyId GetPolyRefBase(MeshTile tile)
-		{
-			if (tile == null)
-				return PolyId.Null;
-
-			int it = 0;
-			for (int i = 0; i < tileList.Count; i++)
-			{
-				//TODO test by value, not reference?
-				if (tileList[i] == tile)
-				{
-					it = i;
-					break;
-				}
-			}
-
-			return idManager.Encode(tile.Salt, it, 0);
 		}
 
 		/// <summary>

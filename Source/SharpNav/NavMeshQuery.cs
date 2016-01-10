@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -173,7 +173,7 @@ namespace SharpNav
 			//randomly pick one polygon weighted by polygon area
 			Poly poly = null;
 			PolyId polyRef = PolyId.Null;
-			PolyId polyBase = nav.GetPolyRefBase(tile);
+			PolyId polyBase = nav.GetTileRef(tile);
 
 			float areaSum = 0.0f;
 			for (int i = 0; i < tile.PolyCount; i++)
@@ -911,7 +911,7 @@ namespace SharpNav
 					else if (curPoly.Neis[j] != 0)
 					{
 						int idx = curPoly.Neis[j] - 1;
-						PolyId reference = nav.GetPolyRefBase(curTile);
+						PolyId reference = nav.GetTileRef(curTile);
 						nav.IdManager.SetPolyIndex(ref reference, idx, out reference);
 						neis.Add(reference); //internal edge, encode id
 					}
@@ -1721,7 +1721,7 @@ namespace SharpNav
 					if (poly.Neis[j] != 0)
 					{
 						int idx = poly.Neis[j] - 1;
-						PolyId id = nav.GetPolyRefBase(tile);
+						PolyId id = nav.GetTileRef(tile);
 						nav.IdManager.SetPolyIndex(ref id, idx, out neiRef);
 					}
 

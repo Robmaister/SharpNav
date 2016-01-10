@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -352,15 +352,51 @@ namespace SharpNav.Examples
 
 		private void LoadNavMeshFromFile(string path)
 		{
-			tiledNavMesh = new NavMeshJsonSerializer().Deserialize(path);
-			navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
-			hasGenerated = true;
-			displayMode = DisplayMode.NavMesh;
+			try
+			{
+
+				tiledNavMesh = new NavMeshJsonSerializer().Deserialize(path);
+				navMeshQuery = new NavMeshQuery(tiledNavMesh, 2048);
+				hasGenerated = true;
+				displayMode = DisplayMode.NavMesh;
+			}
+			catch (Exception e)
+			{
+				if (!interceptExceptions)
+					throw;
+				else
+				{
+					hasGenerated = false;
+					tiledNavMesh = null;
+					navMeshQuery = null;
+					Console.WriteLine("Navmesh loading failed with exception:" + Environment.NewLine + e.ToString());
+				}
+			}
 		}
 
 		private void SaveNavMeshToFile(string path)
 		{
-			new NavMeshJsonSerializer().Serialize(path, tiledNavMesh);
+			if (!hasGenerated)
+			{
+				Console.WriteLine("No navmesh generated or loaded, cannot save.");
+				return;
+			}
+
+			try
+			{
+				new NavMeshJsonSerializer().Serialize(path, tiledNavMesh);
+			}
+			catch (Exception e)
+			{
+				if (!interceptExceptions)
+					throw;
+				else
+				{
+					Console.WriteLine("Navmesh saving failed with exception:" + Environment.NewLine + e.ToString());
+					return;
+				}
+			}
+
 			Console.WriteLine("Saved to file!");
 		}
 

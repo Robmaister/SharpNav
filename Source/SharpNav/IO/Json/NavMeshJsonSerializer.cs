@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+﻿// Copyright (c) 2015-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -35,7 +35,7 @@ namespace SharpNav.IO.Json
 
 		//TODO maybe a better system?
 		//increase this once every time the file format changes.
-		private static readonly int FormatVersion = 2;
+		private static readonly int FormatVersion = 3;
 
 		public NavMeshJsonSerializer()
 		{
@@ -69,10 +69,11 @@ namespace SharpNav.IO.Json
 			var tilesArray = new JArray();
 
 			var tiles = (List<MeshTile>) GetPrivateField(mesh, typeof(TiledNavMesh), "tileList");
-			var tileRefs = (Dictionary<MeshTile, int>)GetPrivateField(mesh, typeof(TiledNavMesh), "tileRefs");
+			var tileRefs = (Dictionary<MeshTile, PolyId>)GetPrivateField(mesh, typeof(TiledNavMesh), "tileRefs");
 			foreach (MeshTile tile in tiles)
 			{
-				tilesArray.Add(SerializeMeshTile(tile));
+				PolyId id = mesh.GetTileRef(tile);
+				tilesArray.Add(SerializeMeshTile(tile, id));
 			}
 
 			root.Add("tiles", tilesArray);
@@ -84,9 +85,8 @@ namespace SharpNav.IO.Json
 		{
 			JObject root = JObject.Parse(File.ReadAllText(path));
 
-			//TODO error message?
 			if (root["meta"]["version"]["snj"].ToObject<int>() != FormatVersion)
-				return null;
+				throw new ArgumentException("The version of the file does not match the version of the parser. Consider using an older version of SharpNav or re-generating your .snj meshes.");
 
 			Vector3 origin = root["origin"].ToObject<Vector3>(serializer);
 			float tileWidth = root["tileWidth"].ToObject<float>(serializer);
@@ -100,15 +100,18 @@ namespace SharpNav.IO.Json
 			List<MeshTile> tiles = new List<MeshTile>();
 			foreach (JToken tileToken in tilesToken)
 			{
-				mesh.AddTile(DeserializeMeshTile(tileToken, mesh.IdManager, mesh.GetNextTileRef()));
+				PolyId tileRef;
+				MeshTile tile = DeserializeMeshTile(tileToken, mesh.IdManager, out tileRef);
+				mesh.AddTileAt(tile, tileRef);
 			}
 
 			return mesh;
 		}
 
-		private JObject SerializeMeshTile(MeshTile tile)
+		private JObject SerializeMeshTile(MeshTile tile, PolyId id)
 		{
 			var result = new JObject();
+			result.Add("polyId", JToken.FromObject(id, serializer));
 			result.Add("location", JToken.FromObject(tile.Location, serializer));
 			result.Add("layer", JToken.FromObject(tile.Layer, serializer));
 			result.Add("salt", JToken.FromObject(tile.Salt, serializer));
@@ -132,8 +135,9 @@ namespace SharpNav.IO.Json
 			return result;
 		}
 
-		private MeshTile DeserializeMeshTile(JToken token, PolyIdManager manager, PolyId refId)
+		private MeshTile DeserializeMeshTile(JToken token, PolyIdManager manager, out PolyId refId)
 		{
+			refId = token["polyId"].ToObject<PolyId>(serializer);
 			Vector2i location = token["location"].ToObject<Vector2i>(serializer);
 			int layer = token["layer"].ToObject<int>(serializer);
 			MeshTile result = new MeshTile(location, layer, manager, refId);

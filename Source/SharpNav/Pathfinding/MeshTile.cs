@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -100,7 +100,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Allocate links for each of the tile's polygons' vertices
 		/// </summary>
-		/// <param name="baseRef">The base reference to use </param>
 		public void ConnectIntLinks()
 		{
 			//Iterate through all the polygons
@@ -136,7 +135,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Begin creating off-mesh links between the tile polygons.
 		/// </summary>
-		/// <param name="tile">Current Tile</param>
 		public void BaseOffMeshLinks()
 		{
 			//Base off-mesh connection start points
@@ -186,7 +184,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Connect polygons from two different tiles.
 		/// </summary>
-		/// <param name="tile">Current Tile</param>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
 		public void ConnectExtLinks(MeshTile target, BoundarySide side)
@@ -211,7 +208,7 @@ namespace SharpNav.Pathfinding
 					Vector3 vb = Verts[Polys[i].Verts[(j + 1) % numPolyVerts]];
 					List<PolyId> nei = new List<PolyId>(4);
 					List<float> neia = new List<float>(4 * 2);
-					FindConnectingPolys(va, vb, target, dir.GetOpposite(), nei, neia);
+					target.FindConnectingPolys(va, vb, dir.GetOpposite(), nei, neia);
 
 					//Iterate through neighbors
 					for (int k = 0; k < nei.Count; k++)
@@ -261,7 +258,6 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Connect Off-Mesh links between polygons from two different tiles.
 		/// </summary>
-		/// <param name="tile">Current Tile</param>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
 		public void ConnectExtOffMeshLinks(MeshTile target, BoundarySide side)
@@ -328,15 +324,11 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		/// <param name="va">Vertex A</param>
 		/// <param name="vb">Vertex B</param>
-		/// <param name="tile">Current tile</param>
 		/// <param name="side">Polygon edge</param>
 		/// <param name="con">Resulting Connection polygon</param>
 		/// <param name="conarea">Resulting Connection area</param>
-		public void FindConnectingPolys(Vector3 va, Vector3 vb, MeshTile tile, BoundarySide side, List<PolyId> con, List<float> conarea)
+		public void FindConnectingPolys(Vector3 va, Vector3 vb, BoundarySide side, List<PolyId> con, List<float> conarea)
 		{
-			if (tile == null)
-				return;
-
 			Vector2 amin = Vector2.Zero;
 			Vector2 amax = Vector2.Zero;
 			CalcSlabEndPoints(va, vb, amin, amax, side);
@@ -347,20 +339,20 @@ namespace SharpNav.Pathfinding
 			Vector2 bmax = Vector2.Zero;
 
 			//Iterate through all the tile's polygons
-			for (int i = 0; i < tile.PolyCount; i++)
+			for (int i = 0; i < PolyCount; i++)
 			{
-				int numPolyVerts = tile.Polys[i].VertCount;
+				int numPolyVerts = Polys[i].VertCount;
 
 				//Iterate through all the vertices
 				for (int j = 0; j < numPolyVerts; j++)
 				{
 					//Skip edges which do not point to the right side
-					if (tile.Polys[i].Neis[j] != (Link.External | (int)side))
+					if (Polys[i].Neis[j] != (Link.External | (int)side))
 						continue;
 
 					//Grab two adjacent vertices
-					Vector3 vc = tile.Verts[tile.Polys[i].Verts[j]];
-					Vector3 vd = tile.Verts[tile.Polys[i].Verts[(j + 1) % numPolyVerts]];
+					Vector3 vc = Verts[Polys[i].Verts[j]];
+					Vector3 vd = Verts[Polys[i].Verts[(j + 1) % numPolyVerts]];
 					float bpos = GetSlabCoord(vc, side);
 
 					//Segments are not close enough
@@ -371,7 +363,7 @@ namespace SharpNav.Pathfinding
 					CalcSlabEndPoints(vc, vd, bmin, bmax, side);
 
 					//Skip if slabs don't overlap
-					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, tile.WalkableClimb))
+					if (!OverlapSlabs(amin, amax, bmin, bmax, 0.01f, WalkableClimb))
 						continue;
 
 					//Add return value
@@ -475,12 +467,9 @@ namespace SharpNav.Pathfinding
 
 					if (isLeafNode && overlap)
 					{
-						if (polys.Count < polys.Capacity)
-						{
-							PolyId polyRef;
-							idManager.SetPolyIndex(ref baseRef, bvNode.Index, out polyRef);
-							polys.Add(polyRef);
-						}
+						PolyId polyRef;
+						idManager.SetPolyIndex(ref baseRef, bvNode.Index, out polyRef);
+						polys.Add(polyRef);
 					}
 
 					if (overlap || isLeafNode)
@@ -519,12 +508,9 @@ namespace SharpNav.Pathfinding
 
 					if (BBox3.Overlapping(ref qbounds, ref b))
 					{
-						if (polys.Count < polys.Capacity)
-						{
-							PolyId polyRef;
-							idManager.SetPolyIndex(ref baseRef, i, out polyRef);
-							polys.Add(polyRef);
-						}
+						PolyId polyRef;
+						idManager.SetPolyIndex(ref baseRef, i, out polyRef);
+						polys.Add(polyRef);
 					}
 				}
 
@@ -540,7 +526,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="bmin">Minimum bounds</param>
 		/// <param name="bmax">Maximum bounds</param>
 		/// <param name="side">The side</param>
-		public void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector2 bmin, Vector2 bmax, BoundarySide side)
+		public static void CalcSlabEndPoints(Vector3 va, Vector3 vb, Vector2 bmin, Vector2 bmax, BoundarySide side)
 		{
 			if (side == BoundarySide.PlusX || side == BoundarySide.MinusX)
 			{
@@ -588,7 +574,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="va">Vertex A</param>
 		/// <param name="side">The side</param>
 		/// <returns>Slab coordinate value</returns>
-		public float GetSlabCoord(Vector3 va, BoundarySide side)
+		public static float GetSlabCoord(Vector3 va, BoundarySide side)
 		{
 			if (side == BoundarySide.PlusX || side == BoundarySide.MinusX)
 				return va.X;
@@ -608,7 +594,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="px">Point's x</param>
 		/// <param name="py">Point's y</param>
 		/// <returns>True if slabs overlap</returns>
-		public bool OverlapSlabs(Vector2 amin, Vector2 amax, Vector2 bmin, Vector2 bmax, float px, float py)
+		public static bool OverlapSlabs(Vector2 amin, Vector2 amax, Vector2 bmin, Vector2 bmax, float px, float py)
 		{
 			//Check for horizontal overlap
 			//Segment shrunk a little so that slabs which touch at endpoints aren't connected
