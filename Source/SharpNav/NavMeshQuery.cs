@@ -342,7 +342,7 @@ namespace SharpNav
 				{
 					PolyId neighborRef = link.Reference;
 
-					//skip invalid neighbors and do not follor back to parent
+					//skip invalid neighbors and do not follow back to parent
 					if (neighborRef == PolyId.Null || neighborRef == parentRef)
 						continue;
 
