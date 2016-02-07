@@ -270,6 +270,7 @@ namespace SharpNav
 				//only store connections which start from this tile
 				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
+					navPolys[offMeshPolyBase + n] = new Poly();
 					navPolys[offMeshPolyBase + n].VertCount = 2;
 					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
 					navPolys[offMeshPolyBase + n].Verts[0] = offMeshVertsBase + (n * 2 + 0);
@@ -358,6 +359,8 @@ namespace SharpNav
 				//only store connections which start from this tile
 				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
+					offMeshConnections [n] = new OffMeshConnection ();
+					
 					offMeshConnections[n].Poly = offMeshPolyBase + n;
 
 					//copy connection end points
