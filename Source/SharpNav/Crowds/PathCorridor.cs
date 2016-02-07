@@ -361,8 +361,8 @@ namespace SharpNav.Crowds
 			while (npos < pathCount && polyRef != offMeshConRef)
 			{
 				prevRef = polyRef;
-				polyRef = path[npos];
 				npos++;
+				polyRef = path[npos];			
 			}
 
 			if (npos == pathCount)
