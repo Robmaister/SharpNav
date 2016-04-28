@@ -15,7 +15,7 @@ env:
 
 install:
  - travis_retry nuget restore Build/CI/$XBUILD_TARGET/packages.config -SolutionDirectory Source/
- - travis_retry nuget install NUnit.Console -OutputDirectory test -ExcludeVersion
+ - travis_retry nuget install NUnit.ConsoleRunner -OutputDirectory test -ExcludeVersion
 script:
  - xbuild /t:$XBUILD_TARGET /verbosity:minimal ./Build/CoreOnly.proj
- - mono ./test/NUnit.Console/tools/nunit3-console.exe ./Binaries/Tests/$XBUILD_TARGET/SharpNav.Tests.dll --where "cat!=BrokenButUnused"
+ - mono ./test/NUnit.ConsoleRunner/tools/nunit3-console.exe ./Binaries/Tests/$XBUILD_TARGET/SharpNav.Tests.dll --where "cat!=BrokenButUnused"
