@@ -34,6 +34,17 @@ namespace SharpNav
 		private Random rand;
 
 		/// <summary>
+		/// Gets the mesh that this query is using for data.
+		/// </summary>
+		public TiledNavMesh NavMesh
+		{
+			get
+			{
+				return nav;
+			}
+		}
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="NavMeshQuery"/> class.
 		/// </summary>
 		/// <param name="nav">The navigation mesh to query.</param>
@@ -76,50 +87,42 @@ namespace SharpNav
 			return (pa - pb).Length() * areaCost[(int)curPoly.Area.Id];
 		}
 
-		public TiledNavMesh NavMesh
-		{
-			get
-			{
-				return nav;
-			}
-		}
-
 		/// <summary>
 		/// Finds a random point on a polygon.
 		/// </summary>
-		/// <param name="tile">The current mesh tile</param>
-		/// <param name="poly">The current polygon</param>
-		/// <param name="polyRef">Polygon reference</param>
+		/// <param name="poly">Polygon to find a random point on.</param>
 		/// <returns>Resulting random point</returns>
-		public Vector3 FindRandomPointOnPoly(MeshTile tile, Poly poly, PolyId polyRef)
+		public Vector3 FindRandomPointOnPoly(PolyId poly)
 		{
 			Vector3 result;
-			this.FindRandomPointOnPoly(tile, poly, polyRef, out result);
+			this.FindRandomPointOnPoly(poly, out result);
 			return result;
 		}
 
 		/// <summary>
 		/// Finds a random point on a polygon.
 		/// </summary>
-		/// <param name="tile">The current mesh tile</param>
-		/// <param name="poly">The current polygon</param>
-		/// <param name="polyRef">Polygon reference</param>
-		/// <param name="randomPt">Resulting random point</param>
-		public void FindRandomPointOnPoly(MeshTile tile, Poly poly, PolyId polyRef, out Vector3 randomPt)
+		/// <param name="polyId">Polygon to find a radom point on.</param>
+		/// <param name="randomPt">Resulting random point.</param>
+		public void FindRandomPointOnPoly(PolyId polyId, out Vector3 randomPt)
 		{
+			MeshTile tile;
+			Poly poly;
+			if (!nav.TryGetTileAndPolyByRef(polyId, out tile, out poly))
+				throw new ArgumentException("Invalid polygon ID", "polyId");
+
 			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
-			float[] areas = new float[PathfindingCommon.VERTS_PER_POLYGON];
 			for (int j = 0; j < poly.VertCount; j++)
 				verts[j] = tile.Verts[poly.Verts[j]];
 
 			float s = (float)rand.NextDouble();
 			float t = (float)rand.NextDouble();
 
-			PathfindingCommon.RandomPointInConvexPoly(verts, poly.VertCount, areas, s, t, out randomPt);
+			PathfindingCommon.RandomPointInConvexPoly(verts, s, t, out randomPt);
 
 			//TODO bad state again.
 			float h = 0.0f;
-			if (!GetPolyHeight(polyRef, randomPt, ref h))
+			if (!GetPolyHeight(polyId, randomPt, ref h))
 				throw new InvalidOperationException("Outside bounds?");
 
 			randomPt.Y = h;
@@ -171,7 +174,6 @@ namespace SharpNav
 				throw new InvalidOperationException("No tiles?");
 
 			//randomly pick one polygon weighted by polygon area
-			Poly poly = null;
 			PolyId polyRef = PolyId.Null;
 			PolyId polyBase = nav.GetTileRef(tile);
 
@@ -201,30 +203,18 @@ namespace SharpNav
 				float u = (float)rand.NextDouble();
 				if (u * areaSum <= polyArea)
 				{
-					poly = p;
 					polyRef = reference;
 				}
 			}
 
 			//TODO why?
-			if (poly == null)
+			if (polyRef == PolyId.Null)
 				throw new InvalidOperationException("No polys?");
 
-			//randomRef = polyRef;
 			Vector3 randomPt;
-			FindRandomPointOnPoly(tile, poly, polyRef, out randomPt);
+			FindRandomPointOnPoly(polyRef, out randomPt);
 
 			randomPoint = new NavPoint(polyRef, randomPt);
-		}
-
-		/// <summary>
-		/// Finds a random point in a NavMesh connected to a specified point on the same mesh.
-		/// </summary>
-		/// <param name="connectedTo">The point that the random point will be connected to.</param>
-		/// <param name="randomPoint">A random point connected to <c>connectedTo</c>.</param>
-		public void FindRandomConnectedPoint(NavPoint connectedTo, out NavPoint randomPoint)
-		{
-			FindRandomPointAroundCircle(connectedTo, 0, out randomPoint);
 		}
 
 		/// <summary>
@@ -237,6 +227,16 @@ namespace SharpNav
 			NavPoint result;
 			FindRandomConnectedPoint(connectedTo, out result);
 			return result;
+		}
+
+		/// <summary>
+		/// Finds a random point in a NavMesh connected to a specified point on the same mesh.
+		/// </summary>
+		/// <param name="connectedTo">The point that the random point will be connected to.</param>
+		/// <param name="randomPoint">A random point connected to <c>connectedTo</c>.</param>
+		public void FindRandomConnectedPoint(NavPoint connectedTo, out NavPoint randomPoint)
+		{
+			FindRandomPointAroundCircle(connectedTo, 0, out randomPoint);
 		}
 
 		/// <summary>
@@ -256,7 +256,7 @@ namespace SharpNav
 		/// Finds a random point in a NavMesh within a specified circle.
 		/// </summary>
 		/// <param name="center">The center point.</param>
-		/// <param name="radius">The maximum distance away from the center that the random point can be. If 0, any point on the mesh can be returned.</param>
+		/// <param name="radius">The maximum distance away from the center that the random point can be. If 0, any connected point on the mesh can be returned.</param>
 		/// <param name="randomPoint">A random point within the specified circle.</param>
 		public void FindRandomPointAroundCircle(NavPoint center, float radius, out NavPoint randomPoint)
 		{
@@ -288,11 +288,10 @@ namespace SharpNav
 			openList.Push(startNode);
 
 			bool doRadiusCheck = radius != 0;
+
 			float radiusSqr = radius * radius;
 			float areaSum = 0.0f;
 
-			MeshTile randomTile = null;
-			Poly randomPoly = null;
 			PolyId randomPolyRef = PolyId.Null;
 
 			while (openList.Count > 0)
@@ -323,20 +322,14 @@ namespace SharpNav
 					float u = (float)rand.NextDouble();
 					if (u * areaSum <= polyArea)
 					{
-						randomTile = bestTile;
-						randomPoly = bestPoly;
 						randomPolyRef = bestRef;
 					}
 				}
 
 				//get parent poly and tile
 				PolyId parentRef = PolyId.Null;
-				MeshTile parentTile;
-				Poly parentPoly;
 				if (bestNode.ParentIdx != 0)
 					parentRef = nodePool.GetNodeAtIdx(bestNode.ParentIdx).Id;
-				if (parentRef != PolyId.Null)
-					nav.TryGetTileAndPolyByRefUnsafe(parentRef, out parentTile, out parentPoly);
 
 				foreach (Link link in bestPoly.Links)
 				{
@@ -401,11 +394,11 @@ namespace SharpNav
 			}
 
 			//TODO invalid state.
-			if (randomPoly == null)
+			if (randomPolyRef == PolyId.Null)
 				throw new InvalidOperationException("Poly null?");
 
 			Vector3 randomPt;
-			FindRandomPointOnPoly(randomTile, randomPoly, randomPolyRef, out randomPt);
+			FindRandomPointOnPoly(randomPolyRef, out randomPt);
 
 			randomPoint = new NavPoint(randomPolyRef, randomPt);
 		}

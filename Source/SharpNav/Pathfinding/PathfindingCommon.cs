@@ -35,12 +35,13 @@ namespace SharpNav.Pathfinding
 		/// <param name="s">A random float</param>
 		/// <param name="t">Another random float</param>
 		/// <param name="pt">The resulting point</param>
-		public static void RandomPointInConvexPoly(Vector3[] pts, int npts, float[] areas, float s, float t, out Vector3 pt)
+		public static void RandomPointInConvexPoly(Vector3[] pts, float s, float t, out Vector3 pt)
 		{
 			//Calculate triangle areas
+			float[] areas = new float[pts.Length];
 			float areaSum = 0.0f;
 			float area;
-			for (int i = 2; i < npts; i++)
+			for (int i = 2; i < pts.Length; i++)
 			{
 				Triangle3.Area2D(ref pts[0], ref pts[i - 1], ref pts[i], out area);
 				areaSum += Math.Max(0.001f, area);
@@ -52,7 +53,7 @@ namespace SharpNav.Pathfinding
 			float accumulatedArea = 0.0f;
 			float u = 0.0f;
 			int triangleVertex = 0;
-			for (int i = 2; i < npts; i++)
+			for (int i = 2; i < pts.Length; i++)
 			{
 				float currentArea = areas[i];
 				if (threshold >= accumulatedArea && threshold < (accumulatedArea + currentArea))
