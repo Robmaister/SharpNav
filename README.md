@@ -72,7 +72,7 @@ SharpNav is licensed under the MIT license. The terms of the MIT license are inc
 ```
 The MIT License (MIT)
 
-Copyright (c) 2013-2014 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 
 SharpNav contains some altered source code from Recast Navigation, Copyright (c) 2009 Mikko Mononen memon@inside.org
 

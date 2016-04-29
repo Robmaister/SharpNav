@@ -17,10 +17,10 @@
 
 For the full release notes, see http://sharpnav.com/docs/html/index.htm?page=release-notes-v1.0.0-alpha.2
     </releaseNotes>
-    <copyright>Copyright (c) 2013-2014 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
+    <copyright>Copyright (c) 2013-2016 Robert Rouhani &lt;robert.rouhani@gmail.com&gt; and other contributors (see CONTRIBUTORS file).</copyright>
     <tags>Navigation Pathfinding NavMesh Nav Mesh Crowd Agent AI Recast</tags>
     <dependencies>
-      <dependency id="MonoGame.Binaries" />
+      <dependency id="MonoGame.Framework.Portable" />
     </dependencies>
   </metadata>
   <files>
