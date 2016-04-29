@@ -68,11 +68,11 @@ namespace SharpNav.IO.Json
 
 			var tilesArray = new JArray();
 
-			var tiles = (List<MeshTile>) GetPrivateField(mesh, typeof(TiledNavMesh), "tileList");
-			var tileRefs = (Dictionary<MeshTile, PolyId>)GetPrivateField(mesh, typeof(TiledNavMesh), "tileRefs");
-			foreach (MeshTile tile in tiles)
+			var tiles = (List<NavTile>) GetPrivateField(mesh, typeof(TiledNavMesh), "tileList");
+			var tileRefs = (Dictionary<NavTile, NavPolyId>)GetPrivateField(mesh, typeof(TiledNavMesh), "tileRefs");
+			foreach (NavTile tile in tiles)
 			{
-				PolyId id = mesh.GetTileRef(tile);
+				NavPolyId id = mesh.GetTileRef(tile);
 				tilesArray.Add(SerializeMeshTile(tile, id));
 			}
 
@@ -97,18 +97,18 @@ namespace SharpNav.IO.Json
 			var mesh = new TiledNavMesh(origin, tileWidth, tileHeight, maxTiles, maxPolys);
 
 			JArray tilesToken = (JArray) root["tiles"];
-			List<MeshTile> tiles = new List<MeshTile>();
+			List<NavTile> tiles = new List<NavTile>();
 			foreach (JToken tileToken in tilesToken)
 			{
-				PolyId tileRef;
-				MeshTile tile = DeserializeMeshTile(tileToken, mesh.IdManager, out tileRef);
+				NavPolyId tileRef;
+				NavTile tile = DeserializeMeshTile(tileToken, mesh.IdManager, out tileRef);
 				mesh.AddTileAt(tile, tileRef);
 			}
 
 			return mesh;
 		}
 
-		private JObject SerializeMeshTile(MeshTile tile, PolyId id)
+		private JObject SerializeMeshTile(NavTile tile, NavPolyId id)
 		{
 			var result = new JObject();
 			result.Add("polyId", JToken.FromObject(id, serializer));
@@ -135,16 +135,16 @@ namespace SharpNav.IO.Json
 			return result;
 		}
 
-		private MeshTile DeserializeMeshTile(JToken token, PolyIdManager manager, out PolyId refId)
+		private NavTile DeserializeMeshTile(JToken token, NavPolyIdManager manager, out NavPolyId refId)
 		{
-			refId = token["polyId"].ToObject<PolyId>(serializer);
+			refId = token["polyId"].ToObject<NavPolyId>(serializer);
 			Vector2i location = token["location"].ToObject<Vector2i>(serializer);
 			int layer = token["layer"].ToObject<int>(serializer);
-			MeshTile result = new MeshTile(location, layer, manager, refId);
+			NavTile result = new NavTile(location, layer, manager, refId);
 
 			result.Salt = token["salt"].ToObject<int>(serializer);
 			result.Bounds = token["bounds"].ToObject<BBox3>(serializer);
-			result.Polys = token["polys"].ToObject<Poly[]>(serializer);
+			result.Polys = token["polys"].ToObject<NavPoly[]>(serializer);
 			result.PolyCount = result.Polys.Length;
 			result.Verts = token["verts"].ToObject<Vector3[]>(serializer);
 			result.DetailMeshes = token["detailMeshes"].ToObject<PolyMeshDetail.MeshData[]>(serializer);

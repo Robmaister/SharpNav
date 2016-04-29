@@ -37,11 +37,11 @@ namespace SharpNav
 		//lookup by x,y (for list in layer)
 		//lookup tile by ref
 		//lookup ref by tile
-		private Dictionary<Vector2i, List<MeshTile>> tileSet;
-		private Dictionary<MeshTile, PolyId> tileRefs;
-		private List<MeshTile> tileList;
+		private Dictionary<Vector2i, List<NavTile>> tileSet;
+		private Dictionary<NavTile, NavPolyId> tileRefs;
+		private List<NavTile> tileList;
 
-		private PolyIdManager idManager;
+		private NavPolyIdManager idManager;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="TiledNavMesh"/> class.
@@ -56,9 +56,9 @@ namespace SharpNav
 			this.maxPolys = data.Header.PolyCount;
 
 			//init tiles
-			tileSet = new Dictionary<Vector2i, List<MeshTile>>();
-			tileRefs = new Dictionary<MeshTile, PolyId>();
-			tileList = new List<MeshTile>();
+			tileSet = new Dictionary<Vector2i, List<NavTile>>();
+			tileRefs = new Dictionary<NavTile, NavPolyId>();
+			tileList = new List<NavTile>();
 
 			//init ID generator values
 			int tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(maxTiles));
@@ -71,7 +71,7 @@ namespace SharpNav
 			if (saltBits < 10)
 				return;
 
-			idManager = new PolyIdManager(polyBits, tileBits, saltBits);
+			idManager = new NavPolyIdManager(polyBits, tileBits, saltBits);
 
 			AddTile(data);
 		}
@@ -85,9 +85,9 @@ namespace SharpNav
 			this.maxPolys = maxPolys;
 
 			//init tiles
-			tileSet = new Dictionary<Vector2i, List<MeshTile>>();
-			tileRefs = new Dictionary<MeshTile, PolyId>();
-			tileList = new List<MeshTile>();
+			tileSet = new Dictionary<Vector2i, List<NavTile>>();
+			tileRefs = new Dictionary<NavTile, NavPolyId>();
+			tileList = new List<NavTile>();
 
 			//init ID generator values
 			int tileBits = MathHelper.Log2(MathHelper.NextPowerOfTwo(maxTiles));
@@ -100,7 +100,7 @@ namespace SharpNav
 			if (saltBits < 10)
 				return;
 
-			idManager = new PolyIdManager(polyBits, tileBits, saltBits);
+			idManager = new NavPolyIdManager(polyBits, tileBits, saltBits);
 		}
 
 		public Vector3 Origin { get { return origin; } }
@@ -124,7 +124,7 @@ namespace SharpNav
 			}
 		}
 
-		public PolyIdManager IdManager
+		public NavPolyIdManager IdManager
 		{
 			get
 			{
@@ -137,15 +137,15 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="index">The index referencing a tile.</param>
 		/// <returns>The tile at the index.</returns>
-		public ReadOnlyCollection<MeshTile> this[Vector2i location]
+		public ReadOnlyCollection<NavTile> this[Vector2i location]
 		{
 			get
 			{
-				return new ReadOnlyCollection<MeshTile>(tileSet[location]);
+				return new ReadOnlyCollection<NavTile>(tileSet[location]);
 			}
 		}
 
-		public ReadOnlyCollection<MeshTile> this[int x, int y]
+		public ReadOnlyCollection<NavTile> this[int x, int y]
 		{
 			get
 			{
@@ -153,7 +153,7 @@ namespace SharpNav
 			}
 		}
 
-		public MeshTile this[int reference]
+		public NavTile this[int reference]
 		{
 			get
 			{
@@ -161,7 +161,7 @@ namespace SharpNav
 			}
 		}
 
-		public MeshTile this[PolyId id]
+		public NavTile this[NavPolyId id]
 		{
 			get
 			{
@@ -175,15 +175,15 @@ namespace SharpNav
 		/// </summary>
 		public object Tag { get; set; }
 
-		public void AddTileAt(MeshTile tile, PolyId id)
+		public void AddTileAt(NavTile tile, NavPolyId id)
 		{
 			//TODO more error checking, what if tile already exists?
 
 			Vector2i loc = tile.Location;
-			List<MeshTile> locList;
+			List<NavTile> locList;
 			if (!tileSet.TryGetValue(loc, out locList))
 			{
-				locList = new List<MeshTile>();
+				locList = new List<NavTile>();
 				locList.Add(tile);
 				tileSet.Add(loc, locList);
 			}
@@ -211,17 +211,17 @@ namespace SharpNav
 		/// <param name="data">Navigation Mesh data</param>
 		/// <param name="lastRef">Last polygon reference</param>
 		/// <param name="result">Last tile reference</param>
-		public PolyId AddTile(NavMeshBuilder data)
+		public NavPolyId AddTile(NavMeshBuilder data)
 		{
 			//make sure data is in right format
 			PathfindingCommon.NavMeshInfo header = data.Header;
 
 			//make sure location is free
 			if (GetTileAt(header.X, header.Y, header.Layer) != null)
-				return PolyId.Null;
+				return NavPolyId.Null;
 
-			PolyId newTileId = GetNextTileRef();
-			MeshTile tile = new MeshTile(new Vector2i(header.X, header.Y), header.Layer, idManager, newTileId);
+			NavPolyId newTileId = GetNextTileRef();
+			NavTile tile = new NavTile(new Vector2i(header.X, header.Y), header.Layer, idManager, newTileId);
 			tile.Salt = idManager.DecodeSalt(ref newTileId);
 
 			if (header.BvNodeCount == 0)
@@ -250,7 +250,7 @@ namespace SharpNav
 			//create connections with neighbor tiles
 
 			//connect with layers in current tile
-			foreach (MeshTile layerTile in GetTilesAt(header.X, header.Y))
+			foreach (NavTile layerTile in GetTilesAt(header.X, header.Y))
 			{
 				if (layerTile != tile)
 				{
@@ -267,7 +267,7 @@ namespace SharpNav
 			{
 				BoundarySide b = (BoundarySide)i;
 				BoundarySide bo = b.GetOpposite();
-				foreach (MeshTile neighborTile in GetNeighborTilesAt(header.X, header.Y, b))
+				foreach (NavTile neighborTile in GetNeighborTilesAt(header.X, header.Y, b))
 				{
 					tile.ConnectExtLinks(neighborTile, b);
 					neighborTile.ConnectExtLinks(tile, bo);
@@ -281,7 +281,7 @@ namespace SharpNav
 			return newTileId;
 		}
 
-		public PolyId GetNextTileRef()
+		public NavPolyId GetNextTileRef()
 		{
 			//Salt is 1 for first version. As tiles get edited, change salt.
 			//Salt can't be 0, otherwise the first poly of tile 0 is incorrectly seen as PolyId.Null.
@@ -296,11 +296,11 @@ namespace SharpNav
 		/// <param name="startPos">The starting position</param>
 		/// <param name="endPos">The ending position</param>
 		/// <returns>True if endpoints found, false if not</returns>
-		public bool GetOffMeshConnectionPolyEndPoints(PolyId prevRef, PolyId polyRef, ref Vector3 startPos, ref Vector3 endPos)
+		public bool GetOffMeshConnectionPolyEndPoints(NavPolyId prevRef, NavPolyId polyRef, ref Vector3 startPos, ref Vector3 endPos)
 		{
 			int salt = 0, indexTile = 0, indexPoly = 0;
 
-			if (polyRef == PolyId.Null)
+			if (polyRef == NavPolyId.Null)
 				return false;
 
 			//get current polygon
@@ -309,12 +309,12 @@ namespace SharpNav
 				return false;
 			if (tileList[indexTile].Salt != salt)
 				return false;
-			MeshTile tile = tileList[indexTile];
+			NavTile tile = tileList[indexTile];
 			if (indexPoly >= tile.PolyCount)
 				return false;
-			Poly poly = tile.Polys[indexPoly];
+			NavPoly poly = tile.Polys[indexPoly];
 
-			if (poly.PolyType != PolygonType.OffMeshConnection)
+			if (poly.PolyType != NavPolyType.OffMeshConnection)
 				return false;
 
 			int idx0 = 0, idx1 = 1;
@@ -345,14 +345,14 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="tile">Tile to look for</param>
 		/// <returns>Tile reference</returns>
-		public PolyId GetTileRef(MeshTile tile)
+		public NavPolyId GetTileRef(NavTile tile)
 		{
 			if (tile == null)
-				return PolyId.Null;
+				return NavPolyId.Null;
 
-			PolyId id;
+			NavPolyId id;
 			if (!tileRefs.TryGetValue(tile, out id))
-				id = PolyId.Null;
+				id = NavPolyId.Null;
 
 			return id;
 		}
@@ -364,7 +364,7 @@ namespace SharpNav
 		/// <param name="y">The Y coordinate of the tile.</param>
 		/// <param name="layer">The layer of the tile.</param>
 		/// <returns>The MeshTile at the specified location.</returns>
-		public MeshTile GetTileAt(int x, int y, int layer)
+		public NavTile GetTileAt(int x, int y, int layer)
 		{
 			return GetTileAt(new Vector2i(x, y), layer);
 		}
@@ -375,10 +375,10 @@ namespace SharpNav
 		/// <param name="location">The (X, Y) coordinate of the tile.</param>
 		/// <param name="layer">The layer of the tile.</param>
 		/// <returns>The MeshTile at the specified location.</returns>
-		public MeshTile GetTileAt(Vector2i location, int layer)
+		public NavTile GetTileAt(Vector2i location, int layer)
 		{
 			//Find tile based off hash
-			List<MeshTile> list;
+			List<NavTile> list;
 			if (!tileSet.TryGetValue(location, out list))
 				return null;
 
@@ -391,22 +391,22 @@ namespace SharpNav
 		/// <param name="x">The x-coordinate</param>
 		/// <param name="y">The y-coordinate</param>
 		/// <returns>A read-only collection of tiles at the specified coordinate</returns>
-		public IEnumerable<MeshTile> GetTilesAt(int x, int y)
+		public IEnumerable<NavTile> GetTilesAt(int x, int y)
 		{
 			return GetTilesAt(new Vector2i(x, y));
 		}
 
-		public IEnumerable<MeshTile> GetTilesAt(Vector2i location)
+		public IEnumerable<NavTile> GetTilesAt(Vector2i location)
 		{
 			//Find tile based off hash
-			List<MeshTile> list;
+			List<NavTile> list;
 			if (!tileSet.TryGetValue(location, out list))
-				return Enumerable.Empty<MeshTile>();
+				return Enumerable.Empty<NavTile>();
 
-			return new ReadOnlyCollection<MeshTile>(list);
+			return new ReadOnlyCollection<NavTile>(list);
 		}
 
-		public IEnumerable<MeshTile> GetNeighborTilesAt(Vector2i location, BoundarySide side)
+		public IEnumerable<NavTile> GetNeighborTilesAt(Vector2i location, BoundarySide side)
 		{
 			return GetNeighborTilesAt(location.X, location.Y, side);
 		}
@@ -419,7 +419,7 @@ namespace SharpNav
 		/// <param name="side">The side value</param>
 		/// <param name="tiles">An array of MeshTiles</param>
 		/// <returns>The number of tiles satisfying the condition</returns>
-		public IEnumerable<MeshTile> GetNeighborTilesAt(int x, int y, BoundarySide side)
+		public IEnumerable<NavTile> GetNeighborTilesAt(int x, int y, BoundarySide side)
 		{
 			int nx = x, ny = y;
 			switch (side)
@@ -471,12 +471,12 @@ namespace SharpNav
 		/// <param name="tile">Resulting tile</param>
 		/// <param name="poly">Resulting poly</param>
 		/// <returns>True if tile and poly successfully retrieved</returns>
-		public bool TryGetTileAndPolyByRef(PolyId reference, out MeshTile tile, out Poly poly)
+		public bool TryGetTileAndPolyByRef(NavPolyId reference, out NavTile tile, out NavPoly poly)
 		{
 			tile = null;
 			poly = null;
 
-			if (reference == PolyId.Null)
+			if (reference == NavPolyId.Null)
 				return false;
 
 			//Get tile and poly indices
@@ -505,7 +505,7 @@ namespace SharpNav
 		/// <param name="reference">Polygon reference</param>
 		/// <param name="tile">Resulting tile</param>
 		/// <param name="poly">Resulting poly</param>
-		public void TryGetTileAndPolyByRefUnsafe(PolyId reference, out MeshTile tile, out Poly poly)
+		public void TryGetTileAndPolyByRefUnsafe(NavPolyId reference, out NavTile tile, out NavPoly poly)
 		{
 			int salt, polyIndex, tileIndex;
 			idManager.Decode(ref reference, out polyIndex, out tileIndex, out salt);
@@ -518,9 +518,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="reference">Polygon reference</param>
 		/// <returns>True if valid</returns>
-		public bool IsValidPolyRef(PolyId reference)
+		public bool IsValidPolyRef(NavPolyId reference)
 		{
-			if (reference == PolyId.Null)
+			if (reference == NavPolyId.Null)
 				return false;
 
 			int salt, polyIndex, tileIndex;

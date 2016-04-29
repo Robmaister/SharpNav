@@ -28,24 +28,24 @@ namespace SharpNav.Crowds
 
 		private PathQuery[] queue;
 		private int nextHandle = 1;
-		private int maxPathSize;
 		private int queueHead;
 		private NavMeshQuery navquery;
+		private NavQueryFilter navqueryfilter;
 
 		#endregion
 
 		#region Constructors
 
-		public PathQueue(int maxPathSize, int maxSearchNodeCount, ref TiledNavMesh nav)
+		public PathQueue(int maxSearchNodeCount, ref TiledNavMesh nav)
 		{
 			this.navquery = new NavMeshQuery(nav, maxSearchNodeCount);
+			this.navqueryfilter = new NavQueryFilter();
 
-			this.maxPathSize = maxPathSize;
 			this.queue = new PathQuery[MaxQueue];
 			for (int i = 0; i < MaxQueue; i++)
 			{
 				queue[i].Index = 0;
-				queue[i].Path = new PolyId[maxPathSize];
+				queue[i].Path = new Path();
 			}
 
 			this.queueHead = 0;
@@ -89,7 +89,7 @@ namespace SharpNav.Crowds
 				//handle query start
 				if (q.Status == 0)
 				{
-					q.Status = navquery.InitSlicedFindPath(q.Start, q.End).ToStatus();
+					q.Status = navquery.InitSlicedFindPath(ref q.Start, ref q.End, navqueryfilter, FindPathOptions.None).ToStatus();
 				}
 
 				//handle query in progress
@@ -103,7 +103,7 @@ namespace SharpNav.Crowds
 
 				if (q.Status == Status.Success)
 				{
-					q.Status = navquery.FinalizeSlicedFindPath(q.Path, ref q.PathCount, maxPathSize).ToStatus();
+					q.Status = navquery.FinalizeSlicedFindPath(q.Path).ToStatus();
 				}
 
 				if (iterCount <= 0)
@@ -169,8 +169,10 @@ namespace SharpNav.Crowds
 			return Status.Failure;
 		}
 
-		public bool GetPathResult(int index, PolyId[] path, ref int pathSize, int maxPath)
+		public bool GetPathResult(int index, out Path path)
 		{
+			path = null;
+
 			for (int i = 0; i < MaxQueue; i++)
 			{
 				if (queue[i].Index == index)
@@ -180,11 +182,8 @@ namespace SharpNav.Crowds
 					//free request for reuse
 					q.Index = 0;
 					q.Status = 0;
-					
-					//copy path
-					int n = Math.Min(q.PathCount, maxPath);
-					q.Path.CopyTo(path, 0);
-					pathSize = n;
+
+					path = new Path(q.Path);
 
 					queue[i] = q;
 
@@ -205,7 +204,7 @@ namespace SharpNav.Crowds
 			public NavPoint Start, End;
 
 			//result
-			public PolyId[] Path;
+			public Path Path;
 			public int PathCount;
 
 			//state

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -21,10 +21,6 @@ namespace SharpNav.Pathfinding
 	public class PathfindingCommon
 	{
 		public const int VERTS_PER_POLYGON = 6; //max number of vertices
-
-		public const int STRAIGHTPATH_START = 0x01; //vertex is in start position of path
-		public const int STRAIGHTPATH_END = 0x02; //vertex is in end position of path
-		public const int STRAIGHTPATH_OFFMESH_CONNECTION = 0x04; //vertex is at start of an off-mesh connection
 
 		/// <summary>
 		/// Generate an accurate sample of random points in the convex polygon and pick a point.

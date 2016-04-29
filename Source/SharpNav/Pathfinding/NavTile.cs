@@ -23,17 +23,17 @@ namespace SharpNav.Pathfinding
 	/// <summary>
 	/// The MeshTile contains the map data for pathfinding
 	/// </summary>
-	public class MeshTile : IEquatable<MeshTile>
+	public class NavTile : IEquatable<NavTile>
 	{
-		private PolyIdManager idManager;
-		private PolyId baseRef;
+		private NavPolyIdManager idManager;
+		private NavPolyId baseRef;
 
-		public MeshTile(int x, int y, int layer, PolyIdManager manager, PolyId baseRef)
+		public NavTile(int x, int y, int layer, NavPolyIdManager manager, NavPolyId baseRef)
 			:this(new Vector2i(x, y), layer, manager, baseRef)
 		{
 		}
 
-		public MeshTile(Vector2i location, int layer, PolyIdManager manager, PolyId baseRef)
+		public NavTile(Vector2i location, int layer, NavPolyIdManager manager, NavPolyId baseRef)
 		{
 			this.Location = location;
 			this.Layer = layer;
@@ -53,7 +53,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the PolyMesh polygons
 		/// </summary>
-		public Poly[] Polys { get; set; }
+		public NavPoly[] Polys { get; set; }
 
 		public int PolyCount { get; set; }
 
@@ -105,10 +105,10 @@ namespace SharpNav.Pathfinding
 			//Iterate through all the polygons
 			for (int i = 0; i < PolyCount; i++)
 			{
-				Poly p = Polys[i];
+				NavPoly p = Polys[i];
 
 				//Avoid Off-Mesh Connection polygons
-				if (p.PolyType == PolygonType.OffMeshConnection)
+				if (p.PolyType == NavPolyType.OffMeshConnection)
 					continue;
 
 				//Build edge links
@@ -118,7 +118,7 @@ namespace SharpNav.Pathfinding
 					if (p.Neis[j] == 0 || Link.IsExternal(p.Neis[j]))
 						continue;
 
-					PolyId id;
+					NavPolyId id;
 					idManager.SetPolyIndex(ref baseRef, p.Neis[j] - 1, out id);
 
 					//Initialize a new link
@@ -148,8 +148,8 @@ namespace SharpNav.Pathfinding
 				//Find polygon to connect to
 				Vector3 p = omc.Pos0;
 				Vector3 nearestPt = new Vector3();
-				PolyId reference = FindNearestPoly(p, extents, ref nearestPt);
-				if (reference == PolyId.Null)
+				NavPolyId reference = FindNearestPoly(p, extents, ref nearestPt);
+				if (reference == NavPolyId.Null)
 					continue;
 
 				//Do extra checks
@@ -157,7 +157,7 @@ namespace SharpNav.Pathfinding
 					OffMeshConnections[con].Radius * OffMeshConnections[con].Radius)
 					continue;
 
-				Poly poly = this.Polys[omc.Poly];
+				NavPoly poly = this.Polys[omc.Poly];
 
 				//Make sure location is on current mesh
 				Verts[poly.Verts[0]] = nearestPt;
@@ -170,7 +170,7 @@ namespace SharpNav.Pathfinding
 
 				//Start end-point always conects back to off-mesh connection
 				int landPolyIdx = idManager.DecodePolyIndex(ref reference);
-				PolyId id;
+				NavPolyId id;
 				idManager.SetPolyIndex(ref baseRef, OffMeshConnections[con].Poly, out id);
 
 				Link link2 = new Link();
@@ -186,7 +186,7 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
-		public void ConnectExtLinks(MeshTile target, BoundarySide side)
+		public void ConnectExtLinks(NavTile target, BoundarySide side)
 		{
 			//Connect border links
 			for (int i = 0; i < PolyCount; i++)
@@ -206,7 +206,7 @@ namespace SharpNav.Pathfinding
 					//Create new links
 					Vector3 va = Verts[Polys[i].Verts[j]];
 					Vector3 vb = Verts[Polys[i].Verts[(j + 1) % numPolyVerts]];
-					List<PolyId> nei = new List<PolyId>(4);
+					List<NavPolyId> nei = new List<NavPolyId>(4);
 					List<float> neia = new List<float>(4 * 2);
 					target.FindConnectingPolys(va, vb, dir.GetOpposite(), nei, neia);
 
@@ -260,7 +260,7 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		/// <param name="target">Target Tile</param>
 		/// <param name="side">Polygon edge</param>
-		public void ConnectExtOffMeshLinks(MeshTile target, BoundarySide side)
+		public void ConnectExtOffMeshLinks(NavTile target, BoundarySide side)
 		{
 			//Connect off-mesh links, specifically links which land from target tile to this tile
 			BoundarySide oppositeSide = side.GetOpposite();
@@ -272,7 +272,7 @@ namespace SharpNav.Pathfinding
 				if (targetCon.Side != oppositeSide)
 					continue;
 
-				Poly targetPoly = target.Polys[targetCon.Poly];
+				NavPoly targetPoly = target.Polys[targetCon.Poly];
 
 				//Skip off-mesh connections which start location could not be connected at all
 				if (targetPoly.Links.Count == 0)
@@ -283,8 +283,8 @@ namespace SharpNav.Pathfinding
 				//Find polygon to connect to
 				Vector3 p = targetCon.Pos1;
 				Vector3 nearestPt = new Vector3();
-				PolyId reference = FindNearestPoly(p, extents, ref nearestPt);
-				if (reference == PolyId.Null)
+				NavPolyId reference = FindNearestPoly(p, extents, ref nearestPt);
+				if (reference == NavPolyId.Null)
 					continue;
 
 				//Further checks
@@ -306,7 +306,7 @@ namespace SharpNav.Pathfinding
 				if ((targetCon.Flags & OffMeshConnectionFlags.Bidirectional) != 0)
 				{
 					int landPolyIdx = idManager.DecodePolyIndex(ref reference);
-					PolyId id;
+					NavPolyId id;
 					id = target.baseRef;
 					idManager.SetPolyIndex(ref id, targetCon.Poly, out id);
 
@@ -327,7 +327,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="side">Polygon edge</param>
 		/// <param name="con">Resulting Connection polygon</param>
 		/// <param name="conarea">Resulting Connection area</param>
-		public void FindConnectingPolys(Vector3 va, Vector3 vb, BoundarySide side, List<PolyId> con, List<float> conarea)
+		public void FindConnectingPolys(Vector3 va, Vector3 vb, BoundarySide side, List<NavPolyId> con, List<float> conarea)
 		{
 			Vector2 amin = Vector2.Zero;
 			Vector2 amax = Vector2.Zero;
@@ -372,7 +372,7 @@ namespace SharpNav.Pathfinding
 						conarea.Add(Math.Max(amin.X, bmin.X));
 						conarea.Add(Math.Min(amax.X, bmax.X));
 
-						PolyId id;
+						NavPolyId id;
 						idManager.SetPolyIndex(ref baseRef, i, out id);
 						con.Add(id);
 					}
@@ -390,24 +390,24 @@ namespace SharpNav.Pathfinding
 		/// <param name="extents">Range of search</param>
 		/// <param name="nearestPt">Resulting nearest point</param>
 		/// <returns>Polygon Reference which contains nearest point</returns>
-		public PolyId FindNearestPoly(Vector3 center, Vector3 extents, ref Vector3 nearestPt)
+		public NavPolyId FindNearestPoly(Vector3 center, Vector3 extents, ref Vector3 nearestPt)
 		{
 			BBox3 bounds;
 			bounds.Min = center - extents;
 			bounds.Max = center + extents;
 
 			//Get nearby polygons from proximity grid
-			List<PolyId> polys = new List<PolyId>(128);
+			List<NavPolyId> polys = new List<NavPolyId>(128);
 			int polyCount = this.QueryPolygons(bounds, polys);
 
 			//Find nearest polygon amongst the nearby polygons
-			PolyId nearest = PolyId.Null;
+			NavPolyId nearest = NavPolyId.Null;
 			float nearestDistanceSqr = float.MaxValue;
 
 			//Iterate throuh all the polygons
 			for (int i = 0; i < polyCount; i++)
 			{
-				PolyId reference = polys[i];
+				NavPolyId reference = polys[i];
 				Vector3 closestPtPoly = new Vector3();
 				ClosestPointOnPoly(idManager.DecodePolyIndex(ref reference), center, ref closestPtPoly);
 				float d = (center - closestPtPoly).LengthSquared();
@@ -429,7 +429,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="qbounds">The bounds</param>
 		/// <param name="polys">List of polygons</param>
 		/// <returns>Number of polygons found</returns>
-		public int QueryPolygons(BBox3 qbounds, List<PolyId> polys)
+		public int QueryPolygons(BBox3 qbounds, List<NavPolyId> polys)
 		{
 			if (BVTree.Count != 0)
 			{
@@ -467,7 +467,7 @@ namespace SharpNav.Pathfinding
 
 					if (isLeafNode && overlap)
 					{
-						PolyId polyRef;
+						NavPolyId polyRef;
 						idManager.SetPolyIndex(ref baseRef, bvNode.Index, out polyRef);
 						polys.Add(polyRef);
 					}
@@ -494,7 +494,7 @@ namespace SharpNav.Pathfinding
 					var poly = Polys[i];
 
 					//don't return off-mesh connection polygons
-					if (poly.PolyType == PolygonType.OffMeshConnection)
+					if (poly.PolyType == NavPolyType.OffMeshConnection)
 						continue;
 
 					//calculate polygon bounds
@@ -508,7 +508,7 @@ namespace SharpNav.Pathfinding
 
 					if (BBox3.Overlapping(ref qbounds, ref b))
 					{
-						PolyId polyRef;
+						NavPolyId polyRef;
 						idManager.SetPolyIndex(ref baseRef, i, out polyRef);
 						polys.Add(polyRef);
 					}
@@ -633,7 +633,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="poly">The current polygon.</param>
 		/// <param name="pos">The current position</param>
 		/// <param name="closest">Reference to the closest point</param>
-		public void ClosestPointOnPoly(Poly poly, Vector3 pos, ref Vector3 closest)
+		public void ClosestPointOnPoly(NavPoly poly, Vector3 pos, ref Vector3 closest)
 		{
 			int indexPoly = 0;
 			for (int i = 0; i < Polys.Length; i++)
@@ -656,10 +656,10 @@ namespace SharpNav.Pathfinding
 		/// <param name="closest">Reference to the closest point</param>
 		public void ClosestPointOnPoly(int indexPoly, Vector3 pos, ref Vector3 closest)
 		{
-			Poly poly = Polys[indexPoly];
+			NavPoly poly = Polys[indexPoly];
 
 			//Off-mesh connections don't have detail polygons
-			if (Polys[indexPoly].PolyType == PolygonType.OffMeshConnection)
+			if (Polys[indexPoly].PolyType == NavPolyType.OffMeshConnection)
 			{
 				ClosestPointOnPolyOffMeshConnection(poly, pos, out closest);
 				return;
@@ -678,7 +678,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="poly">The current polygon.</param>
 		/// <param name="pos">The current position</param>
 		/// <param name="closest">Reference to the closest point</param>
-		public void ClosestPointOnPolyBoundary(Poly poly, Vector3 pos, out Vector3 closest)
+		public void ClosestPointOnPolyBoundary(NavPoly poly, Vector3 pos, out Vector3 closest)
 		{
 			//Clamp point to be inside the polygon
 			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
@@ -724,7 +724,7 @@ namespace SharpNav.Pathfinding
 		/// <returns>True, if a height is found. False, if otherwise.</returns>
 		public bool ClosestHeight(int indexPoly, Vector3 pos, out float h)
 		{
-			Poly poly = Polys[indexPoly];
+			NavPoly poly = Polys[indexPoly];
 			PolyMeshDetail.MeshData pd = DetailMeshes[indexPoly];
 
 			//find height at the location
@@ -755,7 +755,7 @@ namespace SharpNav.Pathfinding
 		/// <param name="poly">Current polygon</param>
 		/// <param name="pos">Current position</param>
 		/// <param name="closest">Resulting point that is closest.</param>
-		public void ClosestPointOnPolyOffMeshConnection(Poly poly, Vector3 pos, out Vector3 closest)
+		public void ClosestPointOnPolyOffMeshConnection(NavPoly poly, Vector3 pos, out Vector3 closest)
 		{
 			Vector3 v0 = Verts[poly.Verts[0]];
 			Vector3 v1 = Verts[poly.Verts[1]];
@@ -765,7 +765,7 @@ namespace SharpNav.Pathfinding
 			closest = Vector3.Lerp(v0, v1, u);
 		}
 
-		public static bool operator==(MeshTile left, MeshTile right)
+		public static bool operator==(NavTile left, NavTile right)
 		{
 			if (object.ReferenceEquals(left, right))
 				return true;
@@ -776,12 +776,12 @@ namespace SharpNav.Pathfinding
 			return left.Equals(right);
 		}
 
-		public static bool operator !=(MeshTile left, MeshTile right)
+		public static bool operator !=(NavTile left, NavTile right)
 		{
 			return !(left == right);
 		}
 
-		public bool Equals(MeshTile other)
+		public bool Equals(NavTile other)
 		{
 			//TODO use more for equals?
 			return this.Location == other.Location && this.Layer == other.Layer;
@@ -789,7 +789,7 @@ namespace SharpNav.Pathfinding
 
 		public override bool Equals(object obj)
 		{
-			MeshTile other = obj as MeshTile;
+			NavTile other = obj as NavTile;
 			if (other != null)
 				return this.Equals(other);
 			else

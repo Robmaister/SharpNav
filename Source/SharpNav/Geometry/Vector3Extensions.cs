@@ -187,5 +187,19 @@ namespace SharpNav.Geometry
 			Vector3.Dot(ref vec, ref up, out dot);
 			angle = (float)Math.Acos(dot);
 		}
+
+		internal static bool AlmostEqual(ref Vector3 a, ref Vector3 b)
+		{
+			float threshold = (1.0f / 16384.0f);
+			return AlmostEqual(ref a, ref b, threshold);
+		}
+
+		internal static bool AlmostEqual(ref Vector3 a, ref Vector3 b, float threshold)
+		{
+			float threshSq = threshold * threshold;
+			float distSq = (b - a).LengthSquared();
+
+			return distSq < threshold;
+		}
 	}
 }

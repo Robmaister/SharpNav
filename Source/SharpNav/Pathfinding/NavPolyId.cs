@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+﻿// Copyright (c) 2015-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -8,40 +8,40 @@ namespace SharpNav.Pathfinding
 {
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential)]
-	public struct PolyId : IEquatable<PolyId>
+	public struct NavPolyId : IEquatable<NavPolyId>
 	{
 		/// <summary>
 		/// A null ID that isn't associated with any polygon or tile.
 		/// </summary>
-		public static readonly PolyId Null = new PolyId(0);
+		public static readonly NavPolyId Null = new NavPolyId(0);
 
 		private int bits;
 
-		public PolyId(int raw)
+		public NavPolyId(int raw)
 		{
 			bits = raw;
 		}
 
 		public int Id { get { return bits; } }
 
-		public static bool operator ==(PolyId left, PolyId right)
+		public static bool operator ==(NavPolyId left, NavPolyId right)
 		{
 			return left.Equals(right);
 		}
 
-		public static bool operator !=(PolyId left, PolyId right)
+		public static bool operator !=(NavPolyId left, NavPolyId right)
 		{
 			return !(left == right);
 		}
 
-		public bool Equals(PolyId other)
+		public bool Equals(NavPolyId other)
 		{
 			return bits == other.bits;
 		}
 
 		public override bool Equals(object obj)
 		{
-			var polyObj = obj as PolyId?;
+			var polyObj = obj as NavPolyId?;
 
 			if (polyObj.HasValue)
 				return this.Equals(polyObj.Value);
@@ -55,7 +55,7 @@ namespace SharpNav.Pathfinding
 			return base.GetHashCode();
 		}
 
-		public string ToString(PolyIdManager manager)
+		public string ToString(NavPolyIdManager manager)
 		{
 			int polyIndex, tileIndex, salt;
 			manager.Decode(ref this, out polyIndex, out tileIndex, out salt);

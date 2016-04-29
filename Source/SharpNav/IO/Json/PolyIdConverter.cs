@@ -14,7 +14,7 @@ namespace SharpNav.IO.Json
 	{
 		public override bool CanConvert(Type objectType)
 		{
-			return objectType == typeof(PolyId);
+			return objectType == typeof(NavPolyId);
 		}
 
 		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -22,12 +22,12 @@ namespace SharpNav.IO.Json
 			if (reader.TokenType == JsonToken.Null)
 				return null;
 
-			return new PolyId(serializer.Deserialize<int>(reader));
+			return new NavPolyId(serializer.Deserialize<int>(reader));
 		}
 
 		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
 		{
-			var polyId = (value as PolyId?).Value;
+			var polyId = (value as NavPolyId?).Value;
 			serializer.Serialize(writer, (int)polyId.Id);
 		}
 	}

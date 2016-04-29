@@ -894,9 +894,9 @@ namespace SharpNav.Examples
 					color = Color4.LightYellow;
 				GL.Color4(color);
 
-				PolyId polyRef = path[i];
-				MeshTile tile;
-				Poly poly;
+				NavPolyId polyRef = path[i];
+				NavTile tile;
+				NavPoly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
 				for (int j = 2; j < poly.VertCount; j++)
@@ -932,9 +932,9 @@ namespace SharpNav.Examples
 					color = Color4.Yellow;
 				GL.Color4(color);
 
-				PolyId polyRef = path[i];
-				MeshTile tile;
-				Poly poly;
+				NavPolyId polyRef = path[i];
+				NavTile tile;
+				NavPoly poly;
 				tiledNavMesh.TryGetTileAndPolyByRefUnsafe(polyRef, out tile, out poly);
 
 				for (int j = 0; j < poly.VertCount; j++)

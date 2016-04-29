@@ -20,6 +20,11 @@ namespace SharpNav
 		/// <summary>
 		/// Closed list stores path.
 		/// </summary>
-		Closed = 0x02
+		Closed = 0x02,
+
+		/// <summary>
+		/// Parent of the node is not adjacent. Found using raycast.
+		/// </summary>
+		ParentDetached = 0x04
 	}
 }

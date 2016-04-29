@@ -1,33 +1,38 @@
-// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
+using System;
 using System.Collections.Generic;
 
 namespace SharpNav.Pathfinding
 {
-	//TODO might make more sense as a class internal to MeshTile?
+	/// <summary>
+	/// Flags representing the type of a navmesh polygon.
+	/// </summary>
+	[Flags]
+	public enum NavPolyType : byte
+	{
+		/// <summary>A polygon that is part of the navmesh.</summary>
+		Ground = 0,
+
+		/// <summary>An off-mesh connection consisting of two vertices.</summary>
+		OffMeshConnection = 1
+	}
 
 	/// <summary>
 	/// Uses the PolyMesh polygon data for pathfinding
 	/// </summary>
-	public class Poly
+	public class NavPoly
 	{
-		/// <summary>
-		/// Polygon type
-		/// </summary>
-		private PolygonType polyType;
-
-		public Poly()
+		public NavPoly()
 		{
 			Links = new List<Link>();
 		}
 
-		//TODO eventually move links back to MeshTile, not sure which will end up being better for cache coherence in the long run...
-
 		/// <summary>
-		/// Gets or sets the index to first link in linked list
+		/// Gets or sets the polygon type (ground or offmesh)
 		/// </summary>
-		//public int FirstLink { get; set; }
+		public NavPolyType PolyType { get; set; }
 
 		public List<Link> Links { get; private set; }
 
@@ -55,21 +60,5 @@ namespace SharpNav.Pathfinding
 		/// Gets or sets the AreaId
 		/// </summary>
 		public Area Area { get; set; }
-
-		/// <summary>
-		/// Gets or sets the polygon type (ground or offmesh)
-		/// </summary>
-		public PolygonType PolyType
-		{
-			get
-			{
-				return polyType;
-			}
-
-			set
-			{
-				polyType = value;
-			}
-		}
 	}
 }

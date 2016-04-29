@@ -47,14 +47,10 @@ namespace SharpNav.Crowds
 
 		public AgentParams Parameters;
 
-		public Vector3[] CornerVerts;	//size = CROWDAGENT_MAX_CORNERS
-		public int[] CornerFlags;		//size = CROWDAGENT_MAX_CORNERS
-		public PolyId[] CornerPolys;		//size = CROWDAGENT_MAX_CORNERS
-
-		private int numCorners;
+		public StraightPath Corners;
 
 		private TargetState targetState;
-		public PolyId TargetRef;
+		public NavPolyId TargetRef;
 		private Vector3 targetPos;
 		public int TargetPathQueryIndex;
 		public bool TargetReplan;
@@ -64,15 +60,13 @@ namespace SharpNav.Crowds
 
 		#region Constructors
 
-		public Agent(int maxPath)
+		public Agent()
 		{
 			active = false;
-			corridor = new PathCorridor(maxPath);
+			corridor = new PathCorridor();
 			boundary = new LocalBoundary();
 			neighbors = new CrowdNeighbor[AgentMaxNeighbors];
-			CornerVerts = new Vector3[AgentMaxCorners];
-			CornerFlags = new int[AgentMaxCorners];
-			CornerPolys = new PolyId[AgentMaxCorners];
+			Corners = new StraightPath();
 		}
 
 		#endregion
@@ -194,19 +188,6 @@ namespace SharpNav.Crowds
 			}
 		}
 
-		public int CornerCount
-		{
-			get
-			{
-				return numCorners;
-			}
-
-			set
-			{
-				numCorners = value;
-			}
-		}
-
 		#endregion
 
 		#region Methods
@@ -232,7 +213,7 @@ namespace SharpNav.Crowds
 				Vel = new Vector3(0, 0, 0);
 		}
 
-		public void Reset(PolyId reference, Vector3 nearest)
+		public void Reset(NavPolyId reference, Vector3 nearest)
 		{
 			this.corridor.Reset(reference, nearest);
 			this.boundary.Reset();
@@ -249,7 +230,7 @@ namespace SharpNav.Crowds
 
 			this.DesiredSpeed = 0;
 
-			if (reference != PolyId.Null)
+			if (reference != NavPolyId.Null)
 				this.state = AgentState.Walking;
 			else
 				this.state = AgentState.Invalid;
@@ -262,14 +243,14 @@ namespace SharpNav.Crowds
 		/// </summary>
 		/// <param name="reference">The polygon reference</param>
 		/// <param name="pos">The target's coordinates</param>
-		public void RequestMoveTargetReplan(PolyId reference, Vector3 pos)
+		public void RequestMoveTargetReplan(NavPolyId reference, Vector3 pos)
 		{
 			//initialize request
 			this.TargetRef = reference;
 			this.targetPos = pos;
 			this.TargetPathQueryIndex = PathQueue.Invalid;
 			this.TargetReplan = true;
-			if (this.TargetRef != PolyId.Null)
+			if (this.TargetRef != NavPolyId.Null)
 				this.TargetState = TargetState.Requesting;
 			else
 				this.TargetState = TargetState.Failed;
@@ -281,9 +262,9 @@ namespace SharpNav.Crowds
 		/// <param name="reference">The polygon reference</param>
 		/// <param name="pos">The target's coordinates</param>
 		/// <returns>True if request met, false if not</returns>
-		public bool RequestMoveTarget(PolyId reference, Vector3 pos)
+		public bool RequestMoveTarget(NavPolyId reference, Vector3 pos)
 		{
-			if (reference == PolyId.Null)
+			if (reference == NavPolyId.Null)
 				return false;
 
 			//initialize request
@@ -291,7 +272,7 @@ namespace SharpNav.Crowds
 			this.targetPos = pos;
 			this.TargetPathQueryIndex = PathQueue.Invalid;
 			this.TargetReplan = false;
-			if (this.TargetRef != PolyId.Null)
+			if (this.TargetRef != NavPolyId.Null)
 				this.targetState = TargetState.Requesting;
 			else
 				this.targetState = TargetState.Failed;
@@ -306,7 +287,7 @@ namespace SharpNav.Crowds
 		public void RequestMoveVelocity(Vector3 vel)
 		{
 			//initialize request
-			this.TargetRef = PolyId.Null;
+			this.TargetRef = NavPolyId.Null;
 			this.targetPos = vel;
 			this.TargetPathQueryIndex = PathQueue.Invalid;
 			this.TargetReplan = false;
@@ -319,7 +300,7 @@ namespace SharpNav.Crowds
 		public void ResetMoveTarget()
 		{
 			//initialize request
-			this.TargetRef = PolyId.Null;
+			this.TargetRef = NavPolyId.Null;
 			this.targetPos = new Vector3(0.0f, 0.0f, 0.0f);
 			this.TargetPathQueryIndex = PathQueue.Invalid;
 			this.TargetReplan = false;

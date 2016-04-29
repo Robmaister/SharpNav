@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -13,6 +13,11 @@ namespace SharpNav
 	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct Area : IEquatable<Area>, IEquatable<byte>
 	{
+		/// <summary>
+		/// The maximum number of areas that can be defined.
+		/// </summary>
+		public const int MaxValues = 256;
+
 		/// <summary>
 		/// The null area is one that is considered unwalkable.
 		/// </summary>

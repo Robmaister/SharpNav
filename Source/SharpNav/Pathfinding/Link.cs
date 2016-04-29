@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2014-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 namespace SharpNav.Pathfinding
@@ -21,7 +21,7 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// Gets or sets the neighbor reference (the one it's linked to)
 		/// </summary>
-		public PolyId Reference { get; set; }
+		public NavPolyId Reference { get; set; }
 
 		/// <summary>
 		/// Gets or sets the index of polygon edge

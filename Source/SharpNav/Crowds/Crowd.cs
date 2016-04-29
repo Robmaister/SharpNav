@@ -52,9 +52,6 @@ namespace SharpNav.Crowds
 
 		private ProximityGrid<Agent> grid;
 
-		private PolyId[] pathResult;
-		private int maxPathResult;
-
 		private Vector3 ext;
 
 		private float maxAgentRadius;
@@ -62,6 +59,7 @@ namespace SharpNav.Crowds
 		private int velocitySampleCount;
 
 		private NavMeshQuery navQuery;
+		private NavQueryFilter navQueryFilter;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Crowd" /> class.
@@ -98,11 +96,7 @@ namespace SharpNav.Crowds
 				this.obstacleQueryParams[i].AdaptiveDepth = 5;
 			}
 
-			//allocate temp buffer for merging paths
-			this.maxPathResult = 256;
-			this.pathResult = new PolyId[this.maxPathResult];
-
-			this.pathq = new PathQueue(maxPathResult, 4096, ref navMesh);
+			this.pathq = new PathQueue(4096, ref navMesh);
 
 			this.agents = new Agent[maxAgents];
 			this.activeAgents = new Agent[maxAgents];
@@ -110,7 +104,7 @@ namespace SharpNav.Crowds
 
 			for (int i = 0; i < maxAgents; i++)
 			{
-				this.agents[i] = new Agent(maxPathResult);
+				this.agents[i] = new Agent();
 			}
 
 			for (int i = 0; i < maxAgents; i++)
@@ -298,13 +292,12 @@ namespace SharpNav.Crowds
 					continue;
 
 				//find corners for steering
-				agents[i].CornerCount = agents[i].Corridor.FindCorners(
-					agents[i].CornerVerts, agents[i].CornerFlags, agents[i].CornerPolys, AgentMaxCorners, navQuery);
+				agents[i].Corridor.FindCorners(agents[i].Corners, navQuery);
 
 				//check to see if the corner after the next corner is directly visible 
-				if (((agents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeVis) != 0) && agents[i].CornerCount > 0)
+				if (((agents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeVis) != 0) && agents[i].Corners.Count > 0)
 				{
-					Vector3 target = agents[i].CornerVerts[Math.Min(1, agents[i].CornerCount - 1)];
+					Vector3 target = agents[i].Corners[Math.Min(1, agents[i].Corners.Count - 1)].Point.Position;
 					agents[i].Corridor.OptimizePathVisibility(target, agents[i].Parameters.PathOptimizationRange, navQuery);
 				}
 			}
@@ -326,8 +319,8 @@ namespace SharpNav.Crowds
 					int idx = i;
 					
 					//adjust the path over the off-mesh connection
-					PolyId[] refs = new PolyId[2];
-					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].CornerPolys[agents[i].CornerCount - 1], refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
+					NavPolyId[] refs = new NavPolyId[2];
+					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].Corners[agents[i].Corners.Count - 1].Point.Polygon, refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
 					{
 						agentAnims[idx].InitPos = agents[i].Position;
 						agentAnims[idx].PolyRef = refs[1];
@@ -337,7 +330,7 @@ namespace SharpNav.Crowds
 							/ agents[i].Parameters.MaxSpeed) * 0.5f;
 
 						agents[i].State = AgentState.Offmesh;
-						agents[i].CornerCount = 0;
+						agents[i].Corners.Clear();
 						agents[i].NeighborCount = 0;
 						continue;
 					}
@@ -621,29 +614,29 @@ namespace SharpNav.Crowds
 
 				if (agents[i].TargetState == TargetState.Requesting)
 				{
-					PolyId[] path = agents[i].Corridor.Path;
-					int npath = agents[i].Corridor.PathCount;
+					Path path = agents[i].Corridor.NavPath;
 
-					const int MAX_RES = 32;
 					Vector3 reqPos = new Vector3();
-					PolyId[] reqPath = new PolyId[MAX_RES];
+					Path reqPath = new Path();
 					int reqPathCount = 0;
 
 					//quick search towards the goal
 					const int MAX_ITER = 20;
-					navQuery.InitSlicedFindPath(new NavPoint(path[0], agents[i].Position), new NavPoint(agents[i].TargetRef, agents[i].TargetPosition));
+					NavPoint startPoint = new NavPoint(path[0], agents[i].Position);
+					NavPoint endPoint = new NavPoint(agents[i].TargetRef, agents[i].TargetPosition);
+					navQuery.InitSlicedFindPath(ref startPoint, ref endPoint, navQueryFilter, FindPathOptions.None);
 					int tempInt = 0;
 					navQuery.UpdateSlicedFindPath(MAX_ITER, ref tempInt);
 					status = Status.Failure;
 					if (agents[i].TargetReplan)
 					{
 						//try to use an existing steady path during replan if possible
-						status = navQuery.FinalizedSlicedPathPartial(path, npath, reqPath, ref reqPathCount, MAX_RES).ToStatus();
+						status = navQuery.FinalizedSlicedPathPartial(path, reqPath).ToStatus();
 					}
 					else
 					{
 						//try to move towards the target when the goal changes
-						status = navQuery.FinalizeSlicedFindPath(reqPath, ref reqPathCount, MAX_RES).ToStatus();
+						status = navQuery.FinalizeSlicedFindPath(reqPath).ToStatus();
 					}
 
 					if (status != Status.Failure && reqPathCount > 0)
@@ -675,7 +668,7 @@ namespace SharpNav.Crowds
 						reqPathCount = 1;
 					}
 
-					agents[i].Corridor.SetCorridor(reqPos, reqPath, reqPathCount);
+					agents[i].Corridor.SetCorridor(reqPos, reqPath);
 					agents[i].Boundary.Reset();
 					agents[i].IsPartial = false;
 
@@ -723,7 +716,7 @@ namespace SharpNav.Crowds
 					{
 						//path find failed, retry if the target location is still valid
 						agents[i].TargetPathQueryIndex = PathQueue.Invalid;
-						if (agents[i].TargetRef != PolyId.Null)
+						if (agents[i].TargetRef != NavPolyId.Null)
 							agents[i].TargetState = TargetState.Requesting;
 						else
 							agents[i].TargetState = TargetState.Failed;
@@ -731,66 +724,49 @@ namespace SharpNav.Crowds
 					}
 					else if (status == Status.Success)
 					{
-						PolyId[] path = agents[i].Corridor.Path;
-						int npath = agents[i].Corridor.PathCount;
+						Path path = agents[i].Corridor.NavPath;
 
 						//apply results
 						Vector3 targetPos = new Vector3();
 						targetPos = agents[i].TargetPosition;
 
-						PolyId[] res = new PolyId[this.maxPathResult];
-						for (int j = 0; j < this.maxPathResult; j++)
-							res[i] = pathResult[j];
+						Path res;
 						bool valid = true;
-						int nres = 0;
-						status = pathq.GetPathResult(agents[i].TargetPathQueryIndex, res, ref nres, maxPathResult).ToStatus();
-						if (status == Status.Failure || nres == 0)
+						status = pathq.GetPathResult(agents[i].TargetPathQueryIndex, out res).ToStatus();
+						if (status == Status.Failure || res.Count == 0)
 							valid = false;
 
 						//Merge result and existing path
-						if (valid && path[npath - 1] != res[0])
+						if (valid && path[path.Count - 1] != res[0])
 							valid = false;
 
 						if (valid)
 						{
 							//put the old path infront of the old path
-							if (npath > 1)
+							if (path.Count > 1)
 							{
 								//make space for the old path
-								if ((npath - 1) + nres > maxPathResult)
-									nres = maxPathResult - (npath - 1);
+								//if ((path.Count - 1) + nres > maxPathResult)
+									//nres = maxPathResult - (npath - 1);
 
-								for (int j = 0; j < nres; j++)
-									res[npath - 1 + j] = res[j];
+								for (int j = 0; j < res.Count; j++)
+									res[path.Count - 1 + j] = res[j];
 
 								//copy old path in the beginning
-								for (int j = 0; j < npath - 1; j++)
-									res[j] = path[j];
-								nres += npath - 1;
+								for (int j = 0; j < path.Count - 1; j++)
+									res.Add(path[j]);
 
 								//remove trackbacks
-								for (int j = 0; j < nres; j++)
-								{
-									if (j - 1 >= 0 && j + 1 < nres)
-									{
-										if (res[j - 1] == res[j + 1])
-										{
-											for (int k = 0; k < nres - (j + 1); k++)
-												res[j - 1 + k] = res[j + 1 + k];
-											nres -= 2;
-											j -= 2;
-										}
-									}
-								}
+								res.RemoveTrackbacks();
 							}
 
 							//check for partial path
-							if (res[nres - 1] != agents[i].TargetRef)
+							if (res[res.Count - 1] != agents[i].TargetRef)
 							{
 								//partial path, constrain target position inside the last polygon
 								Vector3 nearest;
 								bool tempBool = false;
-								status = navQuery.ClosestPointOnPoly(res[nres - 1], targetPos, out nearest, out tempBool).ToStatus();
+								status = navQuery.ClosestPointOnPoly(res[res.Count - 1], targetPos, out nearest, out tempBool).ToStatus();
 								if (status == Status.Success)
 									targetPos = nearest;
 								else
@@ -801,7 +777,7 @@ namespace SharpNav.Crowds
 						if (valid)
 						{
 							//set current corridor
-							agents[i].Corridor.SetCorridor(targetPos, res, nres);
+							agents[i].Corridor.SetCorridor(targetPos, res);
 							
 							//forced to update boundary
 							agents[i].Boundary.Reset();
@@ -851,7 +827,7 @@ namespace SharpNav.Crowds
 
 			for (int i = 0; i < nqueue; i++)
 			{
-				queue[i].Corridor.OptimizePathTopology(navQuery);
+				queue[i].Corridor.OptimizePathTopology(navQuery, navQueryFilter);
 				queue[i].topologyOptTime = 0.0f;
 			}
 		}
@@ -883,24 +859,24 @@ namespace SharpNav.Crowds
 				bool replan = false;
 
 				//first check that the current location is valid
-				PolyId agentRef = ag.Corridor.GetFirstPoly();
+				NavPolyId agentRef = ag.Corridor.GetFirstPoly();
 				Vector3 agentPos = ag.Position;
 				if (!navQuery.IsValidPolyRef(agentRef))
 				{
 					//current location is not valid, try to reposition
 					Vector3 nearest = agentPos;
 					Vector3 pos = ag.Position;
-					agentRef = PolyId.Null;
+					agentRef = NavPolyId.Null;
 					NavPoint nearestPt;
 					navQuery.FindNearestPoly(ref pos, ref ext, out nearestPt);
 					nearest = nearestPt.Position;
 					agentRef = nearestPt.Polygon;
 					agentPos = nearestPt.Position;
 
-					if (agentRef == PolyId.Null)
+					if (agentRef == NavPolyId.Null)
 					{
 						//could not find location in navmesh, set state to invalid
-						ag.Corridor.Reset(PolyId.Null, agentPos);
+						ag.Corridor.Reset(NavPolyId.Null, agentPos);
 						ag.IsPartial = false;
 						ag.Boundary.Reset();
 						ag.State = AgentState.Invalid;
@@ -924,7 +900,7 @@ namespace SharpNav.Crowds
 						//current target is not valid, try to reposition
 						Vector3 nearest = ag.TargetPosition;
 						Vector3 tpos = ag.TargetPosition;
-						ag.TargetRef = PolyId.Null;
+						ag.TargetRef = NavPolyId.Null;
 						NavPoint nearestPt;
 						navQuery.FindNearestPoly(ref tpos, ref ext, out nearestPt);
 						ag.TargetRef = nearestPt.Polygon;
@@ -933,7 +909,7 @@ namespace SharpNav.Crowds
 						replan = true;
 					}
 
-					if (ag.TargetRef == PolyId.Null)
+					if (ag.TargetRef == NavPolyId.Null)
 					{
 						//failed to reposition target
 						ag.Corridor.Reset(agentRef, agentPos);
@@ -952,7 +928,7 @@ namespace SharpNav.Crowds
 				if (ag.TargetState == TargetState.Valid)
 				{
 					if (ag.TargetReplanTime > TARGET_REPLAN_DELAY &&
-						ag.Corridor.PathCount < CHECK_LOOKAHEAD &&
+						ag.Corridor.NavPath.Count < CHECK_LOOKAHEAD &&
 						ag.Corridor.GetLastPoly() != ag.TargetRef)
 						replan = true;
 				}
@@ -970,14 +946,14 @@ namespace SharpNav.Crowds
 
 		public bool OverOffmeshConnection(Agent ag, float radius)
 		{
-			if (ag.CornerCount == 0)
+			if (ag.Corners.Count == 0)
 				return false;
 
-			bool offmeshConnection = ((ag.CornerFlags[ag.CornerCount - 1] & PathfindingCommon.STRAIGHTPATH_OFFMESH_CONNECTION) != 0)
+			bool offmeshConnection = ((ag.Corners[ag.Corners.Count - 1].Flags & StraightPathFlags.OffMeshConnection) != 0)
 				? true : false;
 			if (offmeshConnection)
 			{
-				float dist = Vector3Extensions.Distance2D(ag.Position, ag.CornerVerts[ag.CornerCount - 1]);
+				float dist = Vector3Extensions.Distance2D(ag.Position, ag.Corners[ag.Corners.Count - 1].Point.Position);
 				if (dist * dist < radius * radius)
 					return true;
 			}
@@ -992,16 +968,16 @@ namespace SharpNav.Crowds
 		/// <param name="dir">The resulting steer direction</param>
 		public void CalcSmoothSteerDirection(Agent ag, ref Vector3 dir)
 		{
-			if (ag.CornerCount == 0)
+			if (ag.Corners.Count == 0)
 			{
 				dir = new Vector3(0, 0, 0);
 				return;
 			}
 
 			int ip0 = 0;
-			int ip1 = Math.Min(1, ag.CornerCount - 1);
-			Vector3 p0 = ag.CornerVerts[ip0];
-			Vector3 p1 = ag.CornerVerts[ip1];
+			int ip1 = Math.Min(1, ag.Corners.Count - 1);
+			Vector3 p0 = ag.Corners[ip0].Point.Position;
+			Vector3 p1 = ag.Corners[ip1].Point.Position;
 
 			Vector3 dir0 = p0 - ag.Position;
 			Vector3 dir1 = p1 - ag.Position;
@@ -1027,13 +1003,13 @@ namespace SharpNav.Crowds
 		/// <param name="dir">The resulting steer direction</param>
 		public void CalcStraightSteerDirection(Agent ag, ref Vector3 dir)
 		{
-			if (ag.CornerCount == 0)
+			if (ag.Corners.Count == 0)
 			{
 				dir = new Vector3(0, 0, 0);
 				return;
 			}
 
-			dir = ag.CornerVerts[0] - ag.Position;
+			dir = ag.Corners[0].Point.Position - ag.Position;
 			dir.Y = 0;
 			dir.Normalize();
 		}
@@ -1046,12 +1022,12 @@ namespace SharpNav.Crowds
 		/// <returns>Distance to goal</returns>
 		public float GetDistanceToGoal(Agent ag, float range)
 		{
-			if (ag.CornerCount == 0)
+			if (ag.Corners.Count == 0)
 				return range;
 
-			bool endOfPath = ((ag.CornerFlags[ag.CornerCount - 1] & PathfindingCommon.STRAIGHTPATH_END) != 0) ? true : false;
+			bool endOfPath = ((ag.Corners[ag.Corners.Count - 1].Flags & StraightPathFlags.End) != 0) ? true : false;
 			if (endOfPath)
-				return Math.Min(Vector3Extensions.Distance2D(ag.Position, ag.CornerVerts[ag.CornerCount - 1]), range);
+				return Math.Min(Vector3Extensions.Distance2D(ag.Position, ag.Corners[ag.Corners.Count - 1].Point.Position), range);
 
 			return range;
 		}
@@ -1288,7 +1264,7 @@ namespace SharpNav.Crowds
 	{
 		public bool Active { get; set; }
 		public Vector3 InitPos, StartPos, EndPos;
-		public PolyId PolyRef;
+		public NavPolyId PolyRef;
 		public float T, TMax;
 	}
 }

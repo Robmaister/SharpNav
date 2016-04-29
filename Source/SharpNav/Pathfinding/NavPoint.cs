@@ -1,4 +1,4 @@
-// Copyright (c) 2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2015-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -26,12 +26,12 @@ namespace SharpNav.Pathfinding
 		/// <summary>
 		/// A null point that isn't associated with any polygon.
 		/// </summary>
-		public static readonly NavPoint Null = new NavPoint(PolyId.Null, Vector3.Zero);
+		public static readonly NavPoint Null = new NavPoint(NavPolyId.Null, Vector3.Zero);
 
 		/// <summary>
 		/// A reference to the polygon this point is on.
 		/// </summary>
-		public PolyId Polygon;
+		public NavPolyId Polygon;
 
 		/// <summary>
 		/// The 3d position of the point.
@@ -43,7 +43,7 @@ namespace SharpNav.Pathfinding
 		/// </summary>
 		/// <param name="poly">The polygon that the point is on.</param>
 		/// <param name="pos">The 3d position of the point.</param>
-		public NavPoint(PolyId poly, Vector3 pos)
+		public NavPoint(NavPolyId poly, Vector3 pos)
 		{
 			this.Polygon = poly;
 			this.Position = pos;

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2015 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
+// Copyright (c) 2013-2016 Robert Rouhani <robert.rouhani@gmail.com> and other contributors (see CONTRIBUTORS file).
 // Licensed under the MIT License - https://raw.github.com/Robmaister/SharpNav/master/LICENSE
 
 using System;
@@ -26,7 +26,7 @@ namespace SharpNav
 	{
 		private PathfindingCommon.NavMeshInfo header;
 		private Vector3[] navVerts;
-		private Poly[] navPolys;
+		private NavPoly[] navPolys;
 		private PolyMeshDetail.MeshData[] navDMeshes;
 		private Vector3[] navDVerts;
 		private PolyMeshDetail.TriangleData[] navDTris;
@@ -171,7 +171,7 @@ namespace SharpNav
 			//allocate data
 			header = new PathfindingCommon.NavMeshInfo();
 			navVerts = new Vector3[totVertCount];
-			navPolys = new Poly[totPolyCount];
+			navPolys = new NavPoly[totPolyCount];
 			navDMeshes = new PolyMeshDetail.MeshData[polyMesh.PolyCount];
 			navDVerts = new Vector3[uniqueDetailVertCount];
 			navDTris = new PolyMeshDetail.TriangleData[detailTriCount];
@@ -225,11 +225,11 @@ namespace SharpNav
 			//store polygons
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
-				navPolys[i] = new Poly();
+				navPolys[i] = new NavPoly();
 				navPolys[i].VertCount = 0;
 				navPolys[i].Tag = polyMesh.Polys[i].Tag;
 				navPolys[i].Area = polyMesh.Polys[i].Area;
-				navPolys[i].PolyType = PolygonType.Ground;
+				navPolys[i].PolyType = NavPolyType.Ground;
 				navPolys[i].Verts = new int[nvp];
 				navPolys[i].Neis = new int[nvp];
 				for (int j = 0; j < nvp; j++)
@@ -270,14 +270,14 @@ namespace SharpNav
 				//only store connections which start from this tile
 				if (offMeshSides[i * 2 + 0] == BoundarySide.Internal)
 				{
-					navPolys[offMeshPolyBase + n] = new Poly();
+					navPolys[offMeshPolyBase + n] = new NavPoly();
 					navPolys[offMeshPolyBase + n].VertCount = 2;
 					navPolys[offMeshPolyBase + n].Verts = new int[nvp];
 					navPolys[offMeshPolyBase + n].Verts[0] = offMeshVertsBase + (n * 2 + 0);
 					navPolys[offMeshPolyBase + n].Verts[1] = offMeshVertsBase + (n * 2 + 1);
 					navPolys[offMeshPolyBase + n].Tag = offMeshCons[i].Flags;
 					navPolys[offMeshPolyBase + n].Area = polyMesh.Polys[offMeshCons[i].Poly].Area; //HACK is this correct?
-					navPolys[offMeshPolyBase + n].PolyType = PolygonType.OffMeshConnection;
+					navPolys[offMeshPolyBase + n].PolyType = NavPolyType.OffMeshConnection;
 					n++;
 				}
 			}
@@ -402,7 +402,7 @@ namespace SharpNav
 		/// <summary>
 		/// Gets the PolyMesh polygons
 		/// </summary>
-		public Poly[] NavPolys 
+		public NavPoly[] NavPolys 
 		{ 
 			get 
 			{

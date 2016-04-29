@@ -13,8 +13,8 @@ namespace SharpNav
 	/// </summary>
 	public class NodePool
 	{
-		private List<Node> nodes;
-		private Dictionary<PolyId, Node> nodeDict;
+		private List<NavNode> nodes;
+		private Dictionary<NavPolyId, NavNode> nodeDict;
 		private int maxNodes;
 
 		/// <summary>
@@ -26,8 +26,8 @@ namespace SharpNav
 		{
 			this.maxNodes = maxNodes;
 
-			nodes = new List<Node>(maxNodes);
-			nodeDict = new Dictionary<PolyId, Node>();
+			nodes = new List<NavNode>(maxNodes);
+			nodeDict = new Dictionary<NavPolyId, NavNode>();
 		}
 
 		/// <summary>
@@ -44,9 +44,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="id">Node's id</param>
 		/// <returns>The node, if found. Null, if otherwise.</returns>
-		public Node FindNode(PolyId id)
+		public NavNode FindNode(NavPolyId id)
 		{
-			Node node;
+			NavNode node;
 			if (nodeDict.TryGetValue(id, out node))
 			{
 				return node;
@@ -60,9 +60,9 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="id">Node's id</param>
 		/// <returns>The node</returns>
-		public Node GetNode(PolyId id)
+		public NavNode GetNode(NavPolyId id)
 		{
-			Node node;
+			NavNode node;
 			if (nodeDict.TryGetValue(id, out node))
 			{
 				return node;
@@ -71,10 +71,10 @@ namespace SharpNav
 			if (nodes.Count >= maxNodes)
 				return null;
 
-			Node newNode = new Node();
-			newNode.ParentIdx = 0;
-			newNode.cost = 0;
-			newNode.total = 0;
+			NavNode newNode = new NavNode();
+			newNode.ParentIndex = 0;
+			newNode.PolyCost = 0;
+			newNode.TotalCost = 0;
 			newNode.Id = id;
 			newNode.Flags = 0;
 			
@@ -89,7 +89,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="node">The node</param>
 		/// <returns>The id</returns>
-		public int GetNodeIdx(Node node)
+		public int GetNodeIdx(NavNode node)
 		{
 			if (node == null)
 				return 0;
@@ -108,7 +108,7 @@ namespace SharpNav
 		/// </summary>
 		/// <param name="idx">Node index</param>
 		/// <returns></returns>
-		public Node GetNodeAtIdx(int idx)
+		public NavNode GetNodeAtIdx(int idx)
 		{
 			if (idx <= 0 || idx > nodes.Count)
 				return null;
