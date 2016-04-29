@@ -1,5 +1,5 @@
 ![SharpNav](https://raw.githubusercontent.com/Robmaister/SharpNav/master/Graphics/Logo/Full.png)
-[![Build Status](https://img.shields.io/travis/Robmaister/SharpNav.svg)](https://travis-ci.org/Robmaister/SharpNav) [![Build status](https://ci.appveyor.com/api/projects/status/fqegsrv5pdt5b7ng?svg=true)](https://ci.appveyor.com/project/Robmaister/sharpnav) [![NuGet Version](http://img.shields.io/nuget/vpre/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![NuGet Downloads](http://img.shields.io/nuget/dt/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
+[![Build Status](https://img.shields.io/travis/Robmaister/SharpNav.svg)](https://travis-ci.org/Robmaister/SharpNav) [![Build status](https://ci.appveyor.com/api/projects/status/fqegsrv5pdt5b7ng?svg=true)](https://ci.appveyor.com/project/Robmaister/sharpnav) [![NuGet Version](http://img.shields.io/nuget/vpre/SharpNav.svg)](https://www.nuget.org/packages/SharpNav) [![Gratipay Tips](https://img.shields.io/gratipay/Robmaister.svg)](https://gratipay.com/Robmaister)
 ========
 
 
@@ -55,7 +55,7 @@ There are also NuGet packages for the versions of SharpNav that integrate with o
  
 ### From Source
 
-SharpNav follows the standard C# project structure. It is actively developed on Windows with Visual Studio 2012 and on Linux and OS X with MonoDevelop, so it should compile just fine in those cases.
+SharpNav follows the standard C# project structure. It is actively developed on Windows with Visual Studio 2015 and on Linux and OS X with MonoDevelop, so it should compile just fine in those cases.
 
 Binaries are not output to their project's local `bin` folder, they are all output to the `Binaries` folder in the repository's root directory.
 
