@@ -68,6 +68,8 @@
     <SignAssembly>false</SignAssembly>
     <DocumentationFile>..\..\Binaries\SharpNav\MonoGame\SharpNav.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <!-- Common items -->
   <ItemGroup>

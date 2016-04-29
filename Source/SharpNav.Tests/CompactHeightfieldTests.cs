@@ -44,7 +44,7 @@ namespace SharpNav.Tests
 		[Test]
 		public void ConvertSpans_TwoCells()
 		{
-			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, Vector3.One), 0.5f, 0.02f);
+			Heightfield hf = new Heightfield(new BBox3(Vector3.Zero, new Vector3(1, 1, 1)), 0.5f, 0.02f);
 			hf[0].AddSpan(new Span(10, 20, Area.Default));
 			hf[0].AddSpan(new Span(25, 30, Area.Default));
 			hf[1].AddSpan(new Span(5, 15, Area.Default));
