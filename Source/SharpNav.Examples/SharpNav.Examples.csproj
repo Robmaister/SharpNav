@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharpNav.Examples</RootNamespace>
     <AssemblyName>Examples</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <ApplicationIcon>..\..\Graphics\Logo\Logo.ico</ApplicationIcon>
     <FileAlignment>512</FileAlignment>
     <Install>true</Install>

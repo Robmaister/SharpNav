@@ -10,7 +10,7 @@
     <RootNamespace>SharpNav.GUI</RootNamespace>
     <AssemblyName>SharpNavGUI</AssemblyName>
     <ApplicationIcon>..\..\Graphics\Logo\Logo.ico</ApplicationIcon>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>SharpNav.GUI.snk</AssemblyOriginatorKeyFile>

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharpNav.Tests</RootNamespace>
     <AssemblyName>SharpNav.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>5f2ce6fb</NuGetPackageImportStamp>
@@ -72,7 +72,7 @@
     <AssemblyOriginatorKeyFile>SharpNav.Tests.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-	<Reference Include="System" />
+    <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -90,12 +90,12 @@
     <Reference Include="SharpDX">
       <HintPath>..\packages\SharpDX.3.0.2\lib\net45\SharpDX.dll</HintPath>
     </Reference>
-	<Reference Include="SharpDX.Mathematics">
+    <Reference Include="SharpDX.Mathematics">
       <HintPath>..\packages\SharpDX.Mathematics.3.0.2\lib\net45\SharpDX.Mathematics.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'MonoGame'">
-	<Reference Include="MonoGame.Framework">
+    <Reference Include="MonoGame.Framework">
       <HintPath>..\packages\MonoGame.Framework.Portable.3.2.99.1-Beta\lib\portable-net45+win+wpa81+Xamarin.iOS10+MonoAndroid10+MonoTouch10\MonoGame.Framework.dll</HintPath>
       <Private>True</Private>
     </Reference>

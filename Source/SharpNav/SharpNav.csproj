@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SharpNav</RootNamespace>
     <AssemblyName>SharpNav</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>212ed65d</NuGetPackageImportStamp>
@@ -87,7 +87,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(Configuration)' == 'SharpDX'">
-	<Reference Include="SharpDX">
+    <Reference Include="SharpDX">
       <HintPath>..\packages\SharpDX.3.0.2\lib\net45\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Mathematics">
