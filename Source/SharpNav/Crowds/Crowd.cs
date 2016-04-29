@@ -618,7 +618,6 @@ namespace SharpNav.Crowds
 
 					Vector3 reqPos = new Vector3();
 					Path reqPath = new Path();
-					int reqPathCount = 0;
 
 					//quick search towards the goal
 					const int MAX_ITER = 20;
@@ -639,16 +638,16 @@ namespace SharpNav.Crowds
 						status = navQuery.FinalizeSlicedFindPath(reqPath).ToStatus();
 					}
 
-					if (status != Status.Failure && reqPathCount > 0)
+					if (status != Status.Failure && reqPath.Count > 0)
 					{
 						//in progress or succeed
-						if (reqPath[reqPathCount - 1] != agents[i].TargetRef)
+						if (reqPath[reqPath.Count - 1] != agents[i].TargetRef)
 						{
 							//partial path, constrain target position in last polygon
 							bool tempBool;
-							status = navQuery.ClosestPointOnPoly(reqPath[reqPathCount - 1], agents[i].TargetPosition, out reqPos, out tempBool).ToStatus();
+							status = navQuery.ClosestPointOnPoly(reqPath[reqPath.Count - 1], agents[i].TargetPosition, out reqPos, out tempBool).ToStatus();
 							if (status == Status.Failure)
-								reqPathCount = 0;
+								reqPath.Clear();
 						}
 						else
 						{
@@ -657,22 +656,21 @@ namespace SharpNav.Crowds
 					}
 					else
 					{
-						reqPathCount = 0;
+						reqPath.Clear();
 					}
 
-					if (reqPathCount == 0)
+					if (reqPath.Count == 0)
 					{
 						//could not find path, start the request from the current location
 						reqPos = agents[i].Position;
-						reqPath[0] = path[0];
-						reqPathCount = 1;
+						reqPath.Add(path[0]);
 					}
 
 					agents[i].Corridor.SetCorridor(reqPos, reqPath);
 					agents[i].Boundary.Reset();
 					agents[i].IsPartial = false;
 
-					if (reqPath[reqPathCount - 1] == agents[i].TargetRef)
+					if (reqPath[reqPath.Count - 1] == agents[i].TargetRef)
 					{
 						agents[i].TargetState = TargetState.Valid;
 						agents[i].TargetReplanTime = 0.0f;

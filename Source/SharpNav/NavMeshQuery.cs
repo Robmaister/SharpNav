@@ -96,7 +96,7 @@ namespace SharpNav
 			if (!nav.TryGetTileAndPolyByRef(polyId, out tile, out poly))
 				throw new ArgumentException("Invalid polygon ID", "polyId");
 
-			Vector3[] verts = new Vector3[PathfindingCommon.VERTS_PER_POLYGON];
+			Vector3[] verts = new Vector3[poly.VertCount];
 			for (int j = 0; j < poly.VertCount; j++)
 				verts[j] = tile.Verts[poly.Verts[j]];
 
