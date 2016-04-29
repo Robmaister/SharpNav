@@ -16,6 +16,9 @@ using SVector3 = SharpNav.Geometry.Vector3;
 using SVector3 = OpenTK.Vector3;
 #endif
 
+//Doesn't compile if in an unsupported configuration
+#if STANDALONE || OPENTK
+
 namespace SharpNav.Examples
 {
 	public class AgentCylinder
@@ -179,3 +182,5 @@ namespace SharpNav.Examples
 		}
 	}
 }
+
+#endif

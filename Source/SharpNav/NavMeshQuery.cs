@@ -1563,7 +1563,8 @@ namespace SharpNav
 					Vector3 vb = verts[b];
 					float dx = vb.X - va.X;
 					float dz = vb.Z - va.Z;
-					hit.Normal = new Vector3(dz, 0, dx).Normalized();
+					hit.Normal = new Vector3(dz, 0, dx);
+					hit.Normal.Normalize();
 					return true;
 				}
 
