@@ -649,41 +649,39 @@ namespace SharpNav.Examples
 			dest.Z = v1.Z + v2.Z * s;
 		}
 
-		private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, Path path,
-			ref SVector3 steerPos, ref StraightPathFlags steerPosFlag, ref NavPolyId steerPosRef)
-		{
-			int MAX_STEER_POINTS = 3;
-			StraightPath steerPath = new StraightPath();
-			StraightPathFlags[] steerPathFlags = new StraightPathFlags[MAX_STEER_POINTS];
-			NavPolyId[] steerPathPolys = new NavPolyId[MAX_STEER_POINTS];
-			int nsteerPath = 0;
-			navMeshQuery.FindStraightPath(startPos, endPos, path, steerPath, 0);
+                private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, SharpNav.Pathfinding.Path path,
+                    ref SVector3 steerPos, ref StraightPathFlags steerPosFlag, ref NavPolyId steerPosRef)
+                {
+                    StraightPath steerPath = new StraightPath();
+                    navMeshQuery.FindStraightPath(startPos, endPos, path, steerPath, 0);
+                    int nsteerPath = steerPath.Count;
+                    if (nsteerPath == 0)
+                        return false;
 
-			if (nsteerPath == 0)
-				return false;
+                    //find vertex far enough to steer to
+                    int ns = 0;
+                    while (ns < nsteerPath)
+                    {
+                        if ((steerPath[ns].Flags & StraightPathFlags.OffMeshConnection) != 0 ||
+                            !InRange(steerPath[ns].Point.Position, startPos, minTargetDist, 1000.0f))
+                            break;
 
-			//find vertex far enough to steer to
-			int ns = 0;
-			while (ns < nsteerPath)
-			{
-				if ((steerPathFlags[ns] & StraightPathFlags.OffMeshConnection) != 0 ||
-					!InRange(steerPath[ns].Point.Position, startPos, minTargetDist, 1000.0f))
-					break;
+                        ns++;
+                    }
 
-				ns++;
-			}
+                    //failed to find good point to steer to
+                    if (ns >= nsteerPath)
+                        return false;
 
-			//failed to find good point to steer to
-			if (ns >= nsteerPath)
-				return false;
+                    steerPos = steerPath[ns].Point.Position;
+                    steerPos.Y = startPos.Y;
+                    steerPosFlag = steerPath[ns].Flags;
+                    if (steerPosFlag == StraightPathFlags.None && ns == (nsteerPath - 1))
+                        steerPosFlag = StraightPathFlags.End; // otherwise seeks path infinitely!!!
+                    steerPosRef = steerPath[ns].Point.Polygon;
 
-			steerPos = steerPath[ns].Point.Position;
-			steerPos.Y = startPos.Y;
-			steerPosFlag = steerPathFlags[ns];
-			steerPosRef = steerPathPolys[ns];
-
-			return true;
-		}
+                    return true;
+                }
 
 		private bool InRange(SVector3 v1, SVector3 v2, float r, float h)
 		{
