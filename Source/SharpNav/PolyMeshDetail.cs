@@ -639,7 +639,7 @@ namespace SharpNav
 			//tessellate outlines
 			if (sampleDist > 0)
 			{
-				for (int i = 0, j = verts.Count - 1; i < verts.Count; j = i++)
+				for (int i = 0, j = numMeshVerts - 1; i < numMeshVerts; j = i++)
 				{
 					Vector3 vi = verts[i];
 					Vector3 vj = verts[j];
