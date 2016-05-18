@@ -61,9 +61,9 @@ namespace SharpNav
 			this.bounds = b;
 
 			//make sure the bbox contains all the possible voxels.
-			width = (int)Math.Ceiling((b.Max.X - b.Min.X) / cellSize);
-			height = (int)Math.Ceiling((b.Max.Y - b.Min.Y) / cellHeight);
-			length = (int)Math.Ceiling((b.Max.Z - b.Min.Z) / cellSize);
+			width = (int)Math.Round((b.Max.X - b.Min.X) / cellSize);
+			height = (int)Math.Round((b.Max.Y - b.Min.Y) / cellHeight);
+			length = (int)Math.Round((b.Max.Z - b.Min.Z) / cellSize);
 
 			bounds.Max.X = bounds.Min.X + width * cellSize;
 			bounds.Max.Y = bounds.Min.Y + height * cellHeight;
