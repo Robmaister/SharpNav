@@ -170,6 +170,14 @@ namespace SharpNav
 			}
 		}
 
+		public ReadOnlyCollection<NavTile> Tiles
+		{
+			get
+			{
+				return new ReadOnlyCollection<NavTile>(tileList);
+			}
+		}
+
 		/// <summary>
 		/// Gets or sets user data for this navmesh.
 		/// </summary>

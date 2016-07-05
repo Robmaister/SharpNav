@@ -26,8 +26,6 @@ namespace SharpNav.Pathfinding
 		/// Generate an accurate sample of random points in the convex polygon and pick a point.
 		/// </summary>
 		/// <param name="pts">The polygon's points data</param>
-		/// <param name="npts">The number of points</param>
-		/// <param name="areas">The triangle areas</param>
 		/// <param name="s">A random float</param>
 		/// <param name="t">Another random float</param>
 		/// <param name="pt">The resulting point</param>

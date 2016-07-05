@@ -74,6 +74,16 @@ namespace SharpNav.Collections
 		}
 
 		/// <summary>
+		/// Creates a copy of the tree from a group of enumerable nodes.
+		/// </summary>
+		/// <param name="nodes">The nodes to copy from.</param>
+		public BVTree(IEnumerable<Node> nodes)
+		{
+			//TODO verify that the nodes passed in are a valid tree?
+			this.nodes = nodes.ToArray();
+		}
+
+		/// <summary>
 		/// Gets the number of nodes in the tree.
 		/// </summary>
 		public int Count

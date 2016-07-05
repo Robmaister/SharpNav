@@ -80,7 +80,6 @@
   <ItemGroup>
     <Compile Include="AgentCylinder.cs" />
     <Compile Include="Camera.cs" />
-    <Compile Include="PlyModel.cs" />
     <Compile Include="ExampleWindow.cs" />
     <Compile Include="ExampleWindow.Drawing.cs" />
     <Compile Include="ExampleWindow.UI.cs" />

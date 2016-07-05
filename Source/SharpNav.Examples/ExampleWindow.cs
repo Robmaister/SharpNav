@@ -609,7 +609,8 @@ namespace SharpNav.Examples
 				List<NavPolyId> visited = new List<NavPolyId>(16);
 				NavPoint startPoint = new NavPoint(path[0], iterPos);
 				navMeshQuery.MoveAlongSurface(ref startPoint, ref moveTgt, out result, visited);
-				npolys = FixupCorridor(path, MAX_POLYS, visited);
+				path.FixupCorridor(visited);
+				npolys = path.Count;
 				float h = 0;
 				navMeshQuery.GetPolyHeight(path[0], result, ref h);
 				result.Y = h;
@@ -649,39 +650,39 @@ namespace SharpNav.Examples
 			dest.Z = v1.Z + v2.Z * s;
 		}
 
-                private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, SharpNav.Pathfinding.Path path,
-                    ref SVector3 steerPos, ref StraightPathFlags steerPosFlag, ref NavPolyId steerPosRef)
-                {
-                    StraightPath steerPath = new StraightPath();
-                    navMeshQuery.FindStraightPath(startPos, endPos, path, steerPath, 0);
-                    int nsteerPath = steerPath.Count;
-                    if (nsteerPath == 0)
-                        return false;
+		private bool GetSteerTarget(NavMeshQuery navMeshQuery, SVector3 startPos, SVector3 endPos, float minTargetDist, SharpNav.Pathfinding.Path path,
+			ref SVector3 steerPos, ref StraightPathFlags steerPosFlag, ref NavPolyId steerPosRef)
+		{
+			StraightPath steerPath = new StraightPath();
+			navMeshQuery.FindStraightPath(startPos, endPos, path, steerPath, 0);
+			int nsteerPath = steerPath.Count;
+			if (nsteerPath == 0)
+				return false;
 
-                    //find vertex far enough to steer to
-                    int ns = 0;
-                    while (ns < nsteerPath)
-                    {
-                        if ((steerPath[ns].Flags & StraightPathFlags.OffMeshConnection) != 0 ||
-                            !InRange(steerPath[ns].Point.Position, startPos, minTargetDist, 1000.0f))
-                            break;
+			//find vertex far enough to steer to
+			int ns = 0;
+			while (ns < nsteerPath)
+			{
+				if ((steerPath[ns].Flags & StraightPathFlags.OffMeshConnection) != 0 ||
+					!InRange(steerPath[ns].Point.Position, startPos, minTargetDist, 1000.0f))
+					break;
 
-                        ns++;
-                    }
+				ns++;
+			}
 
-                    //failed to find good point to steer to
-                    if (ns >= nsteerPath)
-                        return false;
+			//failed to find good point to steer to
+			if (ns >= nsteerPath)
+				return false;
 
-                    steerPos = steerPath[ns].Point.Position;
-                    steerPos.Y = startPos.Y;
-                    steerPosFlag = steerPath[ns].Flags;
-                    if (steerPosFlag == StraightPathFlags.None && ns == (nsteerPath - 1))
-                        steerPosFlag = StraightPathFlags.End; // otherwise seeks path infinitely!!!
-                    steerPosRef = steerPath[ns].Point.Polygon;
+			steerPos = steerPath[ns].Point.Position;
+			steerPos.Y = startPos.Y;
+			steerPosFlag = steerPath[ns].Flags;
+			if (steerPosFlag == StraightPathFlags.None && ns == (nsteerPath - 1))
+				steerPosFlag = StraightPathFlags.End; // otherwise seeks path infinitely!!!
+			steerPosRef = steerPath[ns].Point.Polygon;
 
-                    return true;
-                }
+			return true;
+		}
 
 		private bool InRange(SVector3 v1, SVector3 v2, float r, float h)
 		{
@@ -689,50 +690,6 @@ namespace SharpNav.Examples
 			float dy = v2.Y - v1.Y;
 			float dz = v2.Z - v1.Z;
 			return (dx * dx + dz * dz) < (r * r) && Math.Abs(dy) < h;
-		}
-
-		private int FixupCorridor(Path path, int maxPath, List<NavPolyId> visited)
-		{
-			int furthestPath = -1;
-			int furthestVisited = -1;
-
-			//find furhtest common polygon
-			for (int i = path.Count - 1; i >= 0; i--)
-			{
-				bool found = false;
-				for (int j = visited.Count - 1; j >= 0; j--)
-				{
-					if (path[i] == visited[j])
-					{
-						furthestPath = i;
-						furthestVisited = j;
-						found = true;
-					}
-				}
-
-				if (found)
-					break;
-			}
-
-			//if no intersection found, return current path
-			if (furthestPath == -1 || furthestVisited == -1)
-				return path.Count;
-
-			//concatenate paths
-			//adjust beginning of the buffer to include the visited
-			int req = visited.Count - furthestVisited;
-			int orig = Math.Min(furthestPath + 1, path.Count);
-			int size = Math.Max(0, path.Count - orig);
-			if (req + size > maxPath)
-				size = maxPath - req;
-			for (int i = 0; i < size; i++)
-				path[req + i] = path[orig + i];
-
-			//store visited
-			for (int i = 0; i < req; i++)
-				path[i] = visited[(visited.Count - 1) - i];
-
-			return req + size;
 		}
 
 		private void GenerateCrowd()

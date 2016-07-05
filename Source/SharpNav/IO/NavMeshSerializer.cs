@@ -27,53 +27,5 @@ namespace SharpNav.IO
 		/// <param name="path">file to deserialize from</param>
 		/// <returns>deserialized mesh</returns>
 		public abstract TiledNavMesh Deserialize(string path);
-
-		/// <summary>
-		/// Get value of private field using reflection
-		/// </summary>
-		/// <param name="obj">object</param>
-		/// <param name="name">name of field</param>
-		/// <returns>value of field</returns>
-		protected object GetPrivateField(object obj, string name)
-		{
-			return GetPrivateField(obj, obj.GetType(), name);
-		}
-
-		/// <summary>
-		/// Get value of private field using reflection
-		/// </summary>
-		/// <param name="obj">object</param>
-		/// <param name="type">type of object</param>
-		/// <param name="name">name of field</param>
-		/// <returns>value of field</returns>
-		protected object GetPrivateField(object obj, Type type, string name)
-		{
-			var field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.GetField | BindingFlags.Instance);
-			return field.GetValue(obj);
-		}
-
-		/// <summary>
-		/// Set value of private field
-		/// </summary>
-		/// <param name="obj">object</param>
-		/// <param name="name">name of field</param>
-		/// <param name="value">value to set</param>
-		protected void SetPrivateField(object obj, string name, object value)
-		{
-			SetPrivateField(obj, obj.GetType(), name, value);
-		}
-
-		/// <summary>
-		/// Set value of private field
-		/// </summary>
-		/// <param name="obj">object</param>
-		/// <param name="type">type of object</param>
-		/// <param name="name">name of field</param>
-		/// <param name="value">value to set</param>
-		protected void SetPrivateField(object obj, Type type, string name, object value)
-		{
-			var field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.SetField | BindingFlags.Instance);
-			field.SetValue(obj, value);
-		}
 	}
 }

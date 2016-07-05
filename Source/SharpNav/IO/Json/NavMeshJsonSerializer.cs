@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 
 using Newtonsoft.Json;
@@ -33,7 +32,6 @@ namespace SharpNav.IO.Json
 	{
 		private JsonSerializer serializer;
 
-		//TODO maybe a better system?
 		//increase this once every time the file format changes.
 		private static readonly int FormatVersion = 3;
 
@@ -67,10 +65,7 @@ namespace SharpNav.IO.Json
 			root.Add("maxPolys", JToken.FromObject(mesh.MaxPolys, serializer));
 
 			var tilesArray = new JArray();
-
-			var tiles = (List<NavTile>) GetPrivateField(mesh, typeof(TiledNavMesh), "tileList");
-			var tileRefs = (Dictionary<NavTile, NavPolyId>)GetPrivateField(mesh, typeof(TiledNavMesh), "tileRefs");
-			foreach (NavTile tile in tiles)
+			foreach (NavTile tile in mesh.Tiles)
 			{
 				NavPolyId id = mesh.GetTileRef(tile);
 				tilesArray.Add(SerializeMeshTile(tile, id));
@@ -123,9 +118,11 @@ namespace SharpNav.IO.Json
 			result.Add("detailTris", JToken.FromObject(tile.DetailTris, serializer));
 			result.Add("offMeshConnections", JToken.FromObject(tile.OffMeshConnections, serializer));
 
-			var treeNodes = (BVTree.Node[])GetPrivateField(tile.BVTree, "nodes");
 			JObject treeObject = new JObject();
-			treeObject.Add("nodes", JToken.FromObject(treeNodes, serializer));
+			JArray treeNodes = new JArray();
+			for (int i = 0; i < tile.BVTree.Count; i++)
+				treeNodes.Add(JToken.FromObject(tile.BVTree[i], serializer));
+			treeObject.Add("nodes", treeNodes);
 
 			result.Add("bvTree", treeObject);
 			result.Add("bvQuantFactor", JToken.FromObject(tile.BvQuantFactor, serializer));
@@ -156,12 +153,10 @@ namespace SharpNav.IO.Json
 			result.BvQuantFactor = token["bvQuantFactor"].ToObject<float>(serializer);
 			result.WalkableClimb = token["walkableClimb"].ToObject<float>(serializer);
 	
-			var tree = (BVTree) FormatterServices.GetUninitializedObject(typeof(BVTree));
 			var treeObject = (JObject) token["bvTree"];
 			var nodes = treeObject.GetValue("nodes").ToObject<BVTree.Node[]>();
 
-			SetPrivateField(tree, "nodes", nodes);
-			result.BVTree = tree;
+			result.BVTree = new BVTree(nodes);
 
 			return result;
 		}
