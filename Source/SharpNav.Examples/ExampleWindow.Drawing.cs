@@ -215,7 +215,7 @@ namespace SharpNav.Examples
 				GL.NormalPointer(NormalPointerType.Float, 0, 0);
 			}
 
-			GL.DrawArrays(PrimitiveType.Triangles, 0, levelNumInds);
+			GL.DrawArrays(BeginMode.Triangles, 0, levelNumInds);
 
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
@@ -266,7 +266,7 @@ namespace SharpNav.Examples
 						Matrix4.CreateScale(cellSize.X, cellSize.Y * span.Height, cellSize.Z, out spanScale);
 						GL.MultMatrix(ref spanScale);
 
-						GL.DrawElements(PrimitiveType.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(BeginMode.Triangles, voxelInds.Length, DrawElementsType.UnsignedByte, 0);
 						GL.PopMatrix();
 					}
 				}
@@ -331,7 +331,7 @@ namespace SharpNav.Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -391,7 +391,7 @@ namespace SharpNav.Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -452,7 +452,7 @@ namespace SharpNav.Examples
 
 						GL.MultMatrix(ref squareScale);
 
-						GL.DrawElements(PrimitiveType.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
+						GL.DrawElements(BeginMode.Triangles, squareInds.Length, DrawElementsType.UnsignedByte, 0);
 
 						GL.PopMatrix();
 					}
@@ -487,7 +487,7 @@ namespace SharpNav.Examples
 			GL.MultMatrix(ref squareScale);
 
 			GL.LineWidth(5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			
 			foreach (var c in contourSet)
 			{
@@ -534,7 +534,7 @@ namespace SharpNav.Examples
 			color.A = 0.5f;
 			GL.Color4(color);
 
-			GL.Begin(PrimitiveType.Triangles);
+			GL.Begin(BeginMode.Triangles);
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
@@ -569,7 +569,7 @@ namespace SharpNav.Examples
 			GL.Color4(Color4.Purple);
 
 			GL.LineWidth(1.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
@@ -597,7 +597,7 @@ namespace SharpNav.Examples
 
 			//boundary edges
 			GL.LineWidth(3.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < polyMesh.PolyCount; i++)
 			{
 				for (int j = 0; j < polyMesh.NumVertsPerPoly; j++)
@@ -624,7 +624,7 @@ namespace SharpNav.Examples
 			GL.End();
 
 			GL.PointSize(4.8f);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 
 			for (int i = 0; i < polyMesh.VertCount; i++)
 			{
@@ -653,7 +653,7 @@ namespace SharpNav.Examples
 			color.A = 0.5f;
 			GL.Color4(color);
 
-			GL.Begin(PrimitiveType.Triangles);
+			GL.Begin(BeginMode.Triangles);
 			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				PolyMeshDetail.MeshData m = polyMeshDetail.Meshes[i];
@@ -680,7 +680,7 @@ namespace SharpNav.Examples
 
 			GL.Color4(Color4.Purple);
 			GL.LineWidth(1.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				var m = polyMeshDetail.Meshes[i];
@@ -711,7 +711,7 @@ namespace SharpNav.Examples
 			GL.End();
 
 			GL.LineWidth(3.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				var m = polyMeshDetail.Meshes[i];
@@ -739,7 +739,7 @@ namespace SharpNav.Examples
 			GL.End();
 
 			GL.PointSize(4.8f);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 			for (int i = 0; i < polyMeshDetail.MeshCount; i++)
 			{
 				var m = polyMeshDetail.Meshes[i];
@@ -769,7 +769,7 @@ namespace SharpNav.Examples
 			color.A = 0.5f;
 			GL.Color4(color);
 
-			GL.Begin(PrimitiveType.Triangles);
+			GL.Begin(BeginMode.Triangles);
 
 			for (int i = 0; i < tile.Polys.Length; i++)
 			{
@@ -804,7 +804,7 @@ namespace SharpNav.Examples
 			GL.Color4(Color4.Purple);
 
 			GL.LineWidth(1.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 
 			for (int i = 0; i < tile.Polys.Length; i++)
 			{
@@ -832,7 +832,7 @@ namespace SharpNav.Examples
 
 			//boundary edges
 			GL.LineWidth(3.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < tile.Polys.Length; i++)
 			{
 				for (int j = 0; j < PathfindingCommon.VERTS_PER_POLYGON; j++)
@@ -859,7 +859,7 @@ namespace SharpNav.Examples
 			GL.End();
 
 			GL.PointSize(4.8f);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 
 			for (int i = 0; i < tile.Verts.Length; i++)
 			{
@@ -883,7 +883,7 @@ namespace SharpNav.Examples
 
 			Color4 color = Color4.Cyan;
 
-			GL.Begin(PrimitiveType.Triangles);
+			GL.Begin(BeginMode.Triangles);
 			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
@@ -921,7 +921,7 @@ namespace SharpNav.Examples
 
 			//neighbor edges
 			GL.LineWidth(1.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < path.Count; i++)
 			{
 				if (i == 0)
@@ -953,7 +953,7 @@ namespace SharpNav.Examples
 
 			//steering path
 			GL.Color4(Color4.Black);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < smoothPath.Count - 1; i++)
 			{
 				SVector3 v0 = smoothPath[i];
@@ -978,7 +978,7 @@ namespace SharpNav.Examples
 
 			//The black line represents the actual path that the agent takes
 			/*GL.Color4(Color4.Black);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				for (int j = 0; j < numIterations - 1; j++)
@@ -995,7 +995,7 @@ namespace SharpNav.Examples
 			//The yellow line represents the ideal path from the start to the target
 			GL.Color4(Color4.Yellow);
 			GL.LineWidth(1.5f);
-			GL.Begin(PrimitiveType.Lines);
+			GL.Begin(BeginMode.Lines);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				SVector3 v0 = trails[i].Trail[0];
@@ -1009,7 +1009,7 @@ namespace SharpNav.Examples
 			//The cyan point represents the agent's starting location
 			GL.PointSize(100.0f);
 			GL.Color4(Color4.Cyan);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				SVector3 v0 = trails[i].Trail[0];
@@ -1019,7 +1019,7 @@ namespace SharpNav.Examples
 
 			//The red point represent's the agent's target location
 			GL.Color4(Color4.PaleVioletRed);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 			for (int i = 0; i < numActiveAgents; i++)
 			{
 				SVector3 v0 = trails[i].Trail[AGENT_MAX_TRAIL - 1];
@@ -1030,7 +1030,7 @@ namespace SharpNav.Examples
 
 			GL.Color4(Color4.PaleVioletRed);
 			GL.PointSize(10);
-			GL.Begin(PrimitiveType.Points);
+			GL.Begin(BeginMode.Points);
 			GL.Color4(Color4.Blue);
 			for (int i = 0; i < numActiveAgents; i++)
 			{

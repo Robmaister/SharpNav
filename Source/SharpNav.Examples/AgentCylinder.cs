@@ -167,7 +167,7 @@ namespace SharpNav.Examples
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, ibo);
 
-			GL.DrawElements(PrimitiveType.Triangles, numIndices, DrawElementsType.UnsignedInt, 0);
+			GL.DrawElements(BeginMode.Triangles, numIndices, DrawElementsType.UnsignedInt, 0);
 
 			GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
 			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
