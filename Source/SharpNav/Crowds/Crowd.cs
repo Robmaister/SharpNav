@@ -196,25 +196,23 @@ namespace SharpNav.Crowds
 			return true;
 		}
 
-		/// <summary>
-		/// The crowd contains active and inactive agents. Only add all the active agents to a separate array.
-		/// </summary>
-		/// <param name="agents">The array of active agents</param>
-		/// <returns>The number of active agents</returns>
-		public int GetActiveAgents(Agent[] agents)
-		{
-			int n = 0;
-			for (int i = 0; i < agents.Length; i++)
-			{
-				if (!agents[i].IsActive)
-					continue;
+        /// <summary>
+        /// The crowd contains active and inactive agents. Only add all the active agents to activeAgents.
+        /// </summary>
+        /// <returns>The number of active agents</returns>
+        private int ImportActiveAgents()
+        {
+            int n = 0;
+            for (int i = 0; i < agents.Length; ++i)
+            {
+                if (!agents[i].IsActive)
+                    continue;
 
-				if (n < maxAgents)
-					agents[n++] = agents[i];
-			}
+                activeAgents[n++] = agents[i];
+            }
 
-			return n;
-		}
+            return n;
+        }
 
 		/// <summary>
 		/// Get the agent's index in the array
@@ -240,22 +238,22 @@ namespace SharpNav.Crowds
 		{
 			velocitySampleCount = 0;
 
-			int numAgents = GetActiveAgents(agents);
+            int numAgents = ImportActiveAgents();
 
 			//check that all agents have valid paths
-			CheckPathValidity(agents, numAgents, dt);
+			CheckPathValidity(activeAgents, numAgents, dt);
 			
 			//update async move requests and path finder
 			UpdateMoveRequest();
 
 			//optimize path topology
-			UpdateTopologyOptimization(agents, numAgents, dt);
+			UpdateTopologyOptimization(activeAgents, numAgents, dt);
 
 			//register agents to proximity grid
 			grid.Clear();
 			for (int i = 0; i < numAgents; i++)
 			{
-				Agent a = agents[i];
+				Agent a = activeAgents[i];
 
 				Vector3 p = a.Position;
 				float r = a.Parameters.Radius;
@@ -265,73 +263,73 @@ namespace SharpNav.Crowds
 			//get nearby navmesh segments and agents to collide with
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != AgentState.Walking)
+				if (activeAgents[i].State != AgentState.Walking)
 					continue;
 
 				//update the collision boundary after certain distance has passed or if it has become invalid
-				float updateThr = agents[i].Parameters.CollisionQueryRange * 0.25f;
-				if (Vector3Extensions.Distance2D(agents[i].Position, agents[i].Boundary.Center) > updateThr * updateThr || !agents[i].Boundary.IsValid(navQuery))
+				float updateThr = activeAgents[i].Parameters.CollisionQueryRange * 0.25f;
+				if (Vector3Extensions.Distance2D(activeAgents[i].Position, activeAgents[i].Boundary.Center) > updateThr * updateThr || !activeAgents[i].Boundary.IsValid(navQuery))
 				{
-					agents[i].Boundary.Update(agents[i].Corridor.GetFirstPoly(), agents[i].Position, agents[i].Parameters.CollisionQueryRange, navQuery);
+					activeAgents[i].Boundary.Update(activeAgents[i].Corridor.GetFirstPoly(), activeAgents[i].Position, activeAgents[i].Parameters.CollisionQueryRange, navQuery);
 				}
 
 				//query neighbor agents
-				agents[i].NeighborCount = GetNeighbors(agents[i].Position, agents[i].Parameters.Height, agents[i].Parameters.CollisionQueryRange, agents[i], agents[i].Neighbors, AgentMaxNeighbors, agents, grid);
+				activeAgents[i].NeighborCount = GetNeighbors(activeAgents[i].Position, activeAgents[i].Parameters.Height, activeAgents[i].Parameters.CollisionQueryRange, activeAgents[i], activeAgents[i].Neighbors, AgentMaxNeighbors, activeAgents, grid);
 
-				for (int j = 0; j < agents[i].NeighborCount; j++)
-					agents[i].Neighbors[j].Index = GetAgentIndex(agents[agents[i].Neighbors[j].Index]);
+				for (int j = 0; j < activeAgents[i].NeighborCount; j++)
+					activeAgents[i].Neighbors[j].Index = GetAgentIndex(activeAgents[activeAgents[i].Neighbors[j].Index]);
 			}
 
 			//find the next corner to steer to
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != AgentState.Walking)
+				if (activeAgents[i].State != AgentState.Walking)
 					continue;
-				if (agents[i].TargetState == TargetState.None ||
-					agents[i].TargetState == TargetState.Velocity)
+				if (activeAgents[i].TargetState == TargetState.None ||
+					activeAgents[i].TargetState == TargetState.Velocity)
 					continue;
 
 				//find corners for steering
-				agents[i].Corridor.FindCorners(agents[i].Corners, navQuery);
+				activeAgents[i].Corridor.FindCorners(activeAgents[i].Corners, navQuery);
 
 				//check to see if the corner after the next corner is directly visible 
-				if (((agents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeVis) != 0) && agents[i].Corners.Count > 0)
+				if (((activeAgents[i].Parameters.UpdateFlags & UpdateFlags.OptimizeVis) != 0) && activeAgents[i].Corners.Count > 0)
 				{
-					Vector3 target = agents[i].Corners[Math.Min(1, agents[i].Corners.Count - 1)].Point.Position;
-					agents[i].Corridor.OptimizePathVisibility(target, agents[i].Parameters.PathOptimizationRange, navQuery);
+                    Vector3 target = activeAgents[i].Corners[Math.Min(1, activeAgents[i].Corners.Count - 1)].Point.Position;
+					activeAgents[i].Corridor.OptimizePathVisibility(target, activeAgents[i].Parameters.PathOptimizationRange, navQuery);
 				}
 			}
 
 			//trigger off-mesh connections (depends on corners)
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != AgentState.Walking)
+				if (activeAgents[i].State != AgentState.Walking)
 					continue;
-				if (agents[i].TargetState == TargetState.None ||
-					agents[i].TargetState == TargetState.Velocity)
+				if (activeAgents[i].TargetState == TargetState.None ||
+					activeAgents[i].TargetState == TargetState.Velocity)
 					continue;
 
 				//check
-				float triggerRadius = agents[i].Parameters.Radius * 2.25f;
-				if (OverOffmeshConnection(agents[i], triggerRadius))
+				float triggerRadius = activeAgents[i].Parameters.Radius * 2.25f;
+				if (OverOffmeshConnection(activeAgents[i], triggerRadius))
 				{
 					//prepare to off-mesh connection
 					int idx = i;
 					
 					//adjust the path over the off-mesh connection
 					NavPolyId[] refs = new NavPolyId[2];
-					if (agents[i].Corridor.MoveOverOffmeshConnection(agents[i].Corners[agents[i].Corners.Count - 1].Point.Polygon, refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
+					if (activeAgents[i].Corridor.MoveOverOffmeshConnection(activeAgents[i].Corners[activeAgents[i].Corners.Count - 1].Point.Polygon, refs, ref agentAnims[idx].StartPos, ref agentAnims[idx].EndPos, navQuery))
 					{
-						agentAnims[idx].InitPos = agents[i].Position;
-						agentAnims[idx].PolyRef = refs[1];
-						agentAnims[idx].Active = true;
-						agentAnims[idx].T = 0.0f;
-						agentAnims[idx].TMax = (Vector3Extensions.Distance2D(agentAnims[idx].StartPos, agentAnims[idx].EndPos)
-							/ agents[i].Parameters.MaxSpeed) * 0.5f;
+                        agentAnims[idx].InitPos = activeAgents[i].Position;
+                        agentAnims[idx].PolyRef = refs[1];
+                        agentAnims[idx].Active = true;
+                        agentAnims[idx].T = 0.0f;
+                        agentAnims[idx].TMax = (Vector3Extensions.Distance2D(agentAnims[idx].StartPos, agentAnims[idx].EndPos)
+							/ activeAgents[i].Parameters.MaxSpeed) * 0.5f;
 
-						agents[i].State = AgentState.Offmesh;
-						agents[i].Corners.Clear();
-						agents[i].NeighborCount = 0;
+						activeAgents[i].State = AgentState.Offmesh;
+						activeAgents[i].Corners.Clear();
+						activeAgents[i].NeighborCount = 0;
 						continue;
 					}
 				}
@@ -340,49 +338,49 @@ namespace SharpNav.Crowds
 			//calculate steering
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != AgentState.Walking)
+				if (activeAgents[i].State != AgentState.Walking)
 					continue;
-				if (agents[i].TargetState == TargetState.None)
+				if (activeAgents[i].TargetState == TargetState.None)
 					continue;
 
 				Vector3 dvel = new Vector3(0, 0, 0);
 
-				if (agents[i].TargetState == TargetState.Velocity)
+				if (activeAgents[i].TargetState == TargetState.Velocity)
 				{
-					dvel = agents[i].TargetPosition;
-					agents[i].DesiredSpeed = agents[i].TargetPosition.Length();
+					dvel = activeAgents[i].TargetPosition;
+					activeAgents[i].DesiredSpeed = activeAgents[i].TargetPosition.Length();
 				}
 				else
 				{
 					//calculate steering direction
-					if ((agents[i].Parameters.UpdateFlags & UpdateFlags.AnticipateTurns) != 0)
-						CalcSmoothSteerDirection(agents[i], ref dvel);
+					if ((activeAgents[i].Parameters.UpdateFlags & UpdateFlags.AnticipateTurns) != 0)
+						CalcSmoothSteerDirection(activeAgents[i], ref dvel);
 					else
-						CalcStraightSteerDirection(agents[i], ref dvel);
+						CalcStraightSteerDirection(activeAgents[i], ref dvel);
 
 					//calculate speed scale, which tells the agent to slowdown at the end of the path
-					float slowDownRadius = agents[i].Parameters.Radius * 2;
-					float speedScale = GetDistanceToGoal(agents[i], slowDownRadius) / slowDownRadius;
+					float slowDownRadius = activeAgents[i].Parameters.Radius * 2;
+					float speedScale = GetDistanceToGoal(activeAgents[i], slowDownRadius) / slowDownRadius;
 
-					agents[i].DesiredSpeed = agents[i].Parameters.MaxSpeed;
-					dvel = dvel * (agents[i].DesiredSpeed * speedScale);
+					activeAgents[i].DesiredSpeed = activeAgents[i].Parameters.MaxSpeed;
+					dvel = dvel * (activeAgents[i].DesiredSpeed * speedScale);
 				}
 
 				//separation
-				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.Separation) != 0)
+				if ((activeAgents[i].Parameters.UpdateFlags & UpdateFlags.Separation) != 0)
 				{
-					float separationDist = agents[i].Parameters.CollisionQueryRange;
+					float separationDist = activeAgents[i].Parameters.CollisionQueryRange;
 					float invSeparationDist = 1.0f / separationDist;
-					float separationWeight = agents[i].Parameters.SeparationWeight;
+					float separationWeight = activeAgents[i].Parameters.SeparationWeight;
 
 					float w = 0;
 					Vector3 disp = new Vector3(0, 0, 0);
 
-					for (int j = 0; j < agents[i].NeighborCount; j++)
+					for (int j = 0; j < activeAgents[i].NeighborCount; j++)
 					{
-						Agent nei = agents[agents[i].Neighbors[j].Index];
+						Agent nei = activeAgents[activeAgents[i].Neighbors[j].Index];
 
-						Vector3 diff = agents[i].Position - nei.Position;
+						Vector3 diff = activeAgents[i].Position - nei.Position;
 						diff.Y = 0;
 
 						float distSqr = diff.LengthSquared();
@@ -404,38 +402,38 @@ namespace SharpNav.Crowds
 
 						//clamp desired velocity to desired speed
 						float speedSqr = dvel.LengthSquared();
-						float desiredSqr = agents[i].DesiredSpeed * agents[i].DesiredSpeed;
+						float desiredSqr = activeAgents[i].DesiredSpeed * activeAgents[i].DesiredSpeed;
 						if (speedSqr > desiredSqr)
 							dvel = dvel * (desiredSqr / speedSqr);
 					}
 				}
 
 				//set the desired velocity
-				agents[i].DesiredVel = dvel;
+				activeAgents[i].DesiredVel = dvel;
 			}
 
 			//velocity planning
 			for (int i = 0; i < numAgents; i++)
 			{
-				if (agents[i].State != AgentState.Walking)
+				if (activeAgents[i].State != AgentState.Walking)
 					continue;
 
-				if ((agents[i].Parameters.UpdateFlags & UpdateFlags.ObstacleAvoidance) != 0)
+				if ((activeAgents[i].Parameters.UpdateFlags & UpdateFlags.ObstacleAvoidance) != 0)
 				{
 					this.obstacleQuery.Reset();
 
 					//add neighhbors as obstacles
-					for (int j = 0; j < agents[i].NeighborCount; j++)
+					for (int j = 0; j < activeAgents[i].NeighborCount; j++)
 					{
-						Agent nei = agents[agents[i].Neighbors[j].Index];
+						Agent nei = activeAgents[activeAgents[i].Neighbors[j].Index];
 						obstacleQuery.AddCircle(nei.Position, nei.Parameters.Radius, nei.Vel, nei.DesiredVel);
 					}
 
 					//append neighbor segments as obstacles
-					for (int j = 0; j < agents[i].Boundary.SegCount; j++)
+					for (int j = 0; j < activeAgents[i].Boundary.SegCount; j++)
 					{
-						LocalBoundary.Segment s = agents[i].Boundary.Segs[j];
-						if (Triangle3.Area2D(agents[i].Position, s.Start, s.End) < 0.0f)
+						LocalBoundary.Segment s = activeAgents[i].Boundary.Segs[j];
+						if (Triangle3.Area2D(activeAgents[i].Position, s.Start, s.End) < 0.0f)
 							continue;
 						obstacleQuery.AddSegment(s.Start, s.End);
 					}
@@ -444,15 +442,15 @@ namespace SharpNav.Crowds
 					bool adaptive = true;
 					int ns = 0;
 
-					ObstacleAvoidanceQuery.ObstacleAvoidanceParams parameters = obstacleQueryParams[agents[i].Parameters.ObstacleAvoidanceType];
+					ObstacleAvoidanceQuery.ObstacleAvoidanceParams parameters = obstacleQueryParams[activeAgents[i].Parameters.ObstacleAvoidanceType];
 
 					if (adaptive)
 					{
-						ns = obstacleQuery.SampleVelocityAdaptive(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed, agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
+						ns = obstacleQuery.SampleVelocityAdaptive(activeAgents[i].Position, activeAgents[i].Parameters.Radius, activeAgents[i].DesiredSpeed, activeAgents[i].Vel, activeAgents[i].DesiredVel, ref activeAgents[i].NVel, parameters);
 					}
 					else
 					{
-						ns = obstacleQuery.SampleVelocityGrid(agents[i].Position, agents[i].Parameters.Radius, agents[i].DesiredSpeed, agents[i].Vel, agents[i].DesiredVel, ref agents[i].NVel, parameters);
+						ns = obstacleQuery.SampleVelocityGrid(activeAgents[i].Position, activeAgents[i].Parameters.Radius, activeAgents[i].DesiredSpeed, activeAgents[i].Vel, activeAgents[i].DesiredVel, ref activeAgents[i].NVel, parameters);
 					}
 
 					this.velocitySampleCount += ns;
@@ -460,14 +458,14 @@ namespace SharpNav.Crowds
 				else
 				{
 					//if not using velocity planning, new velocity is directly the desired velocity
-					agents[i].NVel = agents[i].DesiredVel;
+					activeAgents[i].NVel = activeAgents[i].DesiredVel;
 				}
 			}
 
 			//integrate
 			for (int i = 0; i < numAgents; i++)
 			{
-				Agent ag = agents[i];
+				Agent ag = activeAgents[i];
 
 				if (ag.State != AgentState.Walking)
 					continue;
@@ -482,35 +480,35 @@ namespace SharpNav.Crowds
 			{
 				for (int i = 0; i < numAgents; i++)
 				{
-					int idx0 = GetAgentIndex(agents[i]);
+					int idx0 = GetAgentIndex(activeAgents[i]);
 
-					if (agents[i].State != AgentState.Walking)
+					if (activeAgents[i].State != AgentState.Walking)
 						continue;
 
-					agents[i].Disp = new Vector3(0, 0, 0);
+					activeAgents[i].Disp = new Vector3(0, 0, 0);
 
 					float w = 0;
 
-					for (int j = 0; j < agents[i].NeighborCount; j++)
+					for (int j = 0; j < activeAgents[i].NeighborCount; j++)
 					{
-						Agent nei = agents[agents[i].Neighbors[j].Index];
+						Agent nei = activeAgents[activeAgents[i].Neighbors[j].Index];
 						int idx1 = GetAgentIndex(nei);
 
-						Vector3 diff = agents[i].Position - nei.Position;
+						Vector3 diff = activeAgents[i].Position - nei.Position;
 						diff.Y = 0;
 
 						float dist = diff.LengthSquared();
-						if (dist > (agents[i].Parameters.Radius + nei.Parameters.Radius) * (agents[i].Parameters.Radius + nei.Parameters.Radius))
+						if (dist > (activeAgents[i].Parameters.Radius + nei.Parameters.Radius) * (activeAgents[i].Parameters.Radius + nei.Parameters.Radius))
 							continue;
 						dist = (float)Math.Sqrt(dist);
-						float pen = (agents[i].Parameters.Radius + nei.Parameters.Radius) - dist;
+						float pen = (activeAgents[i].Parameters.Radius + nei.Parameters.Radius) - dist;
 						if (dist < 0.0001f)
 						{
 							//agents on top of each other, try to choose diverging separation directions
 							if (idx0 > idx1)
-								diff = new Vector3(-agents[i].DesiredVel.Z, 0, agents[i].DesiredVel.X);
+								diff = new Vector3(-activeAgents[i].DesiredVel.Z, 0, activeAgents[i].DesiredVel.X);
 							else
-								diff = new Vector3(agents[i].DesiredVel.Z, 0, -agents[i].DesiredVel.X);
+								diff = new Vector3(activeAgents[i].DesiredVel.Z, 0, -activeAgents[i].DesiredVel.X);
 							pen = 0.01f;
 						}
 						else
@@ -518,7 +516,7 @@ namespace SharpNav.Crowds
 							pen = (1.0f / dist) * (pen * 0.5f) * COLLISION_RESOLVE_FACTOR;
 						}
 
-						agents[i].Disp = agents[i].Disp + diff * pen;
+						activeAgents[i].Disp = activeAgents[i].Disp + diff * pen;
 
 						w += 1.0f;
 					}
@@ -526,27 +524,27 @@ namespace SharpNav.Crowds
 					if (w > 0.0001f)
 					{
 						float iw = 1.0f / w;
-						agents[i].Disp = agents[i].Disp * iw;
+						activeAgents[i].Disp = activeAgents[i].Disp * iw;
 					}
 				}
 
 				for (int i = 0; i < numAgents; i++)
 				{
-					if (agents[i].State != AgentState.Walking)
+					if (activeAgents[i].State != AgentState.Walking)
 						continue;
 
 					//move along navmesh
-					agents[i].Corridor.MovePosition(agents[i].Position, navQuery);
+					activeAgents[i].Corridor.MovePosition(activeAgents[i].Position, navQuery);
 
 					//get valid constrained position back
-					agents[i].Position = agents[i].Corridor.Pos;
+					activeAgents[i].Position = activeAgents[i].Corridor.Pos;
 
 					//if not using path, truncate the corridor to just one poly
-					if (agents[i].TargetState == TargetState.None ||
-						agents[i].TargetState == TargetState.Velocity)
+					if (activeAgents[i].TargetState == TargetState.None ||
+						activeAgents[i].TargetState == TargetState.Velocity)
 					{
-						agents[i].Corridor.Reset(agents[i].Corridor.GetFirstPoly(), agents[i].Position);
-						agents[i].IsPartial = false;
+						activeAgents[i].Corridor.Reset(activeAgents[i].Corridor.GetFirstPoly(), activeAgents[i].Position);
+						activeAgents[i].IsPartial = false;
 					}
 				}
 
@@ -563,7 +561,7 @@ namespace SharpNav.Crowds
 						agentAnims[i].Active = false;
 
 						//prepare agent for walking
-						agents[i].State = AgentState.Walking;
+						activeAgents[i].State = AgentState.Walking;
 
 						continue;
 					}
@@ -576,18 +574,18 @@ namespace SharpNav.Crowds
 						float u = MathHelper.Normalize(agentAnims[i].T, 0.0f, ta);
 						Vector3 lerpOut;
 						Vector3.Lerp(ref agentAnims[i].InitPos, ref agentAnims[i].StartPos, u, out lerpOut);
-						agents[i].Position = lerpOut;
+						activeAgents[i].Position = lerpOut;
 					}
 					else
 					{
 						float u = MathHelper.Normalize(agentAnims[i].T, ta, tb);
 						Vector3 lerpOut;
 						Vector3.Lerp(ref agentAnims[i].StartPos, ref agentAnims[i].EndPos, u, out lerpOut);
-						agents[i].Position = lerpOut;
+						activeAgents[i].Position = lerpOut;
 					}
 
-					agents[i].Vel = new Vector3(0, 0, 0);
-					agents[i].DesiredVel = new Vector3(0, 0, 0);
+					activeAgents[i].Vel = new Vector3(0, 0, 0);
+					activeAgents[i].DesiredVel = new Vector3(0, 0, 0);
 				}
 			}
 		}
