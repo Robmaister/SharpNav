@@ -270,7 +270,16 @@ namespace SharpNav.Crowds
 
 			//store visited
 			for (int i = 0; i < req; i++)
-				path[i] = visited[(visited.Count - 1) - i];
+            {
+                if (i < path.Count)
+                {
+                    path[i] = visited[(visited.Count - 1) - i];
+                }
+                else
+                {
+                    path.Add(visited[(visited.Count - 1) - i]);
+                }
+            }
 
 			return req + size;
 		}
